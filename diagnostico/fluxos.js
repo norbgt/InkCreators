@@ -21,10 +21,10 @@ const FLUXOS=[
 
 {n:"Virar tatuador e ser encontrado",ator:"Tatuador",etapas:[
  ["Escolher o papel no cadastro","real","gatilho handle_new_user grava em user_roles"],
- ["Passar pelo onboarding","mock","wizard existe só na interface"],
+ ["Passar pelo onboarding","real","wizard grava perfil, estilos e publicação"],
  ["Preencher perfil e estilos","real","salvarPerfilDeArtista, com verificação de papel"],
- ["Subir portfólio","parcial","tabela e bucket prontos, envio não implementado"],
- ["Definir tabela de preços","parcial","tabela artist_pricing existe, interface não grava"],
+ ["Subir portfólio","real","envio para o bucket portfolio + registro em portfolio_items"],
+ ["Definir tabela de preços","real","interface grava em artist_pricing"],
  ["Publicar","real","is_published controla a visibilidade pública"]]},
 
 {n:"Responder a um orçamento",ator:"Tatuador",etapas:[

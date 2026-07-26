@@ -509,7 +509,11 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  modo:"demo",conn:null,papeis:null,regMsg:"",regErro:false,
  reg:{nome:"",email:"",senha:"",artista:null},
  reaisArtistas:null,carregando:false,pfMsg:"",pfErro:false,
- pf:{nome:"",estudio:"",cidade:"",uf:"",estilos:[],publicado:false}};
+ pf:{nome:"",estudio:"",cidade:"",uf:"",estilos:[],publicado:false},
+ onbEstudio:"",onbCidade:"",onbUf:"",onbAnos:null,onbInsta:"",onbBio:"",
+ onbFotos:null,onbMsg:"",onbErro:false,
+ precos:null,prMsg:"",prErro:false,
+ prNovo:{estilo:"fineline",tamanho:"medio",min:"",max:"",horas:""}};
 
 function brl(c){return "R$ "+(c/100).toLocaleString("pt-BR",{maximumFractionDigits:0})}
 function money(v){return v===0?"Grátis":"R$ "+v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}
@@ -1051,11 +1055,11 @@ function vOnb(){
  if(st===1){
   h+='<div class="grid" style="gap:11px">';
   h+='<div><label class="lb">Nome de exibição *</label><input class="fld" value="'+S.onbName+'" oninput="S.onbName=this.value;renderOnbBtn()" placeholder="Como você assina seu trabalho" /></div>';
-  h+='<div><label class="lb">Nome do estúdio</label><input class="fld" placeholder="Studio ..." /></div>';
-  h+='<div class="grid" style="grid-template-columns:2fr 1fr"><div><label class="lb">Cidade</label><input class="fld" placeholder="São Paulo" /></div><div><label class="lb">UF</label><input class="fld" placeholder="SP" /></div></div>';
-  h+='<div><label class="lb">Anos de experiência</label><input class="fld" type="number" placeholder="5" /></div>';
-  h+='<div><label class="lb">Instagram</label><input class="fld" placeholder="@seuperfil" /></div>';
-  h+='<div><label class="lb">Bio</label><textarea class="fld" style="height:76px;resize:vertical" placeholder="Conte como é seu traço e como você atende"></textarea></div>';
+  h+='<div><label class="lb">Nome do estúdio</label><input class="fld" value="'+(S.onbEstudio||"")+'" oninput="S.onbEstudio=this.value" placeholder="Studio ..." /></div>';
+  h+='<div class="grid" style="grid-template-columns:2fr 1fr"><div><label class="lb">Cidade</label><input class="fld" value="'+(S.onbCidade||"")+'" oninput="S.onbCidade=this.value" placeholder="São Paulo" /></div><div><label class="lb">UF</label><input class="fld" value="'+(S.onbUf||"")+'" oninput="S.onbUf=this.value" placeholder="SP" /></div></div>';
+  h+='<div><label class="lb">Anos de experiência</label><input class="fld" type="number" value="'+(S.onbAnos||"")+'" oninput="S.onbAnos=+this.value||null" placeholder="5" /></div>';
+  h+='<div><label class="lb">Instagram</label><input class="fld" value="'+(S.onbInsta||"")+'" oninput="S.onbInsta=this.value.replace(/^@/,\'\')" placeholder="seuperfil (sem o @)" /></div>';
+  h+='<div><label class="lb">Bio</label><textarea class="fld" style="height:76px;resize:vertical" oninput="S.onbBio=this.value" placeholder="Conte como é seu traço e como você atende">'+(S.onbBio||"")+'</textarea></div>';
   h+='</div>';
  }
  if(st===2){
@@ -1072,11 +1076,26 @@ function vOnb(){
   h+='<div class="tiny muted" style="margin-top:9px">'+S.onbStyles.length+' de 6 selecionados</div>';
  }
  if(st===3){
-  h+='<div class="small muted">Adicione algumas fotos do seu trabalho. Você pode pular e fazer isso depois.</div>';
-  h+='<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:11px;gap:8px">';
-  for(var k=0;k<S.onbPort;k++)h+='<div class="tat" style="aspect-ratio:1;border-radius:9px;background-image:'+tex(k*5+3)+'"></div>';
-  h+='<button style="aspect-ratio:1;border:1.5px dashed var(--border);border-radius:9px;color:var(--muted-foreground);font-size:12px" onclick="S.onbPort=Math.min(9,S.onbPort+1);render()">＋<br/>Adicionar</button>';
-  h+='</div><div class="tiny muted" style="margin-top:9px">'+S.onbPort+' imagem(ns) · upload vai para o bucket portfolio'+tg("real")+'</div>';
+  if(S.modo==="real"){
+   h+='<div class="small muted">Escolha imagens do seu computador. Elas vão para o bucket <code>portfolio</code> e ficam visíveis no seu perfil público.</div>';
+   h+='<div class="banner" style="margin-top:10px"><div><div class="b small">Para subir imagens, o perfil precisa existir antes.</div>';
+   h+='<div class="tiny muted">Se ainda não gravou, conclua o passo 4 primeiro e depois volte pelo painel do estúdio para completar o portfólio.</div></div></div>';
+   h+='<input type="file" id="arqPort" accept="image/png,image/jpeg,image/webp" multiple style="display:none" onchange="subirPortfolio(this.files)" />';
+   h+='<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:11px;gap:8px">';
+   (S.onbFotos||[]).forEach(function(f,i){
+    h+='<div style="position:relative"><img src="'+f.image_url+'" style="aspect-ratio:1;width:100%;object-fit:cover;border-radius:9px;border:1px solid var(--border)" />';
+    h+='<button class="thumbsq" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:11px;display:flex;align-items:center;justify-content:center" onclick="removerFoto(\''+f.id+'\',\''+f.image_url+'\')">✕</button></div>';
+   });
+   h+='<button style="aspect-ratio:1;border:1.5px dashed var(--border);border-radius:9px;color:var(--muted-foreground);font-size:12px" onclick="document.getElementById(\'arqPort\').click()">＋<br/>Escolher</button>';
+   h+='</div>';
+   h+='<div class="tiny muted" style="margin-top:9px">'+((S.onbFotos||[]).length)+' imagem(ns) no banco · máximo 5 MB cada'+tg("real")+'</div>';
+  }else{
+   h+='<div class="small muted">Adicione algumas fotos do seu trabalho. Você pode pular e fazer isso depois.</div>';
+   h+='<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:11px;gap:8px">';
+   for(var k=0;k<S.onbPort;k++)h+='<div class="tat" style="aspect-ratio:1;border-radius:9px;background-image:'+tex(k*5+3)+'"></div>';
+   h+='<button style="aspect-ratio:1;border:1.5px dashed var(--border);border-radius:9px;color:var(--muted-foreground);font-size:12px" onclick="S.onbPort=Math.min(9,S.onbPort+1);render()">＋<br/>Adicionar</button>';
+   h+='</div><div class="tiny muted" style="margin-top:9px">'+S.onbPort+' imagem(ns) · em modo real, o envio vai para o bucket portfolio</div>';
+  }
  }
  if(st===4){
   h+='<div class="b small">Revise antes de publicar</div>';
@@ -1088,10 +1107,99 @@ function vOnb(){
   h+='</table>';
   h+='<div class="banner" style="margin-top:13px"><div><div class="b small">Publicar perfil no feed público</div><div class="tiny muted">Você pode despublicar quando quiser. Sem publicar, ninguém encontra seu perfil.</div></div></div>';
  }
+ if(S.modo==="real"&&S.onbMsg)
+  h+='<div class="banner" style="margin-top:12px;'+(S.onbErro?'background:var(--x-danger-bg);border-color:var(--x-danger)':'')+'"><div class="small"'+(S.onbErro?' style="color:var(--x-danger)"':'')+'>'+S.onbMsg+'</div></div>';
+
  h+='<div class="row" style="margin-top:16px"><button class="btn" '+(st===1?"disabled":"")+' onclick="S.onbStep=Math.max(1,S.onbStep-1);render()">← Voltar</button>';
  if(st===3)h+='<button class="btn" onclick="S.onbStep=4;render()">Pular</button>';
- h+='<button class="btn primary sp" id="onbNext" '+(can?"":"disabled")+' onclick="'+(st===4?"go('studio')":"S.onbStep++;render()")+'">'+(st===4?"Publicar e ir ao painel":"Continuar →")+'</button></div>';
+ var acao = st===4
+  ? (S.modo==="real" ? "concluirOnboardingReal()" : "go('studio')")
+  : "S.onbStep++;render()";
+ h+='<button class="btn primary sp" id="onbNext" '+(can?"":"disabled")+' onclick="'+acao+'">'+(st===4?(S.modo==="real"?"Publicar no banco":"Publicar e ir ao painel"):"Continuar →")+'</button></div>';
  return h+'</div></div></main>';
+}
+
+async function carregarPrecos(){
+ if(S.carregandoPrecos)return; S.carregandoPrecos=true;
+ try{S.precos=await window.Dados.listarMeusPrecos()}
+ catch(e){S.precos=[];S.prErro=true;S.prMsg=e.message||String(e)}
+ S.carregandoPrecos=false;render();
+}
+async function gravarPreco(){
+ var n=S.prNovo;
+ if(!n.min||!n.max){S.prErro=true;S.prMsg="Informe o valor mínimo e o máximo.";render();return}
+ S.prMsg="Salvando…";S.prErro=false;render();
+ try{
+  await window.Dados.salvarPreco({
+   estilo:n.estilo, tamanho:n.tamanho,
+   minCents:Math.round(+n.min*100), maxCents:Math.round(+n.max*100),
+   horas:n.horas?+n.horas:null
+  });
+  S.precos=null; S.prNovo={estilo:n.estilo,tamanho:n.tamanho,min:"",max:"",horas:""};
+  S.prMsg="Faixa salva. Ela já aparece no seu perfil público.";
+ }catch(e){S.prErro=true;S.prMsg=e.message||String(e)}
+ render();
+}
+async function apagarPreco(id){
+ try{await window.Dados.removerPreco(id);S.precos=null;S.prMsg="Faixa removida.";S.prErro=false}
+ catch(e){S.prErro=true;S.prMsg=e.message||String(e)}
+ render();
+}
+async function subirPortfolio(arquivos){
+ if(!arquivos||!arquivos.length)return;
+ S.onbMsg="Enviando "+arquivos.length+" imagem(ns)…";S.onbErro=false;render();
+ var ok=0,falhas=[];
+ for(var i=0;i<arquivos.length;i++){
+  try{
+   var item=await window.Dados.enviarImagemDoPortfolio(arquivos[i],null);
+   S.onbFotos=(S.onbFotos||[]).concat([item]);
+   ok++;
+  }catch(e){falhas.push(arquivos[i].name+": "+(e.message||e))}
+  S.onbMsg="Enviando… "+(i+1)+" de "+arquivos.length;render();
+ }
+ S.onbErro=falhas.length>0;
+ S.onbMsg=falhas.length
+  ? ok+" enviada(s). Falhou: "+falhas.join(" | ")
+  : ok+" imagem(ns) no banco.";
+ S.reaisArtistas=null;
+ render();
+}
+async function removerFoto(id,url){
+ try{
+  await window.Dados.removerDoPortfolio(id,url);
+  S.onbFotos=(S.onbFotos||[]).filter(function(f){return f.id!==id});
+  S.reaisArtistas=null;S.onbMsg="Imagem removida.";S.onbErro=false;
+ }catch(e){S.onbErro=true;S.onbMsg=e.message||String(e)}
+ render();
+}
+async function carregarFotosReais(){
+ try{S.onbFotos=await window.Dados.listarMeuPortfolio()}catch(e){S.onbFotos=[]}
+ render();
+}
+async function concluirOnboardingReal(){
+ S.onbMsg="Gravando…";S.onbErro=false;render();
+ try{
+  var papeis=(await window.Dados.meusPapeis()).map(function(p){return p.role});
+  if(papeis.indexOf("artist")<0){
+   S.onbMsg="Adicionando o papel de tatuador…";render();
+   await window.Dados.tornarSeTatuador();
+  }
+  await window.Dados.salvarPerfilDeArtista({
+   nome:S.onbName, estudio:S.onbEstudio, cidade:S.onbCidade, uf:S.onbUf,
+   anos:S.onbAnos||null, instagram:S.onbInsta||null,
+   estilos:S.onbStyles, publicado:true
+  });
+  S.reaisArtistas=null;
+  S.session="artist";
+  S.onbMsg="";
+  S.pf={nome:S.onbName,estudio:S.onbEstudio,cidade:S.onbCidade,uf:S.onbUf,estilos:S.onbStyles.slice(),publicado:true};
+  go("studio");
+ }catch(e){
+  S.onbErro=true;
+  S.onbMsg=(e.message||String(e))+
+   (/logado|sessão|session/i.test(e.message||"")?" — entre com uma conta real na tela do banco antes de concluir.":"");
+  render();
+ }
 }
 function togStyle(s){var i=S.onbStyles.indexOf(s);if(i>=0)S.onbStyles.splice(i,1);else if(S.onbStyles.length<6)S.onbStyles.push(s);render()}
 function renderOnbBtn(){var b=document.getElementById("onbNext");if(b)b.disabled=S.onbName.trim().length<2}
@@ -1269,14 +1377,46 @@ function studioProfile(){
  }
 
  if(S.pfTab==="pricing"){
-  h+='<div class="card pad" style="margin-top:13px"><div class="row"><span class="b">Tabela de preços</span>'+tg("real")+'<button class="btn sm sp">＋ Nova linha</button></div>';
+  h+='<div class="card pad" style="margin-top:13px"><div class="row"><span class="b">Tabela de preços</span>'+tg("real")+'</div>';
   h+='<div class="tiny muted" style="margin-top:6px">Por estilo e tamanho. Alimenta a estimativa mostrada ao cliente no seu perfil público.</div>';
-  h+='<table class="t" style="margin-top:10px"><tr><th>Estilo</th><th>Tamanho</th><th style="text-align:right">Mínimo</th><th style="text-align:right">Máximo</th><th style="text-align:right">Horas</th><th></th></tr>';
-  PRICING.forEach(function(p){
-   h+='<tr><td class="b small">'+SL[p[0]]+'</td><td class="small muted">'+SIZE_L[p[1]]+'</td>';
-   h+='<td style="text-align:right" class="small">'+brl(p[2])+'</td><td style="text-align:right" class="small">'+brl(p[3])+'</td>';
-   h+='<td style="text-align:right" class="small muted">'+p[4]+'h</td><td style="text-align:right"><button class="btn sm">Editar</button></td></tr>'});
-  h+='</table></div>';
+
+  if(S.modo==="real"){
+   if(S.precos===null){carregarPrecos();h+='<div class="small muted" style="margin-top:12px">Carregando do banco…</div>'}
+   else{
+    h+='<table class="t" style="margin-top:10px"><tr><th>Estilo</th><th>Tamanho</th><th style="text-align:right">Mínimo</th><th style="text-align:right">Máximo</th><th style="text-align:right">Horas</th><th></th></tr>';
+    if(!S.precos.length)h+='<tr><td colspan="6" class="small muted" style="padding:14px 0">Nenhuma faixa definida. Sem isso, o cliente não vê estimativa de preço no seu perfil.</td></tr>';
+    S.precos.forEach(function(p){
+     h+='<tr><td class="b small">'+(SL[p.style_slug]||p.style_slug)+'</td><td class="small muted">'+(SIZE_L[p.size_bucket]||p.size_bucket)+'</td>';
+     h+='<td style="text-align:right" class="small">'+brl(p.min_cents)+'</td><td style="text-align:right" class="small">'+brl(p.max_cents)+'</td>';
+     h+='<td style="text-align:right" class="small muted">'+(p.hours_estimate||"—")+'</td>';
+     h+='<td style="text-align:right"><button class="btn sm" onclick="apagarPreco(\''+p.id+'\')">Remover</button></td></tr>';
+    });
+    h+='</table>';
+    h+='<div class="sep"></div><div class="b small">Adicionar faixa</div>';
+    h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;margin-top:9px">';
+    h+='<div><label class="lb">Estilo</label><select class="fld" onchange="S.prNovo.estilo=this.value">';
+    STYLES.forEach(function(s){h+='<option value="'+s.s+'"'+(S.prNovo.estilo===s.s?" selected":"")+'>'+s.l+'</option>'});
+    h+='</select></div>';
+    h+='<div><label class="lb">Tamanho</label><select class="fld" onchange="S.prNovo.tamanho=this.value">';
+    [["pequeno","Pequeno"],["medio","Médio"],["grande","Grande"],["sessao_dia","Sessão dia"]].forEach(function(t){
+     h+='<option value="'+t[0]+'"'+(S.prNovo.tamanho===t[0]?" selected":"")+'>'+t[1]+'</option>'});
+    h+='</select></div>';
+    h+='<div><label class="lb">Mínimo (R$)</label><input class="fld" type="number" value="'+S.prNovo.min+'" oninput="S.prNovo.min=this.value" /></div>';
+    h+='<div><label class="lb">Máximo (R$)</label><input class="fld" type="number" value="'+S.prNovo.max+'" oninput="S.prNovo.max=this.value" /></div>';
+    h+='<div><label class="lb">Horas</label><input class="fld" type="number" step="0.5" value="'+S.prNovo.horas+'" oninput="S.prNovo.horas=this.value" /></div>';
+    h+='</div>';
+    h+='<button class="btn primary" style="margin-top:11px" onclick="gravarPreco()">Salvar faixa</button>';
+    if(S.prMsg)h+='<div class="banner" style="margin-top:11px;'+(S.prErro?'background:var(--x-danger-bg);border-color:var(--x-danger)':'')+'"><div class="small"'+(S.prErro?' style="color:var(--x-danger)"':'')+'>'+S.prMsg+'</div></div>';
+   }
+  }else{
+   h+='<table class="t" style="margin-top:10px"><tr><th>Estilo</th><th>Tamanho</th><th style="text-align:right">Mínimo</th><th style="text-align:right">Máximo</th><th style="text-align:right">Horas</th></tr>';
+   PRICING.forEach(function(p){
+    h+='<tr><td class="b small">'+SL[p[0]]+'</td><td class="small muted">'+SIZE_L[p[1]]+'</td>';
+    h+='<td style="text-align:right" class="small">'+brl(p[2])+'</td><td style="text-align:right" class="small">'+brl(p[3])+'</td>';
+    h+='<td style="text-align:right" class="small muted">'+p[4]+'h</td></tr>'});
+   h+='</table><div class="tiny muted" style="margin-top:9px">Dados de exemplo. Ligue o modo real no menu superior para gravar as suas faixas.</div>';
+  }
+  h+='</div>';
  }
 
  if(S.pfTab==="insta"){

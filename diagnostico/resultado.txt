@@ -28,17 +28,17 @@
    ▓ parcial  Aceitar ou recusar proposta
               política existe, função ainda não escrita
 
-▸ Virar tatuador e ser encontrado  (Tatuador)   67% sustentado
+▸ Virar tatuador e ser encontrado  (Tatuador)   100% sustentado
    █ real     Escolher o papel no cadastro
               gatilho handle_new_user grava em user_roles
-   ░ mock     Passar pelo onboarding  ← quebra aqui
-              wizard existe só na interface
+   █ real     Passar pelo onboarding
+              wizard grava perfil, estilos e publicação
    █ real     Preencher perfil e estilos
               salvarPerfilDeArtista, com verificação de papel
-   ▓ parcial  Subir portfólio
-              tabela e bucket prontos, envio não implementado
-   ▓ parcial  Definir tabela de preços
-              tabela artist_pricing existe, interface não grava
+   █ real     Subir portfólio
+              envio para o bucket portfolio + registro em portfolio_items
+   █ real     Definir tabela de preços
+              interface grava em artist_pricing
    █ real     Publicar
               is_published controla a visibilidade pública
 
@@ -81,14 +81,13 @@
               nenhum limite é aplicado hoje
 
 ────────────────────────────────────────────────────────────────
-COBERTURA GERAL: 44% das 32 etapas têm sustentação real
+COBERTURA GERAL: 50% das 32 etapas têm sustentação real
 
 FLUXOS QUE ATRAVESSAM SEM QUEBRAR:
-  nenhum
+  ✓ Virar tatuador e ser encontrado
 
 ONDE CADA FLUXO QUEBRA PRIMEIRO:
    70%  Descobrir um tatuador            → "Ver avaliações"
-   67%  Virar tatuador e ser encontrado  → "Passar pelo onboarding"
    58%  Pedir um orçamento               → "Enviar imagens de referência"
    50%  Responder a um orçamento         → "Combinar detalhes por chat"
    17%  Fazer curso ou ir a evento       → "Encontrar por proximidade"

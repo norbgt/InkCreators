@@ -377,11 +377,139 @@ async function responderOrcamento(quoteId, valorCents, mensagem) {
     .eq("status", "open");
 }
 
+/* ── Portfólio ─────────────────────────────────────────────────────
+   O caminho do arquivo começa com o id do usuário porque a política de
+   storage compara a primeira pasta do caminho com quem está enviando.
+   Sem isso, o upload é recusado. */
+
+async function enviarImagemDoPortfolio(arquivo, estiloSlug) {
+  await iniciarSupabase();
+  const s = await sessaoAtual();
+  if (!s) throw new Error("Precisa estar logado.");
+
+  const artista = await meuPerfilDeArtista();
+  if (!artista) throw new Error("Salve o perfil antes de subir imagens.");
+
+  if (!arquivo.type.startsWith("image/")) {
+    throw new Error("Só imagens são aceitas.");
+  }
+  if (arquivo.size > 5 * 1024 * 1024) {
+    throw new Error(
+      "Imagem acima de 5 MB. O limite é do bucket, definido na migração."
+    );
+  }
+
+  const ext = (arquivo.name.split(".").pop() || "jpg").toLowerCase();
+  const caminho = `${s.user.id}/${crypto.randomUUID()}.${ext}`;
+
+  const { error: erroUp } = await sb.storage
+    .from("portfolio")
+    .upload(caminho, arquivo, { cacheControl: "3600", upsert: false });
+  if (erroUp) throw erroUp;
+
+  const { data: pub } = sb.storage.from("portfolio").getPublicUrl(caminho);
+
+  const { data: itens } = await sb
+    .from("portfolio_items")
+    .select("position")
+    .eq("artist_id", artista.id)
+    .order("position", { ascending: false })
+    .limit(1);
+  const proxima = itens?.length ? (itens[0].position || 0) + 1 : 0;
+
+  const { data, error } = await sb
+    .from("portfolio_items")
+    .insert({
+      artist_id: artista.id,
+      image_url: pub.publicUrl,
+      style_slug: estiloSlug || null,
+      position: proxima,
+    })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function listarMeuPortfolio() {
+  await iniciarSupabase();
+  const artista = await meuPerfilDeArtista();
+  if (!artista) return [];
+  const { data, error } = await sb
+    .from("portfolio_items")
+    .select("*")
+    .eq("artist_id", artista.id)
+    .order("position");
+  if (error) throw error;
+  return data;
+}
+
+async function removerDoPortfolio(itemId, imageUrl) {
+  await iniciarSupabase();
+  const { error } = await sb.from("portfolio_items").delete().eq("id", itemId);
+  if (error) throw error;
+  // Remove também o arquivo, senão fica lixo ocupando espaço no bucket
+  try {
+    const m = imageUrl.match(/\/portfolio\/(.+)$/);
+    if (m) await sb.storage.from("portfolio").remove([m[1]]);
+  } catch (e) {
+    /* o registro já saiu; arquivo órfão não quebra nada */
+  }
+}
+
+/* ── Tabela de preços ──────────────────────────────────────────────
+   artist_pricing existe desde a migração 05 e nunca foi usada por
+   interface nenhuma. É ela que sustenta a estimativa mostrada ao
+   cliente no perfil público. */
+
+async function listarMeusPrecos() {
+  await iniciarSupabase();
+  const artista = await meuPerfilDeArtista();
+  if (!artista) return [];
+  const { data, error } = await sb
+    .from("artist_pricing")
+    .select("*")
+    .eq("artist_id", artista.id)
+    .order("style_slug");
+  if (error) throw error;
+  return data;
+}
+
+async function salvarPreco(p) {
+  await iniciarSupabase();
+  const artista = await meuPerfilDeArtista();
+  if (!artista) throw new Error("Perfil de tatuador necessário.");
+  if (p.maxCents < p.minCents) {
+    throw new Error("O valor máximo não pode ser menor que o mínimo.");
+  }
+  const { error } = await sb.from("artist_pricing").upsert(
+    {
+      artist_id: artista.id,
+      style_slug: p.estilo,
+      size_bucket: p.tamanho,
+      min_cents: p.minCents,
+      max_cents: p.maxCents,
+      hours_estimate: p.horas || null,
+      notes: p.observacao || null,
+    },
+    { onConflict: "artist_id,style_slug,size_bucket" }
+  );
+  if (error) throw error;
+}
+
+async function removerPreco(id) {
+  await iniciarSupabase();
+  const { error } = await sb.from("artist_pricing").delete().eq("id", id);
+  if (error) throw error;
+}
+
 window.Dados = {
   testarConexao, criarConta, entrar, sair, sessaoAtual,
   meusPapeis, tornarSeTatuador,
   listarEstilos, listarTatuadores,
   meuPerfilDeArtista, salvarPerfilDeArtista,
+  enviarImagemDoPortfolio, listarMeuPortfolio, removerDoPortfolio,
+  listarMeusPrecos, salvarPreco, removerPreco,
   criarPedidoDeOrcamento, meusOrcamentos, orcamentosDoMeuEstudio,
   responderOrcamento,
 };
