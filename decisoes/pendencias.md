@@ -5,19 +5,33 @@ Ordenados por urgência.
 
 ---
 
-## 🔴 P0 — Titularidade do projeto Supabase
+## 🔴 P0 — Existem dois projetos Supabase
 
-**Por que é prioridade zero:** é o único ponto do desacoplamento com risco real de perda de dado. Todo o resto é trabalho; este é risco.
+Descoberto em 26/07: o projeto que você indicou como seu **não é** o mesmo que roda o protótipo hoje.
 
-O Lovable Cloud provisiona projetos Supabase, e dependendo de como o seu foi criado, o dono da organização pode ser o Lovable, não você.
-
-**Como verificar:** entre em `supabase.com/dashboard` e procure o projeto cujo identificador começa com `xfiilq`. Veja se ele aparece na sua conta e em qual organização.
-
-| Resultado | O que significa | Ação |
+| Projeto | Identificador | O que tem dentro |
 |---|---|---|
-| Aparece na sua organização | O banco já é seu | Nada a fazer. Seguir para P1. |
-| Aparece em organização do Lovable | Você usa mas não é dona | Solicitar transferência da organização ao suporte do Lovable |
-| Não aparece | Você não tem acesso direto | Idem — e é o cenário mais urgente |
+| Do Lovable | `xfiilquqnqgfjzmlasyx` | Schema aplicado e os dados existentes até hoje |
+| **Seu** | `hdfigxygektppvlogaoj` | Presumivelmente vazio |
+
+Isso é **boa notícia**: você já tem um projeto sob seu controle, e não depende de transferência de titularidade. Mas exige uma decisão.
+
+### Decisão necessária: o que fazer com os dados do projeto antigo
+
+**Se os dados do projeto Lovable não importam** (só testes seus durante o protótipo):
+Aplicar `banco/esquema/00_esquema_inicial.sql` no seu projeto e seguir. Caminho mais limpo — o furo de segurança da tabela `profiles` nunca chega a existir no banco novo.
+
+**Se houver dado real a preservar** (tatuadores cadastrados, portfólios, orçamentos):
+1. `pg_dump` apenas dos dados do projeto antigo, sem schema
+2. Aplicar `00_esquema_inicial.sql` no projeto novo
+3. Importar os dados
+4. Conferir que as políticas de RLS continuam se comportando
+
+**Como decidir:** entre no painel do projeto `xfiilq…` e veja quantas linhas existem em `profiles`, `artists` e `quote_requests`. Se forem só contas suas de teste, o primeiro caminho serve.
+
+- [ ] Verificar o volume de dados no projeto antigo
+- [ ] Decidir entre recomeçar limpo ou migrar
+- [ ] Aplicar o esquema inicial no projeto `hdfigxygektppvlogaoj`
 
 ---
 

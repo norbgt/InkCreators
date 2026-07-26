@@ -1,0 +1,96 @@
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════
+# Sincroniza este repositório com o GitHub.
+#
+# POR QUE ESTE ARQUIVO EXISTE
+# O ambiente onde a Claude executa comandos não tem acesso de rede ao
+# github.com — por política, não por falta de credencial. Então os
+# commits acontecem localmente e o envio é uma ação sua.
+#
+# Isso também é saudável do ponto de vista de governança: o que vai
+# para o seu repositório sai com as suas credenciais e sob o seu aval.
+#
+# COMO USAR
+# Dê dois cliques neste arquivo no Finder. Se o macOS reclamar que não
+# pode abrir, rode uma vez no Terminal:
+#     chmod +x "sincronizar-com-github.command"
+# ═══════════════════════════════════════════════════════════════════
+
+cd "$(dirname "$0")" || exit 1
+
+echo "═══════════════════════════════════════════"
+echo "  Ink Creators — sincronizar com o GitHub"
+echo "═══════════════════════════════════════════"
+echo
+
+if [ ! -d .git ]; then
+  echo "✗ Esta pasta não é um repositório git."
+  echo "  Algo saiu do lugar. Avise a Claude."
+  echo; read -p "Enter para fechar..."; exit 1
+fi
+
+echo "→ Repositório: $(git remote get-url origin 2>/dev/null || echo 'sem remoto configurado')"
+echo "→ Branch: $(git rev-parse --abbrev-ref HEAD)"
+echo
+
+# Confere se há algo não commitado
+if [ -n "$(git status --porcelain)" ]; then
+  echo "Há mudanças ainda não registradas:"
+  git status --short
+  echo
+  read -p "Registrar tudo isso num commit agora? (s/N) " R
+  if [ "$R" = "s" ] || [ "$R" = "S" ]; then
+    read -p "Descreva a mudança em uma linha: " MSG
+    [ -z "$MSG" ] && MSG="Ajustes"
+    git add -A && git commit -q -m "$MSG"
+    echo "✓ Commit criado."
+  else
+    echo "→ Seguindo sem registrar. Só o que já estava commitado será enviado."
+  fi
+  echo
+fi
+
+# Verificação de segurança antes de enviar
+echo "→ Conferindo que nenhum segredo vai junto..."
+if git ls-files | grep -qE '^\.env$'; then
+  echo "✗ PARADO: o arquivo .env está versionado."
+  echo "  Segredo não pode ir para o GitHub. Avise a Claude antes de continuar."
+  echo; read -p "Enter para fechar..."; exit 1
+fi
+if git grep -qIE 'sb_secret_|AIzaSy[A-Za-z0-9_-]{30}|eyJhbGciOiJ' -- ':!*.md' ':!.env.exemplo' 2>/dev/null; then
+  echo "✗ PARADO: parece haver uma chave real em algum arquivo."
+  echo "  Avise a Claude antes de continuar."
+  echo; read -p "Enter para fechar..."; exit 1
+fi
+echo "✓ Nenhum segredo detectado."
+echo
+
+echo "→ Enviando para o GitHub..."
+echo
+
+if git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
+  git push
+else
+  echo "  (primeiro envio — vinculando a branch ao remoto)"
+  git push -u origin "$(git rev-parse --abbrev-ref HEAD)"
+fi
+
+CODIGO=$?
+echo
+if [ $CODIGO -eq 0 ]; then
+  echo "✓ Pronto. Repositório sincronizado."
+  echo "  https://github.com/norbgt/InkCreators"
+else
+  echo "✗ O envio falhou."
+  echo
+  echo "  Se pediu usuário e senha: o GitHub não aceita mais senha comum."
+  echo "  Crie um token em github.com/settings/tokens (escopo 'repo') e"
+  echo "  use o token no lugar da senha. O macOS guarda no Chaveiro e não"
+  echo "  pergunta de novo."
+  echo
+  echo "  Se disse que o repositório não existe: confira se ele foi criado"
+  echo "  em github.com/norbgt/InkCreators e se a sua conta tem acesso."
+fi
+
+echo
+read -p "Enter para fechar..."
