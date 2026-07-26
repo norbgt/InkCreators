@@ -83,6 +83,46 @@ fi
 echo "✓ Nenhum segredo detectado."
 echo
 
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+# ── Existe conteúdo no GitHub que não temos aqui? ──────────────────
+# Acontece quando o repositório foi criado pelo site com README, licença
+# ou .gitignore automáticos. As duas histórias nascem separadas e o Git
+# se recusa a sobrescrever uma com a outra sem ordem explícita.
+echo "→ Verificando o que já existe no GitHub..."
+git fetch origin "$BRANCH" 2>/dev/null
+
+if git rev-parse --verify "origin/$BRANCH" >/dev/null 2>&1; then
+  SO_LA=$(git rev-list --count "HEAD..origin/$BRANCH" 2>/dev/null || echo 0)
+  if [ "$SO_LA" -gt 0 ]; then
+    echo
+    echo "  O GitHub tem $SO_LA envio(s) que não estão aqui:"
+    git log --oneline "HEAD..origin/$BRANCH" 2>/dev/null | sed 's/^/    /'
+    echo
+    echo "  Arquivos que existem lá e não aqui:"
+    git diff --name-only HEAD "origin/$BRANCH" 2>/dev/null | sed 's/^/    /' | head -10
+    echo
+    echo "  Vou juntar as duas versões. Onde houver conflito, a versão do"
+    echo "  seu Mac vence — é a que tem o projeto de verdade. Arquivos que"
+    echo "  só existem no GitHub são preservados."
+    echo
+    read -p "  Pode juntar? (s/N) " R
+    if [ "$R" != "s" ] && [ "$R" != "S" ]; then
+      echo "  Cancelado. Nada foi alterado."
+      echo; read -p "Enter para fechar..."; exit 0
+    fi
+    git merge origin/"$BRANCH" --allow-unrelated-histories -X ours \
+      --no-edit -m "Junta o repositório criado no GitHub com o projeto local" 2>&1 | sed 's/^/    /'
+    if [ $? -ne 0 ]; then
+      echo
+      echo "  ✗ A junção não foi automática. Avise a Claude."
+      echo; read -p "Enter para fechar..."; exit 1
+    fi
+    echo "  ✓ Versões unidas."
+    echo
+  fi
+fi
+
 echo "→ Enviando para o GitHub..."
 echo
 
@@ -90,24 +130,32 @@ if git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
   git push
 else
   echo "  (primeiro envio — vinculando a branch ao remoto)"
-  git push -u origin "$(git rev-parse --abbrev-ref HEAD)"
+  git push -u origin "$BRANCH"
 fi
 
 CODIGO=$?
 echo
 if [ $CODIGO -eq 0 ]; then
-  echo "✓ Pronto. Repositório sincronizado."
-  echo "  https://github.com/norbgt/InkCreators"
+  echo "═══════════════════════════════════════════"
+  echo "  ✓ Pronto. Repositório sincronizado."
+  echo "═══════════════════════════════════════════"
+  echo
+  echo "  Veja em: https://github.com/norbgt/InkCreators"
 else
   echo "✗ O envio falhou."
   echo
-  echo "  Se pediu usuário e senha: o GitHub não aceita mais senha comum."
-  echo "  Crie um token em github.com/settings/tokens (escopo 'repo') e"
-  echo "  use o token no lugar da senha. O macOS guarda no Chaveiro e não"
-  echo "  pergunta de novo."
+  echo "  Copie a mensagem acima e mostre à Claude — ela identifica"
+  echo "  o motivo. As causas mais comuns:"
   echo
-  echo "  Se disse que o repositório não existe: confira se ele foi criado"
-  echo "  em github.com/norbgt/InkCreators e se a sua conta tem acesso."
+  echo "  • Pediu senha e recusou: o GitHub não aceita senha comum."
+  echo "    Gere um token em github.com/settings/tokens (marque 'repo')"
+  echo "    e use o token no lugar da senha."
+  echo
+  echo "  • Disse 'rejected' ou 'fetch first': há conteúdo novo no"
+  echo "    GitHub. Rode este script de novo — ele resolve sozinho."
+  echo
+  echo "  • Disse 'not found': confira se o repositório existe em"
+  echo "    github.com/norbgt/InkCreators e se a sua conta tem acesso."
 fi
 
 echo
