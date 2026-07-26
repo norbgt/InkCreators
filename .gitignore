@@ -1,0 +1,51 @@
+# ─────────────────────────────────────────────────────────────
+# SEGREDOS — nunca versionar
+# Esta seção é a razão de existir deste arquivo. O projeto original
+# exportado do Lovable trazia .env com chaves do Supabase e do Google
+# Maps dentro do pacote. Chave versionada é chave vazada no dia em que
+# alguém ganha acesso ao repositório, mesmo privado.
+# ─────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.exemplo
+*.pem
+*.key
+*.p12
+segredos/
+credenciais/
+
+# Dependências e build
+node_modules/
+dist/
+dist-ssr/
+build/
+.output/
+.vinxi/
+.nitro/
+.tanstack/
+.wrangler/
+*.local
+
+# Backups de banco — podem conter dados pessoais de usuários reais.
+# Guardar fora do repositório, em local com controle de acesso.
+backups/
+*.dump
+*.sql.gz
+
+# Sistema operacional
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Logs
+logs/
+*.log
+npm-debug.log*

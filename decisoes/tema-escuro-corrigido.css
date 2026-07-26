@@ -1,0 +1,88 @@
+/* ============================================================
+   Ink Creators — bloco .dark corrigido
+   Substitui o bloco `.dark { … }` em src/styles.css
+
+   PROBLEMA: o tema escuro atual é um resto do template padrão do
+   Lovable. Ele usa roxo como --primary (oklch 0.66 0.22 305), roxo
+   como --accent, e uma paleta de gráficos colorida (teal, laranja,
+   vermelho, verde). Nada disso existe no tema claro, que é
+   deliberadamente monocromático com azul petróleo como acento raro.
+   Na prática, o app hoje tem duas identidades visuais diferentes
+   dependendo do tema do sistema operacional do usuário.
+
+   CORREÇÃO: espelhar a intenção do tema claro.
+   - Cinzas neutros de verdade (croma 0), sem o leve tom arroxeado
+     que o bloco antigo tinha em background/card/border.
+   - --primary inverte para quase-branco, mantendo a lógica do claro
+     ("primary é o extremo de contraste, não uma cor de marca").
+   - Azul petróleo preservado como acento, clareado de 0.42 → 0.72
+     de luminosidade para manter contraste sobre fundo escuro.
+   - Gráficos voltam a ser escala de cinza + petróleo como ponto focal.
+   ============================================================ */
+
+.dark {
+  /* Superfícies — cinzas neutros, croma 0 */
+  --background: oklch(0.14 0 0);
+  --foreground: oklch(0.97 0 0);
+  --card: oklch(0.18 0 0);
+  --card-foreground: oklch(0.97 0 0);
+  --popover: oklch(0.18 0 0);
+  --popover-foreground: oklch(0.97 0 0);
+
+  /* Primary = extremo de contraste. No claro é preto puro; aqui, branco. */
+  --primary: oklch(0.97 0 0);
+  --primary-foreground: oklch(0.14 0 0);
+
+  --secondary: oklch(0.24 0 0);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.24 0 0);
+  --muted-foreground: oklch(0.68 0 0);
+
+  /* Accent = azul petróleo, clareado para contraste sobre fundo escuro */
+  --accent: oklch(0.72 0.07 215);
+  --accent-foreground: oklch(0.14 0 0);
+
+  --destructive: oklch(0.62 0.19 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.27 0 0);
+  --input: oklch(0.27 0 0);
+  --ring: oklch(0.72 0.07 215);
+
+  /* Charts — escala de cinza + petróleo, espelhando o tema claro */
+  --chart-1: oklch(0.97 0 0);
+  --chart-2: oklch(0.72 0.07 215);
+  --chart-3: oklch(0.68 0 0);
+  --chart-4: oklch(0.48 0 0);
+  --chart-5: oklch(0.34 0 0);
+
+  --sidebar: oklch(0.16 0 0);
+  --sidebar-foreground: oklch(0.97 0 0);
+  --sidebar-primary: oklch(0.97 0 0);
+  --sidebar-primary-foreground: oklch(0.14 0 0);
+  --sidebar-accent: oklch(0.24 0 0);
+  --sidebar-accent-foreground: oklch(0.97 0 0);
+  --sidebar-border: oklch(0.27 0 0);
+  --sidebar-ring: oklch(0.72 0.07 215);
+
+  /* Gradientes utilitários — equivalentes escuros dos definidos em :root */
+  --gradient-mono: linear-gradient(180deg, oklch(0.18 0 0), oklch(0.14 0 0));
+  --gradient-mono-strong: linear-gradient(135deg, oklch(0.24 0 0), oklch(0.16 0 0));
+  --gradient-ink: linear-gradient(135deg, oklch(0.97 0 0), oklch(0.78 0 0));
+}
+
+/* ============================================================
+   PENDÊNCIA RELACIONADA — cores fixas fora do sistema de tokens
+
+   Alguns componentes escrevem o azul petróleo direto no JSX, com um
+   valor que nem corresponde ao token (--accent é 0.42 0.06 215, mas
+   o código usa 0.38 0.06 220). Essas ocorrências ignoram o tema
+   escuro por completo:
+
+     src/components/TopBar.tsx   → oklch(0.38_0.06_220) e a variante
+                                   dark oklch(0.75_0.08_220)
+     src/routes/me.tsx           → idem, na navegação da área do cliente
+
+   Trocar por `text-accent`, `border-accent`, `bg-accent` resolve os
+   dois temas de uma vez e elimina a divergência de valor.
+   ============================================================ */

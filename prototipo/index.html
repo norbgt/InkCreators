@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ink Creators — protótipo</title>
+<style>
+:root{
+  /* ── Tokens oficiais shadcn/ui — mesmos valores de src/styles.css do projeto ── */
+  --radius:0.75rem;
+  --background:oklch(1 0 0);
+  --foreground:oklch(0.16 0 0);
+  --card:oklch(1 0 0);
+  --card-foreground:oklch(0.16 0 0);
+  --popover:oklch(1 0 0);
+  --popover-foreground:oklch(0.16 0 0);
+  --primary:oklch(0.16 0 0);
+  --primary-foreground:oklch(0.99 0 0);
+  --secondary:oklch(0.96 0 0);
+  --secondary-foreground:oklch(0.22 0 0);
+  --muted:oklch(0.96 0 0);
+  --muted-foreground:oklch(0.5 0 0);
+  --accent:oklch(0.42 0.06 215);
+  --accent-foreground:oklch(0.99 0 0);
+  --destructive:oklch(0.55 0.18 25);
+  --destructive-foreground:oklch(0.99 0 0);
+  --border:oklch(0.92 0 0);
+  --input:oklch(0.92 0 0);
+  --ring:oklch(0.42 0.06 215);
+  --chart-1:oklch(0.16 0 0);--chart-2:oklch(0.42 0.06 215);--chart-3:oklch(0.55 0 0);
+  --chart-4:oklch(0.75 0 0);--chart-5:oklch(0.88 0 0);
+  /* ── Extensões do protótipo (prefixo -x-): estados que o shadcn não cobre ── */
+  --x-accent-bg:oklch(0.965 0.012 215);
+  --x-accent-border:oklch(0.89 0.025 215);
+  --x-success:oklch(0.45 0.12 150);--x-success-bg:oklch(0.96 0.03 150);
+  --x-warning:oklch(0.48 0.10 75);--x-warning-bg:oklch(0.96 0.04 85);
+  --x-danger:oklch(0.50 0.16 25);--x-danger-bg:oklch(0.96 0.03 25);
+  --x-tag-violet:oklch(0.45 0.14 300);--x-tag-violet-bg:oklch(0.96 0.03 300);
+  --x-tag-blue:oklch(0.45 0.13 250);--x-tag-blue-bg:oklch(0.96 0.03 250);
+  --x-tag-teal:oklch(0.45 0.09 190);--x-tag-teal-bg:oklch(0.95 0.03 190);
+}
+html[data-dark]{
+  /* ── Tema escuro CORRIGIDO: mesma identidade monocromática + petróleo do claro.
+       O projeto hoje tem roxo aqui (resto do template padrão) — ver dark-theme-corrigido.css ── */
+  --background:oklch(0.14 0 0);
+  --foreground:oklch(0.97 0 0);
+  --card:oklch(0.18 0 0);
+  --card-foreground:oklch(0.97 0 0);
+  --popover:oklch(0.18 0 0);
+  --popover-foreground:oklch(0.97 0 0);
+  --primary:oklch(0.97 0 0);
+  --primary-foreground:oklch(0.14 0 0);
+  --secondary:oklch(0.24 0 0);
+  --secondary-foreground:oklch(0.95 0 0);
+  --muted:oklch(0.24 0 0);
+  --muted-foreground:oklch(0.68 0 0);
+  --accent:oklch(0.72 0.07 215);
+  --accent-foreground:oklch(0.14 0 0);
+  --destructive:oklch(0.62 0.19 25);
+  --destructive-foreground:oklch(0.99 0 0);
+  --border:oklch(0.27 0 0);
+  --input:oklch(0.27 0 0);
+  --ring:oklch(0.72 0.07 215);
+  --chart-1:oklch(0.97 0 0);--chart-2:oklch(0.72 0.07 215);--chart-3:oklch(0.68 0 0);
+  --chart-4:oklch(0.48 0 0);--chart-5:oklch(0.34 0 0);
+  --x-accent-bg:oklch(0.26 0.030 215);
+  --x-accent-border:oklch(0.35 0.045 215);
+  --x-success:oklch(0.78 0.14 150);--x-success-bg:oklch(0.25 0.05 150);
+  --x-warning:oklch(0.82 0.12 85);--x-warning-bg:oklch(0.27 0.05 85);
+  --x-danger:oklch(0.75 0.15 25);--x-danger-bg:oklch(0.27 0.06 25);
+  --x-tag-violet:oklch(0.78 0.12 300);--x-tag-violet-bg:oklch(0.26 0.05 300);
+  --x-tag-blue:oklch(0.78 0.11 250);--x-tag-blue-bg:oklch(0.25 0.05 250);
+  --x-tag-teal:oklch(0.78 0.09 190);--x-tag-teal-bg:oklch(0.24 0.04 190);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--background);color:var(--foreground);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit;background:var(--card)}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding:0 18px}
+.hide{display:none!important}
+.ico{width:1em;height:1em;display:inline-block;vertical-align:-.14em;flex-shrink:0}
+.iconbtn .ico{width:19px;height:19px;vertical-align:0}
+.stars{display:inline-flex;gap:1px;vertical-align:-.14em}
+.stars .ico{width:.92em;height:.92em;vertical-align:0}
+.pcard .im .ico{width:40px;height:40px;stroke-width:1.2;color:var(--muted-foreground)}
+.thumb .ico,.datebox .ico{width:19px;height:19px}
+.stat .lbl .ico{width:13px;height:13px;vertical-align:-.16em}
+
+header.top{position:sticky;top:0;z-index:40;background:var(--background);border-bottom:1px solid var(--border)}
+.top-in{display:flex;align-items:center;gap:14px;height:60px}
+.logo{display:flex;align-items:center;gap:9px;cursor:pointer}
+.logo .mark{width:33px;height:33px;border-radius:9px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900}
+.logo .txt{display:flex;flex-direction:column;line-height:1;font-size:11.5px;font-weight:900;text-transform:uppercase;letter-spacing:-.01em}
+.search{flex:1;max-width:400px;position:relative}
+.search input{width:100%;height:35px;border:1px solid var(--border);border-radius:999px;padding:0 14px 0 32px;outline:none}
+.search .ic{position:absolute;left:11px;top:9px;color:var(--muted-foreground);line-height:0}
+.search .ic .ico{width:16px;height:16px}
+.protobar .ico{width:13px;height:13px;vertical-align:-.15em}
+.top-actions{margin-left:auto;display:flex;align-items:center;gap:5px}
+.iconbtn{width:35px;height:35px;border-radius:9px;display:flex;align-items:center;justify-content:center;position:relative}
+.iconbtn:hover{background:var(--muted)}
+.dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.count{position:absolute;top:2px;right:1px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--primary);color:var(--primary-foreground);font-size:10px;font-weight:700;line-height:16px;text-align:center;border:2px solid var(--background)}
+.pill.accent-solid{background:var(--accent);color:var(--accent-foreground);border-color:var(--accent)}
+.menu{position:absolute;right:0;top:40px;min-width:210px;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:5px;z-index:60}
+.menu a{display:block;padding:8px 10px;border-radius:7px;font-size:13px;cursor:pointer}
+.menu a:hover{background:var(--muted)}
+.menu .mlabel{padding:7px 10px;font-size:11.5px;color:var(--muted-foreground);overflow:hidden;text-overflow:ellipsis}
+.menu .msep{height:1px;background:var(--border);margin:4px 0}
+.pill{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--border);border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:600;white-space:nowrap;background:var(--card)}
+.pill:hover{border-color:var(--muted-foreground)}
+.pill.solid{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
+.pill.accent{background:var(--x-accent-bg);color:var(--accent);border-color:var(--x-accent-border)}
+.avatarbtn{width:33px;height:33px;border-radius:50%;background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;border:1px solid var(--border)}
+
+main{padding:24px 0 60px}
+h1.page{font-size:25px;font-weight:600;letter-spacing:-.02em}
+p.sub{color:var(--muted-foreground);margin-top:4px;font-size:13.5px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius)}
+.pad{padding:15px 17px}
+.grid{display:grid;gap:14px}
+.cols2{grid-template-columns:2fr 1fr}
+.cols16{grid-template-columns:1.6fr 1fr}
+.muted{color:var(--muted-foreground)}
+.small{font-size:12.5px}.tiny{font-size:11.5px}.b{font-weight:600}
+.row{display:flex;align-items:center;gap:9px}
+.sp{margin-left:auto}
+.wrapf{flex-wrap:wrap}
+.badge{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:600;background:var(--muted);color:var(--muted-foreground)}
+.badge.ok{background:var(--x-success-bg);color:var(--x-success)}
+.badge.warn{background:var(--x-warning-bg);color:var(--x-warning)}
+.badge.bad{background:var(--x-danger-bg);color:var(--x-danger)}
+.badge.acc{background:var(--x-accent-bg);color:var(--accent)}
+.badge.vio{background:var(--x-tag-violet-bg);color:var(--x-tag-violet)}
+.badge.blu{background:var(--x-tag-blue-bg);color:var(--x-tag-blue)}
+.badge.tea{background:var(--x-tag-teal-bg);color:var(--x-tag-teal)}
+.sep{height:1px;background:var(--border);margin:13px 0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--border);background:var(--card);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600}
+.btn:hover{border-color:var(--muted-foreground)}
+.btn.primary{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.btn.sm{padding:6px 10px;font-size:12.5px}
+.btn.blk{width:100%}
+.fld{width:100%;text-align:left;font-weight:400;border:1px solid var(--border);border-radius:10px;padding:9px 12px;outline:none}
+.fld:focus{border-color:var(--muted-foreground)}
+label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bottom:4px}
+
+.ptabs{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:16px}
+.ptab{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--card);border-radius:12px;padding:10px 16px;font-size:13.5px;font-weight:600}
+.ptab.on{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
+.chip{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:500;white-space:nowrap}
+.chip.on{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
+.chip.acc.on{background:var(--accent);border-color:var(--accent);color:var(--accent-foreground)}
+.fbar{margin-top:16px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card)}
+.fgroup{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:9px}
+.fgroup .gl{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-foreground);min-width:78px}
+
+.feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:15px;margin-top:16px}
+.acard{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--card)}
+.acard:hover{border-color:var(--muted-foreground)}
+.caro{position:relative;height:190px;background:var(--border)}
+.caro .sl{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity .25s}
+.caro .sl.on{opacity:1}
+.caro .nav{position:absolute;top:50%;transform:translateY(-50%);width:27px;height:27px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px}
+.caro .nav.l{left:8px}.caro .nav.r{right:8px}
+.caro .pips{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:4px}
+.caro .pips i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.5)}
+.caro .pips i.on{background:#fff}
+.caro .tagtl{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;border-radius:999px;padding:2px 8px;font-size:10.5px;font-weight:600}
+.qa{position:absolute;bottom:8px;right:8px;display:flex;gap:5px}
+.qa button{background:rgba(255,255,255,.94);color:#111;border-radius:8px;padding:5px 9px;font-size:11.5px;font-weight:700}
+.tat{background-size:cover;background-position:center}
+
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:13px;margin-top:14px}
+.pcard{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--card)}
+.pcard .im{height:125px;background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:36px;position:relative}
+.pcard .im .nv{position:absolute;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:11px}
+.stat{background:var(--muted);border-radius:var(--radius);padding:13px 15px}
+.stat .lbl{font-size:11.5px;color:var(--muted-foreground)}
+.stat .val{font-size:22px;font-weight:600;margin-top:4px;letter-spacing:-.02em}
+.stat .hint{font-size:11px;color:var(--muted-foreground);margin-top:2px}
+
+.envhead{border-bottom:1px solid var(--border);background:var(--card)}
+.kicker{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-foreground)}
+.subnav{display:flex;gap:2px;overflow-x:auto;margin-top:13px}
+.subnav a{display:inline-flex;align-items:center;gap:5px;padding:10px 12px;font-size:12.5px;font-weight:600;color:var(--muted-foreground);border-bottom:2px solid transparent;white-space:nowrap;cursor:pointer}
+.subnav a.on{color:var(--foreground);border-bottom-color:var(--foreground)}
+.subnav.client a.on{color:var(--accent);border-bottom-color:var(--accent)}
+
+.lrow{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--border)}
+.lrow:last-child{border-bottom:none}
+.thumb{width:44px;height:44px;border-radius:9px;background:var(--muted);flex-shrink:0;background-size:cover;background-position:center}
+.av{width:36px;height:36px;border-radius:50%;background:var(--muted);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:var(--muted-foreground)}
+.datebox{width:44px;height:44px;border-radius:9px;background:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.datebox .m{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted-foreground)}
+.datebox .d{font-size:15px;font-weight:700;line-height:1}
+
+.authwrap{max-width:400px;margin:36px auto;padding:0 18px}
+.opt{flex:1;border:1px solid var(--border);border-radius:10px;padding:11px;cursor:pointer;text-align:left}
+.opt:hover{border-color:var(--muted-foreground)}
+.opt.on{border-color:var(--accent);background:var(--x-accent-bg)}
+.req{color:var(--x-danger);font-size:11.5px;font-weight:600}
+
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--background);z-index:51;display:flex;flex-direction:column;border-left:1px solid var(--border)}
+.drawer .dh{padding:14px 17px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px}
+.drawer .db{flex:1;overflow-y:auto;padding:15px 17px}
+.drawer .df{border-top:1px solid var(--border);padding:11px 15px}
+
+.banner{display:flex;align-items:center;gap:11px;background:var(--x-accent-bg);border:1px solid var(--x-accent-border);border-radius:var(--radius);padding:12px 15px}
+.protobar{background:#141414;color:#fff;font-size:11.5px;padding:6px 0}
+.protobar .wrap{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.protobar select{background:#2c2c2c;color:#fff;border:1px solid #444;border-radius:6px;height:25px;padding:0 5px;font-size:11.5px}
+.tag{background:#333;border-radius:5px;padding:1px 6px;font-size:10.5px}
+.tag.real{background:#1b6e3c}.tag.mock{background:#9c2b2b}.tag.new{background:#2b5c70}
+footer.note{border-top:1px solid var(--border);padding:20px 0;color:var(--muted-foreground);font-size:12px}
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t th{text-align:left;font-weight:600;color:var(--muted-foreground);font-size:11.5px;padding:7px 0;border-bottom:1px solid var(--border)}
+table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
+.bar{height:6px;background:var(--muted);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:6px;background:var(--primary)}
+.steps{display:flex;gap:5px;margin-top:12px}
+.steps i{flex:1;height:4px;border-radius:2px;background:var(--border)}
+.steps i.on{background:var(--primary)}
+.map{position:relative;height:230px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);
+  background:var(--muted);
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:34px 34px}
+.pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;text-align:center}
+.pin b{display:block;width:19px;height:19px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:10px;line-height:19px;margin:0 auto;border:2px solid var(--background)}
+.pin.on b{background:var(--accent);transform:scale(1.25)}
+.pin span{font-size:9.5px;background:var(--background);border:1px solid var(--border);border-radius:4px;padding:0 4px;white-space:nowrap}
+.bub{max-width:78%;padding:8px 11px;border-radius:13px;font-size:13px;margin-bottom:7px}
+.bub.them{background:var(--muted);border-bottom-left-radius:4px}
+.bub.me{background:var(--primary);color:var(--primary-foreground);margin-left:auto;border-bottom-right-radius:4px}
+.plan{border:1px solid var(--border);border-radius:var(--radius);padding:18px;background:var(--card);position:relative}
+.plan.hl{border:2px solid var(--primary)}
+.plan .rib{position:absolute;top:-10px;left:18px;background:var(--primary);color:var(--primary-foreground);border-radius:999px;padding:2px 10px;font-size:10.5px;font-weight:700}
+.thumbsq{width:56px;height:56px;border-radius:8px;background-size:cover;background-position:center;position:relative;flex-shrink:0}
+.thumbsq .x{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:10px;display:flex;align-items:center;justify-content:center}
+@media(max-width:820px){
+  .cols2,.cols16{grid-template-columns:1fr}
+  .search{display:none}
+  .hide-sm{display:none!important}
+  h1.page{font-size:21px}
+  .feed{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="protobar"><div class="wrap">
+  <span class="b">Protótipo Ink Creators</span>
+  <span style="color:#aaa"><span class="tag real">real</span> backend <span class="tag mock">mock</span> só UI <span class="tag new">novo</span> proposta</span>
+  <span class="sp"></span>
+  <select id="sessionSel">
+    <option value="anon">Visitante</option>
+    <option value="client">Cliente</option>
+    <option value="artist">Cliente + tatuador</option>
+  </select>
+  <button id="staticTheme" onclick="toggleDark()" style="color:#fff">◐ tema</button>
+</div></div>
+
+<header class="top"><div class="wrap top-in">
+  <div class="logo" onclick="go('home')"><span class="mark">I</span><span class="txt"><span>Ink</span><span>Creators</span></span></div>
+  <div class="search"><span class="ic" id="staticSearchIc">⌕</span><input placeholder="Buscar tatuadores, estilos, estúdios…" /></div>
+  <div class="top-actions" id="topActions"></div>
+</div></header>
+
+<div id="app"></div>
+<footer class="note"><div class="wrap">Protótipo navegável recriado a partir do código exportado do Lovable. Dados fictícios.</div></footer>
+<div id="drawerHost"></div>
+
+<script>
+/* ============ ÍCONES (contorno, monocromático) ============
+   Traço 1.7, viewBox 24, herda cor e tamanho do elemento pai.
+   Um pós-processador troca cada símbolo pelo SVG na renderização,
+   então o resto do código continua legível. */
+function sv(d,f){
+ return '<svg class="ico" viewBox="0 0 24 24" fill="'+(f||"none")+'" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
+}
+var P={
+ cart:'<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 11.6a1.6 1.6 0 0 0 1.6 1.3h8.5a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/>',
+ bell:'<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+ chat:'<path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.5 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7A8.4 8.4 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.5 8.5 0 0 1 21 11.5z"/>',
+ user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+ users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+ palette:'<circle cx="13.5" cy="6.5" r="1.2"/><circle cx="17.5" cy="10.5" r="1.2"/><circle cx="8.5" cy="7.5" r="1.2"/><circle cx="6.5" cy="12.5" r="1.2"/><path d="M12 2a10 10 0 1 0 0 20 2 2 0 0 0 1.5-3.3 2 2 0 0 1 1.5-3.3h2A5 5 0 0 0 22 10c0-4.4-4.5-8-10-8z"/>',
+ brush:'<path d="m9 12 8-8a2.8 2.8 0 1 1 4 4l-8 8"/><path d="M7 15a3 3 0 0 0-3 3c0 1.3-2.5 1.5-2 2 1.1 1.1 2.5 2 4 2a4 4 0 0 0 4-4 3 3 0 0 0-3-3z"/>',
+ bag:'<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+ store:'<path d="M3 9h18l-1.5-5.5A1 1 0 0 0 18.5 3h-13a1 1 0 0 0-1 .5z"/><path d="M5 9v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9"/><path d="M9 21v-6h6v6"/>',
+ cal:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+ img:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>',
+ search:'<circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/>',
+ cam:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+ grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>',
+ inbox:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.4 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.4-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.8 1.1z"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ receipt:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/>',
+ star:'<path d="m12 3 2.7 5.4 6 .9-4.3 4.2 1 6-5.4-2.8L6.6 19.5l1-6L3.3 9.3l6-.9z"/>',
+ sliders:'<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+ ticket:'<path d="M3 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/><path d="M13 5v3M13 11v2M13 16v3"/>',
+ checkc:'<path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="m9 11 3 3L22 4"/>',
+ wallet:'<path d="M20 12V7a2 2 0 0 0-2-2H5a2 2 0 0 1 0-4h13"/><path d="M3 5v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"/><path d="M17 12h4v5h-4a2.5 2.5 0 0 1 0-5z"/>',
+ trend:'<path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/>',
+ pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>',
+ lock:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+ clip:'<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M8 12h8M8 16h5"/>',
+ logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
+ moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+ globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 4 9 15 15 0 0 1-4 9 15 15 0 0 1-4-9 15 15 0 0 1 4-9z"/>',
+ target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ x:'<path d="M18 6 6 18M6 6l12 12"/>',
+ check:'<path d="M20 6 9 17l-5-5"/>',
+ aleft:'<path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>',
+ aright:'<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+ cup:'<path d="m6 15 6-6 6 6"/>',
+ cdown:'<path d="m6 9 6 6 6-6"/>',
+ megaphone:'<path d="m3 11 16-5v13L3 14z"/><path d="M3 11v3a2 2 0 0 0 2 2h1"/><path d="M11 17a3 3 0 0 1-5.5 1.5"/>',
+ sparkle:'<path d="m12 3 1.9 5.6a2 2 0 0 0 1.5 1.5L21 12l-5.6 1.9a2 2 0 0 0-1.5 1.5L12 21l-1.9-5.6a2 2 0 0 0-1.5-1.5L3 12l5.6-1.9a2 2 0 0 0 1.5-1.5z"/><path d="M19 3v3M20.5 4.5h-3"/>',
+ needle:'<path d="m3 21 9-9"/><path d="m12 12 5-5"/><path d="m16 4 4 4-2.5 2.5-4-4z"/><path d="m14 8 1.5 1.5"/>',
+ droplet:'<path d="M12 3.7 17 9a7 7 0 1 1-10 0z"/>',
+ jar:'<path d="M8 3h8v3l-1 2v12a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V8L8 6z"/><path d="M9 12h6"/>',
+ pen:'<path d="m12 19 7-7 3 3-7 7z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18z"/><path d="m2 2 7.6 7.6"/><circle cx="11" cy="11" r="2"/>',
+ disc:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/>',
+ chair:'<path d="M5 10V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4"/><path d="M4 10h16v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M6 17v4M18 17v4"/>',
+ glove:'<path d="M8 3a1.5 1.5 0 0 1 3 0v6M11 9V4a1.5 1.5 0 0 1 3 0v5M14 9V5.5a1.5 1.5 0 0 1 3 0V14a7 7 0 0 1-7 7 6 6 0 0 1-6-6V9.5a1.5 1.5 0 0 1 3 0z"/>',
+ bandage:'<rect x="2" y="8" width="20" height="8" rx="4" transform="rotate(-45 12 12)"/><path d="M10 10h.01M14 14h.01M14 10h.01M10 14h.01"/>',
+ soap:'<path d="M5 12h14v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/><path d="M7 12V9a3 3 0 0 1 3-3h4"/><circle cx="16" cy="4.5" r="1.5"/>',
+ sun:'<circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+ box:'<path d="m7.5 4.3 9 5.2"/><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+ frame:'<rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 8h18M3 16h18M8 3v18M16 3v18"/>',
+ shirt:'<path d="M15 2 12 5 9 2 3 5l2 4 2-1v12h10V8l2 1 2-4z"/>',
+ tag:'<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7" cy="7" r="1.4"/>',
+ bulb:'<path d="M9 18h6M10 22h4"/><path d="M15 14c.2-1 .7-1.8 1.4-2.5A4.6 4.6 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.8.7 1.3 1.5 1.5 2.5"/>',
+ heart:'<path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1z"/>',
+ square:'<rect x="3" y="3" width="18" height="18" rx="2"/>',
+ waves:'<path d="M2 8c2-2 4-2 6 0s4 2 6 0 4-2 6 0M2 14c2-2 4-2 6 0s4 2 6 0 4-2 6 0M2 20c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/>',
+ cross:'<circle cx="12" cy="12" r="9"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/>',
+ shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
+};
+var IC={
+ "🛒":"cart","🔔":"bell","💬":"chat","👤":"user","👥":"users","🎨":"palette","🖌":"brush",
+ "🛍":"bag","🏪":"store","🗓":"cal","🖼":"img","⌕":"search","🔎":"search","📷":"cam","📸":"cam",
+ "▦":"grid","📥":"inbox","🕘":"clock","🧾":"receipt","⚙":"sliders","🎟":"ticket","✅":"checkc",
+ "👛":"wallet","📈":"trend","📍":"pin","🔒":"lock","📋":"clip","⇥":"logout","◐":"moon",
+ "🌐":"globe","🎯":"target","＋":"plus","✕":"x","✓":"check","✔":"check","←":"aleft","→":"aright",
+ "▲":"cup","▼":"cdown","▾":"cdown","📣":"megaphone","✨":"sparkle","🪡":"needle","🧴":"droplet",
+ "🫙":"jar","🖊":"pen","✒":"pen","🦶":"disc","💺":"chair","🧤":"glove","🩹":"bandage","🧼":"soap",
+ "☀":"sun","📦":"box","🏞":"frame","👕":"shirt","🏷":"tag","💡":"bulb","🖤":"heart","⬛":"square",
+ "🌫":"waves","◉":"cross","⭐":"star"
+};
+var ICRE=new RegExp("(?:"+Object.keys(IC).map(function(k){return k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}).join("|")+")\\uFE0F?|★|☆","gu");
+function icons(h){
+ return String(h).replace(ICRE,function(m){
+  var c=m.replace(/️/g,"");
+  if(c==="★")return sv(P.star,"currentColor");
+  if(c==="☆")return sv(P.star);
+  return IC[c]?sv(P[IC[c]]):m;
+ });
+}
+
+/* ============ DADOS ============ */
+var STYLES=[
+ {s:"minimalista",l:"Minimalista",c:1},{s:"lettering",l:"Lettering",c:2},{s:"fineline",l:"Fineline",c:2},
+ {s:"old-school",l:"Old school",c:2},{s:"tribal",l:"Tribal",c:2},{s:"blackwork",l:"Blackwork",c:3},
+ {s:"geometrico",l:"Geométrico",c:3},{s:"pontilhismo",l:"Pontilhismo",c:3},{s:"neo-tradicional",l:"Neo-tradicional",c:3},
+ {s:"aquarela",l:"Aquarela",c:3},{s:"maori",l:"Maori",c:3},{s:"oriental",l:"Oriental",c:4},
+ {s:"realismo",l:"Realismo",c:4},{s:"surrealismo",l:"Surrealismo",c:4},{s:"biomecanico",l:"Biomecânico",c:4}];
+var SL={};STYLES.forEach(function(x){SL[x.s]=x.l});
+var CPLX=["","Simples","Médio","Complexo","Master"];
+var NAMES=["Marina Vieira","Caio Lobo","Ana Petrova","Renan Sá","Luiza Hime","Diego Castro","Bruna Okabe","Felipe Tanaka","Yasmin Cardoso","Henrique Vaz","Larissa Mendes","Igor Falcão"];
+var CITIES=[["São Paulo","SP"],["Rio de Janeiro","RJ"],["Belo Horizonte","MG"],["Curitiba","PR"],["Porto Alegre","RS"],["Recife","PE"],["Salvador","BA"],["Florianópolis","SC"]];
+var BIOS=["Traço fino e composições botânicas. Atendo com hora marcada.","Blackwork pesado, geometria e ornamental. 8 anos de estúdio.","Realismo em preto e cinza, foco em retratos.","Old school com paleta reduzida e contorno firme.","Oriental tradicional, projetos de manga fechada."];
+
+function tex(seed){
+ var g=["#141414","#333","#5c5c5c","#878787","#adadad"],a=(seed*37)%360;
+ var c1=g[seed%5],c2=g[(seed+2)%5],c3=g[(seed+4)%5];
+ return ["repeating-linear-gradient("+a+"deg,"+c1+" 0 3px,"+c2+" 3px 7px)",
+  "radial-gradient(circle at 30% 40%,"+c3+" 0 18%,"+c1+" 18% 42%,"+c2+" 42%)",
+  "repeating-radial-gradient(circle at 50% 50%,"+c1+" 0 5px,"+c3+" 5px 11px)",
+  "linear-gradient("+a+"deg,"+c1+","+c3+" 55%,"+c2+")",
+  "repeating-linear-gradient(45deg,"+c2+" 0 6px,"+c1+" 6px 9px)"][seed%5];
+}
+var ARTISTS=NAMES.map(function(n,i){
+ var c=CITIES[i%CITIES.length],st=[STYLES[i%15].s,STYLES[(i*3+2)%15].s];
+ var cx=Math.max(STYLES[i%15].c,STYLES[(i*3+2)%15].c);
+ var min=9000+cx*3500+(i%4)*2500,max=min+8000+cx*3000;
+ return {id:"a"+i,name:n,studio:"Studio "+n.split(" ")[0],city:c[0],state:c[1],styles:st,cx:cx,
+  bio:BIOS[i%5],years:2+(i%10),rating:+(4.2+((i*7)%8)/10).toFixed(1),reviews:12+(i*11)%180,
+  min:min,max:max,verified:i%4===0,insta:i%3===0,seed:i,months:3+(i*5)%42,empty:i===10,
+  port:[0,1,2,3,4,5,6,7,8].map(function(k){return i*9+k})};
+});
+var SHOP_CATS={
+ artist:[["all","Todos"],["needles","Agulhas & Cartuchos"],["inks","Tintas"],["machines","Máquinas & Pedais"],["accessories","Acessórios"],["hygiene","Higiene & Descartáveis"]],
+ client:[["all","Todos"],["healing","Cicatrizantes"],["moisturizers","Hidratantes"],["color","Realce de cor"],["sunscreen","Proteção solar"],["kits","Kits pós-tattoo"]],
+ art:[["all","Todos"],["prints","Prints"],["frames","Quadros"],["stamps","Estampas"],["stickers","Adesivos"],["decor","Decoração"]]};
+var PRODUCTS=[
+ {id:"p1",n:"Cartucho Round Liner 0.30mm — 20un",b:"Cheyenne Craft",a:"artist",c:"needles",p:189.9,o:219,r:4.9,rv:312,e:"🪡",bg:"Mais vendido"},
+ {id:"p2",n:"Cartucho Magnum 9M1 — 20un",b:"EZ Revolution",a:"artist",c:"needles",p:229,r:4.8,rv:198,e:"🪡"},
+ {id:"p3",n:"Tinta preta Sumi 120ml",b:"Intenze",a:"artist",c:"inks",p:159,r:4.9,rv:241,e:"🫙"},
+ {id:"p4",n:"Set tintas coloridas 12x30ml",b:"Eternal",a:"artist",c:"inks",p:689,o:790,r:4.7,rv:96,e:"🎨",bg:"Oferta"},
+ {id:"p5",n:"Máquina rotativa Pen",b:"Mast Tour",a:"artist",c:"machines",p:749,o:899,r:4.7,rv:87,e:"🖊️"},
+ {id:"p6",n:"Pedal sem fio",b:"Critical",a:"artist",c:"machines",p:459,r:4.6,rv:54,e:"🦶"},
+ {id:"p7",n:"Braço de apoio articulado",b:"TatSoul",a:"artist",c:"accessories",p:329,r:4.8,rv:71,e:"💺"},
+ {id:"p8",n:"Luvas nitrilo preta — 100un",b:"Supermax",a:"artist",c:"hygiene",p:79.9,r:4.5,rv:520,e:"🧤"},
+ {id:"p9",n:"Filme protetor pós-tattoo 10m",b:"Dermalize",a:"artist",c:"hygiene",p:98.5,r:4.8,rv:410,e:"🩹"},
+ {id:"p10",n:"Pomada cicatrizante 50g",b:"Inkeeze",a:"client",c:"healing",p:64.9,r:4.6,rv:156,e:"🧴",bg:"Mais vendido"},
+ {id:"p11",n:"Bepantol derma 100g",b:"Bayer",a:"client",c:"healing",p:52.9,r:4.9,rv:890,e:"🧴"},
+ {id:"p12",n:"Hidratante corporal sem perfume 400ml",b:"Cetaphil",a:"client",c:"moisturizers",p:78.9,r:4.7,rv:342,e:"🧼"},
+ {id:"p13",n:"Bálsamo realce de cor 60g",b:"Hustle Butter",a:"client",c:"color",p:119,o:139,r:4.8,rv:203,e:"✨"},
+ {id:"p14",n:"Protetor solar FPS 70 tattoo",b:"Anthelios",a:"client",c:"sunscreen",p:89.9,r:4.9,rv:467,e:"☀️"},
+ {id:"p15",n:"Kit aftercare completo",b:"Ink Creators",a:"client",c:"kits",p:139,o:169,r:4.9,rv:73,e:"📦",bg:"Kit"},
+ {id:"p16",n:"Print fineline botânico A3",b:"Marina Vieira",a:"art",c:"prints",p:89,r:4.9,rv:41,e:"🖼"},
+ {id:"p17",n:"Quadro blackwork ornamental 40x60",b:"Caio Lobo",a:"art",c:"frames",p:349,r:4.8,rv:19,e:"🏞"},
+ {id:"p18",n:"Estampa camiseta old school",b:"Studio Renan",a:"art",c:"stamps",p:119,r:4.6,rv:88,e:"👕"},
+ {id:"p19",n:"Cartela de adesivos flash",b:"Ana Petrova",a:"art",c:"stickers",p:29.9,r:4.7,rv:214,e:"🏷"},
+ {id:"p20",n:"Luminária traço minimalista",b:"Ink Creators",a:"art",c:"decor",p:229,r:4.5,rv:33,e:"💡"}
+];
+var EVENTS=[
+ {id:"e1",n:"Tattoo Week São Paulo",t:"Convenção",city:"São Paulo, SP",km:2.4,cost:120,d:"12–14 jul",x:38,y:44},
+ {id:"e2",n:"Flash Day Vila Madalena",t:"Flash Day",city:"São Paulo, SP",km:4.1,cost:0,d:"20 jul",x:26,y:36},
+ {id:"e3",n:"Black & Grey Meetup",t:"Meetup",city:"São Paulo, SP",km:5.7,cost:0,d:"27 jul",x:56,y:30},
+ {id:"e4",n:"Exposição Ink Brasil",t:"Exposição",city:"São Paulo, SP",km:7.2,cost:45,d:"02 ago",x:66,y:58},
+ {id:"e5",n:"Workshop Linework Avançado",t:"Workshop",city:"São Paulo, SP",km:9.5,cost:390,d:"09 ago",x:22,y:66},
+ {id:"e6",n:"Flash Day Pinheiros",t:"Flash Day",city:"São Paulo, SP",km:3.6,cost:0,d:"16 ago",x:46,y:24},
+ {id:"e7",n:"Workshop Aquarela na Pele",t:"Workshop",city:"São Paulo, SP",km:6.8,cost:450,d:"23 ago",x:72,y:38},
+ {id:"e8",n:"Meetup Blackwork BR",t:"Meetup",city:"São Paulo, SP",km:4.5,cost:0,d:"30 ago",x:34,y:56},
+ {id:"e9",n:"Convenção Tatuagem Sul",t:"Convenção",city:"Curitiba, PR",km:18.3,cost:180,d:"12–14 set",x:80,y:74},
+ {id:"e10",n:"Convenção Ink ABC",t:"Convenção",city:"Santo André, SP",km:22.1,cost:90,d:"05 out",x:14,y:80}
+];
+var COURSES=[
+ {id:"c1",n:"Fundamentos de Linework",t:"Online",cost:390,dur:"12h • 4 semanas",st:"10 jun",who:"Marina Vasques",h:"@marinavtattoo",lv:"Iniciante",spots:18,e:"✒️"},
+ {id:"c2",n:"Realismo Preto e Cinza",t:"Presencial",cost:1890,dur:"32h • 5 dias",st:"01 jul",who:"Rafael Cardoso",h:"@rafacardosoink",lv:"Avançado",spots:4,e:"🖤"},
+ {id:"c3",n:"Color Packing Neo-Tradicional",t:"Híbrido",cost:1250,dur:"24h • 3 semanas",st:"18 jul",who:"Bruna Okabe",h:"@brunaokabe",lv:"Intermediário",spots:11,e:"🎨"},
+ {id:"c4",n:"Introdução ao Blackwork",t:"Online",cost:0,dur:"6h • 2 semanas",st:"05 ago",who:"Caio Lobo",h:"@caiolobo",lv:"Iniciante",spots:120,e:"⬛"},
+ {id:"c5",n:"Sombreado Suave em Fineline",t:"Online",cost:490,dur:"10h • 3 semanas",st:"22 ago",who:"Ana Petrova",h:"@anapetrova",lv:"Intermediário",spots:26,e:"🌫"},
+ {id:"c6",n:"Biomecânico Avançado",t:"Presencial",cost:2390,dur:"40h • 6 dias",st:"14 set",who:"Igor Falcão",h:"@igorfalcao",lv:"Avançado",spots:2,e:"⚙️"}
+];
+var PLANS=[
+ {n:"Free",tl:"Para começar e testar a plataforma",p:"R$ 0",pe:"para sempre",f:["Perfil público com até 10 fotos","Até 5 orçamentos por mês","Agenda básica","Avaliações de clientes"],cta:"Criar conta grátis"},
+ {n:"Mensal",tl:"Para profissionais ativos",p:"R$ 49",pe:"/mês",f:["Portfólio ilimitado por estilo","Orçamentos ilimitados com triagem IA","Agenda + lembretes automáticos","1 campanha ativa por vez","Métricas de desempenho"],cta:"Assinar mensal"},
+ {n:"Anual",tl:"Economia de 2 meses",p:"R$ 39",pe:"/mês",hl:true,rib:"Mais escolhido",f:["Tudo do plano Mensal","Campanhas ilimitadas","Destaque no feed de descoberta","Templates de mensagem com IA","Suporte prioritário"],cta:"Assinar anual"},
+ {n:"Enterprise",tl:"Para estúdios com múltiplos artistas",p:"Sob consulta",pe:"",f:["Perfis ilimitados de artistas","Agenda compartilhada do estúdio","Relatórios consolidados","Gerente de conta dedicado"],cta:"Falar com vendas"}
+];
+var CQ=[
+ {id:"q1",area:"Antebraço interno",st:["fineline","minimalista"],studio:"Studio Marina",resp:3,min:45000,max:72000,offer:68000,status:"respondido",seed:3,cx:2,when:"há 4 dias"},
+ {id:"q2",area:"Panturrilha",st:["realismo"],studio:"Aguardando propostas",resp:0,min:120000,max:210000,status:"aguardando",seed:7,cx:4,when:"há 2 dias"},
+ {id:"q3",area:"Costas — omoplata",st:["blackwork"],studio:"Studio Caio",resp:2,min:90000,max:160000,offer:145000,status:"agendado",seed:11,cx:3,when:"há 3 semanas"},
+ {id:"q4",area:"Tornozelo",st:["minimalista"],studio:"Studio Ana",resp:1,min:25000,max:40000,status:"aguardando",seed:5,cx:1,when:"ontem"},
+ {id:"q5",area:"Braço fechado",st:["oriental"],studio:"Studio Felipe",resp:1,min:280000,max:450000,status:"recusado",seed:9,cx:4,when:"há 1 mês"},
+ {id:"q6",area:"Pulso",st:["lettering"],studio:"Sem propostas",resp:0,min:18000,max:30000,status:"expirado",seed:13,cx:2,when:"há 2 meses"}
+];
+var SQ=[
+ {id:"s1",c:"Helena Duarte",area:"Antebraço interno",st:["fineline"],min:45000,max:72000,when:"há 2 h",status:"novo",cx:2,seed:3,hrs:"3–4h",note:"Quero algo delicado, sem sombreado pesado.",city:"São Paulo"},
+ {id:"s2",c:"Rodrigo Palma",area:"Costela",st:["blackwork"],min:98000,max:170000,when:"há 5 h",status:"novo",cx:3,seed:6,hrs:"5–7h",note:"Ornamental, cobrindo a lateral toda.",city:"São Paulo"},
+ {id:"s3",c:"Tainá Alves",area:"Ombro",st:["oriental"],min:150000,max:240000,when:"ontem",status:"em análise",cx:4,seed:9,hrs:"8–10h",note:"Projeto de manga, começando pelo ombro.",city:"Guarulhos"},
+ {id:"s4",c:"Marcos Vidal",area:"Punho",st:["minimalista"],min:22000,max:38000,when:"ontem",status:"em análise",cx:1,seed:12,hrs:"1–2h",note:"Símbolo pequeno, traço fino.",city:"São Paulo"},
+ {id:"s5",c:"Paula Nunes",area:"Coxa",st:["realismo"],min:180000,max:320000,when:"há 2 dias",status:"respondido",cx:4,seed:15,hrs:"10–12h",note:"Retrato em preto e cinza.",city:"Osasco"}
+];
+var BOOK=[{c:"Helena Duarte",area:"Antebraço interno",h:3,d:2,m:"ago",cents:68000},{c:"Rodrigo Palma",area:"Costela",h:5,d:6,m:"ago",cents:145000},{c:"Tainá Alves",area:"Ombro",h:4,d:13,m:"ago",cents:112000}];
+var REVS=[{c:"Helena Duarte",r:5,t:"Traço impecável e atendimento super atencioso. Já marquei a próxima.",w:"há 3 dias"},{c:"Marcos Vidal",r:5,t:"Estúdio limpo, pontual, explicou todo o cuidado pós.",w:"há 1 semana"},{c:"Paula Nunes",r:4,t:"Resultado ótimo. Só demorou um pouco pra responder o orçamento.",w:"há 2 semanas"},{c:"Rodrigo Palma",r:5,t:"Melhor blackwork que já fiz. Recomendo demais.",w:"há 3 semanas"}];
+var PAYS=[{d:"12 jun 2026",t:"Sinal — Blackwork omoplata",w:"Studio Caio",c:45000},{d:"28 mai 2026",t:"Sessão completa — Fineline antebraço",w:"Studio Marina",c:68000},{d:"03 mai 2026",t:"Kit aftercare",w:"Loja Ink Creators",c:13900},{d:"14 fev 2026",t:"Sessão — Minimalista tornozelo",w:"Studio Ana",c:32000}];
+var HIST=[{area:"Antebraço interno",s:"Fineline",a:"Marina Vieira",d:"28 mai 2026",seed:3},{area:"Tornozelo",s:"Minimalista",a:"Ana Petrova",d:"14 fev 2026",seed:8},{area:"Ombro",s:"Oriental",a:"Felipe Tanaka",d:"09 nov 2025",seed:12}];
+var CAMPS=[{t:"Flash day de inverno",s:"ativa",sent:340,o:"62%"},{t:"Reativação — clientes 2025",s:"rascunho",sent:0,o:"—"},{t:"Divulgação workshop fineline",s:"encerrada",sent:512,o:"48%"}];
+var CHAT_TAGS=[["primeiro_contato","Primeiro contato",""],["orcamento_solicitado","Orçamento solicitado","warn"],["orcamento_enviado","Orçamento enviado","blu"],["orcamento_aceito","Orçamento aceito","vio"],["agendado","Agendado","tea"],["tatuagem_feita","Tatuagem feita","ok"]];
+var CHATS=[
+ {id:"t1",n:"Marina Vieira",tag:"orcamento_enviado",last:"Consigo fechar em uma sessão de 3h.",w:"há 2 h",un:2,
+  msgs:[["them","Oi! Vi seu pedido de orçamento, adorei a referência."],["me","Que ótimo! Você acha que dá pra fazer em uma sessão só?"],["them","Consigo fechar em uma sessão de 3h."],["them","Te mando a proposta formal ainda hoje."]]},
+ {id:"t2",n:"Caio Lobo",tag:"agendado",last:"Te mando o desenho até quinta.",w:"ontem",un:0,
+  msgs:[["me","Fechado pro dia 6 então!"],["them","Perfeito, anotado aqui."],["them","Te mando o desenho até quinta."]]},
+ {id:"t3",n:"Ana Petrova",tag:"tatuagem_feita",last:"Perfeito, agendado então!",w:"3 dias",un:0,
+  msgs:[["them","Ficou lindo o resultado!"],["me","Amei demais, obrigada."],["them","Qualquer dúvida no pós é só chamar."]]},
+ {id:"t4",n:"Felipe Tanaka",tag:"primeiro_contato",last:"Oi! Trabalho com oriental tradicional.",w:"5 dias",un:1,
+  msgs:[["them","Oi! Trabalho com oriental tradicional."],["them","Me conta mais sobre o que você tem em mente?"]]},
+ {id:"t5",n:"Bruna Okabe",tag:"orcamento_solicitado",last:"Vou analisar as referências e te retorno.",w:"1 semana",un:0,
+  msgs:[["me","Mandei as referências pelo pedido de orçamento."],["them","Vou analisar as referências e te retorno."]]}
+];
+var NOTIFS=[
+ {id:"n1",t:"quote",ti:"Nova proposta recebida",d:"Marina Vieira respondeu seu orçamento — R$ 680,00",w:"há 2 h",un:true},
+ {id:"n2",t:"booking",ti:"Sessão confirmada",d:"Sua sessão com Studio Caio é dia 6/08 às 14h",w:"ontem",un:true},
+ {id:"n3",t:"quote",ti:"Pedido enviado",d:"Seu orçamento foi enviado a 6 tatuadores compatíveis",w:"2 dias",un:false},
+ {id:"n4",t:"payment",ti:"Pagamento confirmado",d:"Sinal de R$ 450,00 para Studio Caio",w:"3 dias",un:false},
+ {id:"n5",t:"event",ti:"Evento perto de você",d:"Flash Day Vila Madalena acontece a 4,1 km — 20 jul",w:"4 dias",un:false},
+ {id:"n6",t:"booking",ti:"Agendamento cancelado",d:"Studio Renan cancelou a sessão de 22/07",w:"1 semana",un:false},
+ {id:"n7",t:"quote",ti:"Orçamento recusado",d:"Studio Felipe não tem agenda para o período pedido",w:"1 mês",un:false}
+];
+var PRICING=[["minimalista","pequeno",18000,28000,1.5],["minimalista","medio",32000,48000,2.5],["fineline","pequeno",22000,35000,2],["fineline","medio",45000,72000,3.5],["fineline","grande",90000,140000,6],["blackwork","medio",70000,110000,4],["blackwork","grande",140000,240000,8],["blackwork","sessao_dia",280000,380000,10]];
+var SIZE_L={pequeno:"Pequeno",medio:"Médio",grande:"Grande",sessao_dia:"Sessão dia"};
+
+/* ============ ESTADO ============ */
+var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
+ signupRole:null,gateRole:null,roleSource:null,
+ f:{q:"",styles:[],cx:[],max:null,rating:null,sort:"relevance",open:false},
+ caro:{},shopAud:"client",shopCat:"all",shopQ:"",cart:[{id:"p10",q:1},{id:"p15",q:2}],cep:"",ship:null,
+ evT:"all",evP:"all",evD:"all",evSort:"distance",evSel:"e1",evLoc:"São Paulo, SP",
+ coT:"all",coL:"all",coP:"all",coSort:"recent",
+ qStatus:"todos",hub:"menu",aiStep:0,aiRefs:2,
+ chatOpen:null,chatFilter:"all",chatQ:"",notifFilter:"all",notifs:NOTIFS.map(function(n){return{...n}}),
+ sqSel:"s1",onbStep:1,onbName:"",onbStyles:[],onbPort:0,pfTab:"info",menu:false,autoAssist:false};
+
+function brl(c){return "R$ "+(c/100).toLocaleString("pt-BR",{maximumFractionDigits:0})}
+function money(v){return v===0?"Grátis":"R$ "+v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function stars(r){var f=Math.round(r);return '<span class="stars">'+"★★★★★".slice(0,f)+"☆☆☆☆☆".slice(0,5-f)+'</span>'}
+function ini(n){return n.split(" ").map(function(x){return x[0]}).slice(0,2).join("")}
+function tg(k){return '<span class="badge '+(k==="real"?"ok":k==="novo"?"acc":"bad")+'" style="margin-left:5px">'+k+'</span>'}
+function isLog(){return S.session!=="anon"}
+function isArt(){return S.session==="artist"}
+function go(r,a){S.route=r;if(r==="artist")S.artist=a;window.scrollTo(0,0);render()}
+function toggleDark(){var h=document.documentElement;if(h.hasAttribute("data-dark"))h.removeAttribute("data-dark");else h.setAttribute("data-dark","")}
+function set(k,v){S[k]=v;render()}
+function setf(k,v){S.f[k]=v;render()}
+function tog(arr,v){var i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v);render()}
+
+/* ============ TOPBAR ============ */
+function renderTop(){
+ var onLanding=S.route==="para-tatuadores";
+ var h='<button class="pill hide-sm '+(onLanding?"accent-solid":"accent")+'" onclick="go(\'para-tatuadores\')">🎨 Sou tatuador</button>';
+ var nCart=S.cart.reduce(function(a,c){return a+c.q},0);
+ var nNotif=S.notifs.filter(function(n){return n.un}).length;
+ var nChat=CHATS.reduce(function(a,c){return a+c.un},0);
+ h+=iconBtn("🛒","cart",nCart);
+ h+=iconBtn("🔔","notif",nNotif);
+ h+=iconBtn("💬","chat",nChat);
+ if(!isLog()){
+  h+='<button class="pill solid" onclick="go(\'auth\')">👤 Entrar</button>';
+ }else{
+  h+='<div style="position:relative"><button class="avatarbtn" onclick="S.menu=!S.menu;renderTop()">'+(isArt()?"MV":"HD")+'</button>';
+  if(S.menu){
+   h+='<div class="menu"><div class="mlabel">'+(isArt()?"marina@inkcreators.app":"helena@email.com")+'</div><div class="msep"></div>';
+   h+='<a onclick="S.menu=false;go(\'me\')">▦ Área do cliente</a>';
+   h+='<a onclick="S.menu=false;go(\'studio\')">🎨 Área do tatuador</a>';
+   h+='<div class="msep"></div><a onclick="S.menu=false;S.session=\'anon\';go(\'home\')">⇥ Sair</a></div>';
+  }
+  h+='</div>';
+ }
+ document.getElementById("topActions").innerHTML=icons(h);
+}
+function iconBtn(ic,k,n){
+ return '<button class="iconbtn" onclick="openDrawer(\''+k+'\')">'+ic+
+  (n>0?'<span class="count">'+(n>9?"9+":n)+'</span>':'')+'</button>';
+}
+
+/* ============ HOME ============ */
+function vHome(){
+ var h='<main><div class="wrap">';
+ h+='<h1 class="page">Arte que combina com você</h1>';
+ h+='<p class="sub">Pesquise estúdios, busque por estilos, acesse portfólios, faça orçamentos e agende sua próxima tatuagem</p>';
+ h+='<div class="ptabs">';
+ [["discover","👥 Encontrar tatuadores"],["shop","🛍 Lojas"],["events","🗓 Cursos e eventos"]].forEach(function(t){
+  h+='<button class="ptab '+(S.tab===t[0]?"on":"")+'" onclick="set(\'tab\',\''+t[0]+'\')">'+t[1]+'</button>'});
+ h+='<span class="sp"></span>';
+ if(S.tab==="discover")h+='<button class="ptab" onclick="'+(isLog()?"go('studio-profile')":"go('para-tatuadores')")+'">🖼 Publicar</button>';
+ if(S.tab==="shop")h+='<button class="ptab" onclick="go(\'studio\')">🏪 Vender</button>';
+ if(S.tab==="events")h+='<button class="ptab">📣 Divulgar</button>';
+ h+='<button class="ptab" style="background:var(--accent);color:var(--accent-foreground);border-color:var(--accent)" onclick="S.hub=\'menu\';openDrawer(\'hub\')">✨ Orçamentos</button>';
+ h+='</div>';
+ h+=S.tab==="discover"?secFeed():S.tab==="shop"?secShop():secEvents();
+ return h+'</div></main>';
+}
+
+/* --- filtros + feed --- */
+function secFeed(){
+ var f=S.f;
+ var h='<div class="fbar">';
+ h+='<div class="row"><input class="fld" placeholder="Buscar por tatuador, estúdio, cidade ou estilo…" value="'+f.q+'" oninput="S.f.q=this.value;renderFeedOnly()" />';
+ h+='<button class="btn sm" onclick="S.f.open=!S.f.open;render()">'+(f.open?"Menos filtros ▲":"Mais filtros ▼")+'</button></div>';
+ h+='<div class="fgroup"><span class="gl">Estilos</span>';
+ (f.open?STYLES:STYLES.filter(function(s){return ["blackwork","fineline","realismo","old-school","minimalista"].indexOf(s.s)>=0})).forEach(function(s){
+  h+='<button class="chip '+(f.styles.indexOf(s.s)>=0?"on":"")+'" onclick="tog(S.f.styles,\''+s.s+'\')">'+s.l+'</button>'});
+ h+='</div>';
+ if(f.open){
+  h+='<div class="fgroup"><span class="gl">Complexidade</span>';
+  [1,2,3,4].forEach(function(c){h+='<button class="chip '+(f.cx.indexOf(c)>=0?"on":"")+'" onclick="tog(S.f.cx,'+c+')">'+c+' · '+CPLX[c]+'</button>'});
+  h+='</div><div class="fgroup"><span class="gl">Preço até</span>';
+  [25000,35000,50000,70000,100000].forEach(function(p){h+='<button class="chip '+(f.max===p?"on":"")+'" onclick="setf(\'max\','+(f.max===p?null:p)+')">'+brl(p)+'/h</button>'});
+  h+='</div><div class="fgroup"><span class="gl">Nota mínima</span>';
+  [4,4.5,4.8].forEach(function(r){h+='<button class="chip '+(f.rating===r?"on":"")+'" onclick="setf(\'rating\','+(f.rating===r?null:r)+')">'+r+'★+</button>'});
+  h+='</div>';
+ }
+ h+='<div class="fgroup"><span class="gl">Ordenar</span>';
+ [["relevance","Relevância"],["price_asc","Menor preço"],["price_desc","Maior preço"],["rating","Melhor avaliação"],["distance","Mais próximos"]].forEach(function(o){
+  h+='<button class="chip '+(f.sort===o[0]?"on":"")+'" onclick="setf(\'sort\',\''+o[0]+'\')">'+o[1]+'</button>'});
+ var n=f.styles.length+f.cx.length+(f.max?1:0)+(f.rating?1:0);
+ if(n)h+='<button class="chip sp" onclick="S.f.styles=[];S.f.cx=[];S.f.max=null;S.f.rating=null;render()">✕ limpar ('+n+')</button>';
+ h+='</div></div><div id="feedHost">'+feedList()+'</div>';
+ return h;
+}
+function filteredArtists(){
+ var f=S.f;
+ var l=ARTISTS.filter(function(a){
+  if(f.styles.length&&!a.styles.some(function(s){return f.styles.indexOf(s)>=0}))return false;
+  if(f.cx.length&&f.cx.indexOf(a.cx)<0)return false;
+  if(f.max&&a.min>f.max)return false;
+  if(f.rating&&a.rating<f.rating)return false;
+  if(f.q.trim()){var q=f.q.trim().toLowerCase();
+   if((a.name+" "+a.studio+" "+a.city+" "+a.styles.map(function(s){return SL[s]}).join(" ")).toLowerCase().indexOf(q)<0)return false}
+  return true});
+ if(f.sort==="price_asc")l.sort(function(a,b){return a.min-b.min});
+ if(f.sort==="price_desc")l.sort(function(a,b){return b.min-a.min});
+ if(f.sort==="rating")l.sort(function(a,b){return b.rating-a.rating});
+ if(f.sort==="distance")l.sort(function(a,b){return a.seed-b.seed});
+ return l;
+}
+function feedList(){
+ var l=filteredArtists();
+ if(!l.length)return '<div class="card pad muted" style="margin-top:16px">Nenhum tatuador com esses filtros. Tente ampliar a faixa de preço ou remover algum estilo.</div>';
+ var h='<div class="feed">';
+ l.forEach(function(a){h+=aCard(a)});
+ h+='</div><div class="row" style="justify-content:center;margin-top:18px"><button class="btn" onclick="alert(\'No app real, o scroll infinito carrega a próxima página aqui.\')">Carregar mais</button></div>';
+ return h;
+}
+function aCard(a){
+ var i=S.caro[a.id]||0;
+ var h='<div class="acard"><div class="caro">';
+ if(a.empty){
+  h+='<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:var(--muted);color:var(--muted-foreground)">';
+  h+='<span class="small b">Portfólio em construção</span><span class="tiny">O tatuador ainda não publicou fotos</span></div>';
+ }else{
+  a.port.slice(0,5).forEach(function(p,k){h+='<div class="sl '+(k===i?"on":"")+'" style="background-image:'+tex(p)+'"></div>'});
+  if(a.insta)h+='<span class="tagtl">📷 Instagram</span>';
+  h+='<button class="nav l" '+(i===0?'disabled style="opacity:.35"':'')+' onclick="caro(\''+a.id+'\',-1,5)">‹</button>';
+  h+='<button class="nav r" '+(i===4?'disabled style="opacity:.35"':'')+' onclick="caro(\''+a.id+'\',1,5)">›</button>';
+  h+='<div class="pips">';for(var k=0;k<5;k++)h+='<i class="'+(k===i?"on":"")+'"></i>';h+='</div>';
+ }
+ h+='</div><div class="pad">';
+ h+='<div class="row" style="align-items:flex-start"><div class="av">'+ini(a.name)+'</div><div style="min-width:0;flex:1">';
+ h+='<div class="b small">'+a.name+(a.verified?' <span style="color:var(--accent)">✔</span>':'')+'</div>';
+ h+='<div class="tiny muted">'+a.studio+'</div>';
+ h+='<div class="tiny muted">📍 '+a.city+'/'+a.state+'</div></div>';
+ h+='<div style="text-align:right"><div class="small b">★ '+a.rating+'</div><div class="tiny muted">('+a.reviews+')</div>';
+ h+='<div class="tiny b" style="margin-top:4px">'+brl(a.min)+' – '+brl(a.max)+'</div></div></div>';
+ h+='<div class="row" style="margin-top:9px"><div class="row wrapf" style="gap:5px">';
+ h+=a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("");
+ h+='<span class="badge acc">'+CPLX[a.cx]+'</span></div>';
+ h+='<span class="sp tiny muted" style="white-space:nowrap">🗓 '+a.months+'m</span></div>';
+ h+='<div class="row" style="margin-top:11px;padding-top:4px">';
+ h+='<button class="btn primary" style="padding:8px 18px" onclick="go(\'artist\',\''+a.id+'\')">Perfil</button>';
+ h+='<div class="row sp" style="gap:5px">';
+ h+='<button class="btn sm" title="Orçar" style="width:34px;padding:8px 0" onclick="quoteFor(\''+a.id+'\',\'quote\')">👛</button>';
+ h+='<button class="btn sm" title="Agendar" style="width:34px;padding:8px 0" onclick="quoteFor(\''+a.id+'\',\'schedule\')">🗓</button>';
+ h+='</div></div></div></div>';
+ return h;
+}
+function caro(id,d,n){var c=S.caro[id]||0;S.caro[id]=Math.max(0,Math.min(n-1,c+d));render()}
+function renderFeedOnly(){var el=document.getElementById("feedHost");if(el)el.innerHTML=feedList()}
+/* Como no app real: os botões levam para /artists/$id?action=… e o assistente abre lá */
+function quoteFor(id,intent){S.assistArtist=id;S.assistIntent=intent;S.aiStep=0;S.autoAssist=true;go("artist",id)}
+
+/* --- loja --- */
+function secShop(){
+ var cats=SHOP_CATS[S.shopAud];
+ var h='<div class="ptabs" style="margin-top:16px">';
+ [["client","Para quem tatuou"],["artist","Para o tatuador"],["art","Galeria de arte"]].forEach(function(a){
+  h+='<button class="chip acc '+(S.shopAud===a[0]?"on":"")+'" style="padding:8px 14px" onclick="S.shopAud=\''+a[0]+'\';S.shopCat=\'all\';render()">'+a[1]+'</button>'});
+ h+='</div>';
+ h+='<div class="fbar"><input class="fld" placeholder="Buscar produto ou marca…" value="'+S.shopQ+'" oninput="S.shopQ=this.value;render()" />';
+ h+='<div class="fgroup"><span class="gl">Categoria</span>';
+ cats.forEach(function(c){h+='<button class="chip '+(S.shopCat===c[0]?"on":"")+'" onclick="S.shopCat=\''+c[0]+'\';render()">'+c[1]+'</button>'});
+ h+='</div></div>';
+ var l=PRODUCTS.filter(function(p){
+  if(p.a!==S.shopAud)return false;
+  if(S.shopCat!=="all"&&p.c!==S.shopCat)return false;
+  if(S.shopQ.trim()&&(p.n+" "+p.b).toLowerCase().indexOf(S.shopQ.trim().toLowerCase())<0)return false;
+  return true});
+ h+='<div class="pgrid">';
+ if(!l.length)h+='<div class="card pad muted">Nenhum produto nessa categoria.</div>';
+ l.forEach(function(p){
+  var i=S.caro["sh"+p.id]||0,emo=[p.e,"📸","🔎"][i];
+  h+='<div class="pcard"><div class="im">'+emo;
+  h+='<button class="nv" style="left:6px" onclick="caro(\'sh'+p.id+'\',-1,3)">‹</button>';
+  h+='<button class="nv" style="right:6px" onclick="caro(\'sh'+p.id+'\',1,3)">›</button></div>';
+  h+='<div class="pad" style="padding:11px 12px">';
+  if(p.bg)h+='<span class="badge acc">'+p.bg+'</span>';
+  h+='<div class="b small" style="margin-top:5px">'+p.n+'</div><div class="tiny muted">'+p.b+'</div>';
+  h+='<div class="tiny" style="margin-top:4px">'+stars(p.r)+' '+p.r+' <span class="muted">('+p.rv+')</span></div>';
+  h+='<div class="row" style="margin-top:6px"><span class="b">'+money(p.p)+'</span>'+(p.o?'<span class="tiny muted" style="text-decoration:line-through">'+money(p.o)+'</span>':'')+'</div>';
+  h+='<button class="btn sm blk" style="margin-top:8px" onclick="addCart(\''+p.id+'\')">Adicionar</button></div></div>';
+ });
+ return h+'</div>';
+}
+function addCart(id){
+ var it=S.cart.filter(function(c){return c.id===id})[0];
+ if(it)it.q++;else S.cart.push({id:id,q:1});
+ openDrawer("cart");
+}
+
+/* --- eventos + cursos --- */
+function secEvents(){
+ var l=EVENTS.filter(function(e){
+  if(S.evT!=="all"&&e.t!==S.evT)return false;
+  if(S.evP==="free"&&e.cost>0)return false;
+  if(S.evP==="paid"&&e.cost===0)return false;
+  if(S.evD==="near"&&e.km>5)return false;
+  if(S.evD==="mid"&&(e.km<=5||e.km>10))return false;
+  if(S.evD==="far"&&e.km<=10)return false;
+  return true});
+ if(S.evSort==="distance")l.sort(function(a,b){return a.km-b.km});
+ if(S.evSort==="price-asc")l.sort(function(a,b){return a.cost-b.cost});
+ if(S.evSort==="price-desc")l.sort(function(a,b){return b.cost-a.cost});
+ if(S.evSort==="name")l.sort(function(a,b){return a.n.localeCompare(b.n)});
+
+ var h='<div class="row" style="margin-top:18px"><span class="b" style="font-size:16px">Eventos perto de você</span>'+tg("mock")+'</div>';
+ h+='<div class="fbar"><div class="row wrapf">';
+ h+='<input class="fld" style="flex:1;min-width:180px" placeholder="Buscar endereço ou cidade" value="'+S.evLoc+'" oninput="S.evLoc=this.value" />';
+ h+='<button class="btn sm" onclick="S.evLoc=\'Minha localização atual\';render()">📍 Usar minha localização</button></div>';
+ h+='<div class="fgroup"><span class="gl">Tipo</span>';
+ [["all","Todos"],["Convenção","Convenção"],["Flash Day","Flash Day"],["Exposição","Exposição"],["Workshop","Workshop"],["Meetup","Meetup"]].forEach(function(t){
+  h+='<button class="chip '+(S.evT===t[0]?"on":"")+'" onclick="S.evT=\''+t[0]+'\';render()">'+t[1]+'</button>'});
+ h+='</div><div class="fgroup"><span class="gl">Preço</span>';
+ [["all","Todos"],["free","Grátis"],["paid","Pagos"]].forEach(function(t){
+  h+='<button class="chip '+(S.evP===t[0]?"on":"")+'" onclick="S.evP=\''+t[0]+'\';render()">'+t[1]+'</button>'});
+ h+='</div><div class="fgroup"><span class="gl">Distância</span>';
+ [["all","Qualquer"],["near","até 5 km"],["mid","5–10 km"],["far","10 km+"]].forEach(function(t){
+  h+='<button class="chip '+(S.evD===t[0]?"on":"")+'" onclick="S.evD=\''+t[0]+'\';render()">'+t[1]+'</button>'});
+ h+='</div><div class="fgroup"><span class="gl">Ordenar</span>';
+ [["distance","Mais perto"],["price-asc","Menor preço"],["price-desc","Maior preço"],["name","Nome (A–Z)"]].forEach(function(t){
+  h+='<button class="chip '+(S.evSort===t[0]?"on":"")+'" onclick="S.evSort=\''+t[0]+'\';render()">'+t[1]+'</button>'});
+ h+='</div></div>';
+
+ h+='<div class="grid cols16" style="margin-top:14px;align-items:start">';
+ h+='<div class="map">';
+ l.forEach(function(e,k){
+  h+='<div class="pin '+(S.evSel===e.id?"on":"")+'" style="left:'+e.x+'%;top:'+e.y+'%" onclick="S.evSel=\''+e.id+'\';render()"><b>'+(k+1)+'</b><span>'+e.km+' km</span></div>'});
+ h+='<div class="pin" style="left:50%;top:50%"><b style="background:var(--accent)">◉</b><span>você</span></div>';
+ h+='<div style="position:absolute;bottom:7px;left:7px" class="tiny muted">Mapa simulado · Google Maps no app real</div></div>';
+ h+='<div class="card pad" style="max-height:420px;overflow:auto">';
+ h+='<div class="small b">'+l.length+' evento(s)</div><div style="margin-top:4px">';
+ l.forEach(function(e,k){
+  h+='<div class="lrow" style="cursor:pointer;'+(S.evSel===e.id?"background:var(--x-accent-bg);border-radius:8px;padding-left:7px;padding-right:7px":"")+'" onclick="S.evSel=\''+e.id+'\';render()">';
+  h+='<div class="datebox"><span class="m">'+e.d.split(" ").pop()+'</span><span class="d">'+e.d.split(/[–\s]/)[0]+'</span></div>';
+  h+='<div style="min-width:0"><div class="b small">'+e.n+'</div><div class="tiny muted">'+e.t+' · '+e.city+' · '+e.km+' km</div></div>';
+  h+='<div class="sp" style="text-align:right"><div class="b small">'+(e.cost?money(e.cost):"Grátis")+'</div><button class="btn sm" style="margin-top:3px">Participar</button></div></div>';
+ });
+ h+='</div></div></div>';
+
+ var c=COURSES.filter(function(x){
+  if(S.coT!=="all"&&x.t!==S.coT)return false;
+  if(S.coL!=="all"&&x.lv!==S.coL)return false;
+  if(S.coP==="free"&&x.cost>0)return false;
+  if(S.coP==="lt500"&&(x.cost===0||x.cost>=500))return false;
+  if(S.coP==="gte500"&&x.cost<500)return false;
+  return true});
+ if(S.coSort==="price-asc")c.sort(function(a,b){return a.cost-b.cost});
+ if(S.coSort==="price-desc")c.sort(function(a,b){return b.cost-a.cost});
+ if(S.coSort==="spots")c.sort(function(a,b){return b.spots-a.spots});
+ if(S.coSort==="name")c.sort(function(a,b){return a.n.localeCompare(b.n)});
+
+ h+='<div class="row" style="margin-top:26px"><span class="b" style="font-size:16px">Cursos</span>'+tg("mock")+'</div>';
+ h+='<div class="fbar"><div class="fgroup"><span class="gl">Modalidade</span>';
+ [["all","Todas"],["Online","Online"],["Presencial","Presencial"],["Híbrido","Híbrido"]].forEach(function(t){
+  h+='<button class="chip '+(S.coT===t[0]?"on":"")+'" onclick="S.coT=\''+t[0]+'\';render()">'+t[1]+'</button>'});
+ h+='</div><div class="fgroup"><span class="gl">Nível</span>';
+ [["all","Todos"],["Iniciante","Iniciante"],["Intermediário","Intermediário"],["Avançado","Avançado"]].forEach(function(t){
+  h+='<button class="chip '+(S.coL===t[0]?"on":"")+'" onclick="S.coL=\''+t[0]+'\';render()">'+t[1]+'</button>'});
+ h+='</div><div class="fgroup"><span class="gl">Preço</span>';
+ [["all","Todos"],["free","Grátis"],["lt500","até R$ 500"],["gte500","R$ 500+"]].forEach(function(t){
+  h+='<button class="chip '+(S.coP===t[0]?"on":"")+'" onclick="S.coP=\''+t[0]+'\';render()">'+t[1]+'</button>'});
+ h+='</div><div class="fgroup"><span class="gl">Ordenar</span>';
+ [["recent","Mais recentes"],["price-asc","Menor preço"],["price-desc","Maior preço"],["spots","Mais vagas"],["name","Nome (A–Z)"]].forEach(function(t){
+  h+='<button class="chip '+(S.coSort===t[0]?"on":"")+'" onclick="S.coSort=\''+t[0]+'\';render()">'+t[1]+'</button>'});
+ h+='</div></div>';
+ h+='<div class="pgrid">';
+ if(!c.length)h+='<div class="card pad muted">Nenhum curso com esses filtros.</div>';
+ c.forEach(function(x){
+  h+='<div class="pcard"><div class="im">'+x.e+'</div><div class="pad" style="padding:11px 12px">';
+  h+='<div class="row" style="gap:4px"><span class="badge">'+x.t+'</span><span class="badge">'+x.lv+'</span></div>';
+  h+='<div class="b small" style="margin-top:6px">'+x.n+'</div>';
+  h+='<div class="tiny muted">'+x.who+' · '+x.h+'</div>';
+  h+='<div class="tiny muted" style="margin-top:3px">'+x.dur+' · início '+x.st+'</div>';
+  h+='<div class="row" style="margin-top:7px"><span class="b">'+(x.cost?money(x.cost):"Grátis")+'</span>';
+  h+='<span class="sp badge '+(x.spots<6?"warn":"")+'">'+x.spots+' vagas</span></div>';
+  h+='<button class="btn sm blk" style="margin-top:8px">Inscrever-se</button></div></div>';
+ });
+ return h+'</div>';
+}
+
+/* ============ PERFIL PÚBLICO ============ */
+function vArtist(){
+ var a=ARTISTS.filter(function(x){return x.id===S.artist})[0]||ARTISTS[0];
+ var h='<main><div class="wrap"><button class="btn sm" onclick="go(\'home\')">← Voltar</button>';
+ h+='<div class="grid cols2" style="margin-top:14px;align-items:start"><div>';
+ h+='<div class="row" style="gap:13px"><div class="av" style="width:62px;height:62px;font-size:18px">'+ini(a.name)+'</div><div>';
+ h+='<h1 class="page">'+a.name+(a.verified?' <span class="badge acc">verificado</span>':'')+'</h1>';
+ h+='<p class="sub">'+a.studio+' · '+a.city+', '+a.state+' · '+a.years+' anos</p>';
+ h+='<div class="small" style="margin-top:4px">'+stars(a.rating)+' <span class="b">'+a.rating+'</span> <span class="muted">('+a.reviews+' avaliações)</span></div></div></div>';
+ h+='<div class="card pad" style="margin-top:14px"><div class="b small">Sobre</div><p style="margin-top:6px">'+a.bio+'</p>';
+ h+='<div class="row wrapf" style="gap:5px;margin-top:9px">'+a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'<span class="badge">'+CPLX[a.cx]+'</span></div></div>';
+
+ if(a.insta){
+  var ii=S.caro["ig"+a.id]||0;
+  h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b small">📷 Instagram</span><span class="tiny muted">@'+a.name.toLowerCase().replace(/\s+/g,".")+'</span>'+tg("real")+'</div>';
+  h+='<div class="caro" style="height:200px;border-radius:10px;overflow:hidden;margin-top:9px">';
+  for(var k=0;k<6;k++)h+='<div class="sl '+(k===ii?"on":"")+'" style="background-image:'+tex(a.seed*11+k)+'"></div>';
+  h+='<button class="nav l" onclick="caro(\'ig'+a.id+'\',-1,6)">‹</button><button class="nav r" onclick="caro(\'ig'+a.id+'\',1,6)">›</button>';
+  h+='<div class="pips">';for(var k=0;k<6;k++)h+='<i class="'+(k===ii?"on":"")+'"></i>';h+='</div></div>';
+  h+='<div class="tiny muted" style="margin-top:6px">Post #'+(ii+1)+' — puxado do feed do Instagram do artista</div></div>';
+ }
+
+ h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b small">Portfólio</span>'+tg("real")+'</div>';
+ h+='<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:9px;gap:7px">';
+ a.port.forEach(function(p){h+='<div class="tat" style="aspect-ratio:1;border-radius:9px;background-image:'+tex(p)+'"></div>'});
+ h+='</div></div>';
+
+ h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b small">Eventos deste artista</span>'+tg("mock")+'</div><div style="margin-top:4px">';
+ EVENTS.slice(0,2).forEach(function(e){
+  h+='<div class="lrow"><div class="datebox"><span class="m">'+e.d.split(" ").pop()+'</span><span class="d">'+e.d.split(/[–\s]/)[0]+'</span></div>';
+  h+='<div><div class="b small">'+e.n+'</div><div class="tiny muted">'+e.t+' · '+e.city+'</div></div>';
+  h+='<div class="sp b small">'+(e.cost?money(e.cost):"Grátis")+'</div></div>'});
+ h+='</div></div>';
+
+ h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b small">Avaliações</span>'+tg("mock")+'</div><div style="margin-top:4px">';
+ REVS.forEach(function(r){h+='<div class="lrow"><div class="av">'+ini(r.c)+'</div><div style="min-width:0"><div class="b small">'+r.c+' <span class="tiny">'+stars(r.r)+'</span></div><div class="small muted">'+r.t+'</div></div><div class="sp tiny muted">'+r.w+'</div></div>'});
+ h+='</div></div></div>';
+
+ h+='<div class="card pad" style="position:sticky;top:76px">';
+ h+='<div class="tiny muted">Faixa por hora</div><div style="font-size:21px;font-weight:700;letter-spacing:-.02em">'+brl(a.min)+' – '+brl(a.max)+'</div>';
+ h+='<div class="sep"></div><div class="tiny muted" style="margin-bottom:5px">Tabela de referência</div>';
+ h+='<table class="t"><tr><th>Tamanho</th><th style="text-align:right">Faixa</th></tr>';
+ [["Pequeno (até 8cm)",2],["Médio (8–20cm)",5],["Grande (20cm+)",8],["Sessão dia",10]].forEach(function(r){
+  h+='<tr><td class="muted">'+r[0]+'</td><td style="text-align:right" class="b">'+brl(a.min*r[1])+'</td></tr>'});
+ h+='</table>';
+ h+='<button class="btn primary blk" style="margin-top:13px" onclick="quoteFor(\''+a.id+'\',\'quote\')">✨ Pedir orçamento</button>';
+ h+='<button class="btn blk" style="margin-top:7px" onclick="quoteFor(\''+a.id+'\',\'schedule\')">🗓 Agendar sessão</button>';
+ h+='<button class="btn blk" style="margin-top:7px" onclick="'+(isLog()?"openDrawer('chat')":"go('auth')")+'">💬 Conversar</button>';
+ h+='<div class="tiny muted" style="margin-top:9px">Catálogo e orçamento'+tg("real")+'</div></div>';
+ return h+'</div></div></main>';
+}
+
+/* ============ LANDING TATUADORES ============ */
+function vLanding(){
+ var h='<main><div class="wrap">';
+ h+='<div style="text-align:center;padding:20px 0 10px"><span class="badge acc">Para tatuadores</span>';
+ h+='<h1 style="font-size:36px;font-weight:800;letter-spacing:-.03em;margin-top:12px;line-height:1.15">Seu estúdio, com orçamento<br/>inteligente e agenda num só lugar</h1>';
+ h+='<p class="sub" style="font-size:15px;max-width:600px;margin:10px auto 0">Receba pedidos já pré-analisados por IA, responda com sua proposta e mantenha portfólio, agenda e avaliações organizados.</p>';
+ h+='<div class="row" style="justify-content:center;gap:9px;margin-top:18px"><button class="btn primary" onclick="S.signupRole=true;go(\'signup\')">Criar perfil de tatuador</button><button class="btn" onclick="go(\'home\')">Ver a plataforma</button></div></div>';
+
+ h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin-top:30px">';
+ [["✨","Orçamento por IA","O cliente envia referências e a IA sugere estilo, complexidade e faixa de preço antes de chegar até você."],
+  ["📥","Pedidos filtrados","Você só recebe pedidos compatíveis com seus estilos e sua cidade."],
+  ["🗓","Agenda integrada","Do aceite da proposta ao agendamento, sem sair da plataforma."],
+  ["🖼","Portfólio e Instagram","Publique seu trabalho ou puxe direto do seu feed do Instagram."]].forEach(function(f){
+  h+='<div class="card pad"><div style="font-size:21px">'+f[0]+'</div><div class="b" style="margin-top:6px">'+f[1]+'</div><div class="small muted" style="margin-top:3px">'+f[2]+'</div></div>'});
+ h+='</div>';
+
+ h+='<div style="text-align:center;margin-top:44px"><span class="badge">Como funciona</span><h2 style="font-size:26px;font-weight:700;margin-top:8px;letter-spacing:-.02em">Do pedido à agulha em quatro passos</h2></div>';
+ h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-top:18px">';
+ [["1","Crie seu perfil","Estilos, portfólio e faixa de preço em poucos minutos."],
+  ["2","Receba pedidos","A triagem por IA já chega com estilo e complexidade sugeridos."],
+  ["3","Responda","Envie sua proposta com valor e mensagem direto pela plataforma."],
+  ["4","Agende e execute","Cliente aceita, sessão entra na agenda e o histórico fica registrado."]].forEach(function(s){
+  h+='<div class="card pad"><div class="av" style="background:var(--primary);color:var(--primary-foreground)">'+s[0]+'</div><div class="b" style="margin-top:8px">'+s[1]+'</div><div class="small muted" style="margin-top:3px">'+s[2]+'</div></div>'});
+ h+='</div>';
+
+ h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-top:34px">';
+ [["2.400+","tatuadores cadastrados"],["18 mil","orçamentos gerados"],["4,8","nota média da plataforma"],["62%","dos pedidos viram sessão"]].forEach(function(s){
+  h+='<div class="stat" style="text-align:center"><div class="val">'+s[0]+'</div><div class="hint">'+s[1]+'</div></div>'});
+ h+='</div>';
+
+ h+='<div style="text-align:center;margin-top:46px"><span class="badge">Planos</span>';
+ h+='<h2 style="font-size:26px;font-weight:700;margin-top:8px;letter-spacing:-.02em">Benefícios de membro</h2>';
+ h+='<p class="sub">Comece de graça e evolua quando o volume de pedidos justificar.</p></div>';
+ h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-top:22px;align-items:start">';
+ PLANS.forEach(function(p){
+  h+='<div class="plan '+(p.hl?"hl":"")+'">'+(p.rib?'<span class="rib">'+p.rib+'</span>':'');
+  h+='<div class="b" style="font-size:16px">'+p.n+'</div><div class="tiny muted">'+p.tl+'</div>';
+  h+='<div style="margin-top:12px"><span style="font-size:26px;font-weight:700;letter-spacing:-.02em">'+p.p+'</span> <span class="small muted">'+p.pe+'</span></div>';
+  h+='<div style="margin-top:12px">';
+  p.f.forEach(function(x){h+='<div class="row small" style="align-items:flex-start;margin-bottom:6px"><span style="color:var(--x-success)">✓</span><span>'+x+'</span></div>'});
+  h+='</div><button class="btn '+(p.hl?"primary":"")+' blk" style="margin-top:12px" onclick="S.signupRole=true;go(\'signup\')">'+p.cta+'</button></div>';
+ });
+ h+='</div>'+tg("mock")+' <span class="tiny muted">Planos são apenas interface — não há cobrança nem tabela de assinatura no backend.</span>';
+ return h+'</div></main>';
+}
+
+/* ============ AUTH ============ */
+function vAuth(){
+ var h='<main><div class="authwrap"><h1 class="page">Entre na sua conta</h1><p class="sub">Continue de onde parou.</p>';
+ h+='<button class="btn blk" style="margin-top:18px" onclick="S.gateRole=null;go(\'gate\')">Continuar com Google</button>';
+ h+='<div class="row" style="margin:14px 0"><div style="flex:1;height:1px;background:var(--border)"></div><span class="tiny muted">ou</span><div style="flex:1;height:1px;background:var(--border)"></div></div>';
+ h+='<div class="grid" style="gap:8px"><input class="fld" placeholder="nome@email.com" /><input class="fld" type="password" placeholder="senha" /></div>';
+ h+='<div class="row" style="justify-content:flex-end;margin-top:6px"><a class="tiny muted" style="cursor:pointer">Esqueci minha senha</a></div>';
+ h+='<button class="btn primary blk" style="margin-top:10px" onclick="S.session=\'client\';go(\'me\')">Entrar</button>';
+ h+='<p class="small muted" style="margin-top:13px;text-align:center">Não tem conta? <a class="b" style="cursor:pointer;color:var(--accent)" onclick="S.signupRole=null;go(\'signup\')">Criar conta</a></p>';
+ return h+'</div></main>';
+}
+function vSignup(){
+ var h='<main><div class="authwrap"><h1 class="page">Crie sua conta</h1><p class="sub">Salve orçamentos, converse com tatuadores e acompanhe agendamentos.</p>';
+ h+='<div class="grid" style="gap:8px;margin-top:18px"><input class="fld" placeholder="Seu nome" /><input class="fld" placeholder="nome@email.com" /><input class="fld" type="password" placeholder="senha" /></div>';
+ h+='<div style="margin-top:18px"><div class="row"><span class="b small">Você também é tatuador(a)?</span><span class="req">obrigatório</span>'+tg("novo")+'</div>';
+ h+='<div class="row" style="gap:8px;margin-top:8px;align-items:stretch">';
+ h+='<div class="opt '+(S.signupRole===false?"on":"")+'" onclick="S.signupRole=false;render()"><div style="font-size:17px">👤</div><div class="b small" style="margin-top:4px">Não</div><div class="tiny muted">Quero me tatuar, comprar e ir a eventos</div></div>';
+ h+='<div class="opt '+(S.signupRole===true?"on":"")+'" onclick="S.signupRole=true;render()"><div style="font-size:17px">🎨</div><div class="b small" style="margin-top:4px">Sim, sou tatuador(a)</div><div class="tiny muted">Também quero atender clientes</div></div></div>';
+ h+='<div class="tiny muted" style="margin-top:7px">'+(S.signupRole===null?"Sem escolher, o cadastro não avança.":"Você continua com acesso de cliente de qualquer forma.")+'</div></div>';
+ h+='<button class="btn primary blk" style="margin-top:14px" '+(S.signupRole===null?"disabled":"")+' onclick="finishSignup()">Criar conta</button>';
+ return h+'</div></main>';
+}
+function vGate(){
+ var h='<main><div class="authwrap"><span class="badge acc">passo obrigatório</span>';
+ h+='<h1 class="page" style="margin-top:9px">Antes de continuar</h1>';
+ h+='<p class="sub">Isso define se, além de cliente, você também terá um espaço de trabalho para tatuadores.</p>';
+ h+='<div class="row" style="gap:8px;margin-top:18px;align-items:stretch">';
+ h+='<div class="opt '+(S.gateRole===false?"on":"")+'" onclick="S.gateRole=false;render()"><div style="font-size:17px">👤</div><div class="b small" style="margin-top:4px">Não</div></div>';
+ h+='<div class="opt '+(S.gateRole===true?"on":"")+'" onclick="S.gateRole=true;render()"><div style="font-size:17px">🎨</div><div class="b small" style="margin-top:4px">Sim, sou tatuador(a)</div></div></div>';
+ h+='<button class="btn primary blk" style="margin-top:14px" '+(S.gateRole===null?"disabled":"")+' onclick="finishGate()">Continuar</button>';
+ h+='<div class="tiny muted" style="margin-top:11px">Aparece depois do login com Google, que não passa pelo formulário de cadastro.</div>';
+ return h+'</div></main>';
+}
+function finishSignup(){S.session=S.signupRole?"artist":"client";S.roleSource="signup_trigger";go(S.signupRole?"studio-onboarding":"me")}
+function finishGate(){S.session=S.gateRole?"artist":"client";S.roleSource="role_select_gate";go(S.gateRole?"studio-onboarding":"me")}
+function becomeArtist(){S.session="artist";S.roleSource="upgrade";go("studio-onboarding")}
+
+/* ============ SHELL me/studio ============ */
+var ME_NAV=[["me","Visão geral","▦"],["me-quotes","Meus orçamentos","📥"],["me-history","Histórico","🕘"],["me-payments","Pagamentos","🧾"]];
+var ST_NAV=[["studio","Visão geral","▦"],["studio-quotes","Orçamentos","📥"],["studio-schedule","Agenda","🗓"],["studio-events","Eventos","🎟"],["studio-campaigns","Campanhas","📣"],["studio-reviews","Avaliações","★"],["studio-profile","Meu perfil","⚙"]];
+function envHead(kind,title,nav,act){
+ var h='<div class="envhead"><div class="wrap" style="padding-top:16px">';
+ h+='<div class="row wrapf"><div><div class="kicker">'+(kind==="me"?"Minha área":"Ambiente do tatuador")+'</div><h1 class="page" style="margin-top:2px">'+title+'</h1></div>';
+ h+='<button class="pill sp" onclick="go(\'home\')">← '+(kind==="me"?"Descobrir tatuadores":"App do cliente")+'</button></div>';
+ h+='<div class="subnav '+(kind==="me"?"client":"")+'">';
+ nav.forEach(function(n){h+='<a class="'+(act===n[0]?"on":"")+'" onclick="go(\''+n[0]+'\')">'+n[2]+' '+n[1]+'</a>'});
+ return h+'</div></div></div>';
+}
+
+/* ============ ÁREA DO CLIENTE ============ */
+function vMe(sub){
+ var h=envHead("me","Olá, Helena",ME_NAV,sub)+'<main><div class="wrap">';
+ if(!isArt())h+='<div class="banner" style="margin-bottom:16px"><div><div class="b small">Também é tatuador(a)? Crie seu perfil profissional.</div><div class="tiny muted">Seu acesso de cliente continua igual — nada é removido.</div></div><button class="btn sp" onclick="becomeArtist()">Tornar-se tatuador</button>'+tg("novo")+'</div>';
+
+ if(sub==="me"){
+  h+='<div class="stats">';
+  [["📥","Orçamentos ativos","2","Acompanhe as respostas"],["✅","Sessões agendadas","1","Confirmadas pelo tatuador"],["✨","Tatuagens feitas","3","No seu histórico"],["👛","Total investido","R$ 1.589","Soma dos pagamentos"]].forEach(function(s){
+   h+='<div class="stat"><div class="lbl">'+s[0]+' '+s[1]+'</div><div class="val">'+s[2]+'</div><div class="hint">'+s[3]+'</div></div>'});
+  h+='</div><div class="grid cols2" style="margin-top:15px;align-items:start">';
+  h+='<div class="card pad"><div class="row"><span class="b">Orçamentos em andamento</span>'+tg("real")+'<a class="sp small" style="color:var(--accent);cursor:pointer" onclick="go(\'me-quotes\')">Ver todos →</a></div><div style="margin-top:4px">';
+  CQ.slice(0,3).forEach(function(q){h+=cqRow(q)});
+  h+='</div></div>';
+  h+='<div class="card pad"><div class="row"><span class="b">Última tatuagem</span>'+tg("mock")+'</div>';
+  h+='<div class="tat" style="aspect-ratio:1;border-radius:10px;margin-top:9px;background-image:'+tex(HIST[0].seed)+'"></div>';
+  h+='<div class="b small" style="margin-top:8px">'+HIST[0].area+'</div><div class="small muted">'+HIST[0].s+' · '+HIST[0].a+'</div><div class="tiny muted">'+HIST[0].d+'</div></div></div>';
+ }
+ if(sub==="me-quotes"){
+  h+='<div class="card pad"><div class="row wrapf"><span class="b">Meus orçamentos</span>'+tg("real")+'<button class="btn sm sp" onclick="S.hub=\'new\';openDrawer(\'hub\')">✨ Novo orçamento</button></div>';
+  h+='<div class="row wrapf" style="gap:6px;margin-top:10px">';
+  ["todos","aguardando","respondido","agendado","recusado","expirado"].forEach(function(f){
+   var n=f==="todos"?CQ.length:CQ.filter(function(q){return q.status===f}).length;
+   h+='<button class="chip '+(S.qStatus===f?"on":"")+'" onclick="S.qStatus=\''+f+'\';render()">'+f+' ('+n+')</button>'});
+  h+='</div><div style="margin-top:6px">';
+  var l=CQ.filter(function(q){return S.qStatus==="todos"||q.status===S.qStatus});
+  if(!l.length)h+='<div class="muted small" style="padding:16px 0">Nenhum orçamento com esse status.</div>';
+  l.forEach(function(q){h+=cqRow(q,true)});
+  h+='</div></div>';
+ }
+ if(sub==="me-history"){
+  h+='<div class="card pad"><div class="row"><span class="b">Histórico de tatuagens</span>'+tg("mock")+'</div>';
+  h+='<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(190px,1fr));margin-top:11px">';
+  HIST.forEach(function(t){h+='<div><div class="tat" style="aspect-ratio:1;border-radius:10px;background-image:'+tex(t.seed)+'"></div><div class="b small" style="margin-top:7px">'+t.area+'</div><div class="small muted">'+t.s+' · '+t.a+'</div><div class="tiny muted">'+t.d+'</div></div>'});
+  h+='</div></div>';
+ }
+ if(sub==="me-payments"){
+  h+='<div class="card pad"><div class="row"><span class="b">Extrato</span>'+tg("mock")+'</div>';
+  h+='<table class="t" style="margin-top:6px"><tr><th>Data</th><th>Descrição</th><th>Para</th><th style="text-align:right">Valor</th><th style="text-align:right">Status</th></tr>';
+  PAYS.forEach(function(p){h+='<tr><td class="muted small">'+p.d+'</td><td class="b small">'+p.t+'</td><td class="muted small">'+p.w+'</td><td style="text-align:right" class="b small">'+brl(p.c)+'</td><td style="text-align:right"><span class="badge ok">pago</span></td></tr>'});
+  h+='<tr><td colspan="3" class="b">Total</td><td style="text-align:right" class="b">'+brl(PAYS.reduce(function(a,p){return a+p.c},0))+'</td><td></td></tr></table></div>';
+ }
+ return h+'</div></main>';
+}
+function cqRow(q,full){
+ var t=q.status==="respondido"?"ok":q.status==="agendado"?"acc":q.status==="recusado"?"bad":q.status==="expirado"?"":"warn";
+ var h='<div class="lrow"><div class="thumb" style="background-image:'+tex(q.seed)+'"></div>';
+ h+='<div style="min-width:0"><div class="b small">'+q.area+' · '+q.st.map(function(s){return SL[s]}).join(", ")+'</div>';
+ h+='<div class="small muted">'+q.studio+' · '+q.resp+(q.resp===1?" resposta":" respostas")+' · '+q.when+'</div></div>';
+ h+='<div class="sp" style="text-align:right"><div class="b small">'+(q.offer?brl(q.offer):brl(q.min)+"–"+brl(q.max))+'</div><span class="badge '+t+'">'+q.status+'</span></div>';
+ if(full){
+  h+='<div class="row" style="margin-left:10px;gap:5px">';
+  if(q.status==="respondido")h+='<button class="btn sm" onclick="alert(\'acceptMatch(quote_id, artist_id)\')">Aceitar</button><button class="btn sm" onclick="alert(\'declineMatch(quote_id, artist_id)\')">Recusar</button>';
+  else if(q.status==="aguardando")h+='<button class="btn sm" onclick="alert(\'cancelQuote(id)\')">Cancelar</button>';
+  else h+='<button class="btn sm">Ver</button>';
+  h+='</div>';
+ }
+ return h+'</div>';
+}
+
+/* ============ ONBOARDING ============ */
+function vOnb(){
+ var st=S.onbStep;
+ var can=(st===1&&S.onbName.trim().length>1)||(st===2&&S.onbStyles.length>=1)||st===3||st===4;
+ var h='<main><div class="wrap" style="max-width:620px">';
+ h+='<div class="kicker">Ambiente do tatuador</div><h1 class="page" style="margin-top:3px">Vamos montar seu perfil</h1>';
+ h+='<div class="steps">';for(var k=1;k<=4;k++)h+='<i class="'+(k<=st?"on":"")+'"></i>';h+='</div>';
+ h+='<div class="tiny muted" style="margin-top:7px">Passo '+st+' de 4 · '+["Sobre você e seu estúdio","Seus estilos","Portfólio (opcional)","Revisar e publicar"][st-1]+'</div>';
+ h+='<div class="card pad" style="margin-top:14px">';
+
+ if(st===1){
+  h+='<div class="grid" style="gap:11px">';
+  h+='<div><label class="lb">Nome de exibição *</label><input class="fld" value="'+S.onbName+'" oninput="S.onbName=this.value;renderOnbBtn()" placeholder="Como você assina seu trabalho" /></div>';
+  h+='<div><label class="lb">Nome do estúdio</label><input class="fld" placeholder="Studio ..." /></div>';
+  h+='<div class="grid" style="grid-template-columns:2fr 1fr"><div><label class="lb">Cidade</label><input class="fld" placeholder="São Paulo" /></div><div><label class="lb">UF</label><input class="fld" placeholder="SP" /></div></div>';
+  h+='<div><label class="lb">Anos de experiência</label><input class="fld" type="number" placeholder="5" /></div>';
+  h+='<div><label class="lb">Instagram</label><input class="fld" placeholder="@seuperfil" /></div>';
+  h+='<div><label class="lb">Bio</label><textarea class="fld" style="height:76px;resize:vertical" placeholder="Conte como é seu traço e como você atende"></textarea></div>';
+  h+='</div>';
+ }
+ if(st===2){
+  h+='<div class="small muted">Escolha até 6 estilos. Eles definem quais pedidos de orçamento chegam até você e sua faixa de preço sugerida.</div>';
+  h+='<div class="row wrapf" style="gap:6px;margin-top:11px">';
+  STYLES.forEach(function(s){h+='<button class="chip '+(S.onbStyles.indexOf(s.s)>=0?"on":"")+'" onclick="togStyle(\''+s.s+'\')">'+s.l+' <span class="tiny muted">c'+s.c+'</span></button>'});
+  h+='</div>';
+  if(S.onbStyles.length){
+   var mx=Math.max.apply(null,S.onbStyles.map(function(s){return STYLES.filter(function(x){return x.s===s})[0].c}));
+   h+='<div class="card pad" style="margin-top:13px;background:var(--muted)"><div class="tiny muted">Faixa sugerida a partir dos estilos</div>';
+   h+='<div class="b" style="font-size:17px">'+brl(9000+mx*3500)+' – '+brl(9000+mx*3500+8000+mx*3000)+' /hora</div>';
+   h+='<div class="tiny muted">Complexidade máxima: '+CPLX[mx]+' — você pode ajustar depois no perfil.</div></div>';
+  }
+  h+='<div class="tiny muted" style="margin-top:9px">'+S.onbStyles.length+' de 6 selecionados</div>';
+ }
+ if(st===3){
+  h+='<div class="small muted">Adicione algumas fotos do seu trabalho. Você pode pular e fazer isso depois.</div>';
+  h+='<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:11px;gap:8px">';
+  for(var k=0;k<S.onbPort;k++)h+='<div class="tat" style="aspect-ratio:1;border-radius:9px;background-image:'+tex(k*5+3)+'"></div>';
+  h+='<button style="aspect-ratio:1;border:1.5px dashed var(--border);border-radius:9px;color:var(--muted-foreground);font-size:12px" onclick="S.onbPort=Math.min(9,S.onbPort+1);render()">＋<br/>Adicionar</button>';
+  h+='</div><div class="tiny muted" style="margin-top:9px">'+S.onbPort+' imagem(ns) · upload vai para o bucket portfolio'+tg("real")+'</div>';
+ }
+ if(st===4){
+  h+='<div class="b small">Revise antes de publicar</div>';
+  h+='<table class="t" style="margin-top:8px">';
+  h+='<tr><td class="muted">Nome</td><td class="b" style="text-align:right">'+(S.onbName||"—")+'</td></tr>';
+  h+='<tr><td class="muted">Estilos</td><td class="b" style="text-align:right">'+(S.onbStyles.map(function(s){return SL[s]}).join(", ")||"—")+'</td></tr>';
+  h+='<tr><td class="muted">Portfólio</td><td class="b" style="text-align:right">'+S.onbPort+' imagem(ns)</td></tr>';
+  h+='<tr><td class="muted">Papel da conta</td><td style="text-align:right"><span class="badge ok">cliente</span> <span class="badge ok">tatuador</span></td></tr>';
+  h+='</table>';
+  h+='<div class="banner" style="margin-top:13px"><div><div class="b small">Publicar perfil no feed público</div><div class="tiny muted">Você pode despublicar quando quiser. Sem publicar, ninguém encontra seu perfil.</div></div></div>';
+ }
+ h+='<div class="row" style="margin-top:16px"><button class="btn" '+(st===1?"disabled":"")+' onclick="S.onbStep=Math.max(1,S.onbStep-1);render()">← Voltar</button>';
+ if(st===3)h+='<button class="btn" onclick="S.onbStep=4;render()">Pular</button>';
+ h+='<button class="btn primary sp" id="onbNext" '+(can?"":"disabled")+' onclick="'+(st===4?"go('studio')":"S.onbStep++;render()")+'">'+(st===4?"Publicar e ir ao painel":"Continuar →")+'</button></div>';
+ return h+'</div></div></main>';
+}
+function togStyle(s){var i=S.onbStyles.indexOf(s);if(i>=0)S.onbStyles.splice(i,1);else if(S.onbStyles.length<6)S.onbStyles.push(s);render()}
+function renderOnbBtn(){var b=document.getElementById("onbNext");if(b)b.disabled=S.onbName.trim().length<2}
+
+/* ============ STUDIO ============ */
+function vStudio(sub){
+ if(!isArt())return '<main><div class="wrap"><div class="card pad" style="max-width:500px;margin:36px auto;text-align:center"><div style="font-size:25px">🔒</div><div class="b" style="margin-top:7px">Ambiente exclusivo de tatuadores</div><p class="small muted" style="margin-top:5px">Esta conta não tem o papel <code>artist</code>. Na proposta nova, o acesso é bloqueado aqui em vez de empurrar a pessoa para o onboarding.</p><button class="btn primary" style="margin-top:12px" onclick="becomeArtist()">Tornar-se tatuador</button><button class="btn blk" style="margin-top:7px" onclick="go(\'me\')">Voltar para minha área</button></div></div></main>';
+ if(sub==="studio-onboarding")return vOnb();
+ var h=envHead("studio","Seu estúdio",ST_NAV,sub)+'<main><div class="wrap">';
+
+ if(sub==="studio"){
+  h+='<div class="stats">';
+  [["📥","Orçamentos abertos","7","3 novos hoje"],["🗓","Agendamentos","3","Próximos 14 dias"],["📈","Receita do mês","R$ 12.800","+18% vs. mês passado"],["★","Avaliação média","4.8","124 reviews"]].forEach(function(s){
+   h+='<div class="stat"><div class="lbl">'+s[0]+' '+s[1]+'</div><div class="val">'+s[2]+'</div><div class="hint">'+s[3]+'</div></div>'});
+  h+='</div><div class="grid cols2" style="margin-top:15px;align-items:start">';
+  h+='<div class="card pad"><div class="row"><span class="b">Orçamentos recentes</span>'+tg("real")+'<a class="sp small" style="color:var(--accent);cursor:pointer" onclick="go(\'studio-quotes\')">Ver todos →</a></div><div style="margin-top:4px">';
+  SQ.slice(0,4).forEach(function(q){h+=sqRow(q)});
+  h+='</div></div>';
+  h+='<div class="card pad"><div class="row"><span class="b">Próximos agendamentos</span>'+tg("mock")+'</div><div style="margin-top:4px">';
+  BOOK.forEach(function(b){h+='<div class="lrow"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div><div style="min-width:0"><div class="b small">'+b.c+'</div><div class="small muted">'+b.area+' · '+b.h+'h</div></div><div class="sp b small">'+brl(b.cents)+'</div></div>'});
+  h+='</div></div></div>';
+  h+='<div class="card pad" style="margin-top:15px"><div class="row"><span class="b">Visitas ao perfil</span>'+tg("mock")+'<span class="sp small muted">932 nesta semana</span></div>';
+  h+='<div class="row" style="gap:5px;align-items:flex-end;height:80px;margin-top:11px">';
+  [42,58,35,71,64,88,52].forEach(function(v,i){h+='<div style="flex:1;text-align:center"><div style="background:var(--primary);border-radius:4px 4px 0 0;height:'+v+'%"></div><div class="tiny muted" style="margin-top:4px">'+["s","t","q","q","s","s","d"][i]+'</div></div>'});
+  h+='</div></div>';
+ }
+
+ if(sub==="studio-quotes"){
+  var sel=SQ.filter(function(q){return q.id===S.sqSel})[0]||SQ[0];
+  h+='<div class="grid cols16" style="align-items:start">';
+  h+='<div class="card pad"><div class="row"><span class="b">Pedidos recebidos</span>'+tg("real")+'</div><div style="margin-top:4px">';
+  SQ.forEach(function(q){h+=sqRow(q,true)});
+  h+='</div></div>';
+  h+='<div class="card pad" style="position:sticky;top:76px"><div class="row"><span class="b">'+sel.c+'</span><span class="sp badge '+(sel.status==="novo"?"acc":sel.status==="respondido"?"ok":"warn")+'">'+sel.status+'</span></div>';
+  h+='<div class="small muted">'+sel.area+' · '+sel.city+' · '+sel.when+'</div>';
+  h+='<div class="tiny muted" style="margin-top:11px">Imagens de referência</div>';
+  h+='<div class="row" style="gap:6px;margin-top:5px">';
+  for(var k=0;k<3;k++)h+='<div class="thumbsq" style="background-image:'+tex(sel.seed+k)+'"></div>';
+  h+='</div>';
+  h+='<div class="sep"></div><div class="tiny muted">Análise da IA</div>';
+  h+='<div class="row wrapf" style="gap:5px;margin-top:5px">'+sel.st.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'<span class="badge">'+CPLX[sel.cx]+'</span></div>';
+  h+='<div class="b" style="font-size:17px;margin-top:7px">'+brl(sel.min)+' – '+brl(sel.max)+'</div>';
+  h+='<div class="tiny muted">'+sel.hrs+' estimadas</div>';
+  h+='<div class="small" style="margin-top:7px;font-style:italic;color:var(--muted-foreground)">"'+sel.note+'"</div>';
+  h+='<div class="sep"></div>';
+  h+='<label class="lb">Sua proposta</label><input class="fld" value="R$ '+(sel.min/100*1.05).toFixed(0)+',00" />';
+  h+='<label class="lb" style="margin-top:9px">Mensagem</label><textarea class="fld" style="height:74px;resize:vertical">Consigo fechar em uma sessão. Tenho agenda a partir de 12/08.</textarea>';
+  h+='<button class="btn primary blk" style="margin-top:9px" onclick="alert(\'respondToQuote(quote_id, offer_cents, message)\')">Enviar proposta</button>';
+  h+='<button class="btn blk" style="margin-top:6px" onclick="alert(\'declineMatch(quote_id, artist_id)\')">Recusar pedido</button></div></div>';
+ }
+
+ if(sub==="studio-schedule"){
+  h+='<div class="card pad"><div class="row"><span class="b">Agenda de agosto</span>'+tg("mock")+'<button class="btn sm sp">+ Bloquear horário</button></div>';
+  h+='<div class="grid" style="grid-template-columns:repeat(7,1fr);margin-top:11px;gap:5px">';
+  ["seg","ter","qua","qui","sex","sáb","dom"].forEach(function(d){h+='<div class="tiny muted b" style="text-align:center">'+d+'</div>'});
+  for(var d=1;d<=28;d++){
+   var b=[2,6,13,17,22].indexOf(d)>=0;
+   h+='<div style="aspect-ratio:1;border:1px solid var(--border);border-radius:8px;padding:4px;font-size:11px;'+(b?"background:var(--x-accent-bg);border-color:var(--x-accent-border)":"")+'"><div class="b">'+d+'</div>'+(b?'<div class="tiny" style="color:var(--accent)">sessão</div>':'')+'</div>';
+  }
+  h+='</div><div class="sep"></div><div class="b small">Próximas sessões</div><div style="margin-top:3px">';
+  BOOK.forEach(function(b){h+='<div class="lrow"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div><div><div class="b small">'+b.c+'</div><div class="small muted">'+b.area+' · '+b.h+'h</div></div><div class="sp b small">'+brl(b.cents)+'</div><button class="btn sm" style="margin-left:9px">Detalhes</button></div>'});
+  h+='</div></div>';
+ }
+
+ if(sub==="studio-events"){
+  h+='<div class="row"><span class="b" style="font-size:16px">Que eu criei</span>'+tg("mock")+'<button class="btn sm sp">+ Novo evento ou curso</button></div>';
+  h+='<div class="card pad" style="margin-top:9px"><div style="margin-top:0">';
+  [EVENTS[4],COURSES[0]].forEach(function(e){
+   h+='<div class="lrow"><div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:19px">'+(e.e||"🎟")+'</div>';
+   h+='<div style="min-width:0"><div class="b small">'+e.n+'</div><div class="tiny muted">'+(e.t||"")+' · '+(e.d||e.st)+'</div></div>';
+   h+='<div class="sp"><span class="badge ok">publicado</span></div><button class="btn sm" style="margin-left:9px">Editar</button></div>'});
+  h+='</div></div>';
+  h+='<div class="row" style="margin-top:22px"><span class="b" style="font-size:16px">Que estou engajado</span>'+tg("mock")+'</div>';
+  h+='<div class="card pad" style="margin-top:9px">';
+  [EVENTS[0],EVENTS[2],COURSES[2]].forEach(function(e){
+   h+='<div class="lrow"><div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:19px">'+(e.e||"🎟")+'</div>';
+   h+='<div style="min-width:0"><div class="b small">'+e.n+'</div><div class="tiny muted">'+(e.t||"")+' · '+(e.d||e.st)+'</div></div>';
+   h+='<div class="sp"><span class="badge acc">inscrito</span></div></div>'});
+  h+='</div>';
+ }
+
+ if(sub==="studio-campaigns"){
+  h+='<div class="card pad"><div class="row"><span class="b">Campanhas</span>'+tg("mock")+'<button class="btn sm sp">+ Nova campanha</button></div>';
+  h+='<table class="t" style="margin-top:6px"><tr><th>Campanha</th><th>Status</th><th style="text-align:right">Enviados</th><th style="text-align:right">Abertura</th><th></th></tr>';
+  CAMPS.forEach(function(c){h+='<tr><td class="b small">'+c.t+'</td><td><span class="badge '+(c.s==="ativa"?"ok":c.s==="rascunho"?"warn":"")+'">'+c.s+'</span></td><td style="text-align:right" class="small">'+c.sent+'</td><td style="text-align:right" class="small">'+c.o+'</td><td style="text-align:right"><button class="btn sm">Abrir</button></td></tr>'});
+  h+='</table><div class="sep"></div><div class="b small">Modelos de mensagem</div><div class="row wrapf" style="gap:6px;margin-top:7px">';
+  ["Flash day","Reativação","Aniversário","Novo portfólio","Vaga na agenda"].forEach(function(t){h+='<span class="chip">'+t+'</span>'});
+  h+='</div></div>';
+ }
+
+ if(sub==="studio-reviews"){
+  h+='<div class="card pad"><div class="row"><span class="b">Avaliações</span>'+tg("mock")+'</div>';
+  h+='<div class="row" style="margin-top:11px;gap:22px;align-items:flex-start"><div style="text-align:center"><div style="font-size:31px;font-weight:700">4.8</div><div>'+stars(4.8)+'</div><div class="tiny muted">124 avaliações</div></div><div style="flex:1">';
+  [5,4,3,2,1].forEach(function(n,i){var p=[78,15,5,1,1][i];
+   h+='<div class="row" style="gap:7px;margin-bottom:3px"><span class="tiny" style="width:20px">'+n+'★</span><div class="bar" style="flex:1"><i style="width:'+p+'%"></i></div><span class="tiny muted" style="width:28px">'+p+'%</span></div>'});
+  h+='</div></div><div class="sep"></div>';
+  REVS.forEach(function(r){h+='<div class="lrow"><div class="av">'+ini(r.c)+'</div><div style="min-width:0"><div class="b small">'+r.c+' <span class="tiny">'+stars(r.r)+'</span></div><div class="small muted">'+r.t+'</div></div><div class="sp tiny muted">'+r.w+'</div><button class="btn sm" style="margin-left:9px">Responder</button></div>'});
+  h+='</div>';
+ }
+
+ if(sub==="studio-profile")h+=studioProfile();
+ return h+'</div></main>';
+}
+function sqRow(q,full){
+ var t=q.status==="novo"?"acc":q.status==="respondido"?"ok":"warn";
+ var on=full&&S.sqSel===q.id;
+ var h='<div class="lrow" style="'+(full?"cursor:pointer;":"")+(on?"background:var(--x-accent-bg);border-radius:8px;padding-left:7px;padding-right:7px":"")+'" '+(full?'onclick="S.sqSel=\''+q.id+'\';render()"':'')+'>';
+ h+='<div class="av">'+ini(q.c)+'</div><div style="min-width:0"><div class="b small">'+q.c+'</div>';
+ h+='<div class="small muted">'+q.area+' · '+q.st.map(function(s){return SL[s]}).join(", ")+' · '+q.when+'</div></div>';
+ h+='<div class="sp" style="text-align:right"><div class="b small">'+brl(q.min)+'–'+brl(q.max)+'</div><span class="badge '+t+'">'+q.status+'</span></div>';
+ return h+'</div>';
+}
+function studioProfile(){
+ var h='<div class="row wrapf" style="gap:6px">';
+ [["info","Informações"],["portfolio","Portfólio"],["pricing","Tabela de preços"],["insta","Instagram"]].forEach(function(t){
+  h+='<button class="chip '+(S.pfTab===t[0]?"on":"")+'" onclick="S.pfTab=\''+t[0]+'\';render()">'+t[1]+'</button>'});
+ h+='</div>';
+
+ if(S.pfTab==="info"){
+  h+='<div class="grid cols16" style="margin-top:13px;align-items:start">';
+  h+='<div class="card pad"><div class="row"><span class="b">Informações públicas</span>'+tg("real")+'</div>';
+  h+='<div class="tiny muted" style="margin-top:11px">Capa</div>';
+  h+='<div class="tat" style="height:105px;border-radius:10px;background-image:'+tex(21)+';margin-top:5px;position:relative"><button class="btn sm" style="position:absolute;bottom:7px;right:7px">Trocar capa</button></div>';
+  h+='<div class="row" style="margin-top:11px;gap:11px"><div class="av" style="width:58px;height:58px;font-size:17px">MV</div><div><button class="btn sm">Trocar avatar</button><div class="tiny muted" style="margin-top:3px">JPG ou PNG, até 5 MB</div></div></div>';
+  h+='<div class="grid" style="gap:10px;margin-top:13px">';
+  [["Nome de exibição","Marina Vieira"],["Nome do estúdio","Studio Marina"],["Cidade","São Paulo"],["UF","SP"],["Anos de experiência","7"]].forEach(function(f){
+   h+='<div><label class="lb">'+f[0]+'</label><input class="fld" value="'+f[1]+'" /></div>'});
+  h+='<div><label class="lb">Bio</label><textarea class="fld" style="height:70px;resize:vertical">Traço fino e composições botânicas. Atendo com hora marcada.</textarea></div></div>';
+  h+='<div class="tiny muted" style="margin-top:13px">Estilos (até 6)</div><div class="row wrapf" style="gap:5px;margin-top:5px">';
+  STYLES.forEach(function(s,i){h+='<span class="chip '+(i<3?"on":"")+'">'+s.l+'</span>'});
+  h+='</div><button class="btn primary" style="margin-top:14px">Salvar alterações</button></div>';
+
+  h+='<div><div class="card pad"><div class="row"><span class="b small">Publicação</span></div>';
+  h+='<div class="row" style="margin-top:9px"><span class="small">Perfil no feed público</span><span class="badge ok sp">publicado</span></div>';
+  h+='<div class="tiny muted" style="margin-top:5px">Despublicar esconde seu perfil da busca, mas mantém orçamentos em andamento.</div>';
+  h+='<button class="btn blk" style="margin-top:9px">Despublicar perfil</button></div>';
+  h+='<div class="card pad" style="margin-top:13px"><div class="row"><span class="b small">Papel da conta</span>'+tg("novo")+'</div>';
+  h+='<div class="row" style="gap:5px;margin-top:8px"><span class="badge ok">cliente</span><span class="badge ok">tatuador</span></div>';
+  h+='<div class="tiny muted" style="margin-top:6px">origem: '+(S.roleSource||"signup_trigger")+'</div>';
+  h+='<div class="tiny muted" style="margin-top:4px">O papel de cliente nunca é removido — você continua podendo comprar, se tatuar e ir a eventos.</div></div>';
+  h+='<div class="card pad" style="margin-top:13px"><div class="b small">Plano</div><div class="row" style="margin-top:7px"><span class="badge acc">Free</span><span class="sp tiny muted">5 orçamentos/mês</span></div><button class="btn blk" style="margin-top:9px" onclick="go(\'para-tatuadores\')">Ver planos</button></div></div></div>';
+ }
+
+ if(S.pfTab==="portfolio"){
+  h+='<div class="card pad" style="margin-top:13px"><div class="row"><span class="b">Portfólio</span>'+tg("real")+'<button class="btn sm sp">＋ Adicionar imagem</button></div>';
+  h+='<div class="tiny muted" style="margin-top:6px">Arraste para reordenar. A primeira imagem vira a capa do seu card no feed.</div>';
+  h+='<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr));margin-top:11px;gap:9px">';
+  for(var k=0;k<9;k++){
+   h+='<div><div class="tat" style="aspect-ratio:1;border-radius:9px;background-image:'+tex(k*4+2)+';position:relative">';
+   h+='<span class="badge" style="position:absolute;top:5px;left:5px;background:rgba(0,0,0,.6);color:#fff">'+(k+1)+'</span></div>';
+   h+='<select class="fld" style="margin-top:5px;font-size:11.5px;padding:5px 7px"><option>'+STYLES[k%15].l+'</option><option>Outro estilo…</option></select>';
+   h+='<div class="row" style="gap:4px;margin-top:4px"><button class="btn sm" style="flex:1;font-size:11px" onclick="alert(\'analyzePortfolioImage — sugere estilo por IA\')">✨ Analisar</button><button class="btn sm" style="font-size:11px">✕</button></div></div>';
+  }
+  h+='</div></div>';
+ }
+
+ if(S.pfTab==="pricing"){
+  h+='<div class="card pad" style="margin-top:13px"><div class="row"><span class="b">Tabela de preços</span>'+tg("real")+'<button class="btn sm sp">＋ Nova linha</button></div>';
+  h+='<div class="tiny muted" style="margin-top:6px">Por estilo e tamanho. Alimenta a estimativa mostrada ao cliente no seu perfil público.</div>';
+  h+='<table class="t" style="margin-top:10px"><tr><th>Estilo</th><th>Tamanho</th><th style="text-align:right">Mínimo</th><th style="text-align:right">Máximo</th><th style="text-align:right">Horas</th><th></th></tr>';
+  PRICING.forEach(function(p){
+   h+='<tr><td class="b small">'+SL[p[0]]+'</td><td class="small muted">'+SIZE_L[p[1]]+'</td>';
+   h+='<td style="text-align:right" class="small">'+brl(p[2])+'</td><td style="text-align:right" class="small">'+brl(p[3])+'</td>';
+   h+='<td style="text-align:right" class="small muted">'+p[4]+'h</td><td style="text-align:right"><button class="btn sm">Editar</button></td></tr>'});
+  h+='</table></div>';
+ }
+
+ if(S.pfTab==="insta"){
+  h+='<div class="card pad" style="margin-top:13px"><div class="row"><span class="b">Instagram</span>'+tg("real")+'</div>';
+  h+='<div class="row" style="margin-top:11px"><div class="av">📷</div><div><div class="b small">@marina.vieira</div><div class="tiny muted">Conectado via OAuth · token válido</div></div><button class="btn sm sp">Desconectar</button></div>';
+  h+='<div class="sep"></div><div class="row"><span class="small b">Usar Instagram no card do feed</span><span class="badge ok sp">ativo</span></div>';
+  h+='<div class="tiny muted" style="margin-top:5px">Quando ativo, o carrossel do seu card mostra seus posts em vez do portfólio interno.</div>';
+  h+='<div class="tiny muted" style="margin-top:13px">Selecione até 6 posts para exibir</div>';
+  h+='<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr));margin-top:7px;gap:7px">';
+  for(var k=0;k<8;k++)h+='<div class="tat" style="aspect-ratio:1;border-radius:8px;background-image:'+tex(k*7+1)+';position:relative;'+(k<6?"outline:2px solid var(--accent);outline-offset:-2px":"opacity:.5")+'">'+(k<6?'<span class="badge acc" style="position:absolute;top:4px;right:4px">✓</span>':'')+'</div>';
+  h+='</div></div>';
+ }
+ return h;
+}
+
+/* ============ DRAWERS ============ */
+/* No app real os drawers do TopBar abrem para qualquer visitante — o login
+   só é exigido na ação final (enviar pedido, finalizar compra). */
+function openDrawer(k){S.menu=false;S.drawer=k;renderDrawer();renderTop()}
+function closeDrawer(){S.drawer=null;renderDrawer()}
+function renderDrawer(){
+ var host=document.getElementById("drawerHost");
+ if(!S.drawer){host.innerHTML="";return}
+ var t="",b="",f="";
+ if(S.drawer==="hub"){t="✨ Orçamentos"+tg("real");b=hubBody()}
+ if(S.drawer==="assist"){t="✨ Assistente de orçamento"+tg("real");b=assistBody()}
+ if(S.drawer==="chat"){t="💬 Mensagens"+tg("mock");b=chatBody();if(S.chatOpen)f='<div class="row"><input class="fld" placeholder="Escreva uma mensagem…" /><button class="btn primary">Enviar</button></div>'}
+ if(S.drawer==="notif"){t="🔔 Notificações"+tg("mock");b=notifBody()}
+ if(S.drawer==="cart"){t="🛒 Carrinho"+tg("mock");b=cartBody();f=cartFoot()}
+ host.innerHTML=icons('<div class="scrim" onclick="closeDrawer()"></div><aside class="drawer">'+
+  '<div class="dh">'+(S.drawer==="chat"&&S.chatOpen?'<button class="iconbtn" onclick="S.chatOpen=null;renderDrawer()">←</button>':'')+
+  '<span class="b">'+t+'</span><button class="iconbtn sp" onclick="closeDrawer()">✕</button></div>'+
+  '<div class="db">'+b+'</div>'+(f?'<div class="df">'+f+'</div>':'')+'</aside>');
+}
+function hubBody(){
+ if(S.hub==="menu"){
+  var h='<p class="small muted">Escolha como quer seguir.</p><div class="grid" style="gap:10px;margin-top:12px">';
+  [["new","✨","Novo pedido","Gere um pool com o seu desenho e receba propostas de tatuadores compatíveis."],
+   ["pool","🌐","Pool aberto","Pedidos ativos aguardando propostas. Tatuadores prospectam aqui."],
+   ["rec","🎯","Recomendações","A plataforma sugere matches com base no seu perfil e histórico."]].forEach(function(m){
+   h+='<div class="card pad" style="cursor:pointer" onclick="S.hub=\''+m[0]+'\';renderDrawer()"><div class="row"><span style="font-size:19px">'+m[1]+'</span><div><div class="b small">'+m[2]+'</div><div class="tiny muted">'+m[3]+'</div></div><span class="sp">›</span></div></div>'});
+  return h+'</div>';
+ }
+ var back='<button class="btn sm" onclick="S.hub=\'menu\';renderDrawer()">← Voltar</button>';
+ if(S.hub==="new"){S.aiStep=0;S.drawer="assist";return assistBody()}
+ if(S.hub==="pool"){
+  var h=back+'<div class="b small" style="margin-top:11px">Pool aberto</div><div class="tiny muted">Pedidos de outros clientes aguardando propostas.</div><div style="margin-top:7px">';
+  CQ.filter(function(q){return q.status==="aguardando"}).concat(CQ.slice(0,2)).forEach(function(q){
+   h+='<div class="lrow"><div class="thumb" style="background-image:'+tex(q.seed)+'"></div><div style="min-width:0"><div class="b small">'+q.area+'</div><div class="tiny muted">'+q.st.map(function(s){return SL[s]}).join(", ")+' · '+q.when+'</div></div><div class="sp b small">'+brl(q.min)+'+</div></div>'});
+  return h+'</div>';
+ }
+ var h=back+'<div class="b small" style="margin-top:11px">Recomendações para você</div><div class="tiny muted">Com base nos estilos que você buscou e na sua cidade.</div><div style="margin-top:7px">';
+ ARTISTS.slice(0,5).forEach(function(a){
+  h+='<div class="lrow"><div class="av">'+ini(a.name)+'</div><div style="min-width:0"><div class="b small">'+a.name+'</div><div class="tiny muted">'+a.styles.map(function(s){return SL[s]}).join(", ")+' · '+a.city+'</div></div><div class="sp" style="text-align:right"><div class="b small">'+brl(a.min)+'/h</div><button class="btn sm" style="margin-top:3px" onclick="quoteFor(\''+a.id+'\',\'quote\')">Orçar</button></div></div>'});
+ return h+'</div>';
+}
+function assistBody(){
+ var a=S.assistArtist?ARTISTS.filter(function(x){return x.id===S.assistArtist})[0]:null;
+ if(S.aiStep===2){
+  var h='<div class="card pad" style="background:var(--x-success-bg);border-color:var(--x-success-bg)"><div class="b small" style="color:var(--x-success)">Pedido enviado a 6 tatuadores compatíveis.</div>';
+  h+='<div class="tiny" style="color:var(--x-success);margin-top:3px">Acompanhe as respostas em Meus orçamentos.</div></div>';
+  h+='<button class="btn blk" style="margin-top:11px" onclick="closeDrawer();go(\'me-quotes\')">Ver meus orçamentos</button>';
+  return h;
+ }
+ if(S.aiStep===1){
+  var h='<div class="card pad" style="background:var(--muted)"><div class="tiny muted">Sugestão da IA</div>';
+  h+='<div class="row wrapf" style="gap:5px;margin-top:5px"><span class="badge">Fineline</span><span class="badge">Minimalista</span><span class="badge">Complexo 2</span></div>';
+  h+='<div style="font-size:19px;font-weight:700;margin-top:8px">'+brl(45000)+' – '+brl(72000)+'</div>';
+  h+='<div class="tiny muted">3 a 4 horas estimadas</div>';
+  h+='<p class="small" style="margin-top:7px">Traço fino com folhagem delicada, sem preenchimento sólido. O antebraço interno é sensível mas plano, o que facilita o traço contínuo.</p></div>';
+  h+='<div class="row" style="margin-top:11px"><span class="b small">Tatuadores compatíveis</span><span class="sp tiny muted">6 encontrados</span></div>';
+  h+='<div>';
+  ARTISTS.slice(0,6).forEach(function(x,i){
+   h+='<div class="lrow"><div class="av">'+ini(x.name)+'</div><div style="min-width:0"><div class="b small">'+x.name+'</div><div class="tiny muted">'+x.city+' · '+stars(x.rating)+' '+x.rating+'</div></div><div class="sp" style="text-align:right"><div class="b small">'+brl(x.min)+'/h</div><div class="tiny muted">score '+(2-i*0.2).toFixed(1)+'</div></div></div>'});
+  h+='</div>';
+  h+='<details style="margin-top:9px"><summary class="small b" style="cursor:pointer">📋 Ver tabela de referência</summary>';
+  h+='<table class="t" style="margin-top:7px"><tr><th>Estilo</th><th>Tamanho</th><th style="text-align:right">Faixa</th></tr>';
+  PRICING.slice(0,5).forEach(function(p){h+='<tr><td class="small">'+SL[p[0]]+'</td><td class="small muted">'+SIZE_L[p[1]]+'</td><td style="text-align:right" class="small">'+brl(p[2])+'–'+brl(p[3])+'</td></tr>'});
+  h+='</table></details>';
+  h+='<button class="btn primary blk" style="margin-top:12px" onclick="'+(isLog()?"S.aiStep=2;renderDrawer()":"closeDrawer();go('auth')")+'">'+(S.assistIntent==="schedule"?"Enviar pedido de agendamento":"Enviar pedido a estes tatuadores")+'</button>';
+  if(!isLog())h+='<div class="tiny muted" style="margin-top:5px;text-align:center">Requer login</div>';
+  h+='<button class="btn blk" style="margin-top:6px" onclick="S.aiStep=0;renderDrawer()">← Refazer análise</button>';
+  return h;
+ }
+ var h='';
+ if(a)h+='<div class="banner" style="margin-bottom:11px"><div class="av">'+ini(a.name)+'</div><div><div class="b small">'+(S.assistIntent==="schedule"?"Agendar com ":"Orçar com ")+a.name+'</div><div class="tiny muted">'+a.studio+' · '+a.city+'</div></div></div>';
+ h+='<p class="small muted">Envie fotos de referência e, se quiser, do local do corpo. A IA sugere estilo, complexidade e faixa de preço.</p>';
+ h+='<div class="tiny muted" style="margin-top:12px">Referências ('+S.aiRefs+'/8)</div>';
+ h+='<div class="row wrapf" style="gap:7px;margin-top:5px">';
+ for(var k=0;k<S.aiRefs;k++)h+='<div class="thumbsq" style="background-image:'+tex(k*6+4)+'"><span class="x" onclick="S.aiRefs--;renderDrawer()">✕</span></div>';
+ h+='<button style="width:56px;height:56px;border:1.5px dashed var(--border);border-radius:8px;color:var(--muted-foreground)" onclick="S.aiRefs=Math.min(8,S.aiRefs+1);renderDrawer()">＋</button></div>';
+ h+='<div class="tiny muted" style="margin-top:11px">Foto do local do corpo (opcional)</div>';
+ h+='<div class="row" style="gap:7px;margin-top:5px"><div class="thumbsq" style="background-image:'+tex(31)+'"></div><span class="tiny muted">Ajuda a estimar tamanho e tempo</span></div>';
+ h+='<div class="grid" style="gap:9px;margin-top:13px">';
+ h+='<div><label class="lb">Parte do corpo</label><input class="fld" value="Antebraço interno" /></div>';
+ h+='<div><label class="lb">Cidade</label><input class="fld" value="'+(a?a.city:"São Paulo")+'" /></div>';
+ h+='<div><label class="lb">Teto por hora (opcional)</label><div class="row wrapf" style="gap:5px">';
+ [25000,35000,50000,70000].forEach(function(p){h+='<span class="chip">'+brl(p)+'</span>'});
+ h+='</div></div>';
+ h+='<div><label class="lb">Observações</label><textarea class="fld" style="height:62px;resize:vertical">Quero algo delicado, sem sombreado pesado.</textarea></div></div>';
+ h+='<button class="btn primary blk" style="margin-top:12px" onclick="S.aiStep=1;renderDrawer()">Analisar com IA</button>';
+ return h;
+}
+function chatBody(){
+ if(S.chatOpen){
+  var c=CHATS.filter(function(x){return x.id===S.chatOpen})[0];
+  var tag=CHAT_TAGS.filter(function(t){return t[0]===c.tag})[0];
+  var h='<div class="row"><div class="av">'+ini(c.n)+'</div><div><div class="b small">'+c.n+'</div><span class="badge '+tag[2]+'">'+tag[1]+'</span></div>';
+  h+='<button class="btn sm sp" onclick="alert(\'Trocar etiqueta da conversa\')">Etiqueta ▾</button></div><div class="sep"></div>';
+  c.msgs.forEach(function(m){h+='<div class="bub '+(m[0]==="me"?"me":"them")+'">'+m[1]+'</div><div style="clear:both"></div>'});
+  return h;
+ }
+ var h='<input class="fld" placeholder="Buscar conversa…" value="'+S.chatQ+'" oninput="S.chatQ=this.value;renderDrawer()" />';
+ h+='<div class="row wrapf" style="gap:5px;margin-top:9px"><button class="chip '+(S.chatFilter==="all"?"on":"")+'" onclick="S.chatFilter=\'all\';renderDrawer()">Todas</button>';
+ CHAT_TAGS.forEach(function(t){h+='<button class="chip '+(S.chatFilter===t[0]?"on":"")+'" onclick="S.chatFilter=\''+t[0]+'\';renderDrawer()">'+t[1]+'</button>'});
+ h+='</div><div style="margin-top:7px">';
+ var l=CHATS.filter(function(c){
+  if(S.chatFilter!=="all"&&c.tag!==S.chatFilter)return false;
+  if(S.chatQ.trim()&&c.n.toLowerCase().indexOf(S.chatQ.trim().toLowerCase())<0)return false;
+  return true});
+ if(!l.length)h+='<div class="muted small" style="padding:14px 0">Nenhuma conversa com esse filtro.</div>';
+ l.forEach(function(c){
+  var tag=CHAT_TAGS.filter(function(t){return t[0]===c.tag})[0];
+  h+='<div class="lrow" style="cursor:pointer" onclick="S.chatOpen=\''+c.id+'\';renderDrawer()"><div class="av">'+ini(c.n)+'</div>';
+  h+='<div style="min-width:0;flex:1"><div class="row"><span class="b small">'+c.n+'</span><span class="sp tiny muted">'+c.w+'</span></div>';
+  h+='<div class="small muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+c.last+'</div>';
+  h+='<span class="badge '+tag[2]+'" style="margin-top:3px">'+tag[1]+'</span></div>';
+  if(c.un)h+='<span class="badge acc">'+c.un+'</span>';
+  h+='</div>'});
+ return h+'</div>';
+}
+function notifBody(){
+ var h='<div class="row wrapf" style="gap:5px">';
+ [["all","Todas"],["quote","Orçamentos"],["booking","Agenda"],["payment","Pagamentos"],["event","Eventos"]].forEach(function(f){
+  h+='<button class="chip '+(S.notifFilter===f[0]?"on":"")+'" onclick="S.notifFilter=\''+f[0]+'\';renderDrawer()">'+f[1]+'</button>'});
+ h+='</div>';
+ var un=S.notifs.filter(function(n){return n.un}).length;
+ h+='<div class="row" style="margin-top:9px"><span class="tiny muted">'+un+' não lida(s)</span><button class="btn sm sp" onclick="markAll()">Marcar todas como lidas</button></div>';
+ h+='<div style="margin-top:5px">';
+ var l=S.notifs.filter(function(n){return S.notifFilter==="all"||n.t===S.notifFilter});
+ if(!l.length)h+='<div class="muted small" style="padding:14px 0">Nada por aqui.</div>';
+ l.forEach(function(n){
+  h+='<div class="lrow" style="cursor:pointer;'+(n.un?"background:var(--x-accent-bg);border-radius:8px;padding-left:8px;padding-right:8px":"")+'" onclick="readOne(\''+n.id+'\')">';
+  h+='<div style="min-width:0"><div class="b small">'+n.ti+(n.un?' <span class="dot" style="position:static;display:inline-block"></span>':'')+'</div>';
+  h+='<div class="small muted">'+n.d+'</div><div class="tiny muted" style="margin-top:2px">'+n.w+'</div></div></div>'});
+ return h+'</div>';
+}
+function markAll(){S.notifs.forEach(function(n){n.un=false});renderDrawer();renderTop()}
+function readOne(id){S.notifs.forEach(function(n){if(n.id===id)n.un=false});renderDrawer();renderTop()}
+function cartBody(){
+ if(!S.cart.length)return '<div class="muted small" style="padding:18px 0;text-align:center">Seu carrinho está vazio.</div>';
+ var h="";
+ S.cart.forEach(function(c){
+  var p=PRODUCTS.filter(function(x){return x.id===c.id})[0];
+  h+='<div class="lrow"><div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:19px">'+p.e+'</div>';
+  h+='<div style="min-width:0;flex:1"><div class="b small">'+p.n+'</div><div class="tiny muted">'+p.b+'</div>';
+  h+='<div class="row" style="gap:6px;margin-top:5px"><button class="btn sm" onclick="qty(\''+p.id+'\',-1)">−</button>';
+  h+='<span class="b small" style="width:18px;text-align:center">'+c.q+'</span>';
+  h+='<button class="btn sm" onclick="qty(\''+p.id+'\',1)">+</button>';
+  h+='<button class="btn sm" style="margin-left:5px" onclick="rmCart(\''+p.id+'\')">Remover</button></div></div>';
+  h+='<div class="b small">'+money(p.p*c.q)+'</div></div>'});
+ h+='<div class="sep"></div><label class="lb">Calcular frete</label>';
+ h+='<div class="row"><input class="fld" placeholder="00000-000" value="'+S.cep+'" oninput="S.cep=this.value" /><button class="btn" onclick="calcShip()">Calcular</button></div>';
+ if(S.ship)h+='<div class="row" style="margin-top:8px"><span class="small">'+S.ship.l+'</span><span class="sp b small">'+money(S.ship.p)+'</span><span class="tiny muted" style="margin-left:7px">'+S.ship.eta+'</span></div>';
+ return h;
+}
+function cartFoot(){
+ var sub=S.cart.reduce(function(a,c){return a+PRODUCTS.filter(function(x){return x.id===c.id})[0].p*c.q},0);
+ var tot=sub+(S.ship?S.ship.p:0);
+ var h='<div class="row small"><span class="muted">Subtotal</span><span class="sp">'+money(sub)+'</span></div>';
+ if(S.ship)h+='<div class="row small"><span class="muted">Frete</span><span class="sp">'+money(S.ship.p)+'</span></div>';
+ h+='<div class="row" style="margin-top:5px"><span class="b">Total</span><span class="sp b">'+money(tot)+'</span></div>';
+ h+='<button class="btn primary blk" style="margin-top:9px">Finalizar compra</button>';
+ return h;
+}
+function qty(id,d){
+ S.cart=S.cart.map(function(c){return c.id===id?{id:c.id,q:Math.max(1,c.q+d)}:c});renderDrawer();
+}
+function rmCart(id){S.cart=S.cart.filter(function(c){return c.id!==id});renderDrawer();renderTop()}
+function calcShip(){
+ if(!S.cep.trim()){alert("Informe um CEP.");return}
+ S.ship={l:"Sedex",p:24.9,eta:"chega em 3 dias úteis"};renderDrawer();
+}
+
+/* ============ RENDER ============ */
+function render(){
+ renderTop();
+ var r=S.route,h="";
+ if(r==="home")h=vHome();
+ else if(r==="artist")h=vArtist();
+ else if(r==="para-tatuadores")h=vLanding();
+ else if(r==="auth")h=vAuth();
+ else if(r==="signup")h=vSignup();
+ else if(r==="gate")h=vGate();
+ else if(r.indexOf("me")===0)h=isLog()?vMe(r):vAuth();
+ else if(r.indexOf("studio")===0)h=isLog()?vStudio(r):vAuth();
+ document.getElementById("app").innerHTML=icons(h);
+ document.getElementById("sessionSel").value=S.session;
+ if(S.autoAssist){S.autoAssist=false;openDrawer("assist")}
+}
+document.getElementById("sessionSel").addEventListener("change",function(e){
+ S.session=e.target.value;
+ if(S.session==="artist"&&!S.roleSource)S.roleSource="signup_trigger";
+ if(!isLog()&&(S.route.indexOf("me")===0||S.route.indexOf("studio")===0))S.route="home";
+ render();
+});
+/* markup estático da barra superior também passa pelo pós-processador */
+["staticSearchIc","staticTheme"].forEach(function(id){
+ var e=document.getElementById(id);if(e)e.innerHTML=icons(e.innerHTML);
+});
+render();
+</script>
+</body>
+</html>
