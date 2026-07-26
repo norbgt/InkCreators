@@ -1,0 +1,96 @@
+╔══════════════════════════════════════════════════════════════╗
+║  DIAGNÓSTICO DE FLUXOS — o que atravessa ponta a ponta        ║
+╚══════════════════════════════════════════════════════════════╝
+
+▸ Descobrir um tatuador  (Visitante)   70% sustentado
+   █ real     Abrir o catálogo
+              listarTatuadores + política de artistas publicados
+   ▒ só front  Filtrar por estilo, preço, nota
+              filtragem acontece no navegador, não no banco
+   █ real     Ver o perfil completo
+              dados vêm de artists + profiles + portfolio_items
+   █ real     Ver portfólio
+              portfolio_items, mas as imagens ainda são texturas geradas
+   ░ mock     Ver avaliações  ← quebra aqui
+              não existe tabela de avaliações
+
+▸ Pedir um orçamento  (Cliente)   58% sustentado
+   ░ mock     Enviar imagens de referência  ← quebra aqui
+              buckets existem, a interface não envia
+   ░ mock     IA analisar e sugerir faixa
+              precisa de chave própria do provedor
+   █ real     Gravar o pedido
+              criarPedidoDeOrcamento
+   █ real     Convidar tatuadores compatíveis
+              matching por estilo e cidade
+   █ real     Acompanhar respostas
+              meusOrcamentos
+   ▓ parcial  Aceitar ou recusar proposta
+              política existe, função ainda não escrita
+
+▸ Virar tatuador e ser encontrado  (Tatuador)   67% sustentado
+   █ real     Escolher o papel no cadastro
+              gatilho handle_new_user grava em user_roles
+   ░ mock     Passar pelo onboarding  ← quebra aqui
+              wizard existe só na interface
+   █ real     Preencher perfil e estilos
+              salvarPerfilDeArtista, com verificação de papel
+   ▓ parcial  Subir portfólio
+              tabela e bucket prontos, envio não implementado
+   ▓ parcial  Definir tabela de preços
+              tabela artist_pricing existe, interface não grava
+   █ real     Publicar
+              is_published controla a visibilidade pública
+
+▸ Responder a um orçamento  (Tatuador)   50% sustentado
+   █ real     Receber o pedido
+              orcamentosDoMeuEstudio
+   ▓ parcial  Ver referências e análise
+              o pedido chega, mas sem imagens
+   █ real     Enviar proposta com valor
+              responderOrcamento
+   ░ mock     Combinar detalhes por chat  ← quebra aqui
+              não existe tabela de mensagens
+   ░ mock     Agendar a sessão
+              não existe tabela de agendamento
+
+▸ Comprar material ou arte  (Ambos)   0% sustentado
+   ░ mock     Navegar a loja  ← quebra aqui
+              nenhuma tabela
+   ░ mock     Adicionar ao carrinho
+              estado só no navegador
+   ░ mock     Calcular frete
+              valor fixo
+   ░ mock     Pagar
+              não existe integração de pagamento
+
+▸ Fazer curso ou ir a evento  (Ambos)   17% sustentado
+   ░ mock     Encontrar por proximidade  ← quebra aqui
+              mapa é simulado
+   ▒ só front  Filtrar e ordenar
+              funciona, sobre dados fictícios
+   ░ mock     Inscrever-se
+              nenhuma tabela
+
+▸ Assinar um plano  (Tatuador)   0% sustentado
+   ░ mock     Ver os planos  ← quebra aqui
+              só tela na landing
+   ░ mock     Escolher e pagar
+              nenhuma integração
+   ░ mock     Ganhar os benefícios
+              nenhum limite é aplicado hoje
+
+────────────────────────────────────────────────────────────────
+COBERTURA GERAL: 44% das 32 etapas têm sustentação real
+
+FLUXOS QUE ATRAVESSAM SEM QUEBRAR:
+  nenhum
+
+ONDE CADA FLUXO QUEBRA PRIMEIRO:
+   70%  Descobrir um tatuador            → "Ver avaliações"
+   67%  Virar tatuador e ser encontrado  → "Passar pelo onboarding"
+   58%  Pedir um orçamento               → "Enviar imagens de referência"
+   50%  Responder a um orçamento         → "Combinar detalhes por chat"
+   17%  Fazer curso ou ir a evento       → "Encontrar por proximidade"
+    0%  Comprar material ou arte         → "Navegar a loja"
+    0%  Assinar um plano                 → "Ver os planos"
