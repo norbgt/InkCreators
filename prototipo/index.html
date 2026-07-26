@@ -374,14 +374,32 @@ var STYLES=[
  {s:"geometrico",l:"Geométrico",c:3},{s:"pontilhismo",l:"Pontilhismo",c:3},{s:"neo-tradicional",l:"Neo-tradicional",c:3},
  {s:"aquarela",l:"Aquarela",c:3},{s:"maori",l:"Maori",c:3},{s:"oriental",l:"Oriental",c:4},
  {s:"realismo",l:"Realismo",c:4},{s:"surrealismo",l:"Surrealismo",c:4},{s:"biomecanico",l:"Biomecânico",c:4},
- // Estilos de correção: atendem quem quer cobrir ou apagar uma tatuagem existente.
- // Cobertura é complexidade 4 porque exige esconder tinta antiga sem que apareça.
- {s:"cobertura",l:"Cobertura",c:4},{s:"blackout",l:"Blackout",c:3}];
-var ESTILOS_CORRECAO=["cobertura","blackout"];
+ {s:"blackout",l:"Blackout",c:3},
+ // Cobertura fica separada: não é escolha estética, é resolver um problema.
+ // Complexidade 4 porque exige esconder tinta antiga sem que apareça.
+ {s:"cobertura",l:"Cobertura",c:4}];
+var ESTILOS_CORRECAO=["cobertura"];
 var SL={};STYLES.forEach(function(x){SL[x.s]=x.l});
 // Limite de teste: 1 arquivo por conta. Suficiente para exercitar o fluxo
 // inteiro de upload sem encher o armazenamento durante o desenvolvimento.
 var LIMITE_UPLOAD=1;
+
+// Como o tatuador apresenta o preço. Não muda o que ele cobra — muda o
+// que o cliente entende, e por isso muda a taxa de resposta.
+var MODELOS_ORCAMENTO=[
+ {id:"hora",nome:"Por hora",
+  desc:"Valor da hora-arte e estimativa de duração. Comum em trabalhos grandes ou de sessões múltiplas.",
+  exemplo:"R$ 250/hora · 3 a 4 horas"},
+ {id:"fechado",nome:"Valor fechado",
+  desc:"Um preço único pela peça inteira, independente do tempo. Dá segurança ao cliente.",
+  exemplo:"R$ 800 pela peça"},
+ {id:"tamanho",nome:"Por tamanho",
+  desc:"Faixas por porte da tatuagem. Usa a tabela de preços que você definir no perfil.",
+  exemplo:"Pequeno R$ 250 · Médio R$ 600"},
+ {id:"sessao",nome:"Por sessão",
+  desc:"Preço do dia de trabalho. Indicado para projetos longos como manga fechada.",
+  exemplo:"R$ 1.800 por sessão de 6h"}
+];
 var CPLX=["","Simples","Médio","Complexo","Master"];
 var NAMES=["Marina Vieira","Caio Lobo","Ana Petrova","Renan Sá","Luiza Hime","Diego Castro","Bruna Okabe","Felipe Tanaka","Yasmin Cardoso","Henrique Vaz","Larissa Mendes","Igor Falcão"];
 var CITIES=[["São Paulo","SP"],["Rio de Janeiro","RJ"],["Belo Horizonte","MG"],["Curitiba","PR"],["Porto Alegre","RS"],["Recife","PE"],["Salvador","BA"],["Florianópolis","SC"]];
@@ -519,7 +537,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  pf:{nome:"",estudio:"",cidade:"",uf:"",estilos:[],publicado:false},
  onbEstudio:"",onbCidade:"",onbUf:"",onbAnos:null,onbInsta:"",onbBio:"",
  onbFotos:null,onbMsg:"",onbErro:false,onbPinterest:"",igAberto:false,
- arrependido:false,
+ onbModelo:"hora",onbModeloArquivo:"",arrependido:false,
  precos:null,prMsg:"",prErro:false,
  prNovo:{estilo:"fineline",tamanho:"medio",min:"",max:"",horas:""}};
 
@@ -1124,24 +1142,46 @@ function vOnb(){
   }
   h+='</div>';
 
-  // ── Importar do Instagram, com o alerta honesto
+  // ── Redes sociais: indexação manual primeiro, aviso curto depois
   h+='<div class="card pad" style="margin-top:11px">';
-  h+='<div class="row"><span class="b small">Importar do Instagram</span>';
-  h+='<button class="btn sm sp" onclick="S.igAberto=!S.igAberto;render()">'+(S.igAberto?"Fechar":"Abrir")+'</button></div>';
-  h+='<div class="tiny muted" style="margin-top:4px">Puxa seus posts para o carrossel do seu card no catálogo.</div>';
-  if(S.igAberto){
-   h+='<div class="banner" style="margin-top:11px;background:var(--x-warning-bg);border-color:var(--x-warning)">';
-   h+='<div><div class="b small" style="color:var(--x-warning)">Antes de depender do Instagram, saiba disto.</div>';
-   h+='<div class="tiny" style="color:var(--x-warning);margin-top:4px">Tatuadores relatam com frequência perda de conta e banimento definitivo — muitas vezes por denúncia automática de conteúdo, sem aviso e sem recurso. Quem tinha o portfólio só lá perdeu anos de trabalho de uma vez.</div>';
-   h+='<div class="tiny" style="color:var(--x-warning);margin-top:5px"><b>Por isso é mais seguro montar seu portfólio com a gente.</b> Use o Instagram como vitrine, não como arquivo.</div></div></div>';
-   h+='<div class="row" style="gap:8px;margin-top:11px"><button class="btn" onclick="alert(\'Conectaria via OAuth do Instagram. A tabela artist_instagram_oauth ja existe no banco.\')">Conectar Instagram</button></div>';
-   h+='<div class="sep"></div>';
-   h+='<div class="tiny muted">Aproveite para indexar suas redes. Opcional — serve para o cliente te encontrar e conferir seu trabalho.</div>';
-   h+='<div class="grid" style="grid-template-columns:1fr 1fr;gap:9px;margin-top:8px">';
-   h+='<div><label class="lb">Instagram</label><input class="fld" value="'+(S.onbInsta||"")+'" oninput="S.onbInsta=this.value.replace(/^@/,\'\')" placeholder="seuperfil" /></div>';
-   h+='<div><label class="lb">Pinterest</label><input class="fld" value="'+(S.onbPinterest||"")+'" oninput="S.onbPinterest=this.value.replace(/^@/,\'\')" placeholder="seuperfil" /></div>';
-   h+='</div>';
-  }
+  h+='<div class="b small">Suas redes</div>';
+  h+='<div class="tiny muted" style="margin-top:3px">Opcional. Serve para o cliente te encontrar e conferir seu trabalho.</div>';
+  h+='<div class="grid" style="grid-template-columns:1fr 1fr;gap:9px;margin-top:10px">';
+  h+='<div><label class="lb">Instagram</label><input class="fld" value="'+(S.onbInsta||"")+'" oninput="S.onbInsta=this.value.replace(/^@/,\'\')" placeholder="seuperfil" /></div>';
+  h+='<div><label class="lb">Pinterest</label><input class="fld" value="'+(S.onbPinterest||"")+'" oninput="S.onbPinterest=this.value.replace(/^@/,\'\')" placeholder="seuperfil" /></div>';
+  h+='</div>';
+
+  h+='<div class="banner" style="margin-top:11px;background:var(--x-warning-bg);border-color:var(--x-warning)">';
+  h+='<div class="tiny" style="color:var(--x-warning)">Tatuadores relatam perda de conta e banimento no Instagram, sem aviso nem recurso.<br/>Por isso é mais seguro montar seu portfólio com a gente.</div></div>';
+
+  h+='<div class="sep"></div>';
+  h+='<div class="row wrapf" style="gap:10px"><div style="flex:1;min-width:180px">';
+  h+='<div class="b small">Importar posts automaticamente</div>';
+  h+='<div class="tiny muted" style="margin-top:3px">Puxa suas fotos do Instagram para o carrossel do seu card. Independe dos campos acima.</div></div>';
+  h+='<button class="btn sp" onclick="alert(\'Conectaria via OAuth do Instagram. A tabela artist_instagram_oauth ja existe no banco.\')">Conectar Instagram</button></div>';
+  h+='</div>';
+
+  // ── Modelo de orçamento
+  h+='<div class="card pad" style="margin-top:11px">';
+  h+='<div class="b small">Modelo de orçamento</div>';
+  h+='<div class="tiny muted" style="margin-top:3px">Como você apresenta o preço ao cliente. Dá para trocar depois.</div>';
+  h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin-top:11px">';
+  MODELOS_ORCAMENTO.forEach(function(m){
+   var on=S.onbModelo===m.id;
+   h+='<div class="opt '+(on?"on":"")+'" onclick="S.onbModelo=\''+m.id+'\';render()">';
+   h+='<div class="b small">'+m.nome+'</div>';
+   h+='<div class="tiny muted" style="margin-top:4px">'+m.desc+'</div>';
+   h+='<div class="tiny" style="margin-top:6px;color:var(--muted-foreground)"><em>'+m.exemplo+'</em></div></div>';
+  });
+  h+='</div>';
+  h+='<div class="sep"></div>';
+  h+='<div class="row wrapf" style="gap:10px"><div style="flex:1;min-width:180px">';
+  h+='<div class="b small">Ou use o seu</div>';
+  h+='<div class="tiny muted" style="margin-top:3px">Se você já tem uma planilha de orçamento, suba aqui. Aceita .xls e .xlsx.</div></div>';
+  h+='<input type="file" id="arqModelo" accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none" onchange="subirModeloOrcamento(this.files)" />';
+  h+='<button class="btn sp" onclick="document.getElementById(\'arqModelo\').click()">Enviar planilha</button></div>';
+  if(S.onbModeloArquivo)
+   h+='<div class="tiny" style="margin-top:9px;padding:8px 10px;background:var(--x-success-bg);color:var(--x-success);border-radius:8px">Planilha recebida: '+S.onbModeloArquivo+' — passa a ser o seu modelo.</div>';
   h+='</div>';
  }
  if(st===4){
@@ -1217,6 +1257,22 @@ async function removerFoto(id,url){
   S.onbFotos=(S.onbFotos||[]).filter(function(f){return f.id!==id});
   S.reaisArtistas=null;S.onbMsg="Imagem removida.";S.onbErro=false;
  }catch(e){S.onbErro=true;S.onbMsg=e.message||String(e)}
+ render();
+}
+function subirModeloOrcamento(arquivos){
+ if(!arquivos||!arquivos.length)return;
+ var a=arquivos[0];
+ if(!/\.xlsx?$/i.test(a.name)){
+  S.onbErro=true;S.onbMsg="Só planilhas .xls ou .xlsx.";render();return;
+ }
+ if(a.size>2*1024*1024){
+  S.onbErro=true;S.onbMsg="Planilha acima de 2 MB.";render();return;
+ }
+ // No protótipo só registramos o nome. Ler a planilha e extrair as faixas
+ // de preço exige backend — está anotado como pendência.
+ S.onbModeloArquivo=a.name;
+ S.onbModelo="proprio";
+ S.onbErro=false;S.onbMsg="";
  render();
 }
 async function carregarFotosReais(){
