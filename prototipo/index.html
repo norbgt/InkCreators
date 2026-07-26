@@ -156,6 +156,46 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .fgroup{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:9px}
 .fgroup .gl{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-foreground);min-width:78px}
 
+/* Barra: busca, filtros e ordenar lado a lado */
+.barrabusca{display:flex;gap:8px;margin-top:16px}
+.barrabusca .campo{flex:1;position:relative;min-width:0}
+.barrabusca .campo input{width:100%;height:40px;border:1px solid var(--border);border-radius:10px;padding:0 12px 0 34px;background:var(--card);outline:none}
+.barrabusca .campo input:focus{border-color:var(--muted-foreground)}
+.barrabusca .lupa{position:absolute;left:11px;top:11px;color:var(--muted-foreground);line-height:0}
+.barrabusca .lupa .ico{width:16px;height:16px}
+.btnbarra{position:relative;height:40px;padding:0 14px;border:1px solid var(--border);border-radius:10px;background:var(--card);display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;white-space:nowrap}
+.btnbarra:hover{border-color:var(--muted-foreground)}
+.btnbarra.on{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
+.btnbarra.temfiltro{border-color:var(--accent)}
+.btnbarra .ico{width:17px;height:17px}
+.btnbarra .pontinho{background:var(--accent);color:var(--accent-foreground);border-radius:999px;min-width:16px;height:16px;font-size:10px;line-height:16px;padding:0 4px}
+.painel{margin-top:9px;padding:13px 15px;border:1px solid var(--border);border-radius:12px;background:var(--card)}
+
+/* Feed em publicações, uma por vez */
+.feedposts{max-width:520px;margin:14px auto 0}
+.post{border:1px solid var(--border);border-radius:14px;background:var(--card);overflow:hidden;margin-bottom:18px}
+.posthead{display:flex;align-items:center;gap:10px;padding:11px 13px}
+.btnseguir{width:32px;height:32px;border:1px solid var(--border);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+.btnseguir:hover{border-color:var(--muted-foreground)}
+.btnseguir.on{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
+.btnseguir .ico{width:15px;height:15px}
+.postimg{position:relative;aspect-ratio:4/5;background:var(--muted)}
+.postimg .sl{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity .25s}
+.postimg .sl.on{opacity:1}
+.postimg .vazio{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--muted-foreground)}
+.postimg .nav{position:absolute;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;display:flex;align-items:center;justify-content:center}
+.postimg .nav.l{left:9px}.postimg .nav.r{right:9px}
+.postimg .nav .ico{width:17px;height:17px}
+.postimg .pips{position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:4px}
+.postimg .pips i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.5)}
+.postimg .pips i.on{background:#fff}
+.postimg .tagtl{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.6);color:#fff;border-radius:999px;padding:3px 9px;font-size:10.5px;font-weight:600;display:inline-flex;align-items:center;gap:4px}
+.coracao{position:absolute;bottom:9px;right:9px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;line-height:1;backdrop-filter:blur(3px);transition:transform .15s}
+.coracao:hover{transform:scale(1.08)}
+.coracao.on{background:#fff;color:#e2474a}
+.coracao .ico{width:20px;height:20px}
+.postpe{padding:12px 14px 14px}
+@media(max-width:560px){.feedposts{max-width:none}.btnbarra .rot{display:none}.btnbarra{padding:0 12px}}
 .feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:15px;margin-top:16px}
 .acard{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--card)}
 .acard:hover{border-color:var(--muted-foreground)}
@@ -344,7 +384,9 @@ var P={
  square:'<rect x="3" y="3" width="18" height="18" rx="2"/>',
  waves:'<path d="M2 8c2-2 4-2 6 0s4 2 6 0 4-2 6 0M2 14c2-2 4-2 6 0s4 2 6 0 4-2 6 0M2 20c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/>',
  cross:'<circle cx="12" cy="12" r="9"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/>',
- shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
+ shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+ filtro:'<path d="M3 5h18M6 12h12M10 19h4"/>',
+ ordenar:'<path d="M7 4v16M7 20l-3-3M7 4l3 3"/><path d="M17 20V4M17 4l3 3M17 20l-3-3"/>'
 };
 var IC={
  "🛒":"cart","🔔":"bell","💬":"chat","👤":"user","👥":"users","🎨":"palette","🖌":"brush",
@@ -355,7 +397,7 @@ var IC={
  "▲":"cup","▼":"cdown","▾":"cdown","📣":"megaphone","✨":"sparkle","🪡":"needle","🧴":"droplet",
  "🫙":"jar","🖊":"pen","✒":"pen","🦶":"disc","💺":"chair","🧤":"glove","🩹":"bandage","🧼":"soap",
  "☀":"sun","📦":"box","🏞":"frame","👕":"shirt","🏷":"tag","💡":"bulb","🖤":"heart","⬛":"square",
- "🌫":"waves","◉":"cross","⭐":"star"
+ "🌫":"waves","◉":"cross","⭐":"star","⚙️":"filtro","↕":"ordenar","♡":"heart"
 };
 var ICRE=new RegExp("(?:"+Object.keys(IC).map(function(k){return k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}).join("|")+")\\uFE0F?|★|☆","gu");
 function icons(h){
@@ -363,6 +405,7 @@ function icons(h){
   var c=m.replace(/️/g,"");
   if(c==="★")return sv(P.star,"currentColor");
   if(c==="☆")return sv(P.star);
+  if(c==="♥")return sv(P.heart,"currentColor");
   return IC[c]?sv(P[IC[c]]):m;
  });
 }
@@ -523,7 +566,8 @@ var SIZE_L={pequeno:"Pequeno",medio:"Médio",grande:"Grande",sessao_dia:"Sessão
 /* ============ ESTADO ============ */
 var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  signupRole:null,gateRole:null,roleSource:null,
- f:{q:"",styles:[],cx:[],max:null,rating:null,sort:"relevance",open:false},
+ f:{q:"",styles:[],cx:[],max:null,rating:null,sort:"relevance",painel:null},
+ seguindo:[],curtidas:[],feedLote:1,obs:null,
  caro:{},shopAud:"client",shopCat:"all",shopQ:"",cart:[{id:"p10",q:1},{id:"p15",q:2}],cep:"",ship:null,
  evT:"all",evP:"all",evD:"all",evSort:"distance",evSel:"e1",evLoc:"São Paulo, SP",
  coT:"all",coL:"all",coP:"all",coSort:"recent",
@@ -601,32 +645,52 @@ function vHome(){
  return h+'</div></main>';
 }
 
-/* --- filtros + feed --- */
+/* --- busca, filtros, ordenar --- lado a lado, cada um abrindo seu painel */
+var ORDENACOES=[["relevance","Relevância"],["price_asc","Menor preço"],["price_desc","Maior preço"],["rating","Melhor avaliação"],["distance","Mais próximos"]];
+
 function secFeed(){
  var f=S.f;
- var h='<div class="fbar">';
- h+='<div class="row"><input class="fld" placeholder="Buscar por tatuador, estúdio, cidade ou estilo…" value="'+f.q+'" oninput="S.f.q=this.value;renderFeedOnly()" />';
- h+='<button class="btn sm" onclick="S.f.open=!S.f.open;render()">'+(f.open?"Menos filtros ▲":"Mais filtros ▼")+'</button></div>';
- h+='<div class="fgroup"><span class="gl">Estilos</span>';
- (f.open?STYLES:STYLES.filter(function(s){return ["blackwork","fineline","realismo","old-school","minimalista"].indexOf(s.s)>=0})).forEach(function(s){
-  h+='<button class="chip '+(f.styles.indexOf(s.s)>=0?"on":"")+'" onclick="tog(S.f.styles,\''+s.s+'\')">'+s.l+'</button>'});
+ var n=f.styles.length+f.cx.length+(f.max?1:0)+(f.rating?1:0);
+ var ordAtual=(ORDENACOES.filter(function(o){return o[0]===f.sort})[0]||ORDENACOES[0])[1];
+
+ var h='<div class="barrabusca">';
+ h+='<div class="campo"><span class="lupa">⌕</span><input placeholder="Buscar tatuador, estúdio, cidade ou estilo…" value="'+f.q+'" oninput="S.f.q=this.value;renderFeedOnly()" /></div>';
+ h+='<button class="btnbarra '+(f.painel==="filtros"?"on":"")+(n?" temfiltro":"")+'" onclick="abrirPainel(\'filtros\')" title="Filtros">⚙️<span class="rot">Filtros</span>'+(n?'<span class="pontinho">'+n+'</span>':'')+'</button>';
+ h+='<button class="btnbarra '+(f.painel==="ordenar"?"on":"")+'" onclick="abrirPainel(\'ordenar\')" title="Ordenar">↕<span class="rot">Ordenar</span></button>';
  h+='</div>';
- if(f.open){
+
+ if(f.painel==="filtros"){
+  h+='<div class="painel">';
+  h+='<div class="fgroup"><span class="gl">Estilos</span>';
+  STYLES.forEach(function(s){h+='<button class="chip '+(f.styles.indexOf(s.s)>=0?"on":"")+'" onclick="tog(S.f.styles,\''+s.s+'\')">'+s.l+'</button>'});
+  h+='</div>';
   h+='<div class="fgroup"><span class="gl">Complexidade</span>';
-  [1,2,3,4].forEach(function(c){h+='<button class="chip '+(f.cx.indexOf(c)>=0?"on":"")+'" onclick="tog(S.f.cx,'+c+')">'+c+' · '+CPLX[c]+'</button>'});
+  [1,2,3,4].forEach(function(c){h+='<button class="chip '+(f.cx.indexOf(c)>=0?"on":"")+'" onclick="tog(S.f.cx,'+c+')">'+CPLX[c]+'</button>'});
   h+='</div><div class="fgroup"><span class="gl">Preço até</span>';
   [25000,35000,50000,70000,100000].forEach(function(p){h+='<button class="chip '+(f.max===p?"on":"")+'" onclick="setf(\'max\','+(f.max===p?null:p)+')">'+brl(p)+'/h</button>'});
   h+='</div><div class="fgroup"><span class="gl">Nota mínima</span>';
   [4,4.5,4.8].forEach(function(r){h+='<button class="chip '+(f.rating===r?"on":"")+'" onclick="setf(\'rating\','+(f.rating===r?null:r)+')">'+r+'★+</button>'});
   h+='</div>';
+  h+='<div class="row" style="margin-top:11px;gap:8px">';
+  if(n)h+='<button class="btn sm" onclick="S.f.styles=[];S.f.cx=[];S.f.max=null;S.f.rating=null;render()">Limpar ('+n+')</button>';
+  h+='<button class="btn sm primary sp" onclick="S.f.painel=null;render()">Ver resultados</button></div>';
+  h+='</div>';
  }
- h+='<div class="fgroup"><span class="gl">Ordenar</span>';
- [["relevance","Relevância"],["price_asc","Menor preço"],["price_desc","Maior preço"],["rating","Melhor avaliação"],["distance","Mais próximos"]].forEach(function(o){
-  h+='<button class="chip '+(f.sort===o[0]?"on":"")+'" onclick="setf(\'sort\',\''+o[0]+'\')">'+o[1]+'</button>'});
- var n=f.styles.length+f.cx.length+(f.max?1:0)+(f.rating?1:0);
- if(n)h+='<button class="chip sp" onclick="S.f.styles=[];S.f.cx=[];S.f.max=null;S.f.rating=null;render()">✕ limpar ('+n+')</button>';
- h+='</div></div><div id="feedHost">'+feedList()+'</div>';
+
+ if(f.painel==="ordenar"){
+  h+='<div class="painel"><div class="fgroup" style="margin-top:0"><span class="gl">Ordenar por</span>';
+  ORDENACOES.forEach(function(o){
+   h+='<button class="chip '+(f.sort===o[0]?"on":"")+'" onclick="S.f.sort=\''+o[0]+'\';S.f.painel=null;render()">'+o[1]+'</button>'});
+  h+='</div></div>';
+ }
+
+ h+='<div class="tiny muted" style="margin-top:10px">'+ordAtual+(n?' · '+n+' filtro'+(n>1?"s":""):'')+'</div>';
+ h+='<div id="feedHost">'+feedList()+'</div>';
  return h;
+}
+function abrirPainel(qual){
+ S.f.painel = S.f.painel===qual ? null : qual;
+ render();
 }
 function filteredArtists(){
  var f=S.f;
@@ -658,16 +722,108 @@ function feedList(){
     '<div class="row" style="gap:8px;margin-top:11px"><button class="btn" onclick="go(\'conexao\')">Criar conta de teste</button>'+
     '<button class="btn" onclick="setModo(\'demo\')">Voltar para demonstração</button></div></div>';
   }
-  var h='<div class="feed">';
-  S.reaisArtistas.forEach(function(a){h+=aCard(a)});
+  var h='<div class="feedposts">';
+  S.reaisArtistas.forEach(function(a){h+=publicacao(a)});
   return h+'</div>';
  }
  var l=filteredArtists();
  if(!l.length)return '<div class="card pad muted" style="margin-top:16px">Nenhum tatuador com esses filtros. Tente ampliar a faixa de preço ou remover algum estilo.</div>';
- var h='<div class="feed">';
- l.forEach(function(a){h+=aCard(a)});
- h+='</div><div class="row" style="justify-content:center;margin-top:18px"><button class="btn" onclick="alert(\'No app real, o scroll infinito carrega a próxima página aqui.\')">Carregar mais</button></div>';
+
+ // Scroll infinito: mostra um lote por vez e cresce ao chegar no fim.
+ // Uma publicação por vez cabe melhor na tela do celular que uma grade.
+ var ate=Math.min(l.length,S.feedLote*3);
+ var h='<div class="feedposts">';
+ l.slice(0,ate).forEach(function(a){h+=publicacao(a)});
+ h+='</div>';
+ if(ate<l.length){
+  h+='<div id="sentinela" class="row" style="justify-content:center;padding:22px 0"><span class="tiny muted">carregando mais…</span></div>';
+ }else{
+  h+='<div class="row" style="justify-content:center;padding:22px 0"><span class="tiny muted">Você viu tudo que combina com esses filtros.</span></div>';
+ }
  return h;
+}
+
+/* Publicação: um tatuador por vez, com o portfólio como carrossel.
+   Curtir foto e seguir tatuador alimentam o que a plataforma entende
+   sobre o gosto da pessoa — e é isso que faz o orçamento chegar em quem
+   realmente combina, em vez de em quem só bate o filtro. */
+function publicacao(a){
+ var i=S.caro[a.id]||0;
+ var fotos=a.empty?[]:a.port.slice(0,6);
+ var total=fotos.length;
+ var segue=S.seguindo.indexOf(a.id)>=0;
+ var chaveFoto=a.id+":"+i;
+ var curtiu=S.curtidas.indexOf(chaveFoto)>=0;
+ var nCurtidas=S.curtidas.filter(function(c){return c.indexOf(a.id+":")===0}).length;
+
+ var h='<article class="post">';
+
+ // cabeçalho
+ h+='<div class="posthead">';
+ h+='<div class="av">'+ini(a.name)+'</div>';
+ h+='<div style="min-width:0;flex:1"><div class="b small">'+a.name+(a.verified?' <span style="color:var(--accent)">✔</span>':'')+'</div>';
+ h+='<div class="tiny muted">'+(a.studio?a.studio+' · ':'')+a.city+'/'+a.state+'</div></div>';
+ h+='<div class="row" style="gap:6px">';
+ h+='<button class="btn sm" onclick="go(\'artist\',\''+a.id+'\')">Perfil</button>';
+ h+='<button class="btnseguir '+(segue?"on":"")+'" title="'+(segue?"Seguindo":"Seguir")+'" onclick="alternarSeguir(\''+a.id+'\')">'+(segue?"✓":"＋")+'</button>';
+ h+='</div></div>';
+
+ // imagem
+ h+='<div class="postimg">';
+ if(!total){
+  h+='<div class="vazio"><span class="small b">Portfólio em construção</span><span class="tiny">O tatuador ainda não publicou fotos</span></div>';
+ }else{
+  fotos.forEach(function(p,k){h+='<div class="sl '+(k===i?"on":"")+'" style="background-image:'+tex(p)+'"></div>'});
+  if(a.insta)h+='<span class="tagtl">Instagram</span>';
+  if(i>0)h+='<button class="nav l" onclick="caro(\''+a.id+'\',-1,'+total+')">‹</button>';
+  if(i<total-1)h+='<button class="nav r" onclick="caro(\''+a.id+'\',1,'+total+')">›</button>';
+  h+='<button class="coracao '+(curtiu?"on":"")+'" title="'+(curtiu?"Salva":"Salvar esta foto")+'" onclick="alternarCurtida(\''+a.id+'\','+i+')">'+(curtiu?"♥":"♡")+'</button>';
+  h+='<div class="pips">';for(var k=0;k<total;k++)h+='<i class="'+(k===i?"on":"")+'"></i>';h+='</div>';
+ }
+ h+='</div>';
+
+ // rodapé
+ h+='<div class="postpe">';
+ h+='<div class="row wrapf" style="gap:5px">';
+ h+=a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("");
+ h+='<span class="badge acc">'+CPLX[a.cx]+'</span></div>';
+ h+='<div class="row" style="margin-top:8px"><span class="b">'+brl(a.min)+' – '+brl(a.max)+'</span><span class="tiny muted">/hora</span>';
+ h+='<span class="sp tiny muted">★ '+a.rating+' ('+a.reviews+')</span></div>';
+ if(nCurtidas||segue){
+  h+='<div class="tiny" style="margin-top:7px;color:var(--accent)">';
+  var partes=[];
+  if(segue)partes.push("seguindo");
+  if(nCurtidas)partes.push(nCurtidas+" foto"+(nCurtidas>1?"s":"")+" salva"+(nCurtidas>1?"s":""));
+  h+=partes.join(" · ")+' — deixa a recomendação mais precisa nos próximos orçamentos</div>';
+ }
+ h+='<div class="row" style="gap:6px;margin-top:9px">';
+ h+='<button class="btn sm" onclick="quoteFor(\''+a.id+'\',\'quote\')">Orçar</button>';
+ h+='<button class="btn sm" onclick="quoteFor(\''+a.id+'\',\'schedule\')">Agendar</button>';
+ h+='</div>';
+ h+='</div></article>';
+ return h;
+}
+
+function alternarSeguir(id){
+ var i=S.seguindo.indexOf(id);
+ if(i>=0)S.seguindo.splice(i,1);else S.seguindo.push(id);
+ renderFeedOnly();
+}
+function alternarCurtida(id,idx){
+ var c=id+":"+idx, i=S.curtidas.indexOf(c);
+ if(i>=0)S.curtidas.splice(i,1);else S.curtidas.push(c);
+ renderFeedOnly();
+}
+
+/* Carrega o próximo lote quando a sentinela entra na tela. */
+function ligarScrollInfinito(){
+ var s=document.getElementById("sentinela");
+ if(!s)return;
+ if(S.obs)S.obs.disconnect();
+ S.obs=new IntersectionObserver(function(e){
+  if(e[0].isIntersecting){S.feedLote++;renderFeedOnly()}
+ },{rootMargin:"300px"});
+ S.obs.observe(s);
 }
 function aCard(a){
  var i=S.caro[a.id]||0;
@@ -730,7 +886,10 @@ async function carregarArtistasReais(){
  S.carregando=false; render();
 }
 function caro(id,d,n){var c=S.caro[id]||0;S.caro[id]=Math.max(0,Math.min(n-1,c+d));render()}
-function renderFeedOnly(){var el=document.getElementById("feedHost");if(el)el.innerHTML=feedList()}
+function renderFeedOnly(){
+ var el=document.getElementById("feedHost");
+ if(el){el.innerHTML=icons(feedList());ligarScrollInfinito()}
+}
 /* Como no app real: os botões levam para /artists/$id?action=… e o assistente abre lá */
 function quoteFor(id,intent){S.assistArtist=id;S.assistIntent=intent;S.aiStep=0;S.autoAssist=true;go("artist",id)}
 
@@ -2103,6 +2262,7 @@ function render(){
  document.getElementById("app").innerHTML=icons(h);
  document.getElementById("sessionSel").value=S.session;
  if(r==="modelo")calcUE();
+ if(r==="home"&&S.tab==="discover")ligarScrollInfinito();
  if(S.autoAssist){S.autoAssist=false;openDrawer("assist")}
 }
 document.getElementById("sessionSel").addEventListener("change",function(e){
