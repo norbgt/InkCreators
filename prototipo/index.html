@@ -165,17 +165,14 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 
 /* Barra de localização + mapa pequeno + lista compacta.
    Padrão de app de mobilidade: contexto no topo, decisão na lista. */
-.barralocal{display:flex;align-items:center;gap:9px;margin-top:14px;padding:10px 13px;border:1px solid var(--border);border-radius:11px;background:var(--card)}
-.barralocal .ico-local{color:var(--accent);line-height:0}
-.barralocal .ico-local .ico{width:18px;height:18px}
-.avisoerro{margin-top:8px;padding:9px 12px;border-radius:9px;background:var(--x-warning-bg);color:var(--x-warning);font-size:12.5px}
+.avisoerro{margin-top:12px;padding:9px 12px;border-radius:9px;background:var(--x-warning-bg);color:var(--x-warning);font-size:12.5px}
 .btnlocal{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);background:none}
 .btnlocal:hover{background:var(--muted);color:var(--foreground)}
 .btnlocal.on{color:var(--accent)}
 .btnlocal .ico{width:17px;height:17px}
 .barrabusca .campo input{padding-right:42px}
 
-.mapa{position:relative;margin-top:11px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--muted);
+.mapa{position:relative;margin-top:13px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--muted);
   background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
   background-size:30px 30px}
 .mapa .pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer}
@@ -1223,16 +1220,10 @@ function mapinha(pontos,alt){
  return h;
 }
 
-function cabecalhoLocal(){
- var h='<div class="barralocal">';
- h+='<span class="ico-local">📍</span><div style="min-width:0;flex:1">';
- h+='<div class="b small">'+(S.localNome||LOCAL_PADRAO.nome)+'</div>';
- h+='<div class="tiny muted">'+(S.localReal
-   ? 'posição do aparelho'+(S.precisao?' · precisão de '+S.precisao+' m':'')
-   : 'localização padrão — toque no alvo da busca para usar a sua')+'</div></div>';
- h+='</div>';
- if(S.localErro)h+='<div class="avisoerro">'+S.localErro+'</div>';
- return h;
+/* O aviso só aparece quando a geolocalização falha. Fora isso, a
+   localização se comunica sozinha pelas distâncias na lista. */
+function avisoLocal(){
+ return S.localErro ? '<div class="avisoerro">'+S.localErro+'</div>' : '';
 }
 
 function listaEventos(){
@@ -1249,7 +1240,7 @@ function listaEventos(){
  if(S.evSort==="price-desc")l.sort(function(a,b){return b.cost-a.cost});
  if(S.evSort==="name")l.sort(function(a,b){return a.n.localeCompare(b.n)});
 
- var h=cabecalhoLocal();
+ var h=avisoLocal();
  h+=mapinha(l,170);
  if(!l.length)return h+'<div class="card pad muted" style="margin-top:14px">Nenhum evento com esses filtros.</div>';
 
@@ -1290,7 +1281,7 @@ function listaCursos(){
  // híbridos têm lugar — os online aparecem na lista sem pino.
  var comLugar=c.filter(function(x){return x.t!=="Online"})
    .map(function(x,i){return {id:x.id,x:20+(i*17)%64,y:24+(i*23)%52}});
- var h=cabecalhoLocal();
+ var h=avisoLocal();
  h+=mapinha(comLugar,210);
  h+='<div class="tiny muted" style="margin-top:7px">'+comLugar.length+' curso(s) presencial ou híbrido no mapa · online aparecem só na lista</div>';
 
