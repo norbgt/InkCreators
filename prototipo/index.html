@@ -373,8 +373,15 @@ var STYLES=[
  {s:"old-school",l:"Old school",c:2},{s:"tribal",l:"Tribal",c:2},{s:"blackwork",l:"Blackwork",c:3},
  {s:"geometrico",l:"Geométrico",c:3},{s:"pontilhismo",l:"Pontilhismo",c:3},{s:"neo-tradicional",l:"Neo-tradicional",c:3},
  {s:"aquarela",l:"Aquarela",c:3},{s:"maori",l:"Maori",c:3},{s:"oriental",l:"Oriental",c:4},
- {s:"realismo",l:"Realismo",c:4},{s:"surrealismo",l:"Surrealismo",c:4},{s:"biomecanico",l:"Biomecânico",c:4}];
+ {s:"realismo",l:"Realismo",c:4},{s:"surrealismo",l:"Surrealismo",c:4},{s:"biomecanico",l:"Biomecânico",c:4},
+ // Estilos de correção: atendem quem quer cobrir ou apagar uma tatuagem existente.
+ // Cobertura é complexidade 4 porque exige esconder tinta antiga sem que apareça.
+ {s:"cobertura",l:"Cobertura",c:4},{s:"blackout",l:"Blackout",c:3}];
+var ESTILOS_CORRECAO=["cobertura","blackout"];
 var SL={};STYLES.forEach(function(x){SL[x.s]=x.l});
+// Limite de teste: 1 arquivo por conta. Suficiente para exercitar o fluxo
+// inteiro de upload sem encher o armazenamento durante o desenvolvimento.
+var LIMITE_UPLOAD=1;
 var CPLX=["","Simples","Médio","Complexo","Master"];
 var NAMES=["Marina Vieira","Caio Lobo","Ana Petrova","Renan Sá","Luiza Hime","Diego Castro","Bruna Okabe","Felipe Tanaka","Yasmin Cardoso","Henrique Vaz","Larissa Mendes","Igor Falcão"];
 var CITIES=[["São Paulo","SP"],["Rio de Janeiro","RJ"],["Belo Horizonte","MG"],["Curitiba","PR"],["Porto Alegre","RS"],["Recife","PE"],["Salvador","BA"],["Florianópolis","SC"]];
@@ -511,7 +518,8 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  reaisArtistas:null,carregando:false,pfMsg:"",pfErro:false,
  pf:{nome:"",estudio:"",cidade:"",uf:"",estilos:[],publicado:false},
  onbEstudio:"",onbCidade:"",onbUf:"",onbAnos:null,onbInsta:"",onbBio:"",
- onbFotos:null,onbMsg:"",onbErro:false,
+ onbFotos:null,onbMsg:"",onbErro:false,onbPinterest:"",igAberto:false,
+ arrependido:false,
  precos:null,prMsg:"",prErro:false,
  prNovo:{estilo:"fineline",tamanho:"medio",min:"",max:"",horas:""}};
 
@@ -1045,7 +1053,10 @@ function cqRow(q,full){
 /* ============ ONBOARDING ============ */
 function vOnb(){
  var st=S.onbStep;
- var can=(st===1&&S.onbName.trim().length>1)||(st===2&&S.onbStyles.length>=1)||st===3||st===4;
+ // Estilo deixou de ser obrigatório: muitos tatuadores não se encaixam num
+ // rótulo, e exigir isso na porta de entrada barra gente boa. Sem estilo, o
+ // perfil existe e aparece — só não entra no matching por estilo.
+ var can=(st===1&&S.onbName.trim().length>1)||st===2||st===3||st===4;
  var h='<main><div class="wrap" style="max-width:620px">';
  h+='<div class="kicker">Ambiente do tatuador</div><h1 class="page" style="margin-top:3px">Vamos montar seu perfil</h1>';
  h+='<div class="steps">';for(var k=1;k<=4;k++)h+='<i class="'+(k<=st?"on":"")+'"></i>';h+='</div>';
@@ -1063,9 +1074,17 @@ function vOnb(){
   h+='</div>';
  }
  if(st===2){
-  h+='<div class="small muted">Escolha até 6 estilos. Eles definem quais pedidos de orçamento chegam até você e sua faixa de preço sugerida.</div>';
+  h+='<div class="small muted">Escolha até 6 estilos, ou pule. Eles definem quais pedidos de orçamento chegam até você e sua faixa de preço sugerida.</div>';
+  h+='<div class="tiny muted" style="margin-top:5px">Sem estilo definido, seu perfil aparece no catálogo normalmente — só não entra no encaminhamento automático por estilo. Dá para definir depois.</div>';
   h+='<div class="row wrapf" style="gap:6px;margin-top:11px">';
-  STYLES.forEach(function(s){h+='<button class="chip '+(S.onbStyles.indexOf(s.s)>=0?"on":"")+'" onclick="togStyle(\''+s.s+'\')">'+s.l+' <span class="tiny muted">c'+s.c+'</span></button>'});
+  STYLES.filter(function(s){return ESTILOS_CORRECAO.indexOf(s.s)<0}).forEach(function(s){
+   h+='<button class="chip '+(S.onbStyles.indexOf(s.s)>=0?"on":"")+'" onclick="togStyle(\''+s.s+'\')">'+s.l+' <span class="tiny muted">c'+s.c+'</span></button>'});
+  h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:13px;font-weight:600;text-transform:uppercase;letter-spacing:.08em">Correção de tatuagem</div>';
+  h+='<div class="tiny muted" style="margin-top:3px">Quem se arrependeu de uma tatuagem procura por isso. É uma demanda específica e mal atendida.</div>';
+  h+='<div class="row wrapf" style="gap:6px;margin-top:7px">';
+  STYLES.filter(function(s){return ESTILOS_CORRECAO.indexOf(s.s)>=0}).forEach(function(s){
+   h+='<button class="chip '+(S.onbStyles.indexOf(s.s)>=0?"on":"")+'" onclick="togStyle(\''+s.s+'\')">'+s.l+' <span class="tiny muted">c'+s.c+'</span></button>'});
   h+='</div>';
   if(S.onbStyles.length){
    var mx=Math.max.apply(null,S.onbStyles.map(function(s){return STYLES.filter(function(x){return x.s===s})[0].c}));
@@ -1076,26 +1095,54 @@ function vOnb(){
   h+='<div class="tiny muted" style="margin-top:9px">'+S.onbStyles.length+' de 6 selecionados</div>';
  }
  if(st===3){
+  h+='<div class="small muted">Seu portfólio é o que faz o cliente escolher você. Monte aqui, e use suas redes como vitrine complementar.</div>';
+
+  // ── Opção recomendada: portfólio na plataforma
+  h+='<div class="card pad" style="margin-top:12px;border-color:var(--accent)">';
+  h+='<div class="row"><span class="b small">Montar aqui</span><span class="badge acc sp">recomendado</span></div>';
+  h+='<div class="tiny muted" style="margin-top:4px">Suas imagens ficam no seu perfil, sob seu controle, independentes de qualquer rede social.</div>';
+
   if(S.modo==="real"){
-   h+='<div class="small muted">Escolha imagens do seu computador. Elas vão para o bucket <code>portfolio</code> e ficam visíveis no seu perfil público.</div>';
-   h+='<div class="banner" style="margin-top:10px"><div><div class="b small">Para subir imagens, o perfil precisa existir antes.</div>';
-   h+='<div class="tiny muted">Se ainda não gravou, conclua o passo 4 primeiro e depois volte pelo painel do estúdio para completar o portfólio.</div></div></div>';
-   h+='<input type="file" id="arqPort" accept="image/png,image/jpeg,image/webp" multiple style="display:none" onchange="subirPortfolio(this.files)" />';
+   var nf=(S.onbFotos||[]).length;
+   h+='<input type="file" id="arqPort" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="subirPortfolio(this.files)" />';
    h+='<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:11px;gap:8px">';
-   (S.onbFotos||[]).forEach(function(f,i){
+   (S.onbFotos||[]).forEach(function(f){
     h+='<div style="position:relative"><img src="'+f.image_url+'" style="aspect-ratio:1;width:100%;object-fit:cover;border-radius:9px;border:1px solid var(--border)" />';
-    h+='<button class="thumbsq" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:11px;display:flex;align-items:center;justify-content:center" onclick="removerFoto(\''+f.id+'\',\''+f.image_url+'\')">✕</button></div>';
+    h+='<button style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:11px;display:flex;align-items:center;justify-content:center;border:none" onclick="removerFoto(\''+f.id+'\',\''+f.image_url+'\')">✕</button></div>';
    });
-   h+='<button style="aspect-ratio:1;border:1.5px dashed var(--border);border-radius:9px;color:var(--muted-foreground);font-size:12px" onclick="document.getElementById(\'arqPort\').click()">＋<br/>Escolher</button>';
+   if(nf<LIMITE_UPLOAD)
+    h+='<button style="aspect-ratio:1;border:1.5px dashed var(--border);border-radius:9px;color:var(--muted-foreground);font-size:12px" onclick="document.getElementById(\'arqPort\').click()">＋<br/>Escolher</button>';
    h+='</div>';
-   h+='<div class="tiny muted" style="margin-top:9px">'+((S.onbFotos||[]).length)+' imagem(ns) no banco · máximo 5 MB cada'+tg("real")+'</div>';
+   h+='<div class="tiny muted" style="margin-top:9px">'+nf+' de '+LIMITE_UPLOAD+' imagem'+(LIMITE_UPLOAD>1?"ns":"")+' · máximo 5 MB</div>';
+   if(nf>=LIMITE_UPLOAD)
+    h+='<div class="tiny muted" style="margin-top:5px;padding:8px 10px;background:var(--muted);border-radius:8px">Limite de teste: 1 arquivo por conta, para exercitar o fluxo sem encher o armazenamento. Some para remover e testar de novo.</div>';
   }else{
-   h+='<div class="small muted">Adicione algumas fotos do seu trabalho. Você pode pular e fazer isso depois.</div>';
    h+='<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:11px;gap:8px">';
    for(var k=0;k<S.onbPort;k++)h+='<div class="tat" style="aspect-ratio:1;border-radius:9px;background-image:'+tex(k*5+3)+'"></div>';
    h+='<button style="aspect-ratio:1;border:1.5px dashed var(--border);border-radius:9px;color:var(--muted-foreground);font-size:12px" onclick="S.onbPort=Math.min(9,S.onbPort+1);render()">＋<br/>Adicionar</button>';
-   h+='</div><div class="tiny muted" style="margin-top:9px">'+S.onbPort+' imagem(ns) · em modo real, o envio vai para o bucket portfolio</div>';
+   h+='</div><div class="tiny muted" style="margin-top:9px">'+S.onbPort+' imagem(ns) adicionadas</div>';
   }
+  h+='</div>';
+
+  // ── Importar do Instagram, com o alerta honesto
+  h+='<div class="card pad" style="margin-top:11px">';
+  h+='<div class="row"><span class="b small">Importar do Instagram</span>';
+  h+='<button class="btn sm sp" onclick="S.igAberto=!S.igAberto;render()">'+(S.igAberto?"Fechar":"Abrir")+'</button></div>';
+  h+='<div class="tiny muted" style="margin-top:4px">Puxa seus posts para o carrossel do seu card no catálogo.</div>';
+  if(S.igAberto){
+   h+='<div class="banner" style="margin-top:11px;background:var(--x-warning-bg);border-color:var(--x-warning)">';
+   h+='<div><div class="b small" style="color:var(--x-warning)">Antes de depender do Instagram, saiba disto.</div>';
+   h+='<div class="tiny" style="color:var(--x-warning);margin-top:4px">Tatuadores relatam com frequência perda de conta e banimento definitivo — muitas vezes por denúncia automática de conteúdo, sem aviso e sem recurso. Quem tinha o portfólio só lá perdeu anos de trabalho de uma vez.</div>';
+   h+='<div class="tiny" style="color:var(--x-warning);margin-top:5px"><b>Por isso é mais seguro montar seu portfólio com a gente.</b> Use o Instagram como vitrine, não como arquivo.</div></div></div>';
+   h+='<div class="row" style="gap:8px;margin-top:11px"><button class="btn" onclick="alert(\'Conectaria via OAuth do Instagram. A tabela artist_instagram_oauth ja existe no banco.\')">Conectar Instagram</button></div>';
+   h+='<div class="sep"></div>';
+   h+='<div class="tiny muted">Aproveite para indexar suas redes. Opcional — serve para o cliente te encontrar e conferir seu trabalho.</div>';
+   h+='<div class="grid" style="grid-template-columns:1fr 1fr;gap:9px;margin-top:8px">';
+   h+='<div><label class="lb">Instagram</label><input class="fld" value="'+(S.onbInsta||"")+'" oninput="S.onbInsta=this.value.replace(/^@/,\'\')" placeholder="seuperfil" /></div>';
+   h+='<div><label class="lb">Pinterest</label><input class="fld" value="'+(S.onbPinterest||"")+'" oninput="S.onbPinterest=this.value.replace(/^@/,\'\')" placeholder="seuperfil" /></div>';
+   h+='</div>';
+  }
+  h+='</div>';
  }
  if(st===4){
   h+='<div class="b small">Revise antes de publicar</div>';
@@ -1483,7 +1530,11 @@ function assistBody(){
  }
  if(S.aiStep===1){
   var h='<div class="card pad" style="background:var(--muted)"><div class="tiny muted">Sugestão da IA</div>';
-  h+='<div class="row wrapf" style="gap:5px;margin-top:5px"><span class="badge">Fineline</span><span class="badge">Minimalista</span><span class="badge">Complexo 2</span></div>';
+  h+='<div class="row wrapf" style="gap:5px;margin-top:5px">';
+  h+=S.arrependido
+   ? '<span class="badge acc">Cobertura</span><span class="badge acc">Blackout</span><span class="badge">Complexo 4</span>'
+   : '<span class="badge">Fineline</span><span class="badge">Minimalista</span><span class="badge">Complexo 2</span>';
+  h+='</div>';
   h+='<div style="font-size:19px;font-weight:700;margin-top:8px">'+brl(45000)+' – '+brl(72000)+'</div>';
   h+='<div class="tiny muted">3 a 4 horas estimadas</div>';
   h+='<p class="small" style="margin-top:7px">Traço fino com folhagem delicada, sem preenchimento sólido. O antebraço interno é sensível mas plano, o que facilita o traço contínuo.</p></div>';
@@ -1510,6 +1561,18 @@ function assistBody(){
  h+='<button style="width:56px;height:56px;border:1.5px dashed var(--border);border-radius:8px;color:var(--muted-foreground)" onclick="S.aiRefs=Math.min(8,S.aiRefs+1);renderDrawer()">＋</button></div>';
  h+='<div class="tiny muted" style="margin-top:11px">Foto do local do corpo (opcional)</div>';
  h+='<div class="row" style="gap:7px;margin-top:5px"><div class="thumbsq" style="background-image:'+tex(31)+'"></div><span class="tiny muted">Ajuda a estimar tamanho e tempo</span></div>';
+ // Arrependimento: demanda específica e mal atendida. Quem quer cobrir ou
+ // corrigir precisa de quem faz cobertura e blackout — não de qualquer um.
+ h+='<div class="card pad" style="margin-top:13px;'+(S.arrependido?'border-color:var(--accent);background:var(--x-accent-bg)':'')+'">';
+ h+='<div class="row" style="align-items:flex-start;gap:10px">';
+ h+='<button class="chip '+(S.arrependido?"on":"")+'" style="margin-top:2px" onclick="S.arrependido=!S.arrependido;renderDrawer()">'+(S.arrependido?"✓":"")+'</button>';
+ h+='<div style="flex:1"><div class="b small">Quero cobrir ou corrigir uma tatuagem</div>';
+ h+='<div class="tiny muted" style="margin-top:3px">Marque se você se arrependeu de uma tatuagem. Encaminhamos seu pedido para quem é especialista em cobertura e blackout, em vez de qualquer tatuador.</div></div></div>';
+ if(S.arrependido){
+  h+='<div class="tiny" style="margin-top:9px;color:var(--accent)">Seu pedido vai priorizar tatuadores que fazem '+ESTILOS_CORRECAO.map(function(s){return SL[s]}).join(" e ")+'. Uma foto da tatuagem atual ajuda muito na avaliação.</div>';
+ }
+ h+='</div>';
+
  h+='<div class="grid" style="gap:9px;margin-top:13px">';
  h+='<div><label class="lb">Parte do corpo</label><input class="fld" value="Antebraço interno" /></div>';
  h+='<div><label class="lb">Cidade</label><input class="fld" value="'+(a?a.city:"São Paulo")+'" /></div>';

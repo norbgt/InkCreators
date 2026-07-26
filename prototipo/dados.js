@@ -20,6 +20,9 @@
 const SUPABASE_URL = "https://hdfigxygektppvlogaoj.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Hs85aivJIJCba-l4UER1Gw_PI57PJxa";
 
+// Limite de teste durante o desenvolvimento. Não é regra de produto.
+const LIMITE_UPLOAD_POR_CONTA = 1;
+
 let sb = null;
 let sbErro = null;
 
@@ -396,6 +399,20 @@ async function enviarImagemDoPortfolio(arquivo, estiloSlug) {
   if (arquivo.size > 5 * 1024 * 1024) {
     throw new Error(
       "Imagem acima de 5 MB. O limite é do bucket, definido na migração."
+    );
+  }
+
+  // Limite de teste, não regra de produto. Existe para exercitar o fluxo
+  // completo de upload sem acumular arquivos durante o desenvolvimento.
+  // Quando o produto for para valer, este bloco sai.
+  const { count } = await sb
+    .from("portfolio_items")
+    .select("id", { count: "exact", head: true })
+    .eq("artist_id", artista.id);
+  if ((count || 0) >= LIMITE_UPLOAD_POR_CONTA) {
+    throw new Error(
+      `Limite de teste atingido: ${LIMITE_UPLOAD_POR_CONTA} arquivo por conta. ` +
+        `Remova o existente para enviar outro.`
     );
   }
 
