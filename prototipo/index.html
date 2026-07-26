@@ -153,6 +153,12 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .ptab.on{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
 .ptab.destaque{background:var(--accent);color:var(--accent-foreground);border-color:var(--accent)}
 .ptab .curto{display:none}
+/* Tiras: uma linha só, rolando na horizontal quando não couber */
+.tiras{display:flex;gap:7px;margin-top:14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tiras::-webkit-scrollbar{display:none}
+.tira{flex-shrink:0;white-space:nowrap;border:1px solid var(--border);background:var(--card);border-radius:999px;padding:8px 15px;font-size:13px;font-weight:600}
+.tira:hover{border-color:var(--muted-foreground)}
+.tira.on{background:var(--accent);color:var(--accent-foreground);border-color:var(--accent)}
 .chip{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:500;white-space:nowrap}
 .chip.on{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
 .chip.acc.on{background:var(--accent);border-color:var(--accent);color:var(--accent-foreground)}
@@ -317,8 +323,7 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 /* ── iPad retrato (744–1023): mantém busca e atalhos, encurta rótulos
       Nada é escondido aqui — é a tela de trabalho do tatuador. ───── */
 @media(max-width:1100px) and (min-width:700px){
-  .ptab .longo{display:none}
-  .ptab .curto{display:inline}
+  .ptabs-nav .rotnav{display:none}
   .ptab{padding:9px 13px;font-size:13px}
   .search{max-width:280px}
   .feedposts{max-width:460px}
@@ -329,9 +334,9 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
   .search{display:none}
   .hide-sm{display:none!important}
   h1.page{font-size:21px}
-  .ptab .longo{display:none}
-  .ptab .curto{display:inline}
+  .ptabs-nav .rotnav{display:none}
   .ptabs{flex-direction:column;align-items:stretch;gap:8px}
+  .ptabs-nav{justify-content:flex-start}
   .ptabs-nav{flex:none;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -18px;padding:0 18px}
   .ptabs-nav::-webkit-scrollbar{display:none}
   .ptabs-acoes .ptab{flex:1;justify-content:center}
@@ -339,7 +344,7 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
   .btnbarra .rot{display:none}
   .btnbarra{padding:0 13px}
   .drawer{width:100%;border-left:none}
-  .subnav{margin:0 -18px;padding:0 18px}
+  .subnav,.tiras{margin:0 -18px;padding:0 18px}
   /* Rodapé do drawer e da página respeitam a faixa do indicador do iPhone */
   .drawer .df{padding-bottom:calc(11px + env(safe-area-inset-bottom,0px))}
   footer.note{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
@@ -348,7 +353,7 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 /* ── iPhone 16 e menores (até 440px) ─────────────────────────────── */
 @media(max-width:460px){
   .wrap{padding:0 14px}
-  .ptabs-nav,.subnav{margin:0 -14px;padding:0 14px}
+  .ptabs-nav,.subnav,.tiras{margin:0 -14px;padding:0 14px}
   .ptab{padding:9px 12px;font-size:12.5px}
   .top-in{gap:8px;height:56px}
   .pad{padding:13px 14px}
@@ -655,6 +660,8 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  signupRole:null,gateRole:null,roleSource:null,
  f:{q:"",styles:[],cx:[],max:null,rating:null,sort:"relevance",painel:null},
  seguindo:[],curtidas:[],feedLote:1,obs:null,
+ painel:{discover:null,shop:null,events:null},
+ shopSort:"relevance",evAba:"perto",coQ:"",
  caro:{},shopAud:"client",shopCat:"all",shopQ:"",cart:[{id:"p10",q:1},{id:"p15",q:2}],cep:"",ship:null,
  evT:"all",evP:"all",evD:"all",evSort:"distance",evSel:"e1",evLoc:"São Paulo, SP",
  coT:"all",coL:"all",coP:"all",coSort:"recent",
@@ -725,57 +732,70 @@ function vHome(){
  [["discover","👥","Encontrar tatuadores","Tatuadores"],
   ["shop","🛍","Lojas","Lojas"],
   ["events","🗓","Cursos e eventos","Eventos"]].forEach(function(t){
-  h+='<button class="ptab '+(S.tab===t[0]?"on":"")+'" onclick="set(\'tab\',\''+t[0]+'\')">'+t[1]+
-     '<span class="longo">'+t[2]+'</span><span class="curto">'+t[3]+'</span></button>'});
+  h+='<button class="ptab '+(S.tab===t[0]?"on":"")+'" title="'+t[2]+'" onclick="set(\'tab\',\''+t[0]+'\');S.feedLote=1">'+t[1]+
+     '<span class="rotnav">'+t[3]+'</span></button>'});
  h+='</div><div class="ptabs-acoes">';
- if(S.tab==="discover")h+='<button class="ptab" onclick="'+(isLog()?"go('studio-profile')":"go('para-tatuadores')")+'">🖼<span class="longo">Publicar</span></button>';
- if(S.tab==="shop")h+='<button class="ptab" onclick="go(\'studio\')">🏪<span class="longo">Vender</span></button>';
- if(S.tab==="events")h+='<button class="ptab">📣<span class="longo">Divulgar</span></button>';
- h+='<button class="ptab destaque" onclick="S.hub=\'menu\';openDrawer(\'hub\')">✨<span class="longo">Orçamentos</span><span class="curto">Orçar</span></button>';
+ if(S.tab==="discover")h+='<button class="ptab" onclick="'+(isLog()?"go('studio-profile')":"go('para-tatuadores')")+'">🖼<span>Publicar</span></button>';
+ if(S.tab==="shop")h+='<button class="ptab" onclick="go(\'studio\')">🏪<span>Vender</span></button>';
+ if(S.tab==="events")h+='<button class="ptab">📣<span>Divulgar</span></button>';
+ h+='<button class="ptab destaque" onclick="S.hub=\'menu\';openDrawer(\'hub\')">✨<span>Orçamentos</span></button>';
  h+='</div></div>';
  h+=S.tab==="discover"?secFeed():S.tab==="shop"?secShop():secEvents();
  return h+'</div></main>';
 }
 
-/* --- busca, filtros, ordenar --- lado a lado, cada um abrindo seu painel */
+/* ── Barra de busca, filtros e ordenar ─────────────────────────────
+   Um componente só, usado pelas três abas. O padrão foi definido em
+   "encontrar tatuadores" e vale igual em lojas e eventos: campo de
+   busca, dois botões que abrem painel, e o resumo do que está ativo. */
 var ORDENACOES=[["relevance","Relevância"],["price_asc","Menor preço"],["price_desc","Maior preço"],["rating","Melhor avaliação"],["distance","Mais próximos"]];
 
-function secFeed(){
- var f=S.f;
- var n=f.styles.length;
- var ordAtual=(ORDENACOES.filter(function(o){return o[0]===f.sort})[0]||ORDENACOES[0])[1];
-
+function barraBusca(cfg){
+ var painel=S.painel[cfg.aba];
  var h='<div class="barrabusca">';
- h+='<div class="campo"><span class="lupa">⌕</span><input placeholder="Buscar tatuador, estúdio, cidade ou estilo…" value="'+f.q+'" oninput="S.f.q=this.value;renderFeedOnly()" /></div>';
- h+='<button class="btnbarra '+(f.painel==="filtros"?"on":"")+(n?" temfiltro":"")+'" onclick="abrirPainel(\'filtros\')" title="Filtros">⚙️<span class="rot">Filtros</span>'+(n?'<span class="pontinho">'+n+'</span>':'')+'</button>';
- h+='<button class="btnbarra '+(f.painel==="ordenar"?"on":"")+'" onclick="abrirPainel(\'ordenar\')" title="Ordenar">↕<span class="rot">Ordenar</span></button>';
+ h+='<div class="campo"><span class="lupa">⌕</span><input placeholder="'+cfg.placeholder+'" value="'+cfg.q+'" oninput="'+cfg.onBusca+'" /></div>';
+ h+='<button class="btnbarra '+(painel==="filtros"?"on":"")+(cfg.nFiltros?" temfiltro":"")+'" onclick="abrirPainel(\''+cfg.aba+'\',\'filtros\')" title="Filtros">⚙️<span class="rot">Filtros</span>'+(cfg.nFiltros?'<span class="pontinho">'+cfg.nFiltros+'</span>':'')+'</button>';
+ h+='<button class="btnbarra '+(painel==="ordenar"?"on":"")+'" onclick="abrirPainel(\''+cfg.aba+'\',\'ordenar\')" title="Ordenar">↕<span class="rot">Ordenar</span></button>';
  h+='</div>';
 
- if(f.painel==="filtros"){
-  h+='<div class="painel">';
-  h+='<div class="fgroup" style="margin-top:0"><span class="gl">Estilos</span>';
-  STYLES.forEach(function(s){h+='<button class="chip '+(f.styles.indexOf(s.s)>=0?"on":"")+'" onclick="tog(S.f.styles,\''+s.s+'\')">'+s.l+'</button>'});
-  h+='</div>';
+ if(painel==="filtros"){
+  h+='<div class="painel">'+cfg.filtros;
   h+='<div class="row" style="margin-top:11px;gap:8px">';
-  if(n)h+='<button class="btn sm" onclick="S.f.styles=[];render()">Limpar ('+n+')</button>';
-  h+='<button class="btn sm primary sp" onclick="S.f.painel=null;render()">Ver resultados</button></div>';
-  h+='</div>';
+  if(cfg.nFiltros)h+='<button class="btn sm" onclick="'+cfg.onLimpar+'">Limpar ('+cfg.nFiltros+')</button>';
+  h+='<button class="btn sm primary sp" onclick="S.painel.'+cfg.aba+'=null;render()">Ver resultados</button></div></div>';
  }
-
- if(f.painel==="ordenar"){
+ if(painel==="ordenar"){
   h+='<div class="painel"><div class="fgroup" style="margin-top:0"><span class="gl">Ordenar por</span>';
-  ORDENACOES.forEach(function(o){
-   h+='<button class="chip '+(f.sort===o[0]?"on":"")+'" onclick="S.f.sort=\''+o[0]+'\';S.f.painel=null;render()">'+o[1]+'</button>'});
+  cfg.ordenacoes.forEach(function(o){
+   h+='<button class="chip '+(cfg.sort===o[0]?"on":"")+'" onclick="'+cfg.onOrdenar.replace("$1",o[0])+'">'+o[1]+'</button>'});
   h+='</div></div>';
  }
 
- h+='<div class="tiny muted" style="margin-top:10px">'+ordAtual+(n?' · '+n+' filtro'+(n>1?"s":""):'')+'</div>';
- h+='<div id="feedHost">'+feedList()+'</div>';
+ var rot=(cfg.ordenacoes.filter(function(o){return o[0]===cfg.sort})[0]||cfg.ordenacoes[0])[1];
+ h+='<div class="tiny muted" style="margin-top:10px">'+rot+(cfg.nFiltros?' · '+cfg.nFiltros+' filtro'+(cfg.nFiltros>1?"s":""):'')+'</div>';
  return h;
 }
-function abrirPainel(qual){
- S.f.painel = S.f.painel===qual ? null : qual;
+function abrirPainel(aba,qual){
+ S.painel[aba] = S.painel[aba]===qual ? null : qual;
  render();
+}
+
+function secFeed(){
+ var f=S.f;
+ var filtros='<div class="fgroup" style="margin-top:0"><span class="gl">Estilos</span>';
+ STYLES.forEach(function(s){filtros+='<button class="chip '+(f.styles.indexOf(s.s)>=0?"on":"")+'" onclick="tog(S.f.styles,\''+s.s+'\')">'+s.l+'</button>'});
+ filtros+='</div>';
+
+ var h=barraBusca({
+  aba:"discover", q:f.q, placeholder:"Buscar tatuador, estúdio, cidade ou estilo…",
+  onBusca:"S.f.q=this.value;renderFeedOnly()",
+  nFiltros:f.styles.length, filtros:filtros,
+  onLimpar:"S.f.styles=[];render()",
+  ordenacoes:ORDENACOES, sort:f.sort,
+  onOrdenar:"S.f.sort='$1';S.painel.discover=null;render()"
+ });
+ h+='<div id="feedHost">'+feedList()+'</div>';
+ return h;
 }
 function filteredArtists(){
  var f=S.f;
@@ -969,7 +989,12 @@ async function carregarArtistasReais(){
 function caro(id,d,n){var c=S.caro[id]||0;S.caro[id]=Math.max(0,Math.min(n-1,c+d));render()}
 function renderFeedOnly(){
  var el=document.getElementById("feedHost");
- if(el){el.innerHTML=icons(feedList());ligarScrollInfinito()}
+ if(!el)return;
+ var conteudo = S.tab==="shop" ? listaLoja()
+   : S.tab==="events" ? (S.evAba==="perto"?listaEventos():listaCursos())
+   : feedList();
+ el.innerHTML=icons(conteudo);
+ ligarScrollInfinito();
 }
 /* Como no app real: os botões levam para /artists/$id?action=… e o assistente abre lá */
 function quoteFor(id,intent){S.assistArtist=id;S.assistIntent=intent;S.aiStep=0;S.autoAssist=true;go("artist",id)}
@@ -977,43 +1002,129 @@ function quoteFor(id,intent){S.assistArtist=id;S.assistIntent=intent;S.aiStep=0;
 /* --- loja --- */
 function secShop(){
  var cats=SHOP_CATS[S.shopAud];
- var h='<div class="ptabs" style="margin-top:16px">';
+ var nF=(S.shopCat!=="all"?1:0);
+
+ // Audiências em linha única, rolando na horizontal quando não couber
+ var h='<div class="tiras">';
  [["client","Para quem tatuou"],["artist","Para o tatuador"],["art","Galeria de arte"]].forEach(function(a){
-  h+='<button class="chip acc '+(S.shopAud===a[0]?"on":"")+'" style="padding:8px 14px" onclick="S.shopAud=\''+a[0]+'\';S.shopCat=\'all\';render()">'+a[1]+'</button>'});
+  h+='<button class="tira '+(S.shopAud===a[0]?"on":"")+'" onclick="S.shopAud=\''+a[0]+'\';S.shopCat=\'all\';S.feedLote=1;render()">'+a[1]+'</button>'});
  h+='</div>';
- h+='<div class="fbar"><input class="fld" placeholder="Buscar produto ou marca…" value="'+S.shopQ+'" oninput="S.shopQ=this.value;render()" />';
- h+='<div class="fgroup"><span class="gl">Categoria</span>';
- cats.forEach(function(c){h+='<button class="chip '+(S.shopCat===c[0]?"on":"")+'" onclick="S.shopCat=\''+c[0]+'\';render()">'+c[1]+'</button>'});
- h+='</div></div>';
+
+ var filtros='<div class="fgroup" style="margin-top:0"><span class="gl">Categoria</span>';
+ cats.forEach(function(c){filtros+='<button class="chip '+(S.shopCat===c[0]?"on":"")+'" onclick="S.shopCat=\''+c[0]+'\';S.feedLote=1;render()">'+c[1]+'</button>'});
+ filtros+='</div>';
+
+ h+=barraBusca({
+  aba:"shop", q:S.shopQ, placeholder:"Buscar produto ou marca…",
+  onBusca:"S.shopQ=this.value;S.feedLote=1;render()",
+  nFiltros:nF, filtros:filtros,
+  onLimpar:"S.shopCat='all';render()",
+  ordenacoes:[["relevance","Relevância"],["price_asc","Menor preço"],["price_desc","Maior preço"],["rating","Melhor avaliação"]],
+  sort:S.shopSort, onOrdenar:"S.shopSort='$1';S.painel.shop=null;render()"
+ });
+ h+='<div id="feedHost">'+listaLoja()+'</div>';
+ return h;
+}
+
+function listaLoja(){
  var l=PRODUCTS.filter(function(p){
   if(p.a!==S.shopAud)return false;
   if(S.shopCat!=="all"&&p.c!==S.shopCat)return false;
   if(S.shopQ.trim()&&(p.n+" "+p.b).toLowerCase().indexOf(S.shopQ.trim().toLowerCase())<0)return false;
   return true});
- h+='<div class="pgrid">';
- if(!l.length)h+='<div class="card pad muted">Nenhum produto nessa categoria.</div>';
- l.forEach(function(p){
-  var i=S.caro["sh"+p.id]||0,emo=[p.e,"📸","🔎"][i];
-  h+='<div class="pcard"><div class="im">'+emo;
-  h+='<button class="nv" style="left:6px" onclick="caro(\'sh'+p.id+'\',-1,3)">‹</button>';
-  h+='<button class="nv" style="right:6px" onclick="caro(\'sh'+p.id+'\',1,3)">›</button></div>';
-  h+='<div class="pad" style="padding:11px 12px">';
+ if(S.shopSort==="price_asc")l.sort(function(a,b){return a.p-b.p});
+ if(S.shopSort==="price_desc")l.sort(function(a,b){return b.p-a.p});
+ if(S.shopSort==="rating")l.sort(function(a,b){return b.r-a.r});
+
+ if(!l.length)return '<div class="card pad muted" style="margin-top:14px">Nenhum produto com esses filtros.</div>';
+ var ate=Math.min(l.length,S.feedLote*3);
+ var h='<div class="feedposts">';
+ l.slice(0,ate).forEach(function(p){
+  var i=S.caro["sh"+p.id]||0;
+  h+='<article class="post">';
+  h+='<div class="postinfo">';
+  h+='<div class="row" style="gap:9px"><div style="min-width:0;flex:1">';
   if(p.bg)h+='<span class="badge acc">'+p.bg+'</span>';
-  h+='<div class="b small" style="margin-top:5px">'+p.n+'</div><div class="tiny muted">'+p.b+'</div>';
-  h+='<div class="tiny" style="margin-top:4px">'+stars(p.r)+' '+p.r+' <span class="muted">('+p.rv+')</span></div>';
-  h+='<div class="row" style="margin-top:6px"><span class="b">'+money(p.p)+'</span>'+(p.o?'<span class="tiny muted" style="text-decoration:line-through">'+money(p.o)+'</span>':'')+'</div>';
-  h+='<button class="btn sm blk" style="margin-top:8px" onclick="addCart(\''+p.id+'\')">Adicionar</button></div></div>';
+  h+='<div class="b small" style="margin-top:'+(p.bg?"5px":"0")+'">'+p.n+'</div>';
+  h+='<div class="tiny muted">'+p.b+'</div></div></div>';
+  h+='<div class="row wrapf" style="gap:5px;margin-top:8px"><span class="tiny">'+stars(p.r)+' '+p.r+'</span>';
+  h+='<span class="tiny muted">('+p.rv+')</span></div>';
+  h+='<div class="row" style="margin-top:7px"><span class="b small">'+money(p.p)+'</span>';
+  if(p.o)h+='<span class="tiny muted" style="text-decoration:line-through">'+money(p.o)+'</span>';
+  h+='<button class="btn sm sp" onclick="addCart(\''+p.id+'\')">Adicionar</button></div>';
+  h+='</div>';
+  h+='<div class="postimg" style="aspect-ratio:1">';
+  h+='<div class="vazio" style="font-size:52px">'+[p.e,"📸","🔎"][i]+'</div>';
+  if(i>0)h+='<button class="nav l" onclick="caro(\'sh'+p.id+'\',-1,3)">‹</button>';
+  if(i<2)h+='<button class="nav r" onclick="caro(\'sh'+p.id+'\',1,3)">›</button>';
+  h+='<div class="pips"><i class="'+(i===0?"on":"")+'"></i><i class="'+(i===1?"on":"")+'"></i><i class="'+(i===2?"on":"")+'"></i></div>';
+  h+='</div></article>';
  });
- return h+'</div>';
+ h+='</div>';
+ h+= ate<l.length
+  ? '<div id="sentinela" class="row" style="justify-content:center;padding:22px 0"><span class="tiny muted">carregando mais…</span></div>'
+  : '<div class="row" style="justify-content:center;padding:22px 0"><span class="tiny muted">Você viu tudo dessa categoria.</span></div>';
+ return h;
 }
+
 function addCart(id){
  var it=S.cart.filter(function(c){return c.id===id})[0];
  if(it)it.q++;else S.cart.push({id:id,q:1});
  openDrawer("cart");
 }
 
-/* --- eventos + cursos --- */
+/* --- eventos e cursos --- */
 function secEvents(){
+ var nF=(S.evT!=="all"?1:0)+(S.evP!=="all"?1:0)+(S.evD!=="all"?1:0)+(S.coL!=="all"?1:0);
+
+ var h='<div class="tiras">';
+ [["perto","Perto de você"],["cursos","Cursos"]].forEach(function(t){
+  h+='<button class="tira '+(S.evAba===t[0]?"on":"")+'" onclick="S.evAba=\''+t[0]+'\';S.feedLote=1;render()">'+t[1]+'</button>'});
+ h+='</div>';
+
+ var filtros='';
+ if(S.evAba==="perto"){
+  filtros+='<div class="fgroup" style="margin-top:0"><span class="gl">Tipo</span>';
+  [["all","Todos"],["Convenção","Convenção"],["Flash Day","Flash Day"],["Exposição","Exposição"],["Workshop","Workshop"],["Meetup","Meetup"]].forEach(function(t){
+   filtros+='<button class="chip '+(S.evT===t[0]?"on":"")+'" onclick="S.evT=\''+t[0]+'\';S.feedLote=1;render()">'+t[1]+'</button>'});
+  filtros+='</div><div class="fgroup"><span class="gl">Preço</span>';
+  [["all","Todos"],["free","Grátis"],["paid","Pagos"]].forEach(function(t){
+   filtros+='<button class="chip '+(S.evP===t[0]?"on":"")+'" onclick="S.evP=\''+t[0]+'\';S.feedLote=1;render()">'+t[1]+'</button>'});
+  filtros+='</div><div class="fgroup"><span class="gl">Distância</span>';
+  [["all","Qualquer"],["near","até 5 km"],["mid","5–10 km"],["far","10 km+"]].forEach(function(t){
+   filtros+='<button class="chip '+(S.evD===t[0]?"on":"")+'" onclick="S.evD=\''+t[0]+'\';S.feedLote=1;render()">'+t[1]+'</button>'});
+  filtros+='</div>';
+ }else{
+  filtros+='<div class="fgroup" style="margin-top:0"><span class="gl">Modalidade</span>';
+  [["all","Todas"],["Online","Online"],["Presencial","Presencial"],["Híbrido","Híbrido"]].forEach(function(t){
+   filtros+='<button class="chip '+(S.coT===t[0]?"on":"")+'" onclick="S.coT=\''+t[0]+'\';S.feedLote=1;render()">'+t[1]+'</button>'});
+  filtros+='</div><div class="fgroup"><span class="gl">Nível</span>';
+  [["all","Todos"],["Iniciante","Iniciante"],["Intermediário","Intermediário"],["Avançado","Avançado"]].forEach(function(t){
+   filtros+='<button class="chip '+(S.coL===t[0]?"on":"")+'" onclick="S.coL=\''+t[0]+'\';S.feedLote=1;render()">'+t[1]+'</button>'});
+  filtros+='</div><div class="fgroup"><span class="gl">Preço</span>';
+  [["all","Todos"],["free","Grátis"],["lt500","até R$ 500"],["gte500","R$ 500+"]].forEach(function(t){
+   filtros+='<button class="chip '+(S.coP===t[0]?"on":"")+'" onclick="S.coP=\''+t[0]+'\';S.feedLote=1;render()">'+t[1]+'</button>'});
+  filtros+='</div>';
+ }
+
+ h+=barraBusca({
+  aba:"events",
+  q: S.evAba==="perto" ? S.evLoc : S.coQ,
+  placeholder: S.evAba==="perto" ? "Buscar endereço ou cidade…" : "Buscar curso ou instrutor…",
+  onBusca: S.evAba==="perto" ? "S.evLoc=this.value;S.feedLote=1;renderFeedOnly()" : "S.coQ=this.value;S.feedLote=1;renderFeedOnly()",
+  nFiltros:nF, filtros:filtros,
+  onLimpar: S.evAba==="perto" ? "S.evT='all';S.evP='all';S.evD='all';render()" : "S.coT='all';S.coL='all';S.coP='all';render()",
+  ordenacoes: S.evAba==="perto"
+   ? [["distance","Mais perto"],["price-asc","Menor preço"],["price-desc","Maior preço"],["name","Nome (A–Z)"]]
+   : [["recent","Mais recentes"],["price-asc","Menor preço"],["price-desc","Maior preço"],["spots","Mais vagas"],["name","Nome (A–Z)"]],
+  sort: S.evAba==="perto" ? S.evSort : S.coSort,
+  onOrdenar: S.evAba==="perto" ? "S.evSort='$1';S.painel.events=null;render()" : "S.coSort='$1';S.painel.events=null;render()"
+ });
+ h+='<div id="feedHost">'+(S.evAba==="perto"?listaEventos():listaCursos())+'</div>';
+ return h;
+}
+
+function listaEventos(){
  var l=EVENTS.filter(function(e){
   if(S.evT!=="all"&&e.t!==S.evT)return false;
   if(S.evP==="free"&&e.cost>0)return false;
@@ -1027,79 +1138,72 @@ function secEvents(){
  if(S.evSort==="price-desc")l.sort(function(a,b){return b.cost-a.cost});
  if(S.evSort==="name")l.sort(function(a,b){return a.n.localeCompare(b.n)});
 
- var h='<div class="row" style="margin-top:18px"><span class="b" style="font-size:16px">Eventos perto de você</span>'+tg("mock")+'</div>';
- h+='<div class="fbar"><div class="row wrapf">';
- h+='<input class="fld" style="flex:1;min-width:180px" placeholder="Buscar endereço ou cidade" value="'+S.evLoc+'" oninput="S.evLoc=this.value" />';
- h+='<button class="btn sm" onclick="S.evLoc=\'Minha localização atual\';render()">📍 Usar minha localização</button></div>';
- h+='<div class="fgroup"><span class="gl">Tipo</span>';
- [["all","Todos"],["Convenção","Convenção"],["Flash Day","Flash Day"],["Exposição","Exposição"],["Workshop","Workshop"],["Meetup","Meetup"]].forEach(function(t){
-  h+='<button class="chip '+(S.evT===t[0]?"on":"")+'" onclick="S.evT=\''+t[0]+'\';render()">'+t[1]+'</button>'});
- h+='</div><div class="fgroup"><span class="gl">Preço</span>';
- [["all","Todos"],["free","Grátis"],["paid","Pagos"]].forEach(function(t){
-  h+='<button class="chip '+(S.evP===t[0]?"on":"")+'" onclick="S.evP=\''+t[0]+'\';render()">'+t[1]+'</button>'});
- h+='</div><div class="fgroup"><span class="gl">Distância</span>';
- [["all","Qualquer"],["near","até 5 km"],["mid","5–10 km"],["far","10 km+"]].forEach(function(t){
-  h+='<button class="chip '+(S.evD===t[0]?"on":"")+'" onclick="S.evD=\''+t[0]+'\';render()">'+t[1]+'</button>'});
- h+='</div><div class="fgroup"><span class="gl">Ordenar</span>';
- [["distance","Mais perto"],["price-asc","Menor preço"],["price-desc","Maior preço"],["name","Nome (A–Z)"]].forEach(function(t){
-  h+='<button class="chip '+(S.evSort===t[0]?"on":"")+'" onclick="S.evSort=\''+t[0]+'\';render()">'+t[1]+'</button>'});
- h+='</div></div>';
+ if(!l.length)return '<div class="card pad muted" style="margin-top:14px">Nenhum evento com esses filtros.</div>';
+ var ate=Math.min(l.length,S.feedLote*3);
+ var h='<div class="feedposts">';
 
- h+='<div class="grid cols16" style="margin-top:14px;align-items:start">';
- h+='<div class="map">';
- l.forEach(function(e,k){
-  h+='<div class="pin '+(S.evSel===e.id?"on":"")+'" style="left:'+e.x+'%;top:'+e.y+'%" onclick="S.evSel=\''+e.id+'\';render()"><b>'+(k+1)+'</b><span>'+e.km+' km</span></div>'});
- h+='<div class="pin" style="left:50%;top:50%"><b style="background:var(--accent)">◉</b><span>você</span></div>';
- h+='<div style="position:absolute;bottom:7px;left:7px" class="tiny muted">Mapa simulado · Google Maps no app real</div></div>';
- h+='<div class="card pad" style="max-height:420px;overflow:auto">';
- h+='<div class="small b">'+l.length+' evento(s)</div><div style="margin-top:4px">';
- l.forEach(function(e,k){
-  h+='<div class="lrow" style="cursor:pointer;'+(S.evSel===e.id?"background:var(--x-accent-bg);border-radius:8px;padding-left:7px;padding-right:7px":"")+'" onclick="S.evSel=\''+e.id+'\';render()">';
-  h+='<div class="datebox"><span class="m">'+e.d.split(" ").pop()+'</span><span class="d">'+e.d.split(/[–\s]/)[0]+'</span></div>';
-  h+='<div style="min-width:0"><div class="b small">'+e.n+'</div><div class="tiny muted">'+e.t+' · '+e.city+' · '+e.km+' km</div></div>';
-  h+='<div class="sp" style="text-align:right"><div class="b small">'+(e.cost?money(e.cost):"Grátis")+'</div><button class="btn sm" style="margin-top:3px">Participar</button></div></div>';
+ // Mapa como primeira publicação: dá o contexto sem roubar a tela inteira
+ h+='<article class="post"><div class="postinfo"><div class="row">';
+ h+='<div style="flex:1"><div class="b small">📍 '+S.evLoc+'</div>';
+ h+='<div class="tiny muted">'+l.length+' evento(s) por perto</div></div>';
+ h+='<button class="btn sm" onclick="S.evLoc=\'Minha localização atual\';render()">Usar minha localização</button></div></div>';
+ h+='<div class="map" style="border-radius:0;border-left:none;border-right:none;border-bottom:none;height:190px">';
+ l.slice(0,8).forEach(function(e,k){
+  h+='<div class="pin '+(S.evSel===e.id?"on":"")+'" style="left:'+e.x+'%;top:'+e.y+'%" onclick="S.evSel=\''+e.id+'\';render()"><b>'+(k+1)+'</b></div>'});
+ h+='<div class="pin" style="left:50%;top:50%"><b style="background:var(--accent)">◉</b><span>você</span></div></div></article>';
+
+ l.slice(0,ate).forEach(function(e,k){
+  h+='<article class="post"><div class="postinfo">';
+  h+='<div class="row" style="gap:9px"><div class="datebox"><span class="m">'+e.d.split(" ").pop()+'</span><span class="d">'+e.d.split(/[–\s]/)[0]+'</span></div>';
+  h+='<div style="min-width:0;flex:1"><div class="b small">'+e.n+'</div>';
+  h+='<div class="tiny muted">'+e.city+' · '+e.km+' km</div></div></div>';
+  h+='<div class="row wrapf" style="gap:5px;margin-top:8px"><span class="badge">'+e.t+'</span></div>';
+  h+='<div class="row" style="margin-top:7px"><span class="b small">'+(e.cost?money(e.cost):"Grátis")+'</span>';
+  h+='<button class="btn sm sp">Participar</button></div></div>';
+  h+='<div class="postimg" style="aspect-ratio:16/9"><div class="sl on" style="background-image:'+tex(e.x+k*3)+'"></div></div>';
+  h+='</article>';
  });
- h+='</div></div></div>';
+ h+='</div>';
+ h+= ate<l.length
+  ? '<div id="sentinela" class="row" style="justify-content:center;padding:22px 0"><span class="tiny muted">carregando mais…</span></div>'
+  : '<div class="row" style="justify-content:center;padding:22px 0"><span class="tiny muted">Você viu todos os eventos por perto.</span></div>';
+ return h;
+}
 
+function listaCursos(){
  var c=COURSES.filter(function(x){
   if(S.coT!=="all"&&x.t!==S.coT)return false;
   if(S.coL!=="all"&&x.lv!==S.coL)return false;
   if(S.coP==="free"&&x.cost>0)return false;
   if(S.coP==="lt500"&&(x.cost===0||x.cost>=500))return false;
   if(S.coP==="gte500"&&x.cost<500)return false;
+  if(S.coQ&&S.coQ.trim()&&(x.n+" "+x.who).toLowerCase().indexOf(S.coQ.trim().toLowerCase())<0)return false;
   return true});
  if(S.coSort==="price-asc")c.sort(function(a,b){return a.cost-b.cost});
  if(S.coSort==="price-desc")c.sort(function(a,b){return b.cost-a.cost});
  if(S.coSort==="spots")c.sort(function(a,b){return b.spots-a.spots});
  if(S.coSort==="name")c.sort(function(a,b){return a.n.localeCompare(b.n)});
 
- h+='<div class="row" style="margin-top:26px"><span class="b" style="font-size:16px">Cursos</span>'+tg("mock")+'</div>';
- h+='<div class="fbar"><div class="fgroup"><span class="gl">Modalidade</span>';
- [["all","Todas"],["Online","Online"],["Presencial","Presencial"],["Híbrido","Híbrido"]].forEach(function(t){
-  h+='<button class="chip '+(S.coT===t[0]?"on":"")+'" onclick="S.coT=\''+t[0]+'\';render()">'+t[1]+'</button>'});
- h+='</div><div class="fgroup"><span class="gl">Nível</span>';
- [["all","Todos"],["Iniciante","Iniciante"],["Intermediário","Intermediário"],["Avançado","Avançado"]].forEach(function(t){
-  h+='<button class="chip '+(S.coL===t[0]?"on":"")+'" onclick="S.coL=\''+t[0]+'\';render()">'+t[1]+'</button>'});
- h+='</div><div class="fgroup"><span class="gl">Preço</span>';
- [["all","Todos"],["free","Grátis"],["lt500","até R$ 500"],["gte500","R$ 500+"]].forEach(function(t){
-  h+='<button class="chip '+(S.coP===t[0]?"on":"")+'" onclick="S.coP=\''+t[0]+'\';render()">'+t[1]+'</button>'});
- h+='</div><div class="fgroup"><span class="gl">Ordenar</span>';
- [["recent","Mais recentes"],["price-asc","Menor preço"],["price-desc","Maior preço"],["spots","Mais vagas"],["name","Nome (A–Z)"]].forEach(function(t){
-  h+='<button class="chip '+(S.coSort===t[0]?"on":"")+'" onclick="S.coSort=\''+t[0]+'\';render()">'+t[1]+'</button>'});
- h+='</div></div>';
- h+='<div class="pgrid">';
- if(!c.length)h+='<div class="card pad muted">Nenhum curso com esses filtros.</div>';
- c.forEach(function(x){
-  h+='<div class="pcard"><div class="im">'+x.e+'</div><div class="pad" style="padding:11px 12px">';
-  h+='<div class="row" style="gap:4px"><span class="badge">'+x.t+'</span><span class="badge">'+x.lv+'</span></div>';
-  h+='<div class="b small" style="margin-top:6px">'+x.n+'</div>';
+ if(!c.length)return '<div class="card pad muted" style="margin-top:14px">Nenhum curso com esses filtros.</div>';
+ var ate=Math.min(c.length,S.feedLote*3);
+ var h='<div class="feedposts">';
+ c.slice(0,ate).forEach(function(x){
+  h+='<article class="post"><div class="postinfo">';
+  h+='<div class="b small">'+x.n+'</div>';
   h+='<div class="tiny muted">'+x.who+' · '+x.h+'</div>';
-  h+='<div class="tiny muted" style="margin-top:3px">'+x.dur+' · início '+x.st+'</div>';
-  h+='<div class="row" style="margin-top:7px"><span class="b">'+(x.cost?money(x.cost):"Grátis")+'</span>';
-  h+='<span class="sp badge '+(x.spots<6?"warn":"")+'">'+x.spots+' vagas</span></div>';
-  h+='<button class="btn sm blk" style="margin-top:8px">Inscrever-se</button></div></div>';
+  h+='<div class="row wrapf" style="gap:5px;margin-top:8px"><span class="badge">'+x.t+'</span><span class="badge">'+x.lv+'</span>';
+  h+='<span class="badge '+(x.spots<6?"warn":"")+'">'+x.spots+' vagas</span></div>';
+  h+='<div class="tiny muted" style="margin-top:6px">'+x.dur+' · início '+x.st+'</div>';
+  h+='<div class="row" style="margin-top:7px"><span class="b small">'+(x.cost?money(x.cost):"Grátis")+'</span>';
+  h+='<button class="btn sm sp">Inscrever-se</button></div></div>';
+  h+='<div class="postimg" style="aspect-ratio:16/9"><div class="vazio" style="font-size:46px">'+x.e+'</div></div>';
+  h+='</article>';
  });
- return h+'</div>';
+ h+='</div>';
+ h+= ate<c.length
+  ? '<div id="sentinela" class="row" style="justify-content:center;padding:22px 0"><span class="tiny muted">carregando mais…</span></div>'
+  : '<div class="row" style="justify-content:center;padding:22px 0"><span class="tiny muted">Você viu todos os cursos.</span></div>';
+ return h;
 }
 
 /* ============ PERFIL PÚBLICO ============ */
@@ -2343,7 +2447,7 @@ function render(){
  document.getElementById("app").innerHTML=icons(h);
  document.getElementById("sessionSel").value=S.session;
  if(r==="modelo")calcUE();
- if(r==="home"&&S.tab==="discover")ligarScrollInfinito();
+ if(r==="home")ligarScrollInfinito();
  if(S.autoAssist){S.autoAssist=false;openDrawer("assist")}
 }
 document.getElementById("sessionSel").addEventListener("change",function(e){
