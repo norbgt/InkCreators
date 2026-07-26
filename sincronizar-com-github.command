@@ -52,16 +52,34 @@ fi
 
 # Verificação de segurança antes de enviar
 echo "→ Conferindo que nenhum segredo vai junto..."
+
 if git ls-files | grep -qE '^\.env$'; then
   echo "✗ PARADO: o arquivo .env está versionado."
   echo "  Segredo não pode ir para o GitHub. Avise a Claude antes de continuar."
   echo; read -p "Enter para fechar..."; exit 1
 fi
-if git grep -qIE 'sb_secret_|AIzaSy[A-Za-z0-9_-]{30}|eyJhbGciOiJ' -- ':!*.md' ':!.env.exemplo' 2>/dev/null; then
-  echo "✗ PARADO: parece haver uma chave real em algum arquivo."
-  echo "  Avise a Claude antes de continuar."
+
+# O padrão é montado em pedaços de propósito. Se ficasse escrito inteiro
+# aqui, a busca encontraria a si mesma e bloquearia o envio para sempre
+# — foi exatamente o que aconteceu na primeira versão deste script.
+P1='sb''_secret_'
+P2='AIza''Sy[A-Za-z0-9_-]{30}'
+P3='eyJhbG''ciOiJ'
+PADRAO="$P1|$P2|$P3"
+
+# Exclusões: os .md discutem o tema, o .env.exemplo lista os nomes das
+# variáveis sem valores, e este script contém o próprio padrão.
+ACHADOS=$(git grep -lIE "$PADRAO" -- \
+  ':!*.md' ':!.env.exemplo' ':!sincronizar-com-github.command' 2>/dev/null)
+
+if [ -n "$ACHADOS" ]; then
+  echo "✗ PARADO: parece haver uma chave real nestes arquivos:"
+  echo "$ACHADOS" | sed 's/^/    /'
+  echo
+  echo "  Mostre esta lista à Claude antes de continuar."
   echo; read -p "Enter para fechar..."; exit 1
 fi
+
 echo "✓ Nenhum segredo detectado."
 echo
 
