@@ -146,9 +146,13 @@ p.sub{color:var(--muted-foreground);margin-top:4px;font-size:13.5px}
 .fld:focus{border-color:var(--muted-foreground)}
 label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bottom:4px}
 
-.ptabs{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:16px}
-.ptab{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--card);border-radius:12px;padding:10px 16px;font-size:13.5px;font-weight:600}
+.ptabs{display:flex;align-items:center;gap:9px;margin-top:16px}
+.ptabs-nav{display:flex;gap:8px;min-width:0;flex:1}
+.ptabs-acoes{display:flex;gap:8px;flex-shrink:0}
+.ptab{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--card);border-radius:12px;padding:10px 16px;font-size:13.5px;font-weight:600;white-space:nowrap;flex-shrink:0}
 .ptab.on{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
+.ptab.destaque{background:var(--accent);color:var(--accent-foreground);border-color:var(--accent)}
+.ptab .curto{display:none}
 .chip{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:500;white-space:nowrap}
 .chip.on{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
 .chip.acc.on{background:var(--accent);border-color:var(--accent);color:var(--accent-foreground)}
@@ -287,6 +291,30 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
   .hide-sm{display:none!important}
   h1.page{font-size:21px}
   .feed{grid-template-columns:1fr}
+}
+
+/* ── Telas estreitas: escalonar em vez de um corte só ────────────────
+   900px: rótulos longos viram curtos, tudo ainda cabe numa linha.
+   680px: navegação e ações se separam em duas linhas.
+   420px: navegação rola na horizontal, sem espremer os botões. */
+@media(max-width:900px){
+  .ptab .longo{display:none}
+  .ptab .curto{display:inline}
+  .ptab{padding:9px 13px;font-size:13px}
+}
+@media(max-width:680px){
+  .ptabs{flex-direction:column;align-items:stretch;gap:8px}
+  .ptabs-nav{flex:none}
+  .ptabs-acoes{justify-content:flex-end}
+  .ptabs-acoes .ptab{flex:1;justify-content:center}
+}
+@media(max-width:420px){
+  .ptabs-nav{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -18px;padding:0 18px}
+  .ptabs-nav::-webkit-scrollbar{display:none}
+  .ptab{padding:9px 12px;font-size:12.5px}
+  .wrap{padding:0 14px}
+  .top-in{gap:8px}
+  .iconbtn{width:32px;height:32px}
 }
 </style>
 </head>
@@ -632,15 +660,20 @@ function vHome(){
  var h='<main><div class="wrap">';
  h+='<h1 class="page">Arte que combina com você</h1>';
  h+='<p class="sub">Pesquise estúdios, busque por estilos, acesse portfólios, faça orçamentos e agende sua próxima tatuagem</p>';
- h+='<div class="ptabs">';
- [["discover","👥 Encontrar tatuadores"],["shop","🛍 Lojas"],["events","🗓 Cursos e eventos"]].forEach(function(t){
-  h+='<button class="ptab '+(S.tab===t[0]?"on":"")+'" onclick="set(\'tab\',\''+t[0]+'\')">'+t[1]+'</button>'});
- h+='<span class="sp"></span>';
- if(S.tab==="discover")h+='<button class="ptab" onclick="'+(isLog()?"go('studio-profile')":"go('para-tatuadores')")+'">🖼 Publicar</button>';
- if(S.tab==="shop")h+='<button class="ptab" onclick="go(\'studio\')">🏪 Vender</button>';
- if(S.tab==="events")h+='<button class="ptab">📣 Divulgar</button>';
- h+='<button class="ptab" style="background:var(--accent);color:var(--accent-foreground);border-color:var(--accent)" onclick="S.hub=\'menu\';openDrawer(\'hub\')">✨ Orçamentos</button>';
- h+='</div>';
+ // Navegação e ações em blocos separados: em tela estreita viram duas
+ // linhas em vez de se espremerem na mesma. Cada rótulo tem versão curta.
+ h+='<div class="ptabs"><div class="ptabs-nav">';
+ [["discover","👥","Encontrar tatuadores","Tatuadores"],
+  ["shop","🛍","Lojas","Lojas"],
+  ["events","🗓","Cursos e eventos","Eventos"]].forEach(function(t){
+  h+='<button class="ptab '+(S.tab===t[0]?"on":"")+'" onclick="set(\'tab\',\''+t[0]+'\')">'+t[1]+
+     '<span class="longo">'+t[2]+'</span><span class="curto">'+t[3]+'</span></button>'});
+ h+='</div><div class="ptabs-acoes">';
+ if(S.tab==="discover")h+='<button class="ptab" onclick="'+(isLog()?"go('studio-profile')":"go('para-tatuadores')")+'">🖼<span class="longo">Publicar</span></button>';
+ if(S.tab==="shop")h+='<button class="ptab" onclick="go(\'studio\')">🏪<span class="longo">Vender</span></button>';
+ if(S.tab==="events")h+='<button class="ptab">📣<span class="longo">Divulgar</span></button>';
+ h+='<button class="ptab destaque" onclick="S.hub=\'menu\';openDrawer(\'hub\')">✨<span class="longo">Orçamentos</span><span class="curto">Orçar</span></button>';
+ h+='</div></div>';
  h+=S.tab==="discover"?secFeed():S.tab==="shop"?secShop():secEvents();
  return h+'</div></main>';
 }
