@@ -147,14 +147,14 @@ p.sub{color:var(--muted-foreground);margin-top:4px;font-size:13.5px}
 label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bottom:4px}
 
 /* Abas: faixa com sublinhado, rolável. Ações ficam fora para não rolarem junto. */
-.linhaabas{display:flex;align-items:flex-end;gap:14px;margin-top:16px;border-bottom:1px solid var(--border)}
-.abas{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.linhaabas{display:flex;align-items:flex-end;gap:14px;margin-top:16px;border-bottom:1px solid var(--border);flex-wrap:nowrap}
+.abas{display:flex;gap:2px;flex:1 1 0;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .abas::-webkit-scrollbar{display:none}
 .aba{display:inline-flex;align-items:center;gap:7px;padding:11px 14px;border-bottom:2px solid transparent;font-size:13.5px;font-weight:600;color:var(--muted-foreground);white-space:nowrap;flex-shrink:0;background:none}
 .aba:hover{color:var(--foreground)}
 .aba.on{color:var(--foreground);border-bottom-color:var(--foreground)}
 .aba .ico{width:17px;height:17px}
-.abas-acoes{display:flex;gap:7px;flex-shrink:0;padding-bottom:7px}
+.abas-acoes{display:flex;gap:7px;flex:0 0 auto;padding-bottom:7px}
 .btn.sm.destaque{background:var(--accent);color:var(--accent-foreground);border-color:var(--accent)}
 /* Tiras: recorte dentro da aba. Uma linha só, rolando quando não couber. */
 .tiras{display:flex;gap:6px;margin-top:16px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -368,11 +368,14 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
   .search{display:none}
   .hide-sm{display:none!important}
   h1.page{font-size:21px}
-  .linhaabas{flex-direction:column;align-items:stretch;gap:0;border-bottom:none}
-  .abas{margin:0 -18px;padding:0 18px;border-bottom:1px solid var(--border)}
-  .abas-acoes{padding:10px 0 0;justify-content:flex-end}
+  /* Ações ficam SEMPRE na mesma linha das abas. Quem cede espaço são as
+     abas, que rolam na horizontal — nunca os botões, que são a ação. */
+  .linhaabas{gap:8px}
+  .abas{margin-left:-18px;padding-left:18px}
   .aba span{display:none}
-  .aba{padding:11px 15px}
+  .aba{padding:11px 14px}
+  .abas-acoes .btn.sm{padding:7px 11px;font-size:12.5px;gap:5px}
+  .abas-acoes{gap:6px}
   .feedposts{max-width:none}
   .btnbarra .rot{display:none}
   .btnbarra{padding:0 13px}
@@ -388,6 +391,10 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 @media(max-width:460px){
   .wrap{padding:0 14px}
   .abas,.subnav,.tiras{margin:0 -14px;padding:0 14px}
+  .abas{margin-right:0;padding-right:0}
+  .aba{padding:11px 12px}
+  .abas-acoes .btn.sm{padding:7px 9px;font-size:12px}
+  .linhaabas{gap:6px}
   .top-in{gap:8px;height:56px}
   .pad{padding:13px 14px}
   .postinfo{padding:11px 12px}
