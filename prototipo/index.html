@@ -537,7 +537,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  pf:{nome:"",estudio:"",cidade:"",uf:"",estilos:[],publicado:false},
  onbEstudio:"",onbCidade:"",onbUf:"",onbAnos:null,onbInsta:"",onbBio:"",
  onbFotos:null,onbMsg:"",onbErro:false,onbPinterest:"",igAberto:false,
- onbModelo:"hora",onbModeloArquivo:"",arrependido:false,
+ onbModelo:"hora",onbModeloArquivo:"",onbQuerOrcamento:false,arrependido:false,
  precos:null,prMsg:"",prErro:false,
  prNovo:{estilo:"fineline",tamanho:"medio",min:"",max:"",horas:""}};
 
@@ -1069,18 +1069,48 @@ function cqRow(q,full){
 }
 
 /* ============ ONBOARDING ============ */
+/* O roteiro do onboarding é montado na hora. O passo 4 — modelo de
+   orçamento — só entra se a pessoa tiver sinalizado interesse no passo 3.
+   Assim quem só quer aparecer no catálogo faz 4 passos, não 5. */
+function passosDoOnboarding(){
+ var r=[{n:1,t:"Sobre você e seu estúdio"},{n:2,t:"Seus estilos"},{n:3,t:"Portfólio e redes"}];
+ if(S.onbQuerOrcamento) r.push({n:4,t:"Modelo de orçamento"});
+ r.push({n:5,t:"Revisar e publicar"});
+ return r;
+}
+function passoSeguinte(st){
+ var ns=passosDoOnboarding().map(function(p){return p.n});
+ var i=ns.indexOf(st);
+ return i>=0&&i<ns.length-1 ? ns[i+1] : st;
+}
+function passoAnterior(st){
+ var ns=passosDoOnboarding().map(function(p){return p.n});
+ var i=ns.indexOf(st);
+ return i>0 ? ns[i-1] : st;
+}
+function irPasso(destino){
+ S.onbStep=destino;
+ render();
+}
+
 function vOnb(){
  var st=S.onbStep;
+ // Se a pessoa desmarcou o orçamento estando nele, sai do passo órfão
+ if(st===4&&!S.onbQuerOrcamento) st=S.onbStep=3;
  // Estilo deixou de ser obrigatório: muitos tatuadores não se encaixam num
  // rótulo, e exigir isso na porta de entrada barra gente boa. Sem estilo, o
  // perfil existe e aparece — só não entra no matching por estilo.
  var can=(st===1&&S.onbName.trim().length>1)||st>=2;
- var PASSOS=["Sobre você e seu estúdio","Seus estilos","Portfólio e redes","Modelo de orçamento","Revisar e publicar"];
- var TOTAL=PASSOS.length;
+ // O passo de orçamento só existe se a pessoa pedir. A maioria quer entrar
+ // rápido; quem já tem um jeito próprio de precificar é que quer configurar.
+ var ROTEIRO=passosDoOnboarding();
+ var TOTAL=ROTEIRO.length;
+ var pos=ROTEIRO.map(function(p){return p.n}).indexOf(st)+1;
+ var atual=ROTEIRO.filter(function(p){return p.n===st})[0]||ROTEIRO[0];
  var h='<main><div class="wrap" style="max-width:620px">';
  h+='<div class="kicker">Ambiente do tatuador</div><h1 class="page" style="margin-top:3px">Vamos montar seu perfil</h1>';
- h+='<div class="steps">';for(var k=1;k<=TOTAL;k++)h+='<i class="'+(k<=st?"on":"")+'"></i>';h+='</div>';
- h+='<div class="tiny muted" style="margin-top:7px">Passo '+st+' de '+TOTAL+' · '+PASSOS[st-1]+'</div>';
+ h+='<div class="steps">';ROTEIRO.forEach(function(p,i){h+='<i class="'+(i<pos?"on":"")+'"></i>'});h+='</div>';
+ h+='<div class="tiny muted" style="margin-top:7px">Passo '+pos+' de '+TOTAL+' · '+atual.t+'</div>';
  h+='<div class="card pad" style="margin-top:14px">';
 
  if(st===1){
@@ -1163,6 +1193,13 @@ function vOnb(){
   h+='<button class="btn sp" onclick="alert(\'Conectaria via OAuth do Instagram. A tabela artist_instagram_oauth ja existe no banco.\')">Conectar Instagram</button></div>';
   h+='</div>';
 
+  // ── Sinalizador: só quem quiser passa pelo modelo de orçamento
+  h+='<div class="card pad" style="margin-top:11px;'+(S.onbQuerOrcamento?'border-color:var(--accent);background:var(--x-accent-bg)':'')+'">';
+  h+='<div class="row" style="align-items:flex-start;gap:10px">';
+  h+='<button class="chip '+(S.onbQuerOrcamento?"on":"")+'" style="margin-top:2px" onclick="S.onbQuerOrcamento=!S.onbQuerOrcamento;render()">'+(S.onbQuerOrcamento?"✓":"")+'</button>';
+  h+='<div style="flex:1"><div class="b small">Quero definir como apresento meu preço</div>';
+  h+='<div class="tiny muted" style="margin-top:3px">Abre um passo a mais para escolher entre valor por hora, fechado, por tamanho ou por sessão — ou subir sua própria planilha. Se pular, você define depois no perfil.</div></div></div>';
+  h+='</div>';
  }
 
  if(st===4){
@@ -1197,7 +1234,8 @@ function vOnb(){
   h+='<tr><td class="muted">Estilos</td><td class="b" style="text-align:right">'+(S.onbStyles.map(function(s){return SL[s]}).join(", ")||"nenhum definido")+'</td></tr>';
   h+='<tr><td class="muted">Portfólio</td><td class="b" style="text-align:right">'+nFotos+' imagem(ns)</td></tr>';
   h+='<tr><td class="muted">Redes</td><td class="b" style="text-align:right">'+([S.onbInsta?"@"+S.onbInsta:null,S.onbPinterest?"@"+S.onbPinterest:null].filter(Boolean).join(" · ")||"—")+'</td></tr>';
-  h+='<tr><td class="muted">Modelo de orçamento</td><td class="b" style="text-align:right">'+(S.onbModeloArquivo?"Planilha própria":(mod?mod.nome:"—"))+'</td></tr>';
+  h+='<tr><td class="muted">Modelo de orçamento</td><td class="b" style="text-align:right">'+
+   (!S.onbQuerOrcamento?'<span class="muted">a definir depois</span>':(S.onbModeloArquivo?"Planilha própria":(mod?mod.nome:"—")))+'</td></tr>';
   h+='<tr><td class="muted">Papel da conta</td><td style="text-align:right"><span class="badge ok">cliente</span> <span class="badge ok">tatuador</span></td></tr>';
   h+='</table>';
   if(!S.onbStyles.length)
@@ -1207,12 +1245,12 @@ function vOnb(){
  if(S.modo==="real"&&S.onbMsg)
   h+='<div class="banner" style="margin-top:12px;'+(S.onbErro?'background:var(--x-danger-bg);border-color:var(--x-danger)':'')+'"><div class="small"'+(S.onbErro?' style="color:var(--x-danger)"':'')+'>'+S.onbMsg+'</div></div>';
 
- h+='<div class="row" style="margin-top:16px"><button class="btn" '+(st===1?"disabled":"")+' onclick="S.onbStep=Math.max(1,S.onbStep-1);render()">← Voltar</button>';
- if(st===2||st===3)h+='<button class="btn" onclick="S.onbStep=S.onbStep+1;render()">Pular</button>';
- var ultimo = st===TOTAL;
+ h+='<div class="row" style="margin-top:16px"><button class="btn" '+(pos===1?"disabled":"")+' onclick="irPasso('+passoAnterior(st)+')">← Voltar</button>';
+ if(st===2||st===3)h+='<button class="btn" onclick="irPasso('+passoSeguinte(st)+')">Pular</button>';
+ var ultimo = pos===TOTAL;
  var acao = ultimo
   ? (S.modo==="real" ? "concluirOnboardingReal()" : "go('studio')")
-  : "S.onbStep++;render()";
+  : "irPasso("+passoSeguinte(st)+")";
  h+='<button class="btn primary sp" id="onbNext" '+(can?"":"disabled")+' onclick="'+acao+'">'+(ultimo?(S.modo==="real"?"Publicar no banco":"Publicar e ir ao painel"):"Continuar →")+'</button></div>';
  return h+'</div></div></main>';
 }
