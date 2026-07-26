@@ -1074,11 +1074,13 @@ function vOnb(){
  // Estilo deixou de ser obrigatório: muitos tatuadores não se encaixam num
  // rótulo, e exigir isso na porta de entrada barra gente boa. Sem estilo, o
  // perfil existe e aparece — só não entra no matching por estilo.
- var can=(st===1&&S.onbName.trim().length>1)||st===2||st===3||st===4;
+ var can=(st===1&&S.onbName.trim().length>1)||st>=2;
+ var PASSOS=["Sobre você e seu estúdio","Seus estilos","Portfólio e redes","Modelo de orçamento","Revisar e publicar"];
+ var TOTAL=PASSOS.length;
  var h='<main><div class="wrap" style="max-width:620px">';
  h+='<div class="kicker">Ambiente do tatuador</div><h1 class="page" style="margin-top:3px">Vamos montar seu perfil</h1>';
- h+='<div class="steps">';for(var k=1;k<=4;k++)h+='<i class="'+(k<=st?"on":"")+'"></i>';h+='</div>';
- h+='<div class="tiny muted" style="margin-top:7px">Passo '+st+' de 4 · '+["Sobre você e seu estúdio","Seus estilos","Portfólio (opcional)","Revisar e publicar"][st-1]+'</div>';
+ h+='<div class="steps">';for(var k=1;k<=TOTAL;k++)h+='<i class="'+(k<=st?"on":"")+'"></i>';h+='</div>';
+ h+='<div class="tiny muted" style="margin-top:7px">Passo '+st+' de '+TOTAL+' · '+PASSOS[st-1]+'</div>';
  h+='<div class="card pad" style="margin-top:14px">';
 
  if(st===1){
@@ -1161,14 +1163,14 @@ function vOnb(){
   h+='<button class="btn sp" onclick="alert(\'Conectaria via OAuth do Instagram. A tabela artist_instagram_oauth ja existe no banco.\')">Conectar Instagram</button></div>';
   h+='</div>';
 
-  // ── Modelo de orçamento
-  h+='<div class="card pad" style="margin-top:11px">';
-  h+='<div class="b small">Modelo de orçamento</div>';
-  h+='<div class="tiny muted" style="margin-top:3px">Como você apresenta o preço ao cliente. Dá para trocar depois.</div>';
-  h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin-top:11px">';
+ }
+
+ if(st===4){
+  h+='<div class="small muted">Como você apresenta o preço ao cliente. Não muda o quanto você cobra — muda o que o cliente entende, e isso costuma mexer na taxa de resposta.</div>';
+  h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin-top:13px">';
   MODELOS_ORCAMENTO.forEach(function(m){
    var on=S.onbModelo===m.id;
-   h+='<div class="opt '+(on?"on":"")+'" onclick="S.onbModelo=\''+m.id+'\';render()">';
+   h+='<div class="opt '+(on?"on":"")+'" onclick="S.onbModelo=\''+m.id+'\';S.onbModeloArquivo=\'\';render()">';
    h+='<div class="b small">'+m.nome+'</div>';
    h+='<div class="tiny muted" style="margin-top:4px">'+m.desc+'</div>';
    h+='<div class="tiny" style="margin-top:6px;color:var(--muted-foreground)"><em>'+m.exemplo+'</em></div></div>';
@@ -1182,27 +1184,36 @@ function vOnb(){
   h+='<button class="btn sp" onclick="document.getElementById(\'arqModelo\').click()">Enviar planilha</button></div>';
   if(S.onbModeloArquivo)
    h+='<div class="tiny" style="margin-top:9px;padding:8px 10px;background:var(--x-success-bg);color:var(--x-success);border-radius:8px">Planilha recebida: '+S.onbModeloArquivo+' — passa a ser o seu modelo.</div>';
-  h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:11px">Dá para trocar depois, no seu perfil.</div>';
  }
- if(st===4){
+ if(st===5){
+  var nFotos=S.modo==="real"?((S.onbFotos||[]).length):S.onbPort;
+  var mod=MODELOS_ORCAMENTO.filter(function(m){return m.id===S.onbModelo})[0];
   h+='<div class="b small">Revise antes de publicar</div>';
   h+='<table class="t" style="margin-top:8px">';
   h+='<tr><td class="muted">Nome</td><td class="b" style="text-align:right">'+(S.onbName||"—")+'</td></tr>';
-  h+='<tr><td class="muted">Estilos</td><td class="b" style="text-align:right">'+(S.onbStyles.map(function(s){return SL[s]}).join(", ")||"—")+'</td></tr>';
-  h+='<tr><td class="muted">Portfólio</td><td class="b" style="text-align:right">'+S.onbPort+' imagem(ns)</td></tr>';
+  h+='<tr><td class="muted">Estúdio</td><td class="b" style="text-align:right">'+(S.onbEstudio||"—")+'</td></tr>';
+  h+='<tr><td class="muted">Cidade</td><td class="b" style="text-align:right">'+(S.onbCidade?S.onbCidade+(S.onbUf?"/"+S.onbUf:""):"—")+'</td></tr>';
+  h+='<tr><td class="muted">Estilos</td><td class="b" style="text-align:right">'+(S.onbStyles.map(function(s){return SL[s]}).join(", ")||"nenhum definido")+'</td></tr>';
+  h+='<tr><td class="muted">Portfólio</td><td class="b" style="text-align:right">'+nFotos+' imagem(ns)</td></tr>';
+  h+='<tr><td class="muted">Redes</td><td class="b" style="text-align:right">'+([S.onbInsta?"@"+S.onbInsta:null,S.onbPinterest?"@"+S.onbPinterest:null].filter(Boolean).join(" · ")||"—")+'</td></tr>';
+  h+='<tr><td class="muted">Modelo de orçamento</td><td class="b" style="text-align:right">'+(S.onbModeloArquivo?"Planilha própria":(mod?mod.nome:"—"))+'</td></tr>';
   h+='<tr><td class="muted">Papel da conta</td><td style="text-align:right"><span class="badge ok">cliente</span> <span class="badge ok">tatuador</span></td></tr>';
   h+='</table>';
+  if(!S.onbStyles.length)
+   h+='<div class="tiny muted" style="margin-top:10px;padding:9px 11px;background:var(--muted);border-radius:8px">Sem estilo definido, seu perfil aparece no catálogo mas não entra no encaminhamento automático de orçamentos. Dá para definir depois.</div>';
   h+='<div class="banner" style="margin-top:13px"><div><div class="b small">Publicar perfil no feed público</div><div class="tiny muted">Você pode despublicar quando quiser. Sem publicar, ninguém encontra seu perfil.</div></div></div>';
  }
  if(S.modo==="real"&&S.onbMsg)
   h+='<div class="banner" style="margin-top:12px;'+(S.onbErro?'background:var(--x-danger-bg);border-color:var(--x-danger)':'')+'"><div class="small"'+(S.onbErro?' style="color:var(--x-danger)"':'')+'>'+S.onbMsg+'</div></div>';
 
  h+='<div class="row" style="margin-top:16px"><button class="btn" '+(st===1?"disabled":"")+' onclick="S.onbStep=Math.max(1,S.onbStep-1);render()">← Voltar</button>';
- if(st===3)h+='<button class="btn" onclick="S.onbStep=4;render()">Pular</button>';
- var acao = st===4
+ if(st===2||st===3)h+='<button class="btn" onclick="S.onbStep=S.onbStep+1;render()">Pular</button>';
+ var ultimo = st===TOTAL;
+ var acao = ultimo
   ? (S.modo==="real" ? "concluirOnboardingReal()" : "go('studio')")
   : "S.onbStep++;render()";
- h+='<button class="btn primary sp" id="onbNext" '+(can?"":"disabled")+' onclick="'+acao+'">'+(st===4?(S.modo==="real"?"Publicar no banco":"Publicar e ir ao painel"):"Continuar →")+'</button></div>';
+ h+='<button class="btn primary sp" id="onbNext" '+(can?"":"disabled")+' onclick="'+acao+'">'+(ultimo?(S.modo==="real"?"Publicar no banco":"Publicar e ir ao painel"):"Continuar →")+'</button></div>';
  return h+'</div></div></main>';
 }
 
