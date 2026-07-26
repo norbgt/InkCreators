@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Ink Creators — protótipo</title>
 <style>
 :root{
@@ -199,7 +199,6 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .coracao.on{background:#fff;color:#e2474a}
 .coracao .ico{width:20px;height:20px}
 .coracao{width:34px;height:34px;font-size:17px}
-@media(max-width:560px){.feedposts{max-width:none}.btnbarra .rot{display:none}.btnbarra{padding:0 12px}}
 .feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:15px;margin-top:16px}
 .acard{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--card)}
 .acard:hover{border-color:var(--muted-foreground)}
@@ -285,36 +284,96 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 .plan .rib{position:absolute;top:-10px;left:18px;background:var(--primary);color:var(--primary-foreground);border-radius:999px;padding:2px 10px;font-size:10.5px;font-weight:700}
 .thumbsq{width:56px;height:56px;border-radius:8px;background-size:cover;background-position:center;position:relative;flex-shrink:0}
 .thumbsq .x{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:10px;display:flex;align-items:center;justify-content:center}
-@media(max-width:820px){
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVIDADE — desenhada para os aparelhos que de fato acessam
+
+   Tatuador trabalha no iPad; cliente navega no iPhone. Os pontos de
+   quebra estão nos vãos entre essas larguras, nunca em cima delas.
+
+     iPhone 16          393px   (Plus 430 · Pro Max 440)
+     iPad mini          744px
+     iPad 10.9 / Air    820px   ← retrato
+     iPad Pro 11        834px
+     iPad Pro 13       1024px
+     iPad paisagem     1024–1366px
+
+   O corte antigo em 820px caía exatamente no iPad retrato: o mesmo
+   aparelho ganhava layouts diferentes conforme o modelo, e o tatuador
+   perdia a busca justo onde mais trabalha.
+
+   Os cortes atuais ficam nos vãos entre famílias de aparelho:
+     460px   entre iPhone Pro Max (440) e iPad mini (744)
+     700px   idem, separando telefone de tablet
+    1100px   entre iPad retrato (1024) e iPad paisagem (1180)
+   Nenhum aparelho cai a menos de 20px de um corte.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── iPad retrato e abaixo: uma coluna ───────────────────────────── */
+@media(max-width:1100px){
   .cols2,.cols16{grid-template-columns:1fr}
-  .search{display:none}
-  .hide-sm{display:none!important}
-  h1.page{font-size:21px}
   .feed{grid-template-columns:1fr}
 }
 
-/* ── Telas estreitas: escalonar em vez de um corte só ────────────────
-   900px: rótulos longos viram curtos, tudo ainda cabe numa linha.
-   680px: navegação e ações se separam em duas linhas.
-   420px: navegação rola na horizontal, sem espremer os botões. */
-@media(max-width:900px){
+/* ── iPad retrato (744–1023): mantém busca e atalhos, encurta rótulos
+      Nada é escondido aqui — é a tela de trabalho do tatuador. ───── */
+@media(max-width:1100px) and (min-width:700px){
   .ptab .longo{display:none}
   .ptab .curto{display:inline}
   .ptab{padding:9px 13px;font-size:13px}
+  .search{max-width:280px}
+  .feedposts{max-width:460px}
 }
-@media(max-width:680px){
+
+/* ── Telefones (até 699px) ───────────────────────────────────────── */
+@media(max-width:699px){
+  .search{display:none}
+  .hide-sm{display:none!important}
+  h1.page{font-size:21px}
+  .ptab .longo{display:none}
+  .ptab .curto{display:inline}
   .ptabs{flex-direction:column;align-items:stretch;gap:8px}
-  .ptabs-nav{flex:none}
-  .ptabs-acoes{justify-content:flex-end}
-  .ptabs-acoes .ptab{flex:1;justify-content:center}
-}
-@media(max-width:420px){
-  .ptabs-nav{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -18px;padding:0 18px}
+  .ptabs-nav{flex:none;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -18px;padding:0 18px}
   .ptabs-nav::-webkit-scrollbar{display:none}
-  .ptab{padding:9px 12px;font-size:12.5px}
+  .ptabs-acoes .ptab{flex:1;justify-content:center}
+  .feedposts{max-width:none}
+  .btnbarra .rot{display:none}
+  .btnbarra{padding:0 13px}
+  .drawer{width:100%;border-left:none}
+  .subnav{margin:0 -18px;padding:0 18px}
+  /* Rodapé do drawer e da página respeitam a faixa do indicador do iPhone */
+  .drawer .df{padding-bottom:calc(11px + env(safe-area-inset-bottom,0px))}
+  footer.note{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+}
+
+/* ── iPhone 16 e menores (até 440px) ─────────────────────────────── */
+@media(max-width:460px){
   .wrap{padding:0 14px}
-  .top-in{gap:8px}
-  .iconbtn{width:32px;height:32px}
+  .ptabs-nav,.subnav{margin:0 -14px;padding:0 14px}
+  .ptab{padding:9px 12px;font-size:12.5px}
+  .top-in{gap:8px;height:56px}
+  .pad{padding:13px 14px}
+  .postinfo{padding:11px 12px}
+  h1.page{font-size:20px}
+  .grid{gap:11px}
+  /* Botões de ação lado a lado não cabem em 393px sem apertar */
+  .postinfo .row .btn.sm{padding:7px 10px;font-size:12px}
+}
+
+/* ── Toque: alvo mínimo confortável ──────────────────────────────
+   Apple recomenda 44pt. Vale para iPad e iPhone igualmente — o que
+   muda o alvo é o dedo, não o tamanho da tela. ─────────────────── */
+@media(pointer:coarse){
+  .iconbtn{width:42px;height:42px}
+  .btnseguir{width:38px;height:38px}
+  .coracao{width:44px;height:44px;font-size:19px}
+  .postimg .nav{width:38px;height:38px}
+  .chip{padding:8px 13px}
+  .btn.sm{padding:9px 13px}
+  .subnav a{padding:13px 14px}
+  .pill{padding:9px 14px}
+  .btnbarra{height:44px}
+  .barrabusca .campo input{height:44px}
+  .avatarbtn{width:38px;height:38px}
 }
 </style>
 </head>
