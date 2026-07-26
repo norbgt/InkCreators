@@ -162,6 +162,38 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .tira{flex-shrink:0;white-space:nowrap;border:1px solid var(--border);background:var(--card);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600}
 .tira:hover{border-color:var(--muted-foreground)}
 .tira.on{background:var(--accent);color:var(--accent-foreground);border-color:var(--accent)}
+
+/* Barra de localização + mapa pequeno + lista compacta.
+   Padrão de app de mobilidade: contexto no topo, decisão na lista. */
+.barralocal{display:flex;align-items:center;gap:9px;margin-top:14px;padding:10px 13px;border:1px solid var(--border);border-radius:11px;background:var(--card)}
+.barralocal .ico-local{color:var(--accent);line-height:0}
+.barralocal .ico-local .ico{width:18px;height:18px}
+.avisoerro{margin-top:8px;padding:9px 12px;border-radius:9px;background:var(--x-warning-bg);color:var(--x-warning);font-size:12.5px}
+.btnlocal{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);background:none}
+.btnlocal:hover{background:var(--muted);color:var(--foreground)}
+.btnlocal.on{color:var(--accent)}
+.btnlocal .ico{width:17px;height:17px}
+.barrabusca .campo input{padding-right:42px}
+
+.mapa{position:relative;margin-top:11px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--muted);
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:30px 30px}
+.mapa .pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer}
+.mapa .pin b{display:block;width:22px;height:22px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:11px;line-height:22px;text-align:center;border:2px solid var(--card)}
+.mapa .pin.on b{background:var(--accent);transform:scale(1.2)}
+.mapa .pin.voce b{background:var(--accent);width:15px;height:15px;line-height:15px;font-size:9px}
+.mapaselo{position:absolute;bottom:7px;left:8px;font-size:10.5px;color:var(--muted-foreground);background:var(--card);border-radius:5px;padding:2px 7px;opacity:.9}
+
+.lista{margin-top:12px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
+.item{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:12px 13px;border-bottom:1px solid var(--border);background:none}
+.item:last-child{border-bottom:none}
+.item:hover{background:var(--muted)}
+.item.on{background:var(--x-accent-bg)}
+.item.compacto{padding:10px 13px}
+.itemtxt{min-width:0;flex:1}
+.itemfim{text-align:right;flex-shrink:0;display:flex;flex-direction:column;gap:2px}
+.itemfoto{width:46px;height:46px;border-radius:9px;background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.itemfoto .ico{width:24px;height:24px;color:var(--muted-foreground)}
 .chip{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:500;white-space:nowrap}
 .chip.on{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
 .chip.acc.on{background:var(--accent);border-color:var(--accent);color:var(--accent-foreground)}
@@ -494,7 +526,7 @@ var IC={
  "▲":"cup","▼":"cdown","▾":"cdown","📣":"megaphone","✨":"sparkle","🪡":"needle","🧴":"droplet",
  "🫙":"jar","🖊":"pen","✒":"pen","🦶":"disc","💺":"chair","🧤":"glove","🩹":"bandage","🧼":"soap",
  "☀":"sun","📦":"box","🏞":"frame","👕":"shirt","🏷":"tag","💡":"bulb","🖤":"heart","⬛":"square",
- "🌫":"waves","◉":"cross","⭐":"star","⚙️":"filtro","↕":"ordenar","♡":"heart"
+ "🌫":"waves","◉":"cross","◌":"disc","⭐":"star","⚙️":"filtro","↕":"ordenar","♡":"heart"
 };
 var ICRE=new RegExp("(?:"+Object.keys(IC).map(function(k){return k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}).join("|")+")\\uFE0F?|★|☆","gu");
 function icons(h){
@@ -590,17 +622,36 @@ var PRODUCTS=[
  {id:"p20",n:"Luminária traço minimalista",b:"Ink Creators",a:"art",c:"decor",p:229,r:4.5,rv:33,e:"💡"}
 ];
 var EVENTS=[
- {id:"e1",n:"Tattoo Week São Paulo",t:"Convenção",city:"São Paulo, SP",km:2.4,cost:120,d:"12–14 jul",x:38,y:44},
- {id:"e2",n:"Flash Day Vila Madalena",t:"Flash Day",city:"São Paulo, SP",km:4.1,cost:0,d:"20 jul",x:26,y:36},
- {id:"e3",n:"Black & Grey Meetup",t:"Meetup",city:"São Paulo, SP",km:5.7,cost:0,d:"27 jul",x:56,y:30},
- {id:"e4",n:"Exposição Ink Brasil",t:"Exposição",city:"São Paulo, SP",km:7.2,cost:45,d:"02 ago",x:66,y:58},
- {id:"e5",n:"Workshop Linework Avançado",t:"Workshop",city:"São Paulo, SP",km:9.5,cost:390,d:"09 ago",x:22,y:66},
- {id:"e6",n:"Flash Day Pinheiros",t:"Flash Day",city:"São Paulo, SP",km:3.6,cost:0,d:"16 ago",x:46,y:24},
- {id:"e7",n:"Workshop Aquarela na Pele",t:"Workshop",city:"São Paulo, SP",km:6.8,cost:450,d:"23 ago",x:72,y:38},
- {id:"e8",n:"Meetup Blackwork BR",t:"Meetup",city:"São Paulo, SP",km:4.5,cost:0,d:"30 ago",x:34,y:56},
- {id:"e9",n:"Convenção Tatuagem Sul",t:"Convenção",city:"Curitiba, PR",km:18.3,cost:180,d:"12–14 set",x:80,y:74},
- {id:"e10",n:"Convenção Ink ABC",t:"Convenção",city:"Santo André, SP",km:22.1,cost:90,d:"05 out",x:14,y:80}
+ {id:"e1",n:"Tattoo Week São Paulo",t:"Convenção",city:"São Paulo, SP",cost:120,d:"12–14 jul",lat:-23.5631,lng:-46.6544,x:38,y:44},
+ {id:"e2",n:"Flash Day Vila Madalena",t:"Flash Day",city:"São Paulo, SP",cost:0,d:"20 jul",lat:-23.5545,lng:-46.6890,x:26,y:36},
+ {id:"e3",n:"Black & Grey Meetup",t:"Meetup",city:"São Paulo, SP",cost:0,d:"27 jul",lat:-23.5320,lng:-46.6410,x:56,y:30},
+ {id:"e4",n:"Exposição Ink Brasil",t:"Exposição",city:"São Paulo, SP",cost:45,d:"02 ago",lat:-23.6010,lng:-46.6180,x:66,y:58},
+ {id:"e5",n:"Workshop Linework Avançado",t:"Workshop",city:"São Paulo, SP",cost:390,d:"09 ago",lat:-23.6180,lng:-46.7020,x:22,y:66},
+ {id:"e6",n:"Flash Day Pinheiros",t:"Flash Day",city:"São Paulo, SP",cost:0,d:"16 ago",lat:-23.5670,lng:-46.7010,x:46,y:24},
+ {id:"e7",n:"Workshop Aquarela na Pele",t:"Workshop",city:"São Paulo, SP",cost:450,d:"23 ago",lat:-23.5180,lng:-46.6020,x:72,y:38},
+ {id:"e8",n:"Meetup Blackwork BR",t:"Meetup",city:"São Paulo, SP",cost:0,d:"30 ago",lat:-23.5880,lng:-46.6620,x:34,y:56},
+ {id:"e9",n:"Convenção Tatuagem Sul",t:"Convenção",city:"Curitiba, PR",cost:180,d:"12–14 set",lat:-25.4284,lng:-49.2733,x:80,y:74},
+ {id:"e10",n:"Convenção Ink ABC",t:"Convenção",city:"Santo André, SP",cost:90,d:"05 out",lat:-23.6639,lng:-46.5383,x:14,y:80}
 ];
+// Ponto de referência inicial: centro de São Paulo. Trocado pela posição
+// real assim que a pessoa autorizar a geolocalização.
+var LOCAL_PADRAO={lat:-23.5505,lng:-46.6333,nome:"São Paulo, SP"};
+
+/* Distância em linha reta entre duas coordenadas (fórmula de haversine).
+   É cálculo de verdade — o que ainda é simulado são as coordenadas dos
+   eventos, não a conta. */
+function distanciaKm(a,b){
+ var R=6371, r=Math.PI/180;
+ var dLat=(b.lat-a.lat)*r, dLng=(b.lng-a.lng)*r;
+ var x=Math.sin(dLat/2)*Math.sin(dLat/2)+
+   Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLng/2)*Math.sin(dLng/2);
+ return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+function kmDe(e){
+ var d=distanciaKm(S.local,e);
+ return d<10 ? d.toFixed(1) : Math.round(d);
+}
+
 var COURSES=[
  {id:"c1",n:"Fundamentos de Linework",t:"Online",cost:390,dur:"12h • 4 semanas",st:"10 jun",who:"Marina Vasques",h:"@marinavtattoo",lv:"Iniciante",spots:18,e:"✒️"},
  {id:"c2",n:"Realismo Preto e Cinza",t:"Presencial",cost:1890,dur:"32h • 5 dias",st:"01 jul",who:"Rafael Cardoso",h:"@rafacardosoink",lv:"Avançado",spots:4,e:"🖤"},
@@ -667,6 +718,8 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  seguindo:[],curtidas:[],feedLote:1,obs:null,
  painel:{discover:null,shop:null,events:null},
  shopSort:"relevance",evAba:"perto",coQ:"",
+ local:{lat:-23.5505,lng:-46.6333},localReal:false,localNome:"",
+ buscandoLocal:false,localErro:"",precisao:0,
  caro:{},shopAud:"client",shopCat:"all",shopQ:"",cart:[{id:"p10",q:1},{id:"p15",q:2}],cep:"",ship:null,
  evT:"all",evP:"all",evD:"all",evSort:"distance",evSel:"e1",evLoc:"São Paulo, SP",
  coT:"all",coL:"all",coP:"all",coSort:"recent",
@@ -755,7 +808,10 @@ var ORDENACOES=[["relevance","Relevância"],["price_asc","Menor preço"],["price
 function barraBusca(cfg){
  var painel=S.painel[cfg.aba];
  var h='<div class="barrabusca">';
- h+='<div class="campo"><span class="lupa">⌕</span><input placeholder="'+cfg.placeholder+'" value="'+cfg.q+'" oninput="'+cfg.onBusca+'" /></div>';
+ h+='<div class="campo"><span class="lupa">⌕</span><input placeholder="'+cfg.placeholder+'" value="'+cfg.q+'" oninput="'+cfg.onBusca+'" />';
+ if(cfg.comLocal)
+  h+='<button class="btnlocal '+(S.localReal?"on":"")+'" title="Usar minha localização" aria-label="Usar minha localização" onclick="usarMinhaLocalizacao()">'+(S.buscandoLocal?"◌":"◉")+'</button>';
+ h+='</div>';
  h+='<button class="btnbarra '+(painel==="filtros"?"on":"")+(cfg.nFiltros?" temfiltro":"")+'" onclick="abrirPainel(\''+cfg.aba+'\',\'filtros\')" title="Filtros">⚙️<span class="rot">Filtros</span>'+(cfg.nFiltros?'<span class="pontinho">'+cfg.nFiltros+'</span>':'')+'</button>';
  h+='<button class="btnbarra '+(painel==="ordenar"?"on":"")+'" onclick="abrirPainel(\''+cfg.aba+'\',\'ordenar\')" title="Ordenar">↕<span class="rot">Ordenar</span></button>';
  h+='</div>';
@@ -780,6 +836,34 @@ function barraBusca(cfg){
 function abrirPainel(aba,qual){
  S.painel[aba] = S.painel[aba]===qual ? null : qual;
  render();
+}
+
+/* Geolocalização REAL do navegador. Não precisa de chave nem de conta —
+   o navegador pede permissão e devolve as coordenadas.
+   O que ainda falta para fechar a integração com o Google Maps:
+     · transformar coordenada em endereço legível (geocodificação reversa)
+     · buscar por endereço digitado
+     · desenhar o mapa de verdade em vez da grade simulada
+   Os três exigem chave da API e passam por servidor, para a chave não
+   ficar exposta no navegador. Está anotado em decisoes/pendencias.md. */
+function usarMinhaLocalizacao(){
+ if(!navigator.geolocation){
+  S.localErro="Este navegador não oferece geolocalização.";render();return;
+ }
+ S.buscandoLocal=true;S.localErro="";render();
+ navigator.geolocation.getCurrentPosition(function(pos){
+  S.local={lat:pos.coords.latitude,lng:pos.coords.longitude};
+  S.localReal=true;
+  S.localNome="Sua localização atual";
+  S.precisao=Math.round(pos.coords.accuracy);
+  S.buscandoLocal=false;S.feedLote=1;render();
+ },function(err){
+  S.buscandoLocal=false;
+  S.localErro = err.code===1
+   ? "Permissão negada. Você pode digitar a cidade no campo de busca."
+   : "Não foi possível obter sua localização agora.";
+  render();
+ },{enableHighAccuracy:false,timeout:8000,maximumAge:300000});
 }
 
 function secFeed(){
@@ -1115,6 +1199,7 @@ function secEvents(){
   q: S.evAba==="perto" ? S.evLoc : S.coQ,
   placeholder: S.evAba==="perto" ? "Buscar endereço ou cidade…" : "Buscar curso ou instrutor…",
   onBusca: S.evAba==="perto" ? "S.evLoc=this.value;S.feedLote=1;renderFeedOnly()" : "S.coQ=this.value;S.feedLote=1;renderFeedOnly()",
+  comLocal: S.evAba==="perto",
   nFiltros:nF, filtros:filtros,
   onLimpar: S.evAba==="perto" ? "S.evT='all';S.evP='all';S.evD='all';render()" : "S.coT='all';S.coL='all';S.coP='all';render()",
   ordenacoes: S.evAba==="perto"
@@ -1127,8 +1212,31 @@ function secEvents(){
  return h;
 }
 
+function mapinha(pontos,alt){
+ var h='<div class="mapa" style="height:'+(alt||170)+'px">';
+ pontos.slice(0,8).forEach(function(e,k){
+  h+='<div class="pin '+(S.evSel===e.id?"on":"")+'" style="left:'+e.x+'%;top:'+e.y+'%" onclick="S.evSel=\''+e.id+'\';render()"><b>'+(k+1)+'</b></div>';
+ });
+ h+='<div class="pin voce" style="left:50%;top:50%"><b>◉</b></div>';
+ h+='<div class="mapaselo">'+(S.localReal?"sua posição":"mapa simulado")+'</div>';
+ h+='</div>';
+ return h;
+}
+
+function cabecalhoLocal(){
+ var h='<div class="barralocal">';
+ h+='<span class="ico-local">📍</span><div style="min-width:0;flex:1">';
+ h+='<div class="b small">'+(S.localNome||LOCAL_PADRAO.nome)+'</div>';
+ h+='<div class="tiny muted">'+(S.localReal
+   ? 'posição do aparelho'+(S.precisao?' · precisão de '+S.precisao+' m':'')
+   : 'localização padrão — toque no alvo da busca para usar a sua')+'</div></div>';
+ h+='</div>';
+ if(S.localErro)h+='<div class="avisoerro">'+S.localErro+'</div>';
+ return h;
+}
+
 function listaEventos(){
- var l=EVENTS.filter(function(e){
+ var l=EVENTS.map(function(e){return Object.assign({},e,{km:+kmDe(e)})}).filter(function(e){
   if(S.evT!=="all"&&e.t!==S.evT)return false;
   if(S.evP==="free"&&e.cost>0)return false;
   if(S.evP==="paid"&&e.cost===0)return false;
@@ -1141,35 +1249,26 @@ function listaEventos(){
  if(S.evSort==="price-desc")l.sort(function(a,b){return b.cost-a.cost});
  if(S.evSort==="name")l.sort(function(a,b){return a.n.localeCompare(b.n)});
 
- if(!l.length)return '<div class="card pad muted" style="margin-top:14px">Nenhum evento com esses filtros.</div>';
- var ate=Math.min(l.length,S.feedLote*3);
- var h='<div class="feedposts">';
+ var h=cabecalhoLocal();
+ h+=mapinha(l,170);
+ if(!l.length)return h+'<div class="card pad muted" style="margin-top:14px">Nenhum evento com esses filtros.</div>';
 
- // Mapa como primeira publicação: dá o contexto sem roubar a tela inteira
- h+='<article class="post"><div class="postinfo"><div class="row">';
- h+='<div style="flex:1"><div class="b small">📍 '+S.evLoc+'</div>';
- h+='<div class="tiny muted">'+l.length+' evento(s) por perto de você</div></div>';
- h+='<button class="btn sm" onclick="S.evLoc=\'Minha localização atual\';render()">Usar minha localização</button></div></div>';
- h+='<div class="map" style="border-radius:0;border-left:none;border-right:none;border-bottom:none;height:190px">';
- l.slice(0,8).forEach(function(e,k){
-  h+='<div class="pin '+(S.evSel===e.id?"on":"")+'" style="left:'+e.x+'%;top:'+e.y+'%" onclick="S.evSel=\''+e.id+'\';render()"><b>'+(k+1)+'</b></div>'});
- h+='<div class="pin" style="left:50%;top:50%"><b style="background:var(--accent)">◉</b><span>você</span></div></div></article>';
-
+ var ate=Math.min(l.length,S.feedLote*6);
+ h+='<div class="lista">';
  l.slice(0,ate).forEach(function(e,k){
-  h+='<article class="post"><div class="postinfo">';
-  h+='<div class="row" style="gap:9px"><div class="datebox"><span class="m">'+e.d.split(" ").pop()+'</span><span class="d">'+e.d.split(/[–\s]/)[0]+'</span></div>';
-  h+='<div style="min-width:0;flex:1"><div class="b small">'+e.n+'</div>';
-  h+='<div class="tiny muted">'+e.city+' · '+e.km+' km</div></div></div>';
-  h+='<div class="row wrapf" style="gap:5px;margin-top:8px"><span class="badge">'+e.t+'</span></div>';
-  h+='<div class="row" style="margin-top:7px"><span class="b small">'+(e.cost?money(e.cost):"Grátis")+'</span>';
-  h+='<button class="btn sm sp">Participar</button></div></div>';
-  h+='<div class="postimg" style="aspect-ratio:16/9"><div class="sl on" style="background-image:'+tex(e.x+k*3)+'"></div></div>';
-  h+='</article>';
+  h+='<button class="item '+(S.evSel===e.id?"on":"")+'" onclick="S.evSel=\''+e.id+'\';render()">';
+  h+='<div class="datebox"><span class="m">'+e.d.split(" ").pop()+'</span><span class="d">'+e.d.split(/[–\s]/)[0]+'</span></div>';
+  h+='<div class="itemtxt"><div class="b small">'+e.n+'</div>';
+  h+='<div class="tiny muted">'+e.t+' · '+e.city+'</div>';
+  h+='<div class="tiny muted">a '+e.km+' km de você</div></div>';
+  h+='<div class="itemfim"><div class="b small">'+(e.cost?money(e.cost):"Grátis")+'</div>';
+  h+='<span class="tiny muted">participar ›</span></div>';
+  h+='</button>';
  });
  h+='</div>';
  h+= ate<l.length
-  ? '<div id="sentinela" class="row" style="justify-content:center;padding:22px 0"><span class="tiny muted">carregando mais…</span></div>'
-  : '<div class="row" style="justify-content:center;padding:22px 0"><span class="tiny muted">Você viu todos os eventos por perto.</span></div>';
+  ? '<div id="sentinela" class="row" style="justify-content:center;padding:20px 0"><span class="tiny muted">carregando mais…</span></div>'
+  : '<div class="row" style="justify-content:center;padding:20px 0"><span class="tiny muted">Você viu os '+l.length+' eventos por perto.</span></div>';
  return h;
 }
 
@@ -1187,25 +1286,32 @@ function listaCursos(){
  if(S.coSort==="spots")c.sort(function(a,b){return b.spots-a.spots});
  if(S.coSort==="name")c.sort(function(a,b){return a.n.localeCompare(b.n)});
 
- if(!c.length)return '<div class="card pad muted" style="margin-top:14px">Nenhum curso com esses filtros.</div>';
- var ate=Math.min(c.length,S.feedLote*3);
- var h='<div class="feedposts">';
+ // Mapa em destaque: mais alto que no de eventos. Só os presenciais e
+ // híbridos têm lugar — os online aparecem na lista sem pino.
+ var comLugar=c.filter(function(x){return x.t!=="Online"})
+   .map(function(x,i){return {id:x.id,x:20+(i*17)%64,y:24+(i*23)%52}});
+ var h=cabecalhoLocal();
+ h+=mapinha(comLugar,210);
+ h+='<div class="tiny muted" style="margin-top:7px">'+comLugar.length+' curso(s) presencial ou híbrido no mapa · online aparecem só na lista</div>';
+
+ if(!c.length)return h+'<div class="card pad muted" style="margin-top:14px">Nenhum curso com esses filtros.</div>';
+
+ var ate=Math.min(c.length,S.feedLote*6);
+ h+='<div class="lista">';
  c.slice(0,ate).forEach(function(x){
-  h+='<article class="post"><div class="postinfo">';
-  h+='<div class="b small">'+x.n+'</div>';
-  h+='<div class="tiny muted">'+x.who+' · '+x.h+'</div>';
-  h+='<div class="row wrapf" style="gap:5px;margin-top:8px"><span class="badge">'+x.t+'</span><span class="badge">'+x.lv+'</span>';
-  h+='<span class="badge '+(x.spots<6?"warn":"")+'">'+x.spots+' vagas</span></div>';
-  h+='<div class="tiny muted" style="margin-top:6px">'+x.dur+' · início '+x.st+'</div>';
-  h+='<div class="row" style="margin-top:7px"><span class="b small">'+(x.cost?money(x.cost):"Grátis")+'</span>';
-  h+='<button class="btn sm sp">Inscrever-se</button></div></div>';
-  h+='<div class="postimg" style="aspect-ratio:16/9"><div class="vazio" style="font-size:46px">'+x.e+'</div></div>';
-  h+='</article>';
+  h+='<button class="item compacto">';
+  h+='<div class="itemfoto">'+x.e+'</div>';
+  h+='<div class="itemtxt"><div class="b small">'+x.n+'</div>';
+  h+='<div class="tiny muted">'+x.who+' · '+x.dur+'</div>';
+  h+='<div class="row wrapf" style="gap:4px;margin-top:3px"><span class="badge">'+x.t+'</span><span class="badge">'+x.lv+'</span></div></div>';
+  h+='<div class="itemfim"><div class="b small">'+(x.cost?money(x.cost):"Grátis")+'</div>';
+  h+='<span class="tiny '+(x.spots<6?"":"muted")+'" style="'+(x.spots<6?"color:var(--x-warning)":"")+'">'+x.spots+' vagas</span></div>';
+  h+='</button>';
  });
  h+='</div>';
  h+= ate<c.length
-  ? '<div id="sentinela" class="row" style="justify-content:center;padding:22px 0"><span class="tiny muted">carregando mais…</span></div>'
-  : '<div class="row" style="justify-content:center;padding:22px 0"><span class="tiny muted">Você viu todos os cursos.</span></div>';
+  ? '<div id="sentinela" class="row" style="justify-content:center;padding:20px 0"><span class="tiny muted">carregando mais…</span></div>'
+  : '<div class="row" style="justify-content:center;padding:20px 0"><span class="tiny muted">Você viu os '+c.length+' cursos.</span></div>';
  return h;
 }
 

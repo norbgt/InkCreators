@@ -65,6 +65,29 @@ Pré-requisito para sair do Lovable. Vale ter em mãos antes de precisar.
 
 ---
 
+## 🟠 P1 — Fechar a integração com o Google Maps
+
+A geolocalização do navegador já funciona de verdade no protótipo: pede
+permissão, devolve as coordenadas do aparelho e recalcula a distância até
+cada evento por haversine. Isso não precisa de chave nem de conta.
+
+O que ainda falta, e depende de chave própria:
+
+- [ ] **Geocodificação reversa** — transformar coordenada em endereço
+      legível. Hoje mostra "sua localização atual" em vez do bairro.
+- [ ] **Busca por endereço digitado** — a pessoa escrever "Pinheiros" e o
+      mapa ir até lá.
+- [ ] **Mapa de verdade** — hoje é uma grade simulada com pinos posicionados
+      por percentual, não por coordenada real.
+
+As três chamadas precisam passar por servidor, não pelo navegador, senão
+a chave fica exposta. É o mesmo cuidado da chave de IA.
+
+Nota: as coordenadas dos eventos são fictícias, mas plausíveis (pontos
+reais de São Paulo). O cálculo de distância é real.
+
+---
+
 ## 🟡 P2 — Decisões de produto em aberto
 
 Não bloqueiam nada técnico, mas definem o que vale construir.
