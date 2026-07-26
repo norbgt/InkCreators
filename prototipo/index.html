@@ -261,6 +261,7 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
     <option value="client">Cliente</option>
     <option value="artist">Cliente + tatuador</option>
   </select>
+  <button id="staticModelo" onclick="go('modelo')" style="color:#fff">◈ modelo de negócio</button>
   <button id="staticTheme" onclick="toggleDark()" style="color:#fff">◐ tema</button>
 </div></div>
 
@@ -501,7 +502,8 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  coT:"all",coL:"all",coP:"all",coSort:"recent",
  qStatus:"todos",hub:"menu",aiStep:0,aiRefs:2,
  chatOpen:null,chatFilter:"all",chatQ:"",notifFilter:"all",notifs:NOTIFS.map(function(n){return{...n}}),
- sqSel:"s1",onbStep:1,onbName:"",onbStyles:[],onbPort:0,pfTab:"info",menu:false,autoAssist:false};
+ sqSel:"s1",onbStep:1,onbName:"",onbStyles:[],onbPort:0,pfTab:"info",menu:false,autoAssist:false,
+ ue:{custo:0.35,qtd:40,preco:49,take:8}};
 
 function brl(c){return "R$ "+(c/100).toLocaleString("pt-BR",{maximumFractionDigits:0})}
 function money(v){return v===0?"Grátis":"R$ "+v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}
@@ -1388,11 +1390,184 @@ function calcShip(){
  S.ship={l:"Sedex",p:24.9,eta:"chega em 3 dias úteis"};renderDrawer();
 }
 
+/* ============ MODELO DE NEGÓCIO ============
+   Espaço de trabalho, não vitrine. Cada bloco distingue o que é fato do
+   que é hipótese, porque a maior parte do modelo ainda não foi validada. */
+
+var LINHAS=[
+ {n:"Orçamento por IA + matching",papel:"Núcleo",back:"real",
+  desc:"Cliente envia referências, a IA sugere estilo, complexidade e faixa de preço, e o pedido chega a tatuadores compatíveis.",
+  def:"alta",porq:"Única lógica não trivial do sistema. Resolve dor dos dois lados: o cliente não sabe quanto custa, o tatuador perde tempo com pedido desalinhado."},
+ {n:"Descoberta de tatuadores",papel:"Sustenta o núcleo",back:"real",
+  desc:"Catálogo público com portfólio, estilos, faixa de preço e avaliações.",
+  def:"média",porq:"Necessário para o orçamento funcionar, mas por si só é diretório — fácil de replicar."},
+ {n:"Gestão de estúdio",papel:"Retenção",back:"parcial",
+  desc:"Agenda, propostas, campanhas, avaliações e perfil profissional.",
+  def:"média",porq:"Prende o tatuador na plataforma, mas concorre com agenda de papel e WhatsApp."},
+ {n:"Loja de materiais e arte",papel:"Adjacência",back:"nenhum",
+  desc:"Insumos para tatuador, pós-tattoo para cliente, e arte dos artistas.",
+  def:"baixa",porq:"Qualquer e-commerce faz. Margem baixa, operação logística pesada."},
+ {n:"Cursos e eventos",papel:"Adjacência",back:"nenhum",
+  desc:"Formação, convenções, flash days e meetups.",
+  def:"baixa",porq:"Mercado já servido por Instagram e produtores locais."}
+];
+
+var RECEITAS=[
+ {id:"assin",n:"Assinatura do tatuador",st:"hipótese",atual:true,
+  como:"Planos de R$ 0, R$ 39 e R$ 49 por mês, mais Enterprise sob consulta.",
+  pro:"Receita previsível. Simples de operar e de comunicar.",
+  contra:"Cobra de quem ainda não faturou. O tatuador iniciante, que mais precisa de demanda, é quem menos pode pagar antes de ter retorno. Costuma gerar alta evasão nos primeiros meses.",
+  pre:"Provar que a plataforma gera demanda suficiente para justificar a mensalidade."},
+ {id:"take",n:"Comissão por trabalho fechado",st:"não explorada",
+  como:"Percentual sobre o valor da sessão quando a proposta é aceita pela plataforma.",
+  pro:"Receita acompanha o valor entregue. Alinha o incentivo: só ganhamos se o tatuador ganhar. Entrada sem barreira.",
+  contra:"Exige intermediar o pagamento, o que traz obrigação fiscal e risco de contorno — combinar por fora é fácil num mercado de relação pessoal.",
+  pre:"Decidir se a plataforma processa o pagamento ou apenas registra o acordo."},
+ {id:"destaque",n:"Destaque no catálogo",st:"não explorada",
+  como:"Posição privilegiada no feed de descoberta, por período ou por leilão.",
+  pro:"Não cobra de quem não quer. Escala com a densidade de tatuadores.",
+  contra:"Só funciona com volume relevante de busca. Antes disso, não há o que destacar.",
+  pre:"Massa crítica de clientes buscando."},
+ {id:"comissao",n:"Comissão sobre loja e cursos",st:"hipótese",
+  como:"Percentual sobre vendas de materiais, arte e inscrições.",
+  pro:"Aproveita tráfego que já existe.",
+  contra:"Depende de módulos que hoje não têm backend nenhum. Margem de e-commerce é baixa.",
+  pre:"Construir loja e cursos de verdade."}
+];
+
+var PERGUNTAS=[
+ {q:"Qual dos cinco é o produto?",
+  ctx:"Hoje a plataforma promete cinco coisas e entrega bem uma. Escolher o núcleo e rebaixar o resto a hipótese é a decisão de maior impacto disponível.",
+  st:"aberta"},
+ {q:"Quem paga: tatuador ou cliente?",
+  ctx:"O desenho atual cobra do tatuador. Vale testar cobrar do cliente pelo orçamento assistido, ou não cobrar de ninguém até haver trabalho fechado.",
+  st:"aberta"},
+ {q:"Quanto custa um orçamento?",
+  ctx:"Cada análise envia até 8 imagens a um modelo de visão. Sem esse número, qualquer preço é chute — inclusive o plano gratuito, que pode virar prejuízo proporcional ao sucesso.",
+  st:"mensurável"},
+ {q:"A plataforma processa o pagamento?",
+  ctx:"Define se a receita pode ser comissão, e traz obrigações fiscais e de prevenção a fraude. Muda o produto, não só a cobrança.",
+  st:"aberta"},
+ {q:"Fornecedores são um terceiro lado?",
+  ctx:"Marcas de tinta e equipamento poderiam pagar por acesso a tatuadores. Isso transforma o modelo de dois lados em três — e muda quem é o cliente.",
+  st:"aberta"}
+];
+
+function vModelo(){
+ var h='<main><div class="wrap">';
+ h+='<div class="kicker">Espaço de trabalho</div>';
+ h+='<h1 class="page" style="margin-top:3px">Modelo de negócio</h1>';
+ h+='<p class="sub">O que já é fato, o que ainda é hipótese, e as perguntas que precisam de resposta antes de construir mais.</p>';
+
+ h+='<div class="banner" style="margin-top:16px"><div>';
+ h+='<div class="b small">Nada aqui está validado.</div>';
+ h+='<div class="tiny muted">Os planos existem como tela na landing e não têm cobrança nem tabela no banco. Trate tudo como hipótese até haver evidência.</div>';
+ h+='</div></div>';
+
+ // ── proposta de valor
+ h+='<div class="row" style="margin-top:24px"><span class="b" style="font-size:16px">Para quem, e por quê</span></div>';
+ h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin-top:10px">';
+ [["Cliente","Não sabe quanto custa nem quem faz o estilo que quer. Pedir orçamento hoje significa procurar no Instagram e mandar mensagem para dez pessoas.","O que ganha: faixa de preço antes de conversar, e propostas de quem realmente faz aquele traço."],
+  ["Tatuador","Perde tempo com pedido desalinhado e negocia preço no privado, sem parâmetro.","O que ganha: pedido pré-analisado, compatível com seu estilo e sua cidade."],
+  ["Fornecedor","Não tem canal direto para alcançar tatuadores em decisão de compra.","O que ganharia: acesso qualificado. Ainda não é um lado da plataforma — é hipótese."]
+ ].forEach(function(c,i){
+  h+='<div class="card pad"><div class="b small">'+c[0]+(i===2?' <span class="badge warn">hipótese</span>':'')+'</div>';
+  h+='<div class="small muted" style="margin-top:6px">'+c[1]+'</div>';
+  h+='<div class="small" style="margin-top:8px">'+c[2]+'</div></div>';
+ });
+ h+='</div>';
+
+ // ── linhas de produto
+ h+='<div class="row" style="margin-top:26px"><span class="b" style="font-size:16px">Linhas de produto</span>';
+ h+='<span class="sp tiny muted">defensabilidade = quão difícil é copiar</span></div>';
+ h+='<div class="card pad" style="margin-top:10px">';
+ LINHAS.forEach(function(l,i){
+  var tb=l.back==="real"?"ok":l.back==="parcial"?"warn":"bad";
+  var td=l.def==="alta"?"ok":l.def==="média"?"warn":"";
+  h+='<div style="padding:12px 0;'+(i<LINHAS.length-1?'border-bottom:1px solid var(--border)':'')+'">';
+  h+='<div class="row wrapf"><span class="b small">'+l.n+'</span>';
+  h+='<span class="badge acc">'+l.papel+'</span>';
+  h+='<span class="badge '+tb+'">backend '+l.back+'</span>';
+  h+='<span class="badge '+td+'">defensabilidade '+l.def+'</span></div>';
+  h+='<div class="small muted" style="margin-top:5px">'+l.desc+'</div>';
+  h+='<div class="tiny" style="margin-top:5px;color:var(--muted-foreground)"><em>'+l.porq+'</em></div>';
+  h+='</div>';
+ });
+ h+='</div>';
+
+ // ── receitas
+ h+='<div class="row" style="margin-top:26px"><span class="b" style="font-size:16px">Como o dinheiro entraria</span></div>';
+ h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin-top:10px;align-items:start">';
+ RECEITAS.forEach(function(r){
+  h+='<div class="card pad"'+(r.atual?' style="border-color:var(--accent)"':'')+'>';
+  h+='<div class="row wrapf"><span class="b small">'+r.n+'</span>';
+  h+='<span class="badge '+(r.st==="hipótese"?"warn":"")+'">'+r.st+'</span>';
+  if(r.atual)h+='<span class="badge acc">desenhada hoje</span>';
+  h+='</div>';
+  h+='<div class="small muted" style="margin-top:6px">'+r.como+'</div>';
+  h+='<div class="small" style="margin-top:9px"><span style="color:var(--x-success)">▲</span> '+r.pro+'</div>';
+  h+='<div class="small" style="margin-top:6px"><span style="color:var(--x-danger)">▼</span> '+r.contra+'</div>';
+  h+='<div class="tiny muted" style="margin-top:9px;padding-top:8px;border-top:1px solid var(--border)"><b>Antes de adotar:</b> '+r.pre+'</div>';
+  h+='</div>';
+ });
+ h+='</div>';
+
+ // ── economia unitária
+ h+='<div class="row" style="margin-top:26px"><span class="b" style="font-size:16px">Economia unitária</span>';
+ h+='<span class="sp tiny muted">simule para ver o buraco</span></div>';
+ h+='<div class="card pad" style="margin-top:10px">';
+ h+='<div class="small muted">O custo de um orçamento é o principal custo variável do produto, e hoje ninguém sabe qual é. Ajuste os valores para ver o efeito.</div>';
+ h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-top:12px">';
+ h+='<div><label class="lb">Custo por análise de IA (R$)</label><input class="fld" type="number" step="0.01" value="'+S.ue.custo+'" oninput="S.ue.custo=+this.value||0;calcUE()" /></div>';
+ h+='<div><label class="lb">Orçamentos por tatuador/mês</label><input class="fld" type="number" value="'+S.ue.qtd+'" oninput="S.ue.qtd=+this.value||0;calcUE()" /></div>';
+ h+='<div><label class="lb">Mensalidade cobrada (R$)</label><input class="fld" type="number" value="'+S.ue.preco+'" oninput="S.ue.preco=+this.value||0;calcUE()" /></div>';
+ h+='<div><label class="lb">Comissão por trabalho (%)</label><input class="fld" type="number" value="'+S.ue.take+'" oninput="S.ue.take=+this.value||0;calcUE()" /></div>';
+ h+='</div>';
+ h+='<div id="ueOut" style="margin-top:14px"></div>';
+ h+='<div class="tiny muted" style="margin-top:10px">Os valores iniciais são chute. Substituir pelo custo real medido é a tarefa mais barata com maior impacto no modelo.</div>';
+ h+='</div>';
+
+ // ── perguntas
+ h+='<div class="row" style="margin-top:26px"><span class="b" style="font-size:16px">Perguntas em aberto</span></div>';
+ h+='<div class="card pad" style="margin-top:10px">';
+ PERGUNTAS.forEach(function(p,i){
+  h+='<div style="padding:11px 0;'+(i<PERGUNTAS.length-1?'border-bottom:1px solid var(--border)':'')+'">';
+  h+='<div class="row"><span class="b small">'+p.q+'</span><span class="sp badge '+(p.st==="mensurável"?"acc":"warn")+'">'+p.st+'</span></div>';
+  h+='<div class="small muted" style="margin-top:4px">'+p.ctx+'</div></div>';
+ });
+ h+='</div>';
+
+ h+='<div class="row" style="margin-top:20px;gap:8px"><button class="btn" onclick="go(\'home\')">← Voltar ao produto</button>';
+ h+='<button class="btn" onclick="go(\'para-tatuadores\')">Ver os planos como estão hoje</button></div>';
+
+ return h+'</div></main>';
+}
+
+function calcUE(){
+ var u=S.ue;
+ var custoMes=u.custo*u.qtd;
+ var margemAssin=u.preco-custoMes;
+ var ticket=80000/100; // sessão média R$ 800
+ var receitaTake=ticket*(u.take/100);
+ var el=document.getElementById("ueOut");
+ if(!el)return;
+ var h='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">';
+ h+='<div class="stat"><div class="lbl">Custo de IA por tatuador/mês</div><div class="val">R$ '+custoMes.toFixed(2)+'</div></div>';
+ h+='<div class="stat"><div class="lbl">Margem na assinatura</div><div class="val" style="color:'+(margemAssin<0?'var(--x-danger)':'var(--x-success)')+'">R$ '+margemAssin.toFixed(2)+'</div>';
+ h+='<div class="hint">'+(margemAssin<0?'prejuízo por assinante':'por assinante')+'</div></div>';
+ h+='<div class="stat"><div class="lbl">Comissão por trabalho fechado</div><div class="val">R$ '+receitaTake.toFixed(2)+'</div><div class="hint">sessão média de R$ 800</div></div>';
+ h+='<div class="stat"><div class="lbl">Trabalhos/mês para empatar</div><div class="val">'+(receitaTake>0?Math.ceil(custoMes/receitaTake):'—')+'</div><div class="hint">só com comissão</div></div>';
+ h+='</div>';
+ if(margemAssin<0)h+='<div class="banner" style="margin-top:10px;background:var(--x-danger-bg);border-color:var(--x-danger)"><div class="small" style="color:var(--x-danger)"><b>Atenção:</b> nesta configuração cada assinante dá prejuízo. Quanto mais sucesso, maior a perda — o clássico problema de plano gratuito com custo variável alto.</div></div>';
+ el.innerHTML=icons(h);
+}
+
 /* ============ RENDER ============ */
 function render(){
  renderTop();
  var r=S.route,h="";
- if(r==="home")h=vHome();
+ if(r==="modelo")h=vModelo();
+ else if(r==="home")h=vHome();
  else if(r==="artist")h=vArtist();
  else if(r==="para-tatuadores")h=vLanding();
  else if(r==="auth")h=vAuth();
@@ -1402,6 +1577,7 @@ function render(){
  else if(r.indexOf("studio")===0)h=isLog()?vStudio(r):vAuth();
  document.getElementById("app").innerHTML=icons(h);
  document.getElementById("sessionSel").value=S.session;
+ if(r==="modelo")calcUE();
  if(S.autoAssist){S.autoAssist=false;openDrawer("assist")}
 }
 document.getElementById("sessionSel").addEventListener("change",function(e){
