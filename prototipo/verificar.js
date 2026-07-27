@@ -178,6 +178,26 @@
     digitar("onbEstudio", "Studio Ana");
     ok("cursor sobrevive no campo do estúdio", focoAgora() === "onbEstudio", "foco em: " + focoAgora());
 
+    /* ── 3b. GOOGLE CAI NO MESMO PASSO 2 ──────────────────────── */
+    secao("Google e e-mail chegam no mesmo passo 2");
+    var marcasDoPasso2 = ["cadUsuario", "campoprefixo", "dicaUsuario", "perfis", "btnAvancarCad"];
+    var comoEstaAgora = document.getElementById("app").innerHTML;   // veio por e-mail
+    irCadastro(null);
+    entrarComGoogle();
+    var comoFicaNoGoogle = document.getElementById("app").innerHTML;
+
+    ok("o Google entra direto no passo 2", /Passo 2 de 3/.test(document.body.innerText));
+    marcasDoPasso2.forEach(function (m) {
+      ok("mesmo componente nos dois caminhos: " + m,
+         comoEstaAgora.indexOf(m) >= 0 && comoFicaNoGoogle.indexOf(m) >= 0);
+    });
+    ok("mesma quantidade de cartões de perfil", $$perfis() === 3, $$perfis() + " cartões");
+    ok("diz de qual conta do Google entrou", /Conectado com o Google/.test(document.body.innerText));
+    ok("dá para trocar de conta", /Trocar/.test(document.body.innerText));
+    ok("as mesmas regras valem", !!$("#btnAvancarCad") && $("#btnAvancarCad").disabled);
+    digitar("cadUsuario", "marina");
+    ok("recusa usuário ocupado do mesmo jeito", /já está em uso/.test(document.body.innerText));
+
     /* ── 4b. COBERTURA À PARTE, INSTAGRAM COM @ ───────────────── */
     secao("Passo 3 do tatuador");
     var chips = [].slice.call(document.querySelectorAll('.chip'))
