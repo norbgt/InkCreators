@@ -707,7 +707,7 @@ var ARTISTS=NAMES.map(function(n,i){
  return {id:"a"+i,name:n,studio:"Studio "+n.split(" ")[0],city:c[0],state:c[1],styles:st,cx:cx,
   bio:BIOS[i%5],years:2+(i%10),rating:+(4.2+((i*7)%8)/10).toFixed(1),reviews:12+(i*11)%180,
   min:min,max:max,verified:i%4===0,insta:i%3===0,seed:i,months:3+(i*5)%42,empty:i===10,
-  agenda:i%5!==3,
+  agenda:i%5!==3,destaque:i%6===1,
   port:[0,1,2,3,4,5,6,7,8].map(function(k){return i*9+k})};
 });
 var SHOP_CATS={
@@ -775,11 +775,38 @@ var COURSES=[
  {id:"c5",n:"Sombreado Suave em Fineline",t:"Online",cost:490,dur:"10h • 3 semanas",st:"22 ago",who:"Ana Petrova",h:"@anapetrova",lv:"Intermediário",spots:26,e:"🌫"},
  {id:"c6",n:"Biomecânico Avançado",t:"Presencial",cost:2390,dur:"40h • 6 dias",st:"14 set",who:"Igor Falcão",h:"@igorfalcao",lv:"Avançado",spots:2,e:"⚙️"}
 ];
-var PLANS=[
- {n:"Free",tl:"Para começar e testar a plataforma",p:"R$ 0",pe:"para sempre",f:["Perfil público com até 10 fotos","Até 5 orçamentos por mês","Agenda básica","Avaliações de clientes"],cta:"Criar conta grátis"},
- {n:"Mensal",tl:"Para profissionais ativos",p:"R$ 49",pe:"/mês",f:["Portfólio ilimitado por estilo","Orçamentos ilimitados com triagem IA","Agenda + lembretes automáticos","1 campanha ativa por vez","Métricas de desempenho"],cta:"Assinar mensal"},
- {n:"Anual",tl:"Economia de 2 meses",p:"R$ 39",pe:"/mês",hl:true,rib:"Mais escolhido",f:["Tudo do plano Mensal","Campanhas ilimitadas","Destaque no feed de descoberta","Templates de mensagem com IA","Suporte prioritário"],cta:"Assinar anual"},
- {n:"Enterprise",tl:"Para estúdios com múltiplos artistas",p:"Sob consulta",pe:"",f:["Perfis ilimitados de artistas","Agenda compartilhada do estúdio","Relatórios consolidados","Gerente de conta dedicado"],cta:"Falar com vendas"}
+/* ═══ COMO A PLATAFORMA SE SUSTENTA ═══════════════════════════════
+   Três cobranças, decididas em 26/07/2026. A assinatura mensal por
+   tatuador saiu: cobrava de quem ainda não faturou. A comissão sobre
+   a tatuagem saiu junto: exigiria processar o pagamento da sessão, e
+   num mercado de relação pessoal combinar por fora é fácil demais.
+
+   O que ficou tem uma regra em comum — ninguém paga antes de receber
+   algo. Fonte única: usada na landing, no modelo de negócio e nos
+   pontos de fluxo onde a cobrança aparece. */
+var COBRANCAS=[
+ {id:"destaque",icone:"📈",nome:"Destaque no catálogo",
+  quem:"Tatuador ou estúdio que quer aparecer mais",
+  como:"Posição privilegiada no feed de descoberta, por período contratado. Sempre marcado como destaque para quem vê.",
+  porq:"Opcional. Quem não quer pagar continua no catálogo, encontrável pela busca e pelos filtros, do mesmo jeito.",
+  onde:"Feed de descoberta"},
+ {id:"comissao",icone:"🛍",nome:"Comissão sobre loja, cursos e eventos",
+  quem:"Quem vende material, arte, curso ou ingresso",
+  como:"Percentual sobre cada venda fechada dentro da plataforma. Sai da margem do vendedor, não vira acréscimo no preço de quem compra.",
+  porq:"Só há cobrança quando há venda. A plataforma ganha junto, nunca antes.",
+  onde:"Loja, cursos e eventos"},
+ {id:"enterprise",icone:"🏪",nome:"Enterprise para estúdios",
+  quem:"Estúdio com várias cadeiras e equipe",
+  como:"Contrato por estúdio: perfis sob a mesma marca, agenda compartilhada, relatórios consolidados e gestão de equipe.",
+  porq:"Quem já tem operação montada precisa de ferramenta de operação. Tatuador sozinho não paga nada por isso.",
+  onde:"Gestão do estúdio"}
+];
+/* O que a plataforma não cobra — dito em voz alta porque é o argumento
+   de entrada dos dois lados. */
+var NAO_COBRA=[
+ "Cliente não paga nada: buscar, orçar, conversar e agendar são grátis.",
+ "Tatuador não paga mensalidade para existir no catálogo.",
+ "Não há comissão sobre a tatuagem — o valor da sessão é combinado entre vocês."
 ];
 var CQ=[
  {id:"q1",area:"Antebraço interno",st:["fineline","minimalista"],studio:"Studio Marina",resp:3,min:45000,max:72000,offer:68000,status:"respondido",seed:3,cx:2,when:"há 4 dias"},
@@ -844,8 +871,8 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  qStatus:"todos",hub:"menu",aiStep:0,aiRefs:2,
  chatOpen:null,chatFilter:"all",chatQ:"",notifFilter:"all",notifs:NOTIFS.map(function(n){return{...n}}),
  sqSel:"s1",onbStep:1,onbName:"",onbStyles:[],onbPort:0,pfTab:"info",menu:false,autoAssist:false,
- sqSelAg:null,agArtist:null,agDia:null,agHora:null,agFeito:false,
- ue:{custo:0.35,qtd:40,preco:49,take:8},
+ sqSelAg:null,agArtist:null,agDia:null,agHora:null,agFeito:false,destaqueAtivo:false,
+ ue:{custo:0.35,qtd:40,destaque:120,adesao:12,gmv:600,take:12},
  modo:"demo",conn:null,papeis:null,regMsg:"",regErro:false,
  reg:{nome:"",email:"",senha:"",artista:null},
  reaisArtistas:null,carregando:false,pfMsg:"",pfErro:false,
@@ -1055,6 +1082,11 @@ function feedList(){
  var l=filteredArtists();
  if(!l.length)return '<div class="card pad muted" style="margin-top:16px">Nenhum tatuador com esses filtros. Tente ampliar a faixa de preço ou remover algum estilo.</div>';
 
+ // Destaque contratado sobe, e só. Não filtra ninguém e não esconde quem
+ // não paga — por isso a etiqueta é obrigatória: sem ela o cliente lê a
+ // ordem como mérito.
+ l=l.slice().sort(function(x,y){return (y.destaque?1:0)-(x.destaque?1:0)});
+
  // Scroll infinito: mostra um lote por vez e cresce ao chegar no fim.
  // Uma publicação por vez cabe melhor na tela do celular que uma grade.
  var ate=Math.min(l.length,S.feedLote*3);
@@ -1089,7 +1121,8 @@ function publicacao(a){
  h+='<div class="postinfo">';
  h+='<div class="row" style="gap:9px">';
  h+='<div class="av" style="width:34px;height:34px">'+ini(a.name)+'</div>';
- h+='<div style="min-width:0;flex:1"><div class="b small">'+a.name+(a.verified?' <span style="color:var(--accent)">✔</span>':'')+'</div>';
+ h+='<div style="min-width:0;flex:1"><div class="row" style="gap:5px"><span class="b small">'+a.name+(a.verified?' <span style="color:var(--accent)">✔</span>':'')+'</span>'+
+   (a.destaque?'<span class="badge acc" title="Posição contratada. A plataforma cobra por destaque no catálogo.">Destaque</span>':'')+'</div>';
  h+='<div class="tiny muted">'+(a.studio?a.studio+' · ':'')+a.city+'/'+a.state+'</div></div>';
  h+='<button class="btn sm" onclick="go(\'artist\',\''+a.id+'\')">Perfil</button>';
  h+='<button class="btnseguir '+(segue?"on":"")+'" title="'+(segue?"Deixar de seguir":"Seguir este tatuador")+'" onclick="alternarSeguir(\''+a.id+'\')">'+
@@ -1631,7 +1664,10 @@ var PERFIS={
    ["Receba a estimativa","Estilo, complexidade e faixa de preço."],
    ["Compare e agende","Escolhe a proposta e marca a sessão."]],
   cta:"Criar conta grátis", ctaAcao:"irCadastro('cliente')",
-  estado:"real"
+  estado:"real",
+  cobranca:{titulo:"Para você, não custa nada",
+   texto:"Buscar, pedir orçamento, conversar e agendar são grátis, sempre. A plataforma se sustenta com destaque de catálogo, comissão nas vendas de loja e cursos, e contrato com estúdios.",
+   itens:["Nenhuma taxa sobre a sua tatuagem","O que você compra na loja não tem acréscimo","Destaque no feed vem sempre marcado como tal"]}
  },
  tatuador:{
   rotulo:"Tatuador",
@@ -1646,7 +1682,10 @@ var PERFIS={
    ["Receba pedidos","Já com estilo e complexidade sugeridos."],
    ["Responda e execute","Envia o valor, cliente aceita, sessão agendada."]],
   cta:"Criar conta de tatuador", ctaAcao:"irCadastro('tatuador')",
-  estado:"real", planos:true
+  estado:"real", planos:true,
+  cobranca:{titulo:"Você só paga se quiser mais",
+   texto:"Não existe mensalidade para existir no catálogo, e a plataforma não fica com percentual da sua tatuagem. O que é pago é opcional e vem depois de você já estar rodando.",
+   itens:["Perfil, portfólio, orçamento e agenda: sem custo","Destaque no catálogo: opcional, por período","Curso ou evento seu: comissão só quando vende","Estúdio com equipe: contrato Enterprise"]}
  },
  fornecedor:{
   rotulo:"Fornecedor",
@@ -1660,6 +1699,9 @@ var PERFIS={
   passos:[["Cadastre o catálogo","Produtos, preços e disponibilidade."],
    ["Apareça na loja","Junto do que o tatuador já procura."],
    ["Acompanhe","Veja o que é visto, salvo e comprado."]],
+  cobranca:{titulo:"Comissão sobre o que vender",
+   texto:"Sem mensalidade e sem taxa de entrada. A plataforma recebe um percentual de cada venda fechada, e nada quando não há venda.",
+   itens:["Cadastro de catálogo sem custo","Percentual só sobre venda concluída","Sai da sua margem, não do preço do comprador"]},
   cta:"Entrar na lista de espera",
   ctaAcao:"alert('Ainda nao existe cadastro de fornecedor. Este botao entraria numa lista de espera.')",
   estado:"hipotese"
@@ -1713,22 +1755,39 @@ function vLanding(){
  h+='<div class="b">'+p.titulo+'</div>';
  h+='<button class="btn primary" style="margin-top:12px" onclick="'+p.ctaAcao+'">'+p.cta+'</button></div>';
 
- if(p.planos){
-  h+='<div class="blococentro secao" style="margin-top:48px"><span class="badge">Planos</span>';
-  h+='<h2 style="font-size:21px;font-weight:700;margin-top:6px;letter-spacing:-.02em">Comece de graça</h2>';
-  h+='<p class="sub">Evolua quando o volume de pedidos justificar.</p></div>';
-  h+='<div class="gradeconteudo" style="align-items:start">';
-  PLANS.forEach(function(x){
-   h+='<div class="plan '+(x.hl?"hl":"")+'">'+(x.rib?'<span class="rib">'+x.rib+'</span>':'');
-   h+='<div class="b" style="font-size:15px">'+x.n+'</div><div class="tiny muted">'+x.tl+'</div>';
-   h+='<div style="margin-top:11px"><span style="font-size:24px;font-weight:700;letter-spacing:-.02em">'+x.p+'</span> <span class="small muted">'+x.pe+'</span></div>';
-   h+='<div style="margin-top:11px">';
-   x.f.forEach(function(y){h+='<div class="row small" style="align-items:flex-start;margin-bottom:5px"><span style="color:var(--x-success)">✓</span><span>'+y+'</span></div>'});
-   h+='</div><button class="btn '+(x.hl?"primary":"")+' blk" style="margin-top:11px" onclick="irCadastro(\'tatuador\')">'+x.cta+'</button></div>';
-  });
-  h+='</div>';
-  h+='<div class="tiny muted blococentro" style="margin-top:11px">Planos desenhados, sem cobrança implementada.</div>';
+ // O que este perfil paga, e o que não paga. Vem antes das três
+ // cobranças porque a primeira pergunta de quem chega é "quanto custa
+ // pra mim", não "como vocês ganham dinheiro".
+ if(p.cobranca){
+  h+='<div class="card pad blococentro secao" style="margin-top:34px;text-align:left">';
+  h+='<div class="b">'+p.cobranca.titulo+'</div>';
+  h+='<p class="small muted" style="margin-top:6px">'+p.cobranca.texto+'</p>';
+  h+='<div style="margin-top:11px">';
+  p.cobranca.itens.forEach(function(y){
+   h+='<div class="row small" style="align-items:flex-start;margin-bottom:5px"><span style="color:var(--x-success)">✓</span><span>'+y+'</span></div>'});
+  h+='</div></div>';
  }
+
+ h+='<div class="blococentro secao" style="margin-top:44px"><span class="badge">Sustentação</span>';
+ h+='<h2 style="font-size:21px;font-weight:700;margin-top:6px;letter-spacing:-.02em">Como a plataforma se sustenta</h2>';
+ h+='<p class="sub">Três cobranças, todas depois de entregar algo. Nenhuma cobra pelo básico.</p></div>';
+ h+='<div class="gradeconteudo" style="align-items:start">';
+ COBRANCAS.forEach(function(c){
+  h+='<div class="card pad vantagem">';
+  h+='<div style="font-size:20px;color:var(--accent)">'+c.icone+'</div>';
+  h+='<div class="b small" style="margin-top:8px">'+c.nome+'</div>';
+  h+='<div class="tiny muted" style="margin-top:3px">'+c.quem+'</div>';
+  h+='<div class="small" style="margin-top:8px">'+c.como+'</div>';
+  h+='<div class="tiny muted" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'+c.porq+'</div>';
+  h+='</div>';
+ });
+ h+='</div>';
+ h+='<div class="card pad blococentro secao" style="text-align:left;margin-top:14px">';
+ h+='<div class="b small">O que não é cobrado</div><div style="margin-top:8px">';
+ NAO_COBRA.forEach(function(y){
+  h+='<div class="row small" style="align-items:flex-start;margin-bottom:5px"><span style="color:var(--x-success)">✓</span><span>'+y+'</span></div>'});
+ h+='</div></div>';
+ h+='<div class="tiny muted blococentro" style="margin-top:11px">Modelo decidido, sem cobrança implementada. Valores ainda não definidos.</div>';
 
  return h+'</div></main>';
 }
@@ -2378,7 +2437,16 @@ function studioProfile(){
   h+='<div class="row" style="gap:5px;margin-top:8px"><span class="badge ok">cliente</span><span class="badge ok">tatuador</span></div>';
   h+='<div class="tiny muted" style="margin-top:6px">origem: '+(S.roleSource||"signup_trigger")+'</div>';
   h+='<div class="tiny muted" style="margin-top:4px">O papel de cliente nunca é removido — você continua podendo comprar, se tatuar e ir a eventos.</div></div>';
-  h+='<div class="card pad" style="margin-top:13px"><div class="b small">Plano</div><div class="row" style="margin-top:7px"><span class="badge acc">Free</span><span class="sp tiny muted">5 orçamentos/mês</span></div><button class="btn blk" style="margin-top:9px" onclick="go(\'plataforma\')">Ver planos</button></div></div></div>';
+  // Não existe plano a exibir: o básico é grátis. O que cabe aqui é o
+  // que ele pode contratar, e por quê.
+  h+='<div class="card pad" style="margin-top:13px"><div class="b small">O que você paga</div>';
+  h+='<div class="small muted" style="margin-top:6px">Nada. Perfil, portfólio, orçamentos e agenda não têm mensalidade, e a plataforma não fica com percentual das suas sessões.</div>';
+  h+='<div class="sep"></div>';
+  h+='<div class="row" style="gap:7px"><span class="badge acc">Destaque</span><span class="tiny muted sp">'+(S.destaqueAtivo?"ativo neste mês":"não contratado")+'</span></div>';
+  h+='<div class="tiny muted" style="margin-top:5px">Sobe a sua posição no feed de descoberta pelo período contratado, sempre marcado como destaque para quem vê.</div>';
+  h+='<button class="btn blk sm" style="margin-top:9px" onclick="S.destaqueAtivo=!S.destaqueAtivo;render()">'+(S.destaqueAtivo?"Cancelar destaque":"Contratar destaque")+'</button>';
+  h+='<div class="tiny muted" style="margin-top:11px">Estúdio com equipe? O contrato Enterprise reúne os perfis sob a mesma marca, com agenda compartilhada e relatórios. <a style="color:var(--accent);cursor:pointer" onclick="go(\'plataforma\')">Como funciona</a></div>';
+  h+='</div></div></div>';
  }
 
  if(S.pfTab==="portfolio"){
@@ -2625,6 +2693,7 @@ function cartFoot(){
  if(S.ship)h+='<div class="row small"><span class="muted">Frete</span><span class="sp">'+money(S.ship.p)+'</span></div>';
  h+='<div class="row" style="margin-top:5px"><span class="b">Total</span><span class="sp b">'+money(tot)+'</span></div>';
  h+='<button class="btn primary blk" style="margin-top:9px">Finalizar compra</button>';
+ h+='<div class="tiny muted" style="margin-top:7px">A comissão da plataforma sai da margem de quem vende. O preço acima é o preço final.</div>';
  return h;
 }
 function qty(id,d){
@@ -2658,42 +2727,49 @@ var LINHAS=[
   def:"baixa",porq:"Mercado já servido por Instagram e produtores locais."}
 ];
 
+/* Decidido em 26/07/2026. As duas descartadas ficam registradas: sem o
+   motivo, a decisão volta a ser discutida daqui a três meses. */
 var RECEITAS=[
- {id:"assin",n:"Assinatura do tatuador",st:"hipótese",atual:true,
-  como:"Planos de R$ 0, R$ 39 e R$ 49 por mês, mais Enterprise sob consulta.",
-  pro:"Receita previsível. Simples de operar e de comunicar.",
-  contra:"Cobra de quem ainda não faturou. O tatuador iniciante, que mais precisa de demanda, é quem menos pode pagar antes de ter retorno. Costuma gerar alta evasão nos primeiros meses.",
-  pre:"Provar que a plataforma gera demanda suficiente para justificar a mensalidade."},
- {id:"take",n:"Comissão por trabalho fechado",st:"não explorada",
-  como:"Percentual sobre o valor da sessão quando a proposta é aceita pela plataforma.",
-  pro:"Receita acompanha o valor entregue. Alinha o incentivo: só ganhamos se o tatuador ganhar. Entrada sem barreira.",
-  contra:"Exige intermediar o pagamento, o que traz obrigação fiscal e risco de contorno — combinar por fora é fácil num mercado de relação pessoal.",
-  pre:"Decidir se a plataforma processa o pagamento ou apenas registra o acordo."},
- {id:"destaque",n:"Destaque no catálogo",st:"não explorada",
-  como:"Posição privilegiada no feed de descoberta, por período ou por leilão.",
-  pro:"Não cobra de quem não quer. Escala com a densidade de tatuadores.",
-  contra:"Só funciona com volume relevante de busca. Antes disso, não há o que destacar.",
-  pre:"Massa crítica de clientes buscando."},
- {id:"comissao",n:"Comissão sobre loja e cursos",st:"hipótese",
-  como:"Percentual sobre vendas de materiais, arte e inscrições.",
-  pro:"Aproveita tráfego que já existe.",
-  contra:"Depende de módulos que hoje não têm backend nenhum. Margem de e-commerce é baixa.",
-  pre:"Construir loja e cursos de verdade."}
+ {id:"destaque",n:"Destaque no catálogo",st:"escolhida",atual:true,
+  como:"Posição privilegiada no feed de descoberta, por período, sempre identificada como destaque.",
+  pro:"Não cobra de quem não quer. Escala com a densidade de tatuadores e não exige processar pagamento de ninguém.",
+  contra:"Só funciona com volume relevante de busca. Antes disso não há o que destacar, e a receita fica em zero.",
+  pre:"Medir quantos clientes chegam ao feed por semana. Sem isso, não há inventário para vender."},
+ {id:"comissao",n:"Comissão sobre loja, cursos e eventos",st:"escolhida",atual:true,
+  como:"Percentual sobre cada venda fechada de material, arte, curso ou ingresso. Sai da margem do vendedor.",
+  pro:"Receita acompanha o valor entregue e não cobra nada de quem não vendeu. Não toca no dinheiro da tatuagem, então não puxa obrigação de intermediar sessão.",
+  contra:"Depende de três módulos que hoje não têm backend nenhum. Margem de e-commerce é baixa e a operação logística é de outro negócio.",
+  pre:"Construir loja, cursos e eventos de verdade, e definir quem responde por entrega e reembolso."},
+ {id:"enterprise",n:"Enterprise para tatuadores e estúdios",st:"escolhida",atual:true,
+  como:"Contrato por estúdio com equipe: perfis sob a mesma marca, agenda compartilhada, relatórios e gestão de time.",
+  pro:"Cobra de quem já tem operação e capacidade de pagar. Ticket alto compensa a venda consultiva e a receita é previsível.",
+  contra:"Ciclo de venda longo e atendimento caro. Poucos clientes possíveis, então cada perda pesa.",
+  pre:"Saber quantos estúdios com mais de três cadeiras existem nas cidades onde a plataforma tem catálogo."},
+ {id:"assin",n:"Assinatura mensal do tatuador",st:"descartada",
+  como:"Planos de R$ 0, R$ 39 e R$ 49 por mês. Era o desenho anterior da landing.",
+  pro:"Receita previsível, simples de operar e de comunicar.",
+  contra:"Cobra de quem ainda não faturou. O iniciante, que mais precisa de demanda, é quem menos pode pagar antes do retorno — e é justamente ele que precisamos atrair para o catálogo não ficar vazio.",
+  pre:"Descartada em 26/07/2026. Voltaria a fazer sentido só se a plataforma já entregasse demanda comprovada."},
+ {id:"take",n:"Comissão sobre a tatuagem",st:"descartada",
+  como:"Percentual sobre o valor da sessão quando a proposta é aceita.",
+  pro:"Alinha o incentivo: só ganharíamos se o tatuador ganhasse.",
+  contra:"Exige intermediar o pagamento da sessão, com obrigação fiscal e prevenção a fraude. E num mercado de relação pessoal, combinar por fora é fácil demais — a receita vazaria pelo mesmo canal que ela tenta capturar.",
+  pre:"Descartada em 26/07/2026. Reabre se a plataforma um dia processar pagamento por outro motivo."}
 ];
 
 var PERGUNTAS=[
  {q:"Qual dos cinco é o produto?",
-  ctx:"Hoje a plataforma promete cinco coisas e entrega bem uma. Escolher o núcleo e rebaixar o resto a hipótese é a decisão de maior impacto disponível.",
+  ctx:"O modelo de cobrança já dá metade da resposta: duas das três receitas vêm de loja, cursos e eventos, que hoje não têm backend nenhum. Ou o núcleo passa a ser esse, ou as receitas escolhidas dependem do que está mais longe de existir.",
   st:"aberta"},
  {q:"Quem paga: tatuador ou cliente?",
-  ctx:"O desenho atual cobra do tatuador. Vale testar cobrar do cliente pelo orçamento assistido, ou não cobrar de ninguém até haver trabalho fechado.",
-  st:"aberta"},
+  ctx:"Respondida em 26/07/2026. O cliente não paga nada. O tatuador paga só se quiser destaque, ou se tiver estúdio com equipe. Quem vende na loja, curso ou evento paga percentual sobre venda fechada.",
+  st:"decidida"},
  {q:"Quanto custa um orçamento?",
   ctx:"Cada análise envia até 8 imagens a um modelo de visão. Sem esse número, qualquer preço é chute — inclusive o plano gratuito, que pode virar prejuízo proporcional ao sucesso.",
   st:"mensurável"},
  {q:"A plataforma processa o pagamento?",
-  ctx:"Define se a receita pode ser comissão, e traz obrigações fiscais e de prevenção a fraude. Muda o produto, não só a cobrança.",
-  st:"aberta"},
+  ctx:"Da tatuagem, não — foi o que fez a comissão sobre a sessão cair. Da loja, cursos e eventos, sim: sem isso não há como reter o percentual. É o pré-requisito técnico mais pesado das três cobranças escolhidas.",
+  st:"decidida em parte"},
  {q:"Fornecedores são um terceiro lado?",
   ctx:"Marcas de tinta e equipamento poderiam pagar por acesso a tatuadores. Isso transforma o modelo de dois lados em três — e muda quem é o cliente.",
   st:"aberta"}
@@ -2707,7 +2783,7 @@ function vModelo(){
 
  h+='<div class="banner" style="margin-top:16px"><div>';
  h+='<div class="b small">Nada aqui está validado.</div>';
- h+='<div class="tiny muted">Os planos existem como tela na landing e não têm cobrança nem tabela no banco. Trate tudo como hipótese até haver evidência.</div>';
+ h+='<div class="tiny muted">As três cobranças foram decididas em 26/07/2026, mas nenhuma tem valor definido, tabela no banco nem cobrança implementada. O que está validado é a escolha do modelo, não o preço nem a demanda.</div>';
  h+='</div></div>';
 
  // ── proposta de valor
@@ -2745,11 +2821,10 @@ function vModelo(){
  h+='<div class="row" style="margin-top:26px"><span class="b" style="font-size:16px">Como o dinheiro entraria</span></div>';
  h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin-top:10px;align-items:start">';
  RECEITAS.forEach(function(r){
-  h+='<div class="card pad"'+(r.atual?' style="border-color:var(--accent)"':'')+'>';
+  var desc=r.st==="descartada";
+  h+='<div class="card pad"'+(r.atual?' style="border-color:var(--accent)"':desc?' style="opacity:.72"':'')+'>';
   h+='<div class="row wrapf"><span class="b small">'+r.n+'</span>';
-  h+='<span class="badge '+(r.st==="hipótese"?"warn":"")+'">'+r.st+'</span>';
-  if(r.atual)h+='<span class="badge acc">desenhada hoje</span>';
-  h+='</div>';
+  h+='<span class="badge '+(desc?"bad":"ok")+'">'+r.st+'</span></div>';
   h+='<div class="small muted" style="margin-top:6px">'+r.como+'</div>';
   h+='<div class="small" style="margin-top:9px"><span style="color:var(--x-success)">▲</span> '+r.pro+'</div>';
   h+='<div class="small" style="margin-top:6px"><span style="color:var(--x-danger)">▼</span> '+r.contra+'</div>';
@@ -2762,12 +2837,14 @@ function vModelo(){
  h+='<div class="row" style="margin-top:26px"><span class="b" style="font-size:16px">Economia unitária</span>';
  h+='<span class="sp tiny muted">simule para ver o buraco</span></div>';
  h+='<div class="card pad" style="margin-top:10px">';
- h+='<div class="small muted">O custo de um orçamento é o principal custo variável do produto, e hoje ninguém sabe qual é. Ajuste os valores para ver o efeito.</div>';
+ h+='<div class="small muted">Cada tatuador no catálogo gera custo de IA todo mês, pague ou não pague. As duas cobranças que escalam com volume precisam cobrir isso. Ajuste para ver onde vira lucro.</div>';
  h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-top:12px">';
  h+='<div><label class="lb">Custo por análise de IA (R$)</label><input class="fld" type="number" step="0.01" value="'+S.ue.custo+'" oninput="S.ue.custo=+this.value||0;calcUE()" /></div>';
  h+='<div><label class="lb">Orçamentos por tatuador/mês</label><input class="fld" type="number" value="'+S.ue.qtd+'" oninput="S.ue.qtd=+this.value||0;calcUE()" /></div>';
- h+='<div><label class="lb">Mensalidade cobrada (R$)</label><input class="fld" type="number" value="'+S.ue.preco+'" oninput="S.ue.preco=+this.value||0;calcUE()" /></div>';
- h+='<div><label class="lb">Comissão por trabalho (%)</label><input class="fld" type="number" value="'+S.ue.take+'" oninput="S.ue.take=+this.value||0;calcUE()" /></div>';
+ h+='<div><label class="lb">Destaque no catálogo (R$/mês)</label><input class="fld" type="number" value="'+S.ue.destaque+'" oninput="S.ue.destaque=+this.value||0;calcUE()" /></div>';
+ h+='<div><label class="lb">Tatuadores que contratam destaque (%)</label><input class="fld" type="number" value="'+S.ue.adesao+'" oninput="S.ue.adesao=+this.value||0;calcUE()" /></div>';
+ h+='<div><label class="lb">Venda de loja e cursos por tatuador/mês (R$)</label><input class="fld" type="number" value="'+S.ue.gmv+'" oninput="S.ue.gmv=+this.value||0;calcUE()" /></div>';
+ h+='<div><label class="lb">Comissão sobre essa venda (%)</label><input class="fld" type="number" value="'+S.ue.take+'" oninput="S.ue.take=+this.value||0;calcUE()" /></div>';
  h+='</div>';
  h+='<div id="ueOut" style="margin-top:14px"></div>';
  h+='<div class="tiny muted" style="margin-top:10px">Os valores iniciais são chute. Substituir pelo custo real medido é a tarefa mais barata com maior impacto no modelo.</div>';
@@ -2778,33 +2855,43 @@ function vModelo(){
  h+='<div class="card pad" style="margin-top:10px">';
  PERGUNTAS.forEach(function(p,i){
   h+='<div style="padding:11px 0;'+(i<PERGUNTAS.length-1?'border-bottom:1px solid var(--border)':'')+'">';
-  h+='<div class="row"><span class="b small">'+p.q+'</span><span class="sp badge '+(p.st==="mensurável"?"acc":"warn")+'">'+p.st+'</span></div>';
+  h+='<div class="row"><span class="b small">'+p.q+'</span><span class="sp badge '+(/decidida/.test(p.st)?"ok":p.st==="mensurável"?"acc":"warn")+'">'+p.st+'</span></div>';
   h+='<div class="small muted" style="margin-top:4px">'+p.ctx+'</div></div>';
  });
  h+='</div>';
 
  h+='<div class="row" style="margin-top:20px;gap:8px"><button class="btn" onclick="go(\'home\')">← Voltar ao produto</button>';
- h+='<button class="btn" onclick="go(\'plataforma\')">Ver os planos como estão hoje</button></div>';
+ h+='<button class="btn" onclick="go(\'plataforma\')">Ver como isso aparece para o usuário</button></div>';
 
  return h+'</div></main>';
 }
 
+/* Por tatuador no catálogo, não por pagante: como a maioria nunca paga,
+   a média é a única leitura honesta. Enterprise fica de fora porque tem
+   venda consultiva e ticket próprio — misturar esconderia o buraco. */
 function calcUE(){
  var u=S.ue;
  var custoMes=u.custo*u.qtd;
- var margemAssin=u.preco-custoMes;
- var ticket=80000/100; // sessão média R$ 800
- var receitaTake=ticket*(u.take/100);
+ var recDestaque=u.destaque*(u.adesao/100);
+ var recComissao=u.gmv*(u.take/100);
+ var receita=recDestaque+recComissao;
+ var margem=receita-custoMes;
  var el=document.getElementById("ueOut");
  if(!el)return;
  var h='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">';
- h+='<div class="stat"><div class="lbl">Custo de IA por tatuador/mês</div><div class="val">R$ '+custoMes.toFixed(2)+'</div></div>';
- h+='<div class="stat"><div class="lbl">Margem na assinatura</div><div class="val" style="color:'+(margemAssin<0?'var(--x-danger)':'var(--x-success)')+'">R$ '+margemAssin.toFixed(2)+'</div>';
- h+='<div class="hint">'+(margemAssin<0?'prejuízo por assinante':'por assinante')+'</div></div>';
- h+='<div class="stat"><div class="lbl">Comissão por trabalho fechado</div><div class="val">R$ '+receitaTake.toFixed(2)+'</div><div class="hint">sessão média de R$ 800</div></div>';
- h+='<div class="stat"><div class="lbl">Trabalhos/mês para empatar</div><div class="val">'+(receitaTake>0?Math.ceil(custoMes/receitaTake):'—')+'</div><div class="hint">só com comissão</div></div>';
+ h+='<div class="stat"><div class="lbl">Custo de IA por tatuador/mês</div><div class="val">R$ '+custoMes.toFixed(2)+'</div><div class="hint">todo perfil do catálogo custa</div></div>';
+ h+='<div class="stat"><div class="lbl">Receita de destaque</div><div class="val">R$ '+recDestaque.toFixed(2)+'</div><div class="hint">média por tatuador</div></div>';
+ h+='<div class="stat"><div class="lbl">Receita de comissão</div><div class="val">R$ '+recComissao.toFixed(2)+'</div><div class="hint">loja, cursos e eventos</div></div>';
+ h+='<div class="stat"><div class="lbl">Margem por tatuador/mês</div><div class="val" style="color:'+(margem<0?'var(--x-danger)':'var(--x-success)')+'">R$ '+margem.toFixed(2)+'</div>';
+ h+='<div class="hint">'+(margem<0?'prejuízo':'lucro')+' antes de estrutura</div></div>';
  h+='</div>';
- if(margemAssin<0)h+='<div class="banner" style="margin-top:10px;background:var(--x-danger-bg);border-color:var(--x-danger)"><div class="small" style="color:var(--x-danger)"><b>Atenção:</b> nesta configuração cada assinante dá prejuízo. Quanto mais sucesso, maior a perda — o clássico problema de plano gratuito com custo variável alto.</div></div>';
+ if(margem<0){
+  var falta=u.adesao>0?Math.ceil((custoMes-recComissao)/(u.destaque/100)):null;
+  h+='<div class="banner" style="margin-top:10px;background:var(--x-danger-bg);border-color:var(--x-danger)"><div class="small" style="color:var(--x-danger)"><b>No vermelho.</b> Cada tatuador no catálogo custa mais do que devolve. '+
+   (falta&&falta<=100?'Precisaria de '+falta+'% de adesão ao destaque para empatar sem mexer no resto.':'Nem 100% de adesão ao destaque cobriria — o custo de IA precisa cair ou a comissão precisa crescer.')+'</div></div>';
+ } else {
+  h+='<div class="banner" style="margin-top:10px"><div class="small"><b>No azul.</b> Sobram R$ '+margem.toFixed(2)+' por tatuador antes de time e infraestrutura. Enterprise não entra nesta conta — tem ticket e custo de venda próprios.</div></div>';
+ }
  el.innerHTML=icons(h);
 }
 
