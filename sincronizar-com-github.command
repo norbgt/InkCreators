@@ -140,7 +140,17 @@ if [ $CODIGO -eq 0 ]; then
   echo "  ✓ Pronto. Repositório sincronizado."
   echo "═══════════════════════════════════════════"
   echo
-  echo "  Veja em: https://github.com/norbgt/InkCreators"
+  echo "  Repositório:  https://github.com/norbgt/InkCreators"
+  echo
+  echo "  ── LINK DO TESTE ──────────────────────────────"
+  echo "  https://norbgt.github.io/InkCreators/?teste=1"
+  echo
+  echo "  Esse endereço só funciona depois de ligar o GitHub"
+  echo "  Pages uma vez, em Settings > Pages > Branch: main,"
+  echo "  pasta / (root). O passo a passo está em PUBLICAR.md."
+  echo
+  echo "  O ?teste=1 é o que liga a coleta. Sem ele, ninguém"
+  echo "  é registrado — inclusive você." 
 else
   echo "✗ O envio falhou."
   echo

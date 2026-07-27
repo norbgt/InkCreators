@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ink Creators</title>
+<link rel="icon" type="image/png" href="prototipo/marca/favicon.png" />
+<!-- Porta de entrada do GitHub Pages. O protótipo mora em prototipo/,
+     e quem recebe o link não deveria precisar saber disso.
+     O redirecionamento leva junto a query e o hash: sem isso o ?teste=1
+     se perderia no caminho e a pessoa entraria sem ser registrada. -->
+<script>
+  (function () {
+    var destino = "prototipo/index.html" + (location.search || "") + (location.hash || "");
+    location.replace(destino);
+  })();
+</script>
+<style>
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+       display:flex;align-items:center;justify-content:center;height:100vh;margin:0;
+       color:#3f3f46;background:#fff}
+</style>
+</head>
+<body>
+  <p>Abrindo o Ink Creators… <a href="prototipo/index.html">continuar</a></p>
+</body>
+</html>
