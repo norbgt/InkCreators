@@ -401,6 +401,27 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 .pendente:hover{border-color:var(--x-warning) !important;opacity:.85}
 .pendente .ico,.pendente svg{opacity:.9}
 
+/* Convite do teste. Faixa embaixo: acompanha a rolagem sem cobrir o
+   conteúdo, e no celular respeita a área segura do aparelho. */
+.convitebarra{position:fixed;left:0;right:0;bottom:0;z-index:900;
+  background:var(--card);border-top:1px solid var(--border);
+  box-shadow:0 -6px 24px rgba(0,0,0,.08);
+  padding:11px 0 calc(11px + env(safe-area-inset-bottom))}
+.convitebarra .wrap{display:flex;align-items:center;gap:12px}
+@media(max-width:560px){
+  .convitebarra .wrap{flex-wrap:wrap}
+  .convitebarra .row{width:100%;justify-content:flex-end}
+}
+/* Espaço para a faixa não tapar o fim da página. */
+body:has(.convitebarra) main{padding-bottom:96px}
+
+.convitecx{position:fixed;inset:0;z-index:901;overflow:auto;
+  display:flex;align-items:flex-start;justify-content:center;padding:20px;
+  pointer-events:none}
+.convitecx main{pointer-events:auto;background:var(--background);
+  border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,.28);
+  max-width:560px;width:100%;padding:6px 0 18px}
+
 /* Aviso que fica até deixar de ser verdade. Amarelo e não vermelho: é
    pendência, não erro — o perfil continua no ar. */
 .avisopendente{border-color:var(--x-warning);background:var(--x-warning-bg)}
@@ -642,6 +663,7 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 </div></header>
 
 <div id="app"></div>
+<div id="conviteHost"></div>
 <script src="dados.js"></script>
 <script src="teste.js"></script>
 <script src="verificar.js"></script>
@@ -945,7 +967,7 @@ var SIZE_L={pequeno:"Pequeno",medio:"Médio",grande:"Grande",sessao_dia:"Sessão
 /* ============ ESTADO ============ */
 var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  roleSource:null,usuario:"",
- emailConfirmado:null,emailPendente:"",reenvioMsg:"",reenviando:false,travaMsg:"",
+ emailConfirmado:null,emailPendente:"",reenvioMsg:"",reenviando:false,travaMsg:"",conviteAberto:false,
  f:{q:"",styles:[],cx:[],max:null,rating:null,sort:"relevance",painel:null},
  seguindo:[],curtidas:[],feedLote:1,obs:null,
  painel:{discover:null,shop:null,events:null},
@@ -1071,7 +1093,10 @@ function renderTop(){
    ? '<button class="iconbtn pendente" title="Conversar" aria-label="Conversar" onclick="explicarTrava(\'conversar\')">💬</button>'
    : iconBtn("💬","chat",nChat);
  if(!isLog()){
-  h+='<button class="pill solid" onclick="go(\'auth\')">👤 Entrar</button>';
+  // Entrar e criar conta são a mesma porta desde que o cadastro virou
+  // fluxo único. Levar para 'auth' funcionava por alias; apontar direto
+  // para o fluxo tira uma indireção que não servia a ninguém.
+  h+='<button class="pill solid" onclick="irCadastro(null)">👤 Entrar ou criar conta</button>';
  }else{
   h+='<div style="position:relative"><button class="avatarbtn" onclick="S.menu=!S.menu;renderTop()">'+(isArt()?"MV":"HD")+'</button>';
   if(S.menu){
@@ -3834,6 +3859,7 @@ function render(){
  if(S.autoAssist){S.autoAssist=false;openDrawer("assist")}
  salvarEstado();
  if(typeof registrarRota==="function")registrarRota(r);
+ if(typeof renderConvite==="function")renderConvite();
 }
 
 /* ── PORTÃO DO TESTE ───────────────────────────────────────────────
@@ -3843,19 +3869,18 @@ function render(){
 function precisaDoPortao(){
  return typeof testeLigado==="function" && testeLigado() && !T.ligado;
 }
-function renderEntrada(){
- comFoco(function(){document.getElementById("app").innerHTML=icons(telaDeEntradaDoTeste())});
-}
+function renderEntrada(){ renderConvite() }
 function entrarNoTeste(){
  if(S.te.enviando)return;
- S.te.enviando=true;S.te.erro=null;renderEntrada();
+ S.te.enviando=true;S.te.erro=null;renderConvite();
  abrirSessaoDeTeste(S.te.nome,S.te.email,S.te.perfil).then(function(r){
   S.te.enviando=false;
-  if(!r.ok){S.te.erro=r.erro;renderEntrada();return}
+  if(!r.ok){S.te.erro=r.erro;renderConvite();return}
   ligarCapturaDeCliques();
   ligarEnvioAutomatico();
-  prepararSessaoDeTeste();
-  render();
+  S.conviteAberto=false;
+  renderConvite();                 // o convite some
+  render();                        // e a navegação segue de onde estava
  });
 }
 /* ── COMO O TESTE COMEÇA ───────────────────────────────────────────
@@ -3869,29 +3894,88 @@ function entrarNoTeste(){
    · barra de desenvolvimento escondida, porque ela deixa trocar de
      papel e de banco, e nada disso existe no produto. O participante
      que mexesse ali estaria testando outra coisa. */
-function prepararSessaoDeTeste(){
- S.session="anon";
+/* Duas coisas valem sempre, e uma só na primeira vez.
+
+   Sempre: dados fictícios e ferramentas internas escondidas. Banco real
+   mostraria catálogo vazio, e a barra de desenvolvimento deixa trocar
+   de papel — nenhum dos dois é produto.
+
+   Só na primeira vez: começar como visitante, no feed. Quem volta
+   depois retoma onde parou, com a conta que criou no protótipo — é o
+   que a tela de entrada promete, e desfazer isso seria mentir. */
+function prepararSessaoDeTeste(primeiraVez){
  S.modo="demo";
- S.route="home";S.tab="discover";
- S.emailConfirmado=null;
  var pb=document.getElementById("protobar"); if(pb)pb.style.display="none";
  var tb=document.getElementById("topbar");   if(tb)tb.style.display="";
+ if(!primeiraVez)return;
+ S.session="anon";
+ S.emailConfirmado=null;
+ // Link com endereço explícito manda: alguém pode ter compartilhado
+ // uma tela específica de propósito.
+ var temEndereco=false;
+ try{temEndereco=!!(location.hash||"").replace(/^#\/?/,"")}catch(e){}
+ if(!temEndereco){S.route="home";S.tab="discover"}
 }
 
+/* ── O CONVITE, EM VEZ DO PORTÃO ───────────────────────────────────
+   Antes o consentimento vinha primeiro e a plataforma ficava atrás de
+   um formulário. Isso media a disposição de preencher formulário, não
+   a primeira impressão do produto.
+
+   Agora a pessoa cai no feed, como cairia se o link fosse do produto.
+   O convite fica numa faixa embaixo, visível e sem bloquear. Quem
+   aceita passa a ser registrado dali em diante; quem recusa navega
+   igual e não gera dado nenhum.
+
+   O custo é real e assumido: perdemos os primeiros segundos de quem
+   demora a aceitar. Em troca, o que a pessoa faz nos primeiros
+   segundos passa a ser verdade, e não reação a um formulário. */
 function iniciarPortaoDoTeste(){
  if(!testeLigado())return false;
  var salva=sessaoSalva();
- if(salva&&salva.id){                       // já consentiu antes: retoma
+ var jaConsentiu=!!(salva&&salva.id);
+
+ prepararSessaoDeTeste(!jaConsentiu);
+
+ if(jaConsentiu){                            // retoma de onde parou
   T.sessao=salva;T.ligado=true;T.ordem=0;
   ligarCapturaDeCliques();ligarEnvioAutomatico();
-  var pb=document.getElementById("protobar"); if(pb)pb.style.display="none";
   registrar("entrada",{rota:S.route,detalhe:{retomada:true}});
-  return false;
  }
- var tb=document.getElementById("topbar");
- if(tb)tb.style.display="none";
- renderEntrada();
- return true;                                // segura o render normal
+ return false;                               // nunca segura o render
+}
+
+function recusouConvite(){
+ try{return localStorage.getItem("ink.teste.recusou")==="1"}catch(e){return false}
+}
+function recusarConvite(){
+ try{localStorage.setItem("ink.teste.recusou","1")}catch(e){}
+ S.conviteAberto=false;renderConvite();
+}
+function abrirConvite(){ S.conviteAberto=true;renderConvite() }
+function fecharConvite(){ S.conviteAberto=false;renderConvite() }
+
+function renderConvite(){
+ var host=document.getElementById("conviteHost");
+ if(!host)return;
+ // Some assim que a pessoa aceita, e não volta.
+ if(!testeLigado()||T.ligado){host.innerHTML="";return}
+
+ if(S.conviteAberto){
+  host.innerHTML=icons('<div class="scrim" onclick="fecharConvite()"></div>'+
+   '<div class="convitecx">'+telaDeEntradaDoTeste()+'</div>');
+  return;
+ }
+ if(recusouConvite()){host.innerHTML="";return}
+
+ var h='<div class="convitebarra"><div class="wrap">';
+ h+='<div style="min-width:0;flex:1"><div class="b small">Isto é um teste do Ink Creators</div>';
+ h+='<div class="tiny muted">Navegue à vontade. Se topar participar, registramos por onde você passa — leva um minuto.</div></div>';
+ h+='<div class="row" style="gap:7px;flex-shrink:0">';
+ h+='<button class="btn sm" onclick="recusarConvite()">Agora não</button>';
+ h+='<button class="btn sm primary" onclick="abrirConvite()">Participar</button>';
+ h+='</div></div></div>';
+ host.innerHTML=icons(h);
 }
 document.getElementById("sessionSel").addEventListener("change",function(e){
  S.session=e.target.value;

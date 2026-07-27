@@ -235,7 +235,10 @@ secao("2. JORNADA DO CLIENTE — descobrir, orçar, agendar");
 let eventosDoCliente = null, sessaoDoCliente = null;
 {
   const g = ambiente({ query: "?teste=1", toque: true, largura: 393 });
-  ok("portão do teste apareceu", /Obrigada por testar/.test(g.tela()));
+  // O convite não bloqueia: a primeira tela é o produto.
+  ok("cai direto no produto, sem formulário", !/Obrigada por topar/.test(g.tela()));
+  ok("o convite está visível", /convitebarra/.test(g.nos["conviteHost"] ? g.nos["conviteHost"].innerHTML : ""));
+  g.escopo("abrirConvite()");
   g.S.te = { nome: "Ana Souza", email: "ana@exemplo.com", perfil: "cliente", aceite: true };
   g.escopo("entrarNoTeste()"); await g.esperar();
   ok("entrou no teste", g.T.ligado === true);

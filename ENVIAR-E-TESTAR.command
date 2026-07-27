@@ -38,7 +38,8 @@ echo
 # qualquer uma faltar, o Pages ainda não republicou.
 MARCAS=("cadUsuario" "cadSenha" "dicaUsuario" "Também faço coberturas"
         "COBRANCAS" "Também sou tatuador" "contaPendente" "avisopendente"
-        "explicarTrava" "rodapepassos" "perfilopt")
+        "explicarTrava" "rodapepassos" "perfilopt" "convitebarra"
+        "prepararSessaoDeTeste" "Entrar ou criar conta")
 PRONTO=0
 for tentativa in $(seq 1 40); do
   CORPO=$(curl -s -H 'Cache-Control: no-cache' "$SITE/prototipo/index.html?cb=$RANDOM")

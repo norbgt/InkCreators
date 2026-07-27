@@ -68,25 +68,32 @@ Ele também aparece pronto para copiar dentro do próprio protótipo, em
 igual e não registra nada — inclusive quando você mesma navega para
 conferir alguma coisa.
 
-### Como o teste começa
+### O que a pessoa vê
 
-Visitante, na descoberta, com o catálogo fictício: doze tatuadores,
-vinte produtos, dez eventos e seis cursos. Ninguém precisa criar conta
-para navegar — e é justamente o que queremos medir primeiro, o que a
-pessoa entende sem estar logada.
+**O feed.** Não um formulário. A pessoa abre o link e cai na descoberta,
+como visitante, com o catálogo fictício: doze tatuadores, vinte
+produtos, dez eventos e seis cursos. Navega, abre perfis, entra em
+Conhecer, começa um cadastro — tudo pelas rotas normais.
+
+O convite para participar fica numa faixa embaixo, visível e sem
+bloquear, com **Participar** e **Agora não**.
+
+Isso é uma troca deliberada. Pedir consentimento antes media a
+disposição de preencher formulário, não a primeira impressão do produto
+— e a primeira impressão é o que o teste existe para descobrir. O custo
+é que se perdem os primeiros segundos de quem demora a aceitar.
+
+**Nada é registrado antes do aceite.** Quem recusa navega igual e não
+gera dado nenhum, e não é convidado de novo.
+
+Quem aceita preenche nome, e-mail e perfil, vê o que é registrado
+(telas, cliques, tempo, a partir dali) e o que não é (nada digitado,
+nenhum IP), e volta para onde estava.
 
 A barra de desenvolvimento (papel, banco, modelo de negócio) fica
 escondida durante o teste, e as rotas internas desviam para a home.
-Não é esconder sujeira: é que trocar para "banco real" mostraria um
-catálogo vazio, porque não existe tatuador cadastrado ainda — e o
-participante estaria testando outra coisa.
-
-### O que a pessoa vê
-
-Antes de qualquer tela, uma entrada pedindo nome, e-mail e se ela chega
-como cliente, tatuador ou fornecedor. Junto, o que é registrado (telas,
-cliques, tempo) e o que não é (nada digitado, nenhum IP). Só depois de
-marcar que concordou é que o botão de começar destrava.
+Não é esconder sujeira: trocar para "banco real" mostraria catálogo
+vazio, porque ainda não existe tatuador cadastrado.
 
 Se fechar e voltar depois, retoma de onde parou, sem passar pela entrada
 de novo.

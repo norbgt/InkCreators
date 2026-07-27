@@ -34,7 +34,8 @@ function amb(query,disco){
 
 console.log('── O PARTICIPANTE ENTRA E VÊ O QUE UM VISITANTE VÊ ──');
 var g=amb('?teste=1');
-chk('a porta de consentimento aparece',/Obrigada por testar/.test(g.tela()));
+chk('cai direto no produto, sem formulário',!/Obrigada por topar/.test(g.tela()));
+g.e("abrirConvite()");
 g.S.te={nome:'Ana Souza',email:'ana@x.com',perfil:'cliente',aceite:true};
 g.e("entrarNoTeste()");
 setTimeout(function(){
@@ -85,7 +86,7 @@ setTimeout(function(){
  console.log('── QUEM VOLTA DEPOIS TAMBÉM NÃO VÊ A BARRA ──');
  var d={};d['ink.teste.sessao.v1']=JSON.stringify({id:'a',nome:'A',email:'a@b.c',perfil:'cliente'});
  var v=amb('?teste=1',d);
- chk('não pede consentimento de novo',!/Obrigada por testar/.test(v.tela()));
+ chk('não pede consentimento de novo',!/Obrigada por topar/.test(v.tela()));
  chk('barra continua escondida',v.nos['protobar'].style.display==='none');
  chk('coleta ligada',v.T.ligado===true);
 

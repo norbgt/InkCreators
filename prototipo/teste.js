@@ -218,10 +218,10 @@ function telaDeEntradaDoTeste() {
                    /.+@.+\..+/.test(String(e.email || "")) && !!e.aceite;
 
   var h = '<main><div class="wrap" style="max-width:560px">';
-  h += '<div class="blococentro" style="margin-top:26px;text-align:center">';
-  h += '<div class="kicker">Teste de usabilidade</div>';
-  h += '<h1 class="page" style="margin-top:4px">Obrigada por testar o Ink Creators</h1>';
-  h += '<p class="sub">Navegue à vontade, do jeito que você usaria de verdade. Não existe caminho certo — o que a gente quer descobrir é onde você trava.</p></div>';
+  h += '<div class="row" style="margin-top:14px"><span class="kicker">Teste de usabilidade</span>';
+  h += '<button class="iconbtn sp" onclick="fecharConvite()" aria-label="Fechar">✕</button></div>';
+  h += '<h1 class="page" style="margin-top:4px">Obrigada por topar</h1>';
+  h += '<p class="sub">Você continua navegando do mesmo jeito. A diferença é que passamos a registrar por onde você anda, para descobrir onde a plataforma trava.</p>';
 
   h += '<div class="card pad" style="margin-top:20px">';
   h += '<div class="b small">Quem é você</div>';
@@ -240,7 +240,7 @@ function telaDeEntradaDoTeste() {
   h += '<div class="card pad" style="margin-top:13px">';
   h += '<div class="b small">O que registramos enquanto você navega</div>';
   h += '<div style="margin-top:9px">';
-  [["✓", "As telas que você visita, o que você clica e quanto tempo fica em cada uma"],
+  [["✓", "As telas que você visita, o que você clica e quanto tempo fica em cada uma, a partir de agora"],
    ["✓", "Seu nome, e-mail e o perfil que você escolheu acima"],
    ["✕", "Nada do que você digitar nos campos do protótipo"],
    ["✕", "Seu IP, sua localização, ou qualquer dado de outra pessoa"]
@@ -266,8 +266,9 @@ function telaDeEntradaDoTeste() {
   }
 
   h += '<button class="btn primary blk" style="margin-top:15px" ' + (podeEntrar && !e.enviando ? "" : "disabled") +
-       ' onclick="entrarNoTeste()">' + (e.enviando ? "Registrando…" : "Começar") + '</button>';
-  h += '<div class="tiny muted" style="margin-top:9px;text-align:center">Leva o tempo que você quiser. Pode fechar e voltar depois — a gente lembra de onde você parou.</div>';
+       ' onclick="entrarNoTeste()">' + (e.enviando ? "Registrando…" : "Participar do teste") + '</button>';
+  h += '<button class="btn blk" style="margin-top:8px" onclick="fecharConvite()">Voltar a navegar</button>';
+  h += '<div class="tiny muted" style="margin-top:9px;text-align:center">O registro começa agora — o que você fez até aqui não foi guardado. Pode fechar e voltar depois: a gente lembra de onde você parou.</div>';
 
   return h + '</div></main>';
 }
