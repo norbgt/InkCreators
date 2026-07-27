@@ -564,6 +564,7 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 <div id="app"></div>
 <script src="dados.js"></script>
 <script src="teste.js"></script>
+<script src="verificar.js"></script>
 <footer class="note"><div class="wrap">Protótipo navegável recriado a partir do código exportado do Lovable. Dados fictícios.</div></footer>
 <div id="drawerHost"></div>
 
@@ -1978,8 +1979,7 @@ function vCadastro(){
   h+='<div><label class="lb">E-mail</label><input class="fld" id="cadEmail" type="email" value="'+escapar(c.email)+'" oninput="S.cad.email=this.value;atualizarCad()" placeholder="nome@email.com" /></div>';
   h+='<div><label class="lb">Senha</label><input class="fld" id="cadSenha" type="password" value="'+escapar(c.senha)+'" oninput="S.cad.senha=this.value;atualizarCad()" placeholder="mínimo 6 caracteres" /></div>';
   h+='</div>';
-  if(c.senha)h+='<div class="tiny" style="margin-top:6px;color:var(--'+(c.senha.length>=6?"x-success":"muted-foreground")+')">'+
-    (c.senha.length>=6?"✓ Senha válida":"Faltam "+(6-c.senha.length)+" caractere(s) para a senha")+'</div>';
+  h+='<div id="dicaSenha" class="tiny" style="margin-top:6px">'+dicaSenha()+'</div>';
 
   h+='<div class="ou"><span>ou</span></div>';
   h+='<button class="btn blk" onclick="S.gateRole=null;go(\'gate\')">Continuar com Google</button>';
@@ -1988,18 +1988,10 @@ function vCadastro(){
  /* ── PASSO 2: quem a pessoa é, e como ela aparece ─────────────────
     O perfil escolhido aqui decide o passo 3 inteiro. */
  if(passo.id==="perfil"){
-  var u=c.usuario||"";
-  var problema = !u ? null
-    : !usuarioValido(u) ? "Use de 3 a 20 caracteres, só letras, números, ponto e traço baixo."
-    : !usuarioLivre(u) ? "Esse nome já está em uso. Tente outro."
-    : null;
-
   h+='<div><label class="lb">Nome de usuário</label>';
   h+='<div class="campoprefixo"><span>@</span>';
-  h+='<input class="fld" id="cadUsuario" value="'+escapar(u)+'" oninput="S.cad.usuario=this.value.toLowerCase().replace(/[^a-z0-9._]/g,\'\');atualizarCad()" placeholder="'+(sugerirUsuario(c.nome)||"seunome")+'" /></div>';
-  if(problema)h+='<div class="tiny" style="margin-top:5px;color:var(--x-danger)">'+problema+'</div>';
-  else if(u)h+='<div class="tiny" style="margin-top:5px;color:var(--x-success)">✓ Disponível — seu perfil fica em ink.creators/@'+u+'</div>';
-  else if(sugerirUsuario(c.nome))h+='<div class="tiny muted" style="margin-top:5px">Sugestão: <a style="color:var(--accent);cursor:pointer" onclick="S.cad.usuario=\''+sugerirUsuario(c.nome)+'\';render()">@'+sugerirUsuario(c.nome)+'</a></div>';
+  h+='<input class="fld" id="cadUsuario" value="'+escapar(c.usuario||"")+'" oninput="S.cad.usuario=this.value.toLowerCase().replace(/[^a-z0-9._]/g,\'\');atualizarCad()" placeholder="'+(sugerirUsuario(c.nome)||"seunome")+'" /></div>';
+  h+='<div id="dicaUsuario" class="tiny" style="margin-top:5px">'+dicaUsuario()+'</div>';
   h+='</div>';
 
   h+='<div class="sep"></div>';
@@ -2092,13 +2084,35 @@ function vCadastro(){
  return h+'</div></div></main>';
 }
 
-/* Só o botão muda quando a pessoa digita. Repintar a tela inteira a
-   cada tecla é o que fazia o cursor sumir — comFoco resolve o sintoma,
-   isto remove a causa e ainda tira o piscar. */
+/* ── Aviso ao vivo, sem redesenhar ────────────────────────────────
+   Senha e nome de usuário precisam responder a cada tecla. Redesenhar
+   a tela inteira para isso é o que fazia o cursor sumir; comFoco cobre
+   o caso, mas ainda pisca. Então as duas dicas moram em elementos com
+   id próprio e só eles são reescritos.
+
+   As funções servem aos dois momentos — o desenho inicial e a
+   atualização — para o texto não existir em duas versões. */
+function dicaSenha(){
+ var v=S.cad.senha||"";
+ if(!v)return "";
+ if(v.length>=6)return '<span style="color:var(--x-success)">✓ Senha válida</span>';
+ return '<span class="muted">Faltam '+(6-v.length)+' caractere(s) para a senha</span>';
+}
+function dicaUsuario(){
+ var u=S.cad.usuario||"", sug=sugerirUsuario(S.cad.nome);
+ if(!u) return sug ? '<span class="muted">Sugestão: <a style="color:var(--accent);cursor:pointer" onclick="S.cad.usuario=\''+sug+'\';render()">@'+sug+'</a></span>' : "";
+ if(!usuarioValido(u)) return '<span style="color:var(--x-danger)">Use de 3 a 20 caracteres, só letras, números, ponto e traço baixo.</span>';
+ if(!usuarioLivre(u))  return '<span style="color:var(--x-danger)">Esse nome já está em uso. Tente outro.</span>';
+ return '<span style="color:var(--x-success)">✓ Disponível — seu perfil fica em ink.creators/@'+u+'</span>';
+}
+
+/* Digitar mexe no botão e nas dicas. Nada além disso — a tela não é
+   redesenhada, então o cursor não tem como se mexer. */
 function atualizarCad(){
  var b=document.getElementById("btnAvancarCad");
- if(!b)return;
- if(podeAvancar())b.removeAttribute("disabled");else b.setAttribute("disabled","");
+ if(b){ if(podeAvancar())b.removeAttribute("disabled"); else b.setAttribute("disabled",""); }
+ var ds=document.getElementById("dicaSenha");   if(ds)ds.innerHTML=icons(dicaSenha());
+ var du=document.getElementById("dicaUsuario"); if(du)du.innerHTML=icons(dicaUsuario());
 }
 
 function vGate(){

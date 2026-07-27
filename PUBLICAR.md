@@ -91,6 +91,24 @@ Algo como:
 
 ---
 
+## Antes de mandar: conferir no navegador
+
+Abra o protótipo com `?verificar=1` no fim do endereço:
+
+```
+http://localhost:8765/?verificar=1
+```
+
+Um painel aparece por cima dizendo o que passou e o que não passou. Ele
+usa campos de verdade, no seu navegador — é o único jeito de conferir
+coisas que só acontecem no navegador, como o cursor sumir ao digitar.
+
+Os testes que rodam pelo terminal (`node diagnostico/prontidao-do-teste.js`)
+usam um DOM simulado: pegam erro de lógica, não pegam comportamento de
+navegador. Os dois se complementam.
+
+---
+
 ## Como ler o resultado
 
 **modelo de negócio → Painel do teste**, botão **Carregar dados**.
