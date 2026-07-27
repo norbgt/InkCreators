@@ -366,6 +366,31 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 .bub.me{background:var(--primary);color:var(--primary-foreground);margin-left:auto;border-bottom-right-radius:4px}
 /* Vantagens: margens da página iguais às das outras telas (vêm do .wrap),
    e os blocos de leitura centrados dentro delas. */
+/* Escolha de perfil em linha: três opções compactas, sem descrição.
+   Empilhadas ocupavam meia tela num passo que já tem três campos. */
+.perfis{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px}
+.perfilopt{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px;
+  border:1px solid var(--border);border-radius:11px;background:var(--card);text-align:center}
+.perfilopt:hover{border-color:var(--muted-foreground)}
+.perfilopt.on{border-color:var(--accent);background:var(--x-accent-bg)}
+.perfilopt .ic{font-size:19px;color:var(--accent);line-height:1}
+.perfilopt .ic .ico{width:21px;height:21px}
+.perfilopt .nome{font-size:12.5px;font-weight:600}
+.perfilopt .badge{font-size:9.5px;padding:1px 6px}
+/* Separador 'ou' entre email e Google */
+.ou{display:flex;align-items:center;gap:11px;margin:13px 0 11px}
+.ou::before,.ou::after{content:"";flex:1;height:1px;background:var(--border)}
+.ou span{font-size:11px;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:.1em}
+/* Rodapé dos passos: navegação nas pontas, atalho de login ao centro */
+.rodapepassos{display:flex;align-items:center;gap:10px;margin-top:16px}
+.rodapepassos .lado{display:flex;gap:8px;flex:0 0 auto}
+.rodapepassos .meio{flex:1;text-align:center;font-size:12.5px;color:var(--muted-foreground);min-width:0}
+.rodapepassos .meio a{color:var(--accent);font-weight:600;cursor:pointer}
+@media(max-width:460px){
+  .rodapepassos .meio{font-size:11.5px}
+  .perfilopt{padding:10px 4px}
+  .perfilopt .nome{font-size:11.5px}
+}
 .acoescentro{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:16px}
 .segmento.centrado{max-width:420px;margin-left:auto;margin-right:auto}
 .blococentro{max-width:620px;margin-left:auto;margin-right:auto;text-align:center}
@@ -1638,20 +1663,23 @@ function vCadastro(){
   h+='<div><label class="lb">Email</label><input class="fld" value="'+c.email+'" oninput="S.cad.email=this.value;render()" placeholder="nome@email.com" /></div>';
   h+='<div><label class="lb">Senha</label><input class="fld" type="password" oninput="S.cad.senha=this.value;render()" placeholder="mínimo 6 caracteres" /></div>';
   h+='</div>';
+
+  // Alternativa ao email fica logo abaixo dele, onde a decisão acontece
+  h+='<div class="ou"><span>ou</span></div>';
+  h+='<button class="btn blk" onclick="S.gateRole=null;go(\'gate\')">Continuar com Google</button>';
+
   h+='<div class="sep"></div>';
   h+='<div class="row"><span class="b small">Como você vai usar a plataforma?</span><span class="req">obrigatório</span></div>';
   h+='<div class="tiny muted" style="margin-top:3px">Define os próximos passos. Dá para acrescentar outro perfil depois.</div>';
-  h+='<div class="grid" style="gap:8px;margin-top:10px">';
+  h+='<div class="perfis">';
   PERFIS_CADASTRO.forEach(function(x){
-   h+='<div class="opt '+(c.perfil===x.id?"on":"")+'" onclick="S.cad.perfil=\''+x.id+'\';render()">';
-   h+='<div class="row" style="gap:9px"><span style="font-size:17px;color:var(--accent)">'+x.icone+'</span>';
-   h+='<div style="flex:1"><div class="b small">'+x.nome+(x.estado==="hipotese"?' <span class="badge warn">em estudo</span>':'')+'</div>';
-   h+='<div class="tiny muted">'+x.desc+'</div></div></div></div>';
+   h+='<button class="perfilopt '+(c.perfil===x.id?"on":"")+'" onclick="S.cad.perfil=\''+x.id+'\';render()">';
+   h+='<span class="ic">'+x.icone+'</span>';
+   h+='<span class="nome">'+x.nome+'</span>';
+   if(x.estado==="hipotese")h+='<span class="badge warn">em estudo</span>';
+   h+='</button>';
   });
   h+='</div>';
-  h+='<div class="sep"></div>';
-  h+='<button class="btn blk" onclick="S.gateRole=null;go(\'gate\')">Continuar com Google</button>';
-  h+='<div class="tiny muted" style="margin-top:6px;text-align:center">Pelo Google, a escolha de perfil vem logo depois.</div>';
  }
 
  // ── CLIENTE
@@ -1723,12 +1751,14 @@ function vCadastro(){
 
  var ultimo = i===r.length-1;
  var podePular = passo.id==="gostos"||passo.id==="estilos"||passo.id==="portfolio"||passo.id==="catalogo";
- h+='<div class="row" style="margin-top:16px">';
- h+='<button class="btn" '+(i===0?"disabled":"")+' onclick="voltarCad()">← Voltar</button>';
+ h+='<div class="rodapepassos">';
+ h+='<div class="lado"><button class="btn" '+(i===0?"disabled":"")+' onclick="voltarCad()">← Voltar</button>';
  if(podePular)h+='<button class="btn" onclick="avancarCad()">Pular</button>';
- h+='<button class="btn primary sp" '+(podeAvancar()?"":"disabled")+' onclick="avancarCad()">'+
+ h+='</div>';
+ h+='<span class="meio">'+(i===0?'Já tem conta? <a onclick="go(\'auth\')">Entrar</a>':'')+'</span>';
+ h+='<div class="lado" style="justify-content:flex-end"><button class="btn primary" '+(podeAvancar()?"":"disabled")+' onclick="avancarCad()">'+
     (ultimo?(c.perfil==="tatuador"?"Publicar perfil":"Criar conta"):"Continuar →")+'</button></div>';
- h+='<p class="small muted" style="margin-top:13px;text-align:center">Já tem conta? <a class="b" style="cursor:pointer;color:var(--accent)" onclick="go(\'auth\')">Entrar</a></p>';
+ h+='</div>';
  return h+'</div></div></main>';
 }
 
