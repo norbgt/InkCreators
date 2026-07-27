@@ -584,6 +584,7 @@ var P={
  search:'<circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/>',
  cam:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
  grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>',
+ celular:'<rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18.5h2"/>',
  inbox:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.4 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.4-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.8 1.1z"/>',
  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
  receipt:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/>',
@@ -641,7 +642,7 @@ var IC={
  "▲":"cup","▼":"cdown","▾":"cdown","📣":"megaphone","✨":"sparkle","🪡":"needle","🧴":"droplet",
  "🫙":"jar","🖊":"pen","✒":"pen","🦶":"disc","💺":"chair","🧤":"glove","🩹":"bandage","🧼":"soap",
  "☀":"sun","📦":"box","🏞":"frame","👕":"shirt","🏷":"tag","💡":"bulb","🖤":"heart","⬛":"square",
- "🌫":"waves","◉":"cross","◌":"disc","⭐":"star","⚙️":"filtro","↕":"ordenar","♡":"heart"
+ "🌫":"waves","◉":"cross","◌":"disc","⭐":"star","⚙️":"filtro","↕":"ordenar","♡":"heart","📱":"celular"
 };
 var ICRE=new RegExp("(?:"+Object.keys(IC).map(function(k){return k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}).join("|")+")\\uFE0F?|★|☆","gu");
 function icons(h){
@@ -875,6 +876,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  sqSelAg:null,agArtist:null,agDia:null,agHora:null,agFeito:false,destaqueAtivo:false,
  voltarPara:null,voltarArtista:null,
  te:{nome:"",email:"",perfil:null,aceite:false,erro:null,enviando:false},
+ abaModelo:"painel",painel:{estado:null,dados:null,carregando:false,erro:null,email:"",senha:""},
  ue:{custo:0.35,qtd:40,destaque:120,adesao:12,gmv:600,take:12},
  modo:"demo",conn:null,papeis:null,regMsg:"",regErro:false,
  reg:{nome:"",email:"",senha:"",artista:null},
@@ -912,7 +914,7 @@ function isArt(){return S.session==="artist"}
 var CHAVE_ESTADO="ink.estado.v1";
 var GUARDA=["session","route","artist","tab","modo","seguindo","curtidas","cart",
  "cad","perfilLanding","abaPerfil","shopAud","shopCat","shopQ","evAba","q",
- "destaqueAtivo","roleSource","voltarPara","voltarArtista","onbStep","onbName","onbStyles","onbQuerOrcamento",
+ "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","onbStep","onbName","onbStyles","onbQuerOrcamento",
  "notifFilter","pfTab","ue","f","feedLote","caro","cep"];
 function salvarEstado(){
  try{var o={};GUARDA.forEach(function(k){if(S[k]!==undefined)o[k]=S[k]});
@@ -2842,11 +2844,259 @@ var PERGUNTAS=[
   st:"aberta"}
 ];
 
+/* ═══ PAINEL DO TESTE ═════════════════════════════════════════════
+   Lê teste_sessoes e teste_eventos. Só admin: a RLS recusa qualquer
+   outro, então a tela pede login antes de tentar.
+
+   Os números aqui não são de produção — são de quantas pessoas
+   passaram pelo link e do que elas fizeram. É pouco dado de propósito:
+   um teste de usabilidade com dez pessoas responde mais do que um
+   painel com cem indicadores e nenhuma pessoa. */
+
+var ROTAS_CONHECIDAS=[
+ ["home","Descobrir tatuadores"],["artist","Perfil do tatuador"],
+ ["plataforma","Conhecer"],["cadastro","Criar conta"],
+ ["me","Minha área"],["me-quotes","Meus orçamentos"],["me-saved","Salvos"],
+ ["studio","Gestão do estúdio"],["studio-quotes","Orçamentos recebidos"],
+ ["studio-schedule","Agenda do estúdio"],["studio-profile","Perfil profissional"],
+ ["modelo","Modelo de negócio"],["conexao","Conexão com o banco"]
+];
+function rotuloDaRota(r){
+ var m=ROTAS_CONHECIDAS.filter(function(x){return x[0]===r})[0];
+ return m?m[1]:r;
+}
+function mediana(v){
+ if(!v.length)return 0;
+ var o=v.slice().sort(function(a,b){return a-b}),i=Math.floor(o.length/2);
+ return o.length%2?o[i]:Math.round((o[i-1]+o[i])/2);
+}
+function dur(ms){
+ if(ms==null)return "—";
+ var s=Math.round(ms/1000);
+ return s<60?s+"s":Math.floor(s/60)+"m"+(s%60?" "+(s%60)+"s":"");
+}
+
+/* Toda a agregação num lugar só. Recebe as duas listas cruas e devolve
+   o que a tela desenha — assim dá para testar a conta sem navegador. */
+function apurarPainel(sessoes,eventos){
+ var porSessao={};
+ sessoes.forEach(function(x){porSessao[x.id]={s:x,ev:[]}});
+ eventos.forEach(function(e){if(porSessao[e.sessao_id])porSessao[e.sessao_id].ev.push(e)});
+ var ids=Object.keys(porSessao);
+
+ var perfis={cliente:0,tatuador:0,fornecedor:0};
+ sessoes.forEach(function(x){if(perfis[x.perfil_declarado]!=null)perfis[x.perfil_declarado]++});
+
+ var visitou={}, tempos={}, abandono={}, gavetas={}, acoes={}, duracoes=[], retomadas=0;
+ ids.forEach(function(id){
+  var b=porSessao[id], vistas={}, ultima=null;
+  b.ev.forEach(function(e){
+   if(e.tipo==="entrada"&&e.detalhe&&e.detalhe.retomada)retomadas++;
+   if(e.tipo==="rota"||e.tipo==="saida"){
+    if(e.rota){
+     vistas[e.rota]=1; ultima=e.rota;
+     (tempos[e.rota]=tempos[e.rota]||[]).push(e.ms_na_tela||0);
+    }
+   }
+   if(e.tipo==="gaveta"&&e.alvo)gavetas[e.alvo]=(gavetas[e.alvo]||0)+1;
+   if(e.tipo==="acao"&&e.alvo)acoes[e.alvo]=(acoes[e.alvo]||0)+1;
+  });
+  Object.keys(vistas).forEach(function(r){visitou[r]=(visitou[r]||0)+1});
+  if(ultima)abandono[ultima]=(abandono[ultima]||0)+1;
+  if(b.ev.length>1){
+   var t0=new Date(b.ev[0].criado_em).getTime(), t1=new Date(b.ev[b.ev.length-1].criado_em).getTime();
+   if(t1>t0)duracoes.push(t1-t0);
+  }
+ });
+
+ function chegou(rota){return visitou[rota]||0}
+ var funil=[
+  ["Entrou no teste",ids.length],
+  ["Viu o catálogo",chegou("home")],
+  ["Abriu um perfil",chegou("artist")],
+  ["Leu a proposta em Conhecer",chegou("plataforma")],
+  ["Começou a criar conta",chegou("cadastro")],
+  ["Concluiu o cadastro",chegou("studio")+chegou("me")]
+ ];
+
+ var naoVisitadas=ROTAS_CONHECIDAS.filter(function(x){return !visitou[x[0]]}).map(function(x){return x[1]});
+ var toque=sessoes.filter(function(x){return x.ponteiro==="toque"}).length;
+
+ function topo(o,n){
+  return Object.keys(o).sort(function(a,b){return o[b]-o[a]}).slice(0,n).map(function(k){return [k,o[k]]});
+ }
+ return {
+  n:ids.length, perfis:perfis, funil:funil, retomadas:retomadas,
+  telas:Object.keys(visitou).sort(function(a,b){return visitou[b]-visitou[a]}).map(function(r){
+    return {rota:r, rotulo:rotuloDaRota(r), sessoes:visitou[r], mediana:mediana(tempos[r]||[])}}),
+  naoVisitadas:naoVisitadas,
+  abandono:topo(abandono,5).map(function(x){return [rotuloDaRota(x[0]),x[1]]}),
+  gavetas:topo(gavetas,6), acoes:topo(acoes,10),
+  toque:toque, mouse:sessoes.length-toque,
+  larguraMediana:mediana(sessoes.map(function(x){return x.largura||0}).filter(Boolean)),
+  duracaoMediana:mediana(duracoes),
+  participantes:ids.map(function(id){
+   var b=porSessao[id], vistas={};
+   b.ev.forEach(function(e){if(e.rota)vistas[e.rota]=1});
+   var t0=b.ev.length?new Date(b.ev[0].criado_em).getTime():0;
+   var t1=b.ev.length?new Date(b.ev[b.ev.length-1].criado_em).getTime():0;
+   return {nome:b.s.nome, email:b.s.email, perfil:b.s.perfil_declarado,
+     telas:Object.keys(vistas).length, acoes:b.ev.filter(function(e){return e.tipo==="acao"}).length,
+     duracao:t1>t0?t1-t0:null, quando:b.s.criado_em};
+  })
+ };
+}
+
+function carregarPainel(){
+ if(S.painel.carregando)return;
+ S.painel.carregando=true;S.painel.erro=null;render();
+ window.Dados.carregarPainelDoTeste().then(function(r){
+  S.painel.carregando=false;
+  if(r.erro){S.painel.estado=r.erro;render();return}
+  S.painel.estado="pronto";
+  S.painel.dados=apurarPainel(r.sessoes,r.eventos);
+  render();
+ }).catch(function(e){
+  S.painel.carregando=false;S.painel.erro=e.message||String(e);render();
+ });
+}
+function entrarComoAdmin(){
+ S.painel.erro=null;S.painel.carregando=true;render();
+ window.Dados.entrar(S.painel.email,S.painel.senha).then(function(){
+  S.painel.senha="";carregarPainel();
+ }).catch(function(e){
+  S.painel.carregando=false;
+  S.painel.erro=/invalid/i.test(e.message||"")?"E-mail ou senha não conferem.":(e.message||String(e));
+  render();
+ });
+}
+
+function vPainelDoTeste(){
+ var p=S.painel;
+ var h='<div class="card pad" style="margin-top:16px">';
+
+ if(p.carregando)return h+'<div class="small muted">Carregando…</div></div>';
+
+ if(p.estado==="entre"||p.estado==="sem-permissao"){
+  h+='<div class="b small">'+(p.estado==="sem-permissao"?"Esta conta não é admin":"Entre para ver o painel")+'</div>';
+  h+='<div class="small muted" style="margin-top:5px">'+(p.estado==="sem-permissao"
+    ? "Os dados do teste só são legíveis por quem tem papel admin. É a mesma regra que impede um participante de ler o que outro respondeu."
+    : "O painel lê dados pessoais de quem participou do teste. Por isso exige login, e não a chave pública.")+'</div>';
+  if(p.estado!=="sem-permissao"){
+   h+='<div style="margin-top:11px"><label class="lb">E-mail</label><input class="fld" value="'+(p.email||"")+'" oninput="S.painel.email=this.value" /></div>';
+   h+='<div style="margin-top:8px"><label class="lb">Senha</label><input class="fld" type="password" value="'+(p.senha||"")+'" oninput="S.painel.senha=this.value" /></div>';
+   h+='<button class="btn primary blk" style="margin-top:11px" onclick="entrarComoAdmin()">Entrar</button>';
+  }
+  if(p.erro)h+='<div class="tiny" style="margin-top:9px;color:var(--x-danger)">'+p.erro+'</div>';
+  return h+'</div>';
+ }
+
+ if(p.estado!=="pronto"){
+  h+='<div class="b small">Painel do teste</div>';
+  h+='<div class="small muted" style="margin-top:5px">Indicadores de negócio, produto, navegação e usuário, a partir do que as pessoas fizerem no link compartilhado.</div>';
+  if(p.erro)h+='<div class="tiny" style="margin-top:9px;color:var(--x-danger)">'+p.erro+'</div>';
+  h+='<button class="btn blk" style="margin-top:11px" onclick="carregarPainel()">Carregar dados do teste</button>';
+  return h+'</div>';
+ }
+
+ var d=p.dados;
+ h+='<div class="row"><span class="b">Painel do teste</span><span class="sp tiny muted">'+d.n+' participante(s)</span></div>';
+ h+='<button class="btn sm" style="margin-top:9px" onclick="carregarPainel()">Atualizar</button></div>';
+
+ if(!d.n){
+  return h+'<div class="card pad" style="margin-top:12px"><div class="b small">Ninguém passou pelo link ainda.</div>'+
+   '<div class="small muted" style="margin-top:5px">Assim que a primeira pessoa aceitar participar, os números aparecem aqui. Nada é inventado enquanto isso.</div></div>';
+ }
+
+ // ── NEGÓCIO
+ h+='<div class="row" style="margin-top:24px"><span class="b" style="font-size:16px">Negócio</span><span class="sp tiny muted">quem chegou, e até onde</span></div>';
+ h+='<div class="stats" style="margin-top:10px">';
+ [["👤","Clientes",d.perfis.cliente],["🎨","Tatuadores",d.perfis.tatuador],["🏪","Fornecedores",d.perfis.fornecedor],["📈","Voltaram depois",d.retomadas]]
+  .forEach(function(x){h+='<div class="stat"><div class="lbl">'+x[0]+' '+x[1]+'</div><div class="val">'+x[2]+'</div></div>'});
+ h+='</div>';
+
+ h+='<div class="card pad" style="margin-top:12px"><div class="b small">Até onde cada um foi</div>';
+ var base=d.funil[0][1]||1;
+ d.funil.forEach(function(f){
+  var pc=Math.round(f[1]/base*100);
+  h+='<div style="margin-top:10px"><div class="row tiny"><span>'+f[0]+'</span><span class="sp b">'+f[1]+' · '+pc+'%</span></div>';
+  h+='<div style="height:7px;background:var(--muted);border-radius:99px;margin-top:4px;overflow:hidden">';
+  h+='<div style="height:100%;width:'+pc+'%;background:var(--primary);border-radius:99px"></div></div></div>';
+ });
+ h+='<div class="tiny muted" style="margin-top:11px">Cada degrau conta sessões distintas, não cliques. Quem passou duas vezes pela mesma tela conta uma.</div></div>';
+
+ // ── PRODUTO
+ h+='<div class="row" style="margin-top:24px"><span class="b" style="font-size:16px">Produto</span><span class="sp tiny muted">o que foi usado, e o que ficou de lado</span></div>';
+ h+='<div class="card pad" style="margin-top:10px">';
+ h+='<table class="t"><tr><th>Tela</th><th style="text-align:right">Sessões</th><th style="text-align:right">Tempo mediano</th></tr>';
+ d.telas.forEach(function(t){
+  h+='<tr><td class="small">'+t.rotulo+'</td><td class="small b" style="text-align:right">'+t.sessoes+'</td>';
+  h+='<td class="small muted" style="text-align:right">'+dur(t.mediana)+'</td></tr>';
+ });
+ h+='</table>';
+ if(d.naoVisitadas.length){
+  h+='<div class="tiny muted" style="margin-top:11px;padding-top:9px;border-top:1px solid var(--border)"><b>Ninguém abriu:</b> '+d.naoVisitadas.join(", ")+'. Tela que ninguém visita ou não interessa, ou não tem porta de entrada.</div>';
+ }
+ h+='</div>';
+
+ if(d.acoes.length){
+  h+='<div class="card pad" style="margin-top:12px"><div class="b small">O que mais clicaram</div><div style="margin-top:6px">';
+  d.acoes.forEach(function(a){
+   h+='<div class="row small" style="padding:5px 0;border-bottom:1px solid var(--border)"><span>'+a[0]+'</span><span class="sp b">'+a[1]+'</span></div>';
+  });
+  h+='</div></div>';
+ }
+
+ // ── NAVEGAÇÃO
+ h+='<div class="row" style="margin-top:24px"><span class="b" style="font-size:16px">Navegação</span><span class="sp tiny muted">onde a jornada parou</span></div>';
+ h+='<div class="grid cols2" style="margin-top:10px;align-items:start">';
+ h+='<div class="card pad"><div class="b small">Última tela antes de sair</div>';
+ h+='<div class="tiny muted" style="margin-top:3px">Onde a pessoa desistiu ou terminou. Se uma tela concentra saída sem ser o fim de um fluxo, é ali que está o problema.</div><div style="margin-top:8px">';
+ d.abandono.forEach(function(a){
+  h+='<div class="row small" style="padding:5px 0;border-bottom:1px solid var(--border)"><span>'+a[0]+'</span><span class="sp b">'+a[1]+'</span></div>'});
+ h+='</div></div>';
+ h+='<div class="card pad"><div class="b small">Gavetas abertas</div>';
+ h+='<div class="tiny muted" style="margin-top:3px">Orçamento, agenda, chat, notificações e carrinho.</div><div style="margin-top:8px">';
+ if(!d.gavetas.length)h+='<div class="small muted">Nenhuma. Vale investigar se elas estão visíveis o bastante.</div>';
+ d.gavetas.forEach(function(g){
+  h+='<div class="row small" style="padding:5px 0;border-bottom:1px solid var(--border)"><span>'+g[0]+'</span><span class="sp b">'+g[1]+'</span></div>'});
+ h+='</div></div></div>';
+
+ // ── USUÁRIO
+ h+='<div class="row" style="margin-top:24px"><span class="b" style="font-size:16px">Usuário</span><span class="sp tiny muted">quem participou, e em que aparelho</span></div>';
+ h+='<div class="stats" style="margin-top:10px">';
+ [["📱","Em toque",d.toque],["▦","Em mouse",d.mouse],["📈","Largura mediana",d.larguraMediana+"px"],["🕘","Duração mediana",dur(d.duracaoMediana)]]
+  .forEach(function(x){h+='<div class="stat"><div class="lbl">'+x[0]+' '+x[1]+'</div><div class="val">'+x[2]+'</div></div>'});
+ h+='</div>';
+
+ h+='<div class="card pad" style="margin-top:12px"><div class="b small">Participantes</div>';
+ h+='<table class="t" style="margin-top:8px"><tr><th>Quem</th><th>Perfil</th><th style="text-align:right">Telas</th><th style="text-align:right">Cliques</th><th style="text-align:right">Duração</th></tr>';
+ d.participantes.forEach(function(x){
+  h+='<tr><td class="small"><span class="b">'+x.nome+'</span><div class="tiny muted">'+x.email+'</div></td>';
+  h+='<td><span class="badge">'+x.perfil+'</span></td>';
+  h+='<td class="small" style="text-align:right">'+x.telas+'</td>';
+  h+='<td class="small" style="text-align:right">'+x.acoes+'</td>';
+  h+='<td class="small muted" style="text-align:right">'+dur(x.duracao)+'</td></tr>';
+ });
+ h+='</table>';
+ h+='<div class="tiny muted" style="margin-top:10px">Para excluir alguém a pedido: <code>select public.esquecer_participante(\'email\')</code> no SQL do Supabase. Apaga a sessão e todos os eventos daquela pessoa.</div>';
+ h+='</div>';
+
+ return h;
+}
+
 function vModelo(){
  var h='<main><div class="wrap">';
  h+='<div class="kicker">Espaço de trabalho</div>';
  h+='<h1 class="page" style="margin-top:3px">Modelo de negócio</h1>';
  h+='<p class="sub">O que já é fato, o que ainda é hipótese, e as perguntas que precisam de resposta antes de construir mais.</p>';
+
+ h+='<div class="segmento">';
+ [["painel","Painel do teste"],["modelo","O modelo"]].forEach(function(x){
+  h+='<button class="seg '+(S.abaModelo===x[0]?"on":"")+'" onclick="S.abaModelo=\''+x[0]+'\';render()">'+x[1]+'</button>'});
+ h+='</div>';
+
+ if(S.abaModelo==="painel")return h+vPainelDoTeste()+'</div></main>';
 
  h+='<div class="banner" style="margin-top:16px"><div>';
  h+='<div class="b small">Nada aqui está validado.</div>';
@@ -3125,7 +3375,7 @@ function render(){
  else if(r.indexOf("studio")===0)h=isLog()?vStudio(r):vCadastro();
  document.getElementById("app").innerHTML=icons(h);
  document.getElementById("sessionSel").value=S.session;
- if(r==="modelo")calcUE();
+ if(r==="modelo"&&S.abaModelo==="modelo")calcUE();
  if(r==="home")ligarScrollInfinito();
  if(S.autoAssist){S.autoAssist=false;openDrawer("assist")}
  salvarEstado();

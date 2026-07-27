@@ -520,8 +520,48 @@ async function removerPreco(id) {
   if (error) throw error;
 }
 
+/* ── Painel do teste ───────────────────────────────────────────────
+   Só admin lê. A RLS já garante isso no banco — a checagem aqui é para
+   dar mensagem decente em vez de devolver lista vazia sem explicação. */
+async function souAdmin() {
+  const papeis = await meusPapeis();
+  return papeis.some((p) => p.role === "admin");
+}
+
+async function carregarPainelDoTeste() {
+  await iniciarSupabase();
+  const s = await sessaoAtual();
+  if (!s) return { erro: "entre" };
+  if (!(await souAdmin())) return { erro: "sem-permissao" };
+
+  const [ses, ev] = await Promise.all([
+    sb.from("teste_sessoes")
+      .select("id,criado_em,nome,email,perfil_declarado,largura,altura,ponteiro,versao_prototipo")
+      .order("criado_em", { ascending: false })
+      .limit(2000),
+    sb.from("teste_eventos")
+      .select("sessao_id,criado_em,ordem,tipo,rota,alvo,ms_na_tela,detalhe")
+      .order("sessao_id")
+      .order("ordem")
+      .limit(50000),
+  ]);
+  if (ses.error) throw ses.error;
+  if (ev.error) throw ev.error;
+  return { sessoes: ses.data, eventos: ev.data };
+}
+
+/* Exclusão a pedido do titular. A função no banco recusa quem não for
+   admin, então isto aqui é só o atalho. */
+async function esquecerParticipante(email) {
+  await iniciarSupabase();
+  const { data, error } = await sb.rpc("esquecer_participante", { _email: email });
+  if (error) throw error;
+  return data;
+}
+
 window.Dados = {
   testarConexao, criarConta, entrar, sair, sessaoAtual,
+  souAdmin, carregarPainelDoTeste, esquecerParticipante,
   meusPapeis, tornarSeTatuador,
   listarEstilos, listarTatuadores,
   meuPerfilDeArtista, salvarPerfilDeArtista,
