@@ -5,6 +5,32 @@ Ordenados por urgência.
 
 ---
 
+## 🔴 P0 — Ligar o GitHub Pages e criar sua conta admin
+
+Sem esses dois passos o teste não sai do lugar. Passo a passo em
+`PUBLICAR.md`.
+
+- [ ] Settings → Pages → Branch **main**, pasta **/ (root)**
+- [ ] Criar sua conta pelo protótipo (menu → conexão com o banco)
+- [ ] Me dizer qual e-mail usou, para eu dar o papel `admin`
+
+Enquanto o papel não existir, o painel diz que a conta não é admin —
+comportamento certo, não erro.
+
+---
+
+## 🟠 P1 — Definir a retenção dos dados do teste
+
+Nome e e-mail de participantes são dado pessoal. O consentimento já é
+obrigatório e a exclusão a pedido já funciona
+(`select public.esquecer_participante('email')`). Falta decidir:
+
+- [ ] Base legal declarada
+- [ ] Quantos dias guardar depois de ler os resultados
+- [ ] Apagar de fato quando esse prazo vencer
+
+---
+
 ## 🔴 P0 — Existem dois projetos Supabase
 
 Descoberto em 26/07: o projeto que você indicou como seu **não é** o mesmo que roda o protótipo hoje.
