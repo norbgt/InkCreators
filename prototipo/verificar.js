@@ -212,6 +212,48 @@
       ok(caso[0] + ": três passos", roteiroCadastro().length === 3);
     });
 
+    /* ── 6b. OS TRÊS PERFIS, SEPARADOS ────────────────────────── */
+    secao("Escolha de perfil: três cartões separados");
+    irCadastro(null);
+    digitar("cadNome", "Ana Souza"); digitar("cadEmail", "a@x.com"); digitar("cadSenha", "123456");
+    avancarCad();
+    var caixa = document.querySelector(".perfis");
+    ok("o grupo de perfis existe", !!caixa);
+    if (caixa) {
+      var opts = caixa.querySelectorAll(".perfilopt");
+      ok("são três opções", opts.length === 3, opts.length + " encontradas");
+      ok("as regras de CSS foram aplicadas",
+         getComputedStyle(caixa).display === "grid", "display: " + getComputedStyle(caixa).display);
+      if (opts.length === 3) {
+        var r0 = opts[0].getBoundingClientRect(),
+            r1 = opts[1].getBoundingClientRect(),
+            r2 = opts[2].getBoundingClientRect();
+        ok("os três estão na mesma linha",
+           Math.abs(r0.top - r1.top) < 3 && Math.abs(r1.top - r2.top) < 3,
+           "topos: " + [r0, r1, r2].map(function (r) { return Math.round(r.top); }).join(", "));
+        var folga1 = Math.round(r1.left - r0.right), folga2 = Math.round(r2.left - r1.right);
+        ok("há espaço entre o primeiro e o segundo", folga1 >= 5, folga1 + "px");
+        ok("há espaço entre o segundo e o terceiro", folga2 >= 5, folga2 + "px");
+        ok("nenhum encosta no outro", r0.right < r1.left && r1.right < r2.left);
+        ok("têm a mesma largura",
+           Math.abs(r0.width - r1.width) < 2 && Math.abs(r1.width - r2.width) < 2,
+           "larguras: " + [r0, r1, r2].map(function (r) { return Math.round(r.width); }).join(", "));
+        ok("o rótulo cabe sem cortar",
+           opts[2].scrollWidth <= opts[2].clientWidth + 1,
+           "Fornecedor precisa de " + opts[2].scrollWidth + "px e tem " + opts[2].clientWidth + "px");
+        ok("o ícone fica acima do nome",
+           getComputedStyle(opts[0]).flexDirection === "column",
+           getComputedStyle(opts[0]).flexDirection);
+
+        // Selecionar precisa mudar algo além da cor de fundo.
+        var antes = getComputedStyle(opts[1]).boxShadow;
+        S.cad.perfil = "tatuador"; render();
+        var depois = getComputedStyle(document.querySelectorAll(".perfilopt")[1]).boxShadow;
+        ok("o selecionado fica visivelmente diferente", antes !== depois,
+           "sombra antes e depois iguais");
+      }
+    }
+
     /* ── 7. O RODAPÉ FICA NUMA LINHA SÓ ───────────────────────── */
     secao("Voltar e Continuar na mesma linha");
     irCadastro(null);

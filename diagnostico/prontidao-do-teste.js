@@ -165,6 +165,34 @@ secao("1. TODAS AS TELAS, NOS TRÊS PERFIS");
   ok("nenhuma tela vazia", vazias === 0, vazias + " vazia(s)");
 }
 
+/* ── 1b. Toda classe usada tem regra de CSS ─────────────────────
+   Três vezes seguidas o defeito foi o mesmo: a classe existia no HTML e
+   o CSS nunca tinha sido escrito. Sem regra, um div empilha e um span
+   vira texto corrido — e isso não quebra nada, só fica feio, então
+   passa despercebido até alguém olhar a tela.
+
+   Aqui as expressões JavaScript de dentro do class="" são removidas
+   antes da comparação; o que sobra são nomes literais de verdade. */
+secao("1b. TODA CLASSE USADA TEM CSS");
+{
+  // Os comentários saem antes: eles citam as classes pelo nome, e sem
+  // remover isso a verificação se dá por satisfeita com uma explicação
+  // no lugar de uma regra. Descoberto sabotando o próprio teste.
+  const css = html.slice(0, html.indexOf("</style>")).replace(/\/\*[\s\S]*?\*\//g, " ");
+  const definidas = new Set((css.match(/\.[a-zA-Z][a-zA-Z0-9_-]*/g) || []).map(c => c.slice(1)));
+
+  const usadas = new Map();
+  for (const m of html.match(/class="[^"]*"/g) || []) {
+    const valor = m.slice(7, -1).replace(/'\s*\+[\s\S]*?\+\s*'/g, " ");  // tira o JS
+    for (const t of valor.split(/\s+/)) {
+      if (/^[a-z][a-z0-9-]*$/.test(t)) usadas.set(t, (usadas.get(t) || 0) + 1);
+    }
+  }
+  const orfas = [...usadas.keys()].filter(c => !definidas.has(c)).sort();
+  ok(usadas.size + " classes usadas, todas com regra de CSS", orfas.length === 0,
+     "sem CSS: " + orfas.join(", "));
+}
+
 /* ── 2 e 3. As jornadas, clicando de verdade ───────────────────── */
 secao("2. JORNADA DO CLIENTE — descobrir, orçar, agendar");
 let eventosDoCliente = null, sessaoDoCliente = null;
