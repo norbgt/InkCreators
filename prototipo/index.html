@@ -743,7 +743,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  shopSort:"relevance",evAba:"perto",coQ:"",
  local:{lat:-23.5505,lng:-46.6333},localReal:false,localNome:"",
  buscandoLocal:false,localErro:"",precisao:0,
- caro:{},shopAud:"client",shopCat:"all",shopQ:"",cart:[{id:"p10",q:1},{id:"p15",q:2}],cep:"",ship:null,
+ caro:{},shopAud:"art",shopCat:"all",shopQ:"",cart:[{id:"p10",q:1},{id:"p15",q:2}],cep:"",ship:null,
  evT:"all",evP:"all",evD:"all",evSort:"distance",evSel:"e1",evLoc:"São Paulo, SP",
  coT:"all",coL:"all",coP:"all",coSort:"recent",
  qStatus:"todos",hub:"menu",aiStep:0,aiRefs:2,
@@ -811,7 +811,7 @@ function vHome(){
  // ficam fora da faixa para não rolarem junto e sumirem da vista.
  h+='<div class="linhaabas"><div class="abas">';
  [["discover","👥","Tatuadores"],["shop","🛍","Lojas"],["events","🗓","Eventos"]].forEach(function(t){
-  h+='<button class="aba '+(S.tab===t[0]?"on":"")+'" onclick="set(\'tab\',\''+t[0]+'\');S.feedLote=1">'+t[1]+'<span>'+t[2]+'</span></button>'});
+  h+='<button class="aba '+(S.tab===t[0]?"on":"")+'" onclick="irAba(\''+t[0]+'\')">'+t[1]+'<span>'+t[2]+'</span></button>'});
  h+='</div><div class="abas-acoes">';
  if(S.tab==="discover")h+='<button class="btn sm" onclick="'+(isLog()?"go('studio-profile')":"go('para-tatuadores')")+'">🖼 Publicar</button>';
  if(S.tab==="shop")h+='<button class="btn sm" onclick="go(\'studio\')">🏪 Vender</button>';
@@ -856,6 +856,15 @@ function barraBusca(cfg){
  h+='<div class="tiny muted" style="margin-top:10px">'+rot+(cfg.nFiltros?' · '+cfg.nFiltros+' filtro'+(cfg.nFiltros>1?"s":""):'')+'</div>';
  return h;
 }
+/* A galeria é a vitrine da loja: é o que tem cara de obra, não de
+   insumo. Por isso a aba abre nela, mesmo com Cliente à esquerda. */
+function irAba(t){
+ S.tab=t;
+ S.feedLote=1;
+ if(t==="shop")S.shopAud="art";
+ render();
+}
+
 function abrirPainel(aba,qual){
  S.painel[aba] = S.painel[aba]===qual ? null : qual;
  render();
@@ -1116,7 +1125,7 @@ function secShop(){
 
  // Audiências em linha única, rolando na horizontal quando não couber
  var h='<div class="segmento">';
- [["client","Cliente"],["artist","Tatuador"],["art","Galeria de arte"]].forEach(function(a){
+ [["client","Cliente"],["art","Galeria de arte"],["artist","Tatuador"]].forEach(function(a){
   h+='<button class="seg '+(S.shopAud===a[0]?"on":"")+'" onclick="S.shopAud=\''+a[0]+'\';S.shopCat=\'all\';S.feedLote=1;render()">'+a[1]+'</button>'});
  h+='</div>';
 
