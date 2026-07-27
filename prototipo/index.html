@@ -766,11 +766,14 @@ var SIZE_L={pequeno:"Pequeno",medio:"Médio",grande:"Grande",sessao_dia:"Sessão
 
 /* ============ ESTADO ============ */
 var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
- signupRole:null,gateRole:null,roleSource:null,
+ gateRole:null,roleSource:null,
  f:{q:"",styles:[],cx:[],max:null,rating:null,sort:"relevance",painel:null},
  seguindo:[],curtidas:[],feedLote:1,obs:null,
  painel:{discover:null,shop:null,events:null},
  shopSort:"relevance",evAba:"perto",coQ:"",perfilLanding:"cliente",
+ cad:{passo:0,perfil:null,nome:"",email:"",senha:"",msg:"",erro:false},
+ cli:{estilos:[],cidade:"",uf:""},
+ forn:{nome:"",cnpj:"",site:"",cidade:"",cats:[],qtd:""},
  local:{lat:-23.5505,lng:-46.6333},localReal:false,localNome:"",
  buscandoLocal:false,localErro:"",precisao:0,
  caro:{},shopAud:"art",shopCat:"all",shopQ:"",cart:[{id:"p10",q:1},{id:"p15",q:2}],cep:"",ship:null,
@@ -1443,7 +1446,7 @@ var PERFIS={
   passos:[["Envie referências","Fotos do que você quer."],
    ["Receba a estimativa","Estilo, complexidade e faixa de preço."],
    ["Compare e agende","Escolhe a proposta e marca a sessão."]],
-  cta:"Criar conta grátis", ctaAcao:"S.signupRole=false;go('signup')",
+  cta:"Criar conta grátis", ctaAcao:"irCadastro('cliente')",
   estado:"real"
  },
  tatuador:{
@@ -1458,7 +1461,7 @@ var PERFIS={
   passos:[["Monte seu perfil","Estilos, portfólio e faixa de preço."],
    ["Receba pedidos","Já com estilo e complexidade sugeridos."],
    ["Responda e execute","Envia o valor, cliente aceita, sessão agendada."]],
-  cta:"Criar perfil de tatuador", ctaAcao:"S.signupRole=true;go('signup')",
+  cta:"Criar conta de tatuador", ctaAcao:"irCadastro('tatuador')",
   estado:"real", planos:true
  },
  fornecedor:{
@@ -1485,11 +1488,9 @@ function vLanding(){
 
  // Mesma faixa de Lojas e Eventos: contexto à esquerda, ação principal à
  // direita. Aqui a ação é cadastrar, não orçar.
- h+='<div class="linhaabas"><div class="abas">';
- h+='<span class="aba on" style="cursor:default">✨<span>Vantagens</span></span>';
- h+='</div><div class="abas-acoes">';
+ h+='<div class="linhaabas" style="justify-content:flex-end"><div class="abas-acoes">';
  h+='<button class="btn sm" onclick="go(\'home\')">🏪 Ver a plataforma</button>';
- h+='<button class="btn sm destaque" onclick="'+p.ctaAcao+'">👤 Cadastrar</button>';
+ h+='<button class="btn sm destaque" onclick="irCadastro(\''+k+'\')">👤 Criar conta</button>';
  h+='</div></div>';
 
  h+='<div class="segmento" style="max-width:420px;margin-top:16px">';
@@ -1539,7 +1540,7 @@ function vLanding(){
    h+='<div style="margin-top:11px"><span style="font-size:24px;font-weight:700;letter-spacing:-.02em">'+x.p+'</span> <span class="small muted">'+x.pe+'</span></div>';
    h+='<div style="margin-top:11px">';
    x.f.forEach(function(y){h+='<div class="row small" style="align-items:flex-start;margin-bottom:5px"><span style="color:var(--x-success)">✓</span><span>'+y+'</span></div>'});
-   h+='</div><button class="btn '+(x.hl?"primary":"")+' blk" style="margin-top:11px" onclick="S.signupRole=true;go(\'signup\')">'+x.cta+'</button></div>';
+   h+='</div><button class="btn '+(x.hl?"primary":"")+' blk" style="margin-top:11px" onclick="irCadastro(\'tatuador\')">'+x.cta+'</button></div>';
   });
   h+='</div>';
   h+='<div class="tiny muted" style="margin-top:9px;text-align:center">Planos desenhados, sem cobrança implementada.</div>';
@@ -1558,34 +1559,211 @@ function vAuth(){
  h+='<div class="grid" style="gap:8px"><input class="fld" placeholder="nome@email.com" /><input class="fld" type="password" placeholder="senha" /></div>';
  h+='<div class="row" style="justify-content:flex-end;margin-top:6px"><a class="tiny muted" style="cursor:pointer">Esqueci minha senha</a></div>';
  h+='<button class="btn primary blk" style="margin-top:10px" onclick="S.session=\'client\';go(\'me\')">Entrar</button>';
- h+='<p class="small muted" style="margin-top:13px;text-align:center">Não tem conta? <a class="b" style="cursor:pointer;color:var(--accent)" onclick="S.signupRole=null;go(\'signup\')">Criar conta</a></p>';
+ h+='<p class="small muted" style="margin-top:13px;text-align:center">Não tem conta? <a class="b" style="cursor:pointer;color:var(--accent)" onclick="irCadastro()">Criar conta</a></p>';
  return h+'</div></main>';
 }
-function vSignup(){
- var h='<main><div class="authwrap"><h1 class="page">Crie sua conta</h1><p class="sub">Salve orçamentos, converse com tatuadores e acompanhe agendamentos.</p>';
- h+='<div class="grid" style="gap:8px;margin-top:18px"><input class="fld" placeholder="Seu nome" /><input class="fld" placeholder="nome@email.com" /><input class="fld" type="password" placeholder="senha" /></div>';
- h+='<div style="margin-top:18px"><div class="row"><span class="b small">Você também é tatuador(a)?</span><span class="req">obrigatório</span>'+tg("novo")+'</div>';
- h+='<div class="row" style="gap:8px;margin-top:8px;align-items:stretch">';
- h+='<div class="opt '+(S.signupRole===false?"on":"")+'" onclick="S.signupRole=false;render()"><div style="font-size:17px">👤</div><div class="b small" style="margin-top:4px">Não</div><div class="tiny muted">Quero me tatuar, comprar e ir a eventos</div></div>';
- h+='<div class="opt '+(S.signupRole===true?"on":"")+'" onclick="S.signupRole=true;render()"><div style="font-size:17px">🎨</div><div class="b small" style="margin-top:4px">Sim, sou tatuador(a)</div><div class="tiny muted">Também quero atender clientes</div></div></div>';
- h+='<div class="tiny muted" style="margin-top:7px">'+(S.signupRole===null?"Sem escolher, o cadastro não avança.":"Você continua com acesso de cliente de qualquer forma.")+'</div></div>';
- h+='<button class="btn primary blk" style="margin-top:14px" '+(S.signupRole===null?"disabled":"")+' onclick="finishSignup()">Criar conta</button>';
- return h+'</div></main>';
+/* ═══ CADASTRO UNIFICADO ═══════════════════════════════════════════
+   Um fluxo só para os três perfis. O primeiro passo cria a conta e
+   pergunta quem é a pessoa; os passos seguintes mudam conforme a
+   resposta. Antes havia dois fluxos separados — conta e onboarding de
+   tatuador — e cliente não tinha nenhum. */
+
+var PERFIS_CADASTRO=[
+ {id:"cliente",icone:"👤",nome:"Cliente",desc:"Quero me tatuar, comprar e ir a eventos"},
+ {id:"tatuador",icone:"🎨",nome:"Tatuador",desc:"Quero atender clientes e mostrar meu trabalho"},
+ {id:"fornecedor",icone:"🏪",nome:"Fornecedor",desc:"Quero vender material para tatuadores",estado:"hipotese"}
+];
+
+function roteiroCadastro(){
+ var r=[{id:"conta",t:"Sua conta"}];
+ var p=S.cad.perfil;
+ if(p==="cliente") r=r.concat([{id:"gostos",t:"O que você procura"},{id:"pronto",t:"Tudo pronto"}]);
+ if(p==="tatuador"){
+  r=r.concat([{id:"estudio",t:"Você e seu estúdio"},{id:"estilos",t:"Seus estilos"},{id:"portfolio",t:"Portfólio e redes"}]);
+  if(S.onbQuerOrcamento) r.push({id:"orcamento",t:"Modelo de orçamento"});
+  r.push({id:"pronto",t:"Revisar e publicar"});
+ }
+ if(p==="fornecedor") r=r.concat([{id:"empresa",t:"Sua empresa"},{id:"catalogo",t:"O que você fornece"},{id:"pronto",t:"Tudo pronto"}]);
+ return r;
 }
+function irCadastro(perfil){
+ S.cad={passo:0,perfil:perfil||null,nome:"",email:"",senha:"",msg:"",erro:false};
+ S.onbStep=1;
+ go("cadastro");
+}
+function passoCad(){
+ var r=roteiroCadastro();
+ return r[Math.min(S.cad.passo,r.length-1)];
+}
+function podeAvancar(){
+ var id=passoCad().id, c=S.cad;
+ if(id==="conta") return !!c.perfil && c.nome.trim().length>1 && /.+@.+\..+/.test(c.email) && c.senha.length>=6;
+ if(id==="estudio") return S.onbName.trim().length>1;
+ if(id==="empresa") return (S.forn.nome||"").trim().length>1;
+ return true;
+}
+function avancarCad(){
+ var r=roteiroCadastro();
+ if(S.cad.passo < r.length-1){S.cad.passo++;render()}
+ else concluirCadastro();
+}
+function voltarCad(){ if(S.cad.passo>0){S.cad.passo--;render()} }
+
+function concluirCadastro(){
+ var p=S.cad.perfil;
+ if(p==="fornecedor"){
+  S.cad.msg="Fornecedor ainda não tem cadastro de verdade — não existe tabela nem cobrança. Você entrou numa lista de espera fictícia.";
+  S.cad.erro=false;S.cad.passo=roteiroCadastro().length-1;render();return;
+ }
+ S.session = p==="tatuador" ? "artist" : "client";
+ S.roleSource="signup_trigger";
+ if(p==="tatuador"){
+  S.pf={nome:S.onbName,estudio:S.onbEstudio,cidade:S.onbCidade,uf:S.onbUf,estilos:S.onbStyles.slice(),publicado:true};
+  go("studio");
+ }else{
+  go("me");
+ }
+}
+
+function vCadastro(){
+ var r=roteiroCadastro(), passo=passoCad(), i=S.cad.passo, c=S.cad;
+ var h='<main><div class="wrap" style="max-width:620px">';
+ h+='<div class="kicker">Criar conta</div>';
+ h+='<h1 class="page" style="margin-top:3px">'+(c.perfil?PERFIS_CADASTRO.filter(function(x){return x.id===c.perfil})[0].nome:"Vamos começar")+'</h1>';
+ h+='<div class="steps">';r.forEach(function(x,k){h+='<i class="'+(k<=i?"on":"")+'"></i>'});h+='</div>';
+ h+='<div class="tiny muted" style="margin-top:7px">Passo '+(i+1)+' de '+r.length+' · '+passo.t+'</div>';
+ h+='<div class="card pad" style="margin-top:14px">';
+
+ // ── 1. conta + escolha de perfil
+ if(passo.id==="conta"){
+  h+='<div class="grid" style="gap:10px">';
+  h+='<div><label class="lb">Seu nome</label><input class="fld" value="'+c.nome+'" oninput="S.cad.nome=this.value;render()" placeholder="Como quer ser chamado" /></div>';
+  h+='<div><label class="lb">Email</label><input class="fld" value="'+c.email+'" oninput="S.cad.email=this.value;render()" placeholder="nome@email.com" /></div>';
+  h+='<div><label class="lb">Senha</label><input class="fld" type="password" oninput="S.cad.senha=this.value;render()" placeholder="mínimo 6 caracteres" /></div>';
+  h+='</div>';
+  h+='<div class="sep"></div>';
+  h+='<div class="row"><span class="b small">Como você vai usar a plataforma?</span><span class="req">obrigatório</span></div>';
+  h+='<div class="tiny muted" style="margin-top:3px">Define os próximos passos. Dá para acrescentar outro perfil depois.</div>';
+  h+='<div class="grid" style="gap:8px;margin-top:10px">';
+  PERFIS_CADASTRO.forEach(function(x){
+   h+='<div class="opt '+(c.perfil===x.id?"on":"")+'" onclick="S.cad.perfil=\''+x.id+'\';render()">';
+   h+='<div class="row" style="gap:9px"><span style="font-size:17px;color:var(--accent)">'+x.icone+'</span>';
+   h+='<div style="flex:1"><div class="b small">'+x.nome+(x.estado==="hipotese"?' <span class="badge warn">em estudo</span>':'')+'</div>';
+   h+='<div class="tiny muted">'+x.desc+'</div></div></div></div>';
+  });
+  h+='</div>';
+  h+='<div class="sep"></div>';
+  h+='<button class="btn blk" onclick="S.gateRole=null;go(\'gate\')">Continuar com Google</button>';
+  h+='<div class="tiny muted" style="margin-top:6px;text-align:center">Pelo Google, a escolha de perfil vem logo depois.</div>';
+ }
+
+ // ── CLIENTE
+ if(passo.id==="gostos"){
+  h+='<div class="small muted">Ajuda a plataforma a te mostrar o que interessa. Tudo opcional — dá para pular.</div>';
+  h+='<div class="tiny muted" style="margin-top:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em">Estilos que te interessam</div>';
+  h+='<div class="row wrapf" style="gap:6px;margin-top:7px">';
+  STYLES.forEach(function(x){h+='<button class="chip '+(S.cli.estilos.indexOf(x.s)>=0?"on":"")+'" onclick="tog(S.cli.estilos,\''+x.s+'\')">'+x.l+'</button>'});
+  h+='</div>';
+  h+='<div class="grid" style="grid-template-columns:2fr 1fr;gap:9px;margin-top:13px">';
+  h+='<div><label class="lb">Sua cidade</label><input class="fld" value="'+S.cli.cidade+'" oninput="S.cli.cidade=this.value" placeholder="São Paulo" /></div>';
+  h+='<div><label class="lb">UF</label><input class="fld" value="'+S.cli.uf+'" oninput="S.cli.uf=this.value" placeholder="SP" /></div></div>';
+  h+='<div class="tiny muted" style="margin-top:9px">A cidade faz seus pedidos chegarem a quem atende perto de você.</div>';
+ }
+
+ // ── TATUADOR (reaproveita os passos que já existiam)
+ if(passo.id==="estudio"||passo.id==="estilos"||passo.id==="portfolio"||passo.id==="orcamento"){
+  S.onbStep = passo.id==="estudio"?1 : passo.id==="estilos"?2 : passo.id==="portfolio"?3 : 4;
+  h+=corpoOnboarding(S.onbStep);
+ }
+
+ // ── FORNECEDOR
+ if(passo.id==="empresa"){
+  h+='<div class="banner" style="background:var(--x-warning-bg);border-color:var(--x-warning);margin-bottom:13px">';
+  h+='<div class="tiny" style="color:var(--x-warning)"><b>Perfil em estudo.</b> Não existe cadastro de fornecedor no banco — este fluxo mostra a proposta, não grava nada.</div></div>';
+  h+='<div class="grid" style="gap:10px">';
+  h+='<div><label class="lb">Nome da empresa *</label><input class="fld" value="'+(S.forn.nome||"")+'" oninput="S.forn.nome=this.value;render()" /></div>';
+  h+='<div><label class="lb">CNPJ</label><input class="fld" value="'+(S.forn.cnpj||"")+'" oninput="S.forn.cnpj=this.value" placeholder="00.000.000/0000-00" /></div>';
+  h+='<div><label class="lb">Site</label><input class="fld" value="'+(S.forn.site||"")+'" oninput="S.forn.site=this.value" placeholder="suamarca.com.br" /></div>';
+  h+='<div><label class="lb">Cidade de origem</label><input class="fld" value="'+(S.forn.cidade||"")+'" oninput="S.forn.cidade=this.value" /></div>';
+  h+='</div>';
+ }
+ if(passo.id==="catalogo"){
+  h+='<div class="small muted">O que sua empresa fornece. Define em qual aba da loja seus produtos aparecem.</div>';
+  h+='<div class="row wrapf" style="gap:6px;margin-top:11px">';
+  [["needles","Agulhas e cartuchos"],["inks","Tintas"],["machines","Máquinas e pedais"],["accessories","Acessórios"],["hygiene","Higiene e descartáveis"],["healing","Cicatrizantes"],["moisturizers","Hidratantes"],["kits","Kits pós-tattoo"]].forEach(function(x){
+   h+='<button class="chip '+(S.forn.cats.indexOf(x[0])>=0?"on":"")+'" onclick="tog(S.forn.cats,\''+x[0]+'\')">'+x[1]+'</button>'});
+  h+='</div>';
+  h+='<div class="grid" style="gap:9px;margin-top:13px">';
+  h+='<div><label class="lb">Quantos produtos você tem no catálogo?</label><input class="fld" type="number" value="'+(S.forn.qtd||"")+'" oninput="S.forn.qtd=this.value" placeholder="120" /></div></div>';
+  h+='<div class="tiny muted" style="margin-top:9px">Mais adiante isso viraria importação de planilha ou integração com seu sistema.</div>';
+ }
+
+ // ── FIM
+ if(passo.id==="pronto"){
+  if(c.perfil==="tatuador"){ S.onbStep=5; h+=corpoOnboarding(5); }
+  else {
+   h+='<div class="b small">Revise antes de concluir</div>';
+   h+='<table class="t" style="margin-top:8px">';
+   h+='<tr><td class="muted">Nome</td><td class="b" style="text-align:right">'+(c.nome||"—")+'</td></tr>';
+   h+='<tr><td class="muted">Email</td><td class="b" style="text-align:right">'+(c.email||"—")+'</td></tr>';
+   h+='<tr><td class="muted">Perfil</td><td style="text-align:right"><span class="badge ok">'+c.perfil+'</span></td></tr>';
+   if(c.perfil==="cliente"){
+    h+='<tr><td class="muted">Estilos de interesse</td><td class="b" style="text-align:right">'+(S.cli.estilos.map(function(x){return SL[x]}).join(", ")||"—")+'</td></tr>';
+    h+='<tr><td class="muted">Cidade</td><td class="b" style="text-align:right">'+(S.cli.cidade?S.cli.cidade+(S.cli.uf?"/"+S.cli.uf:""):"—")+'</td></tr>';
+   }
+   if(c.perfil==="fornecedor"){
+    h+='<tr><td class="muted">Empresa</td><td class="b" style="text-align:right">'+(S.forn.nome||"—")+'</td></tr>';
+    h+='<tr><td class="muted">Categorias</td><td class="b" style="text-align:right">'+(S.forn.cats.length||0)+' selecionada(s)</td></tr>';
+   }
+   h+='</table>';
+   if(c.perfil==="cliente")
+    h+='<div class="banner" style="margin-top:13px"><div class="tiny">Você entra como cliente. Se um dia quiser atender, dá para virar tatuador pela sua área, sem perder nada.</div></div>';
+  }
+  if(c.msg)h+='<div class="banner" style="margin-top:12px;'+(c.erro?'background:var(--x-danger-bg);border-color:var(--x-danger)':'')+'"><div class="small">'+c.msg+'</div></div>';
+ }
+
+ h+='</div>';
+
+ var ultimo = i===r.length-1;
+ var podePular = passo.id==="gostos"||passo.id==="estilos"||passo.id==="portfolio"||passo.id==="catalogo";
+ h+='<div class="row" style="margin-top:16px">';
+ h+='<button class="btn" '+(i===0?"disabled":"")+' onclick="voltarCad()">← Voltar</button>';
+ if(podePular)h+='<button class="btn" onclick="avancarCad()">Pular</button>';
+ h+='<button class="btn primary sp" '+(podeAvancar()?"":"disabled")+' onclick="avancarCad()">'+
+    (ultimo?(c.perfil==="tatuador"?"Publicar perfil":"Criar conta"):"Continuar →")+'</button></div>';
+ h+='<p class="small muted" style="margin-top:13px;text-align:center">Já tem conta? <a class="b" style="cursor:pointer;color:var(--accent)" onclick="go(\'auth\')">Entrar</a></p>';
+ return h+'</div></div></main>';
+}
+
 function vGate(){
  var h='<main><div class="authwrap"><span class="badge acc">passo obrigatório</span>';
  h+='<h1 class="page" style="margin-top:9px">Antes de continuar</h1>';
- h+='<p class="sub">Isso define se, além de cliente, você também terá um espaço de trabalho para tatuadores.</p>';
- h+='<div class="row" style="gap:8px;margin-top:18px;align-items:stretch">';
- h+='<div class="opt '+(S.gateRole===false?"on":"")+'" onclick="S.gateRole=false;render()"><div style="font-size:17px">👤</div><div class="b small" style="margin-top:4px">Não</div></div>';
- h+='<div class="opt '+(S.gateRole===true?"on":"")+'" onclick="S.gateRole=true;render()"><div style="font-size:17px">🎨</div><div class="b small" style="margin-top:4px">Sim, sou tatuador(a)</div></div></div>';
- h+='<button class="btn primary blk" style="margin-top:14px" '+(S.gateRole===null?"disabled":"")+' onclick="finishGate()">Continuar</button>';
- h+='<div class="tiny muted" style="margin-top:11px">Aparece depois do login com Google, que não passa pelo formulário de cadastro.</div>';
+ h+='<p class="sub">Isso define o que você vê e quais passos vêm a seguir.</p>';
+ h+='<div class="grid" style="gap:8px;margin-top:18px">';
+ PERFIS_CADASTRO.forEach(function(x){
+  h+='<div class="opt '+(S.gateRole===x.id?"on":"")+'" onclick="S.gateRole=\''+x.id+'\';render()">';
+  h+='<div class="row" style="gap:9px"><span style="font-size:17px;color:var(--accent)">'+x.icone+'</span>';
+  h+='<div style="flex:1"><div class="b small">'+x.nome+(x.estado==="hipotese"?' <span class="badge warn">em estudo</span>':'')+'</div>';
+  h+='<div class="tiny muted">'+x.desc+'</div></div></div></div>';
+ });
+ h+='</div>';
+ h+='<button class="btn primary blk" style="margin-top:14px" '+(S.gateRole?"":"disabled")+' onclick="finishGate()">Continuar</button>';
+ h+='<div class="tiny muted" style="margin-top:11px">Aparece depois do login com Google, que não passa pelo formulário de criar conta.</div>';
  return h+'</div></main>';
 }
-function finishSignup(){S.session=S.signupRole?"artist":"client";S.roleSource="signup_trigger";go(S.signupRole?"studio-onboarding":"me")}
-function finishGate(){S.session=S.gateRole?"artist":"client";S.roleSource="role_select_gate";go(S.gateRole?"studio-onboarding":"me")}
-function becomeArtist(){S.session="artist";S.roleSource="upgrade";go("studio-onboarding")}
+
+function finishGate(){
+ var p=S.gateRole;
+ S.cad.perfil=p; S.roleSource="role_select_gate";
+ if(p==="tatuador"){ S.session="artist"; S.cad.passo=1; go("cadastro"); }
+ else if(p==="fornecedor"){ S.cad.passo=1; go("cadastro"); }
+ else { S.session="client"; go("me"); }
+}
+function becomeArtist(){
+ S.session="artist";S.roleSource="upgrade";
+ S.cad.perfil="tatuador";S.cad.passo=1;S.onbStep=1;
+ go("cadastro");
+}
 
 /* ============ SHELL me/studio ============ */
 var ME_NAV=[["me","Visão geral","▦"],["me-quotes","Meus orçamentos","📥"],["me-history","Histórico","🕘"],["me-payments","Pagamentos","🧾"]];
@@ -1683,26 +1861,10 @@ function irPasso(destino){
  render();
 }
 
-function vOnb(){
- var st=S.onbStep;
- // Se a pessoa desmarcou o orçamento estando nele, sai do passo órfão
- if(st===4&&!S.onbQuerOrcamento) st=S.onbStep=3;
- // Estilo deixou de ser obrigatório: muitos tatuadores não se encaixam num
- // rótulo, e exigir isso na porta de entrada barra gente boa. Sem estilo, o
- // perfil existe e aparece — só não entra no matching por estilo.
- var can=(st===1&&S.onbName.trim().length>1)||st>=2;
- // O passo de orçamento só existe se a pessoa pedir. A maioria quer entrar
- // rápido; quem já tem um jeito próprio de precificar é que quer configurar.
- var ROTEIRO=passosDoOnboarding();
- var TOTAL=ROTEIRO.length;
- var pos=ROTEIRO.map(function(p){return p.n}).indexOf(st)+1;
- var atual=ROTEIRO.filter(function(p){return p.n===st})[0]||ROTEIRO[0];
- var h='<main><div class="wrap" style="max-width:620px">';
- h+='<div class="kicker">Ambiente do tatuador</div><h1 class="page" style="margin-top:3px">Vamos montar seu perfil</h1>';
- h+='<div class="steps">';ROTEIRO.forEach(function(p,i){h+='<i class="'+(i<pos?"on":"")+'"></i>'});h+='</div>';
- h+='<div class="tiny muted" style="margin-top:7px">Passo '+pos+' de '+TOTAL+' · '+atual.t+'</div>';
- h+='<div class="card pad" style="margin-top:14px">';
-
+/* Corpo dos passos do tatuador, isolado para o fluxo de criar conta
+   reaproveitar. Antes vivia dentro de vOnb e não dava para reusar. */
+function corpoOnboarding(st){
+ var h='';
  if(st===1){
   h+='<div class="grid" style="gap:11px">';
   h+='<div><label class="lb">Nome de exibição *</label><input class="fld" value="'+S.onbName+'" oninput="S.onbName=this.value;renderOnbBtn()" placeholder="Como você assina seu trabalho" /></div>';
@@ -1832,72 +1994,10 @@ function vOnb(){
    h+='<div class="tiny muted" style="margin-top:10px;padding:9px 11px;background:var(--muted);border-radius:8px">Sem estilo definido, seu perfil aparece no catálogo mas não entra no encaminhamento automático de orçamentos. Dá para definir depois.</div>';
   h+='<div class="banner" style="margin-top:13px"><div><div class="b small">Publicar perfil no feed público</div><div class="tiny muted">Você pode despublicar quando quiser. Sem publicar, ninguém encontra seu perfil.</div></div></div>';
  }
- if(S.modo==="real"&&S.onbMsg)
-  h+='<div class="banner" style="margin-top:12px;'+(S.onbErro?'background:var(--x-danger-bg);border-color:var(--x-danger)':'')+'"><div class="small"'+(S.onbErro?' style="color:var(--x-danger)"':'')+'>'+S.onbMsg+'</div></div>';
 
- h+='<div class="row" style="margin-top:16px"><button class="btn" '+(pos===1?"disabled":"")+' onclick="irPasso('+passoAnterior(st)+')">← Voltar</button>';
- if(st===2||st===3)h+='<button class="btn" onclick="irPasso('+passoSeguinte(st)+')">Pular</button>';
- var ultimo = pos===TOTAL;
- var acao = ultimo
-  ? (S.modo==="real" ? "concluirOnboardingReal()" : "go('studio')")
-  : "irPasso("+passoSeguinte(st)+")";
- h+='<button class="btn primary sp" id="onbNext" '+(can?"":"disabled")+' onclick="'+acao+'">'+(ultimo?(S.modo==="real"?"Publicar no banco":"Publicar e ir ao painel"):"Continuar →")+'</button></div>';
- return h+'</div></div></main>';
+ return h;
 }
 
-async function carregarPrecos(){
- if(S.carregandoPrecos)return; S.carregandoPrecos=true;
- try{S.precos=await window.Dados.listarMeusPrecos()}
- catch(e){S.precos=[];S.prErro=true;S.prMsg=e.message||String(e)}
- S.carregandoPrecos=false;render();
-}
-async function gravarPreco(){
- var n=S.prNovo;
- if(!n.min||!n.max){S.prErro=true;S.prMsg="Informe o valor mínimo e o máximo.";render();return}
- S.prMsg="Salvando…";S.prErro=false;render();
- try{
-  await window.Dados.salvarPreco({
-   estilo:n.estilo, tamanho:n.tamanho,
-   minCents:Math.round(+n.min*100), maxCents:Math.round(+n.max*100),
-   horas:n.horas?+n.horas:null
-  });
-  S.precos=null; S.prNovo={estilo:n.estilo,tamanho:n.tamanho,min:"",max:"",horas:""};
-  S.prMsg="Faixa salva. Ela já aparece no seu perfil público.";
- }catch(e){S.prErro=true;S.prMsg=e.message||String(e)}
- render();
-}
-async function apagarPreco(id){
- try{await window.Dados.removerPreco(id);S.precos=null;S.prMsg="Faixa removida.";S.prErro=false}
- catch(e){S.prErro=true;S.prMsg=e.message||String(e)}
- render();
-}
-async function subirPortfolio(arquivos){
- if(!arquivos||!arquivos.length)return;
- S.onbMsg="Enviando "+arquivos.length+" imagem(ns)…";S.onbErro=false;render();
- var ok=0,falhas=[];
- for(var i=0;i<arquivos.length;i++){
-  try{
-   var item=await window.Dados.enviarImagemDoPortfolio(arquivos[i],null);
-   S.onbFotos=(S.onbFotos||[]).concat([item]);
-   ok++;
-  }catch(e){falhas.push(arquivos[i].name+": "+(e.message||e))}
-  S.onbMsg="Enviando… "+(i+1)+" de "+arquivos.length;render();
- }
- S.onbErro=falhas.length>0;
- S.onbMsg=falhas.length
-  ? ok+" enviada(s). Falhou: "+falhas.join(" | ")
-  : ok+" imagem(ns) no banco.";
- S.reaisArtistas=null;
- render();
-}
-async function removerFoto(id,url){
- try{
-  await window.Dados.removerDoPortfolio(id,url);
-  S.onbFotos=(S.onbFotos||[]).filter(function(f){return f.id!==id});
-  S.reaisArtistas=null;S.onbMsg="Imagem removida.";S.onbErro=false;
- }catch(e){S.onbErro=true;S.onbMsg=e.message||String(e)}
- render();
-}
 function subirModeloOrcamento(arquivos){
  if(!arquivos||!arquivos.length)return;
  var a=arquivos[0];
@@ -2686,7 +2786,7 @@ function render(){
  else if(r==="artist")h=vArtist();
  else if(r==="plataforma")h=vLanding();
  else if(r==="auth")h=vAuth();
- else if(r==="signup")h=vSignup();
+ else if(r==="cadastro"||r==="signup")h=vCadastro();
  else if(r==="gate")h=vGate();
  else if(r.indexOf("me")===0)h=isLog()?vMe(r):vAuth();
  else if(r.indexOf("studio")===0)h=isLog()?vStudio(r):vAuth();
