@@ -872,6 +872,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  chatOpen:null,chatFilter:"all",chatQ:"",notifFilter:"all",notifs:NOTIFS.map(function(n){return{...n}}),
  sqSel:"s1",onbStep:1,onbName:"",onbStyles:[],onbPort:0,pfTab:"info",menu:false,autoAssist:false,
  sqSelAg:null,agArtist:null,agDia:null,agHora:null,agFeito:false,destaqueAtivo:false,
+ voltarPara:null,voltarArtista:null,
  ue:{custo:0.35,qtd:40,destaque:120,adesao:12,gmv:600,take:12},
  modo:"demo",conn:null,papeis:null,regMsg:"",regErro:false,
  reg:{nome:"",email:"",senha:"",artista:null},
@@ -897,7 +898,54 @@ function ini(n){return n.split(" ").map(function(x){return x[0]}).slice(0,2).joi
 function tg(k){return '<span class="badge '+(k==="real"?"ok":k==="novo"?"acc":"bad")+'" style="margin-left:5px">'+k+'</span>'}
 function isLog(){return S.session!=="anon"}
 function isArt(){return S.session==="artist"}
-function go(r,a){S.route=r;if(r==="artist")S.artist=a;window.scrollTo(0,0);render()}
+/* ═══ PERSISTÊNCIA ═══════════════════════════════════════════════
+   Até aqui um F5 apagava tudo: sessão, carrinho, seguidos, curtidas,
+   progresso de cadastro e a própria tela. Num teste com gente de
+   verdade isso não é incômodo, é perda de dado — a pessoa some do
+   funil por um recarregamento e a leitura fica errada.
+
+   Guardamos uma lista fechada de chaves, não o S inteiro: o estado
+   também carrega o que veio do banco (artistas, preços, portfólio),
+   que precisa ser buscado de novo e não sobreviver em cache velho. */
+var CHAVE_ESTADO="ink.estado.v1";
+var GUARDA=["session","route","artist","tab","modo","seguindo","curtidas","cart",
+ "cad","perfilLanding","abaPerfil","shopAud","shopCat","shopQ","evAba","q",
+ "destaqueAtivo","roleSource","voltarPara","voltarArtista","onbStep","onbName","onbStyles","onbQuerOrcamento",
+ "notifFilter","pfTab","ue","f","feedLote","caro","cep"];
+function salvarEstado(){
+ try{var o={};GUARDA.forEach(function(k){if(S[k]!==undefined)o[k]=S[k]});
+  localStorage.setItem(CHAVE_ESTADO,JSON.stringify(o))}catch(e){}
+}
+function restaurarEstado(){
+ try{var o=JSON.parse(localStorage.getItem(CHAVE_ESTADO)||"{}");
+  GUARDA.forEach(function(k){if(o[k]!==undefined)S[k]=o[k]})}catch(e){}
+}
+function limparEstado(){try{localStorage.removeItem(CHAVE_ESTADO)}catch(e){}}
+
+/* A rota também mora na URL. Assim o botão voltar do navegador funciona,
+   e um link colado leva a pessoa exatamente para onde você quer. */
+function urlDaRota(){return "#/"+S.route+(S.route==="artist"?"/"+S.artist:"")}
+function rotaDaURL(){
+ try{
+  var h=(location.hash||"").replace(/^#\/?/,"");
+  if(!h)return null;
+  var pe=h.split("/");
+  return {rota:pe[0],artista:pe[1]||null};
+ }catch(e){return null}
+}
+function aplicarURL(){
+ var u=rotaDaURL();
+ if(!u||!u.rota)return false;
+ S.route=u.rota;
+ if(u.artista)S.artist=u.artista;
+ return true;
+}
+function go(r,a){
+ S.route=r;if(r==="artist")S.artist=a;
+ try{if(location.hash!==urlDaRota())location.hash=urlDaRota()}catch(e){}
+ try{window.scrollTo(0,0)}catch(e){}
+ render();
+}
 function toggleDark(){var h=document.documentElement;if(h.hasAttribute("data-dark"))h.removeAttribute("data-dark");else h.setAttribute("data-dark","")}
 function set(k,v){S[k]=v;render()}
 function setf(k,v){S.f[k]=v;render()}
@@ -1135,8 +1183,8 @@ function publicacao(a){
 
  h+='<div class="row" style="margin-top:7px">'+cifroes(a)+'<span class="tiny muted">por hora</span>';
  h+='<div class="row sp" style="gap:6px">';
- h+='<button class="btnicone" title="Pedir orçamento" aria-label="Pedir orçamento" onclick="quoteFor(\''+a.id+'\',\'quote\')">👛</button>';
- h+='<button class="btnicone" title="Agendar sessão" aria-label="Agendar sessão" onclick="quoteFor(\''+a.id+'\',\'schedule\')">🗓</button></div></div>';
+ h+='<button class="btnicone" title="Pedir orçamento" aria-label="Pedir orçamento" onclick="quoteFor(\''+a.id+'\')">👛</button>';
+ h+='<button class="btnicone" title="Ver agenda" aria-label="Ver agenda" onclick="verAgenda(\''+a.id+'\')">🗓</button></div></div>';
 
  if(nCurtidas||segue){
   h+='<div class="tiny" style="margin-top:7px;color:var(--accent)">';
@@ -1211,8 +1259,8 @@ function aCard(a){
  h+='<div class="row" style="margin-top:11px;padding-top:4px">';
  h+='<button class="btn primary" style="padding:8px 18px" onclick="go(\'artist\',\''+a.id+'\')">Perfil</button>';
  h+='<div class="row sp" style="gap:5px">';
- h+='<button class="btn sm" title="Orçar" style="width:34px;padding:8px 0" onclick="quoteFor(\''+a.id+'\',\'quote\')">👛</button>';
- h+='<button class="btn sm" title="Agendar" style="width:34px;padding:8px 0" onclick="quoteFor(\''+a.id+'\',\'schedule\')">🗓</button>';
+ h+='<button class="btn sm" title="Orçar" style="width:34px;padding:8px 0" onclick="quoteFor(\''+a.id+'\')">👛</button>';
+ h+='<button class="btn sm" title="Ver agenda" style="width:34px;padding:8px 0" onclick="verAgenda(\''+a.id+'\')">🗓</button>';
  h+='</div></div></div></div>';
  return h;
 }
@@ -1255,7 +1303,10 @@ function renderFeedOnly(){
  ligarScrollInfinito();
 }
 /* Como no app real: os botões levam para /artists/$id?action=… e o assistente abre lá */
-function quoteFor(id,intent){S.assistArtist=id;S.assistIntent=intent;S.aiStep=0;S.autoAssist=true;go("artist",id)}
+/* Só orçamento. A intenção 'schedule' foi removida: agendar tem gaveta
+   própria desde que verAgenda existe, e manter as duas apontando para o
+   mesmo assistente era a redundância que confundia o botão. */
+function quoteFor(id){S.assistArtist=id;S.aiStep=0;S.autoAssist=true;go("artist",id)}
 
 /* --- agenda do tatuador --- */
 function verAgenda(id){S.agArtist=id;S.agDia=null;S.agHora=null;S.agFeito=false;openDrawer("agenda")}
@@ -1279,7 +1330,7 @@ function agendaBody(){
  // Agenda fechada nao e beco: e a conversa, que e como se marca hoje.
  if(!a.agenda){
   h+='<p class="small muted">Este tatuador prefere não exibir a agenda publicamente. Combine o horário direto com ele.</p>';
-  h+='<button class="btn primary blk" style="margin-top:12px" onclick="'+(isLog()?"openDrawer('chat')":"closeDrawer();go('auth')")+'">💬 Pedir um horário</button>';
+  h+='<button class="btn primary blk" style="margin-top:12px" onclick="'+(isLog()?"openDrawer('chat')":"closeDrawer();irCadastro(null)")+'">💬 Pedir um horário</button>';
   return h;
  }
  if(S.agFeito){
@@ -1306,7 +1357,7 @@ function agendaBody(){
   h+='</div>';
  }
  h+='<button class="btn primary blk" style="margin-top:16px"'+(S.agHora?'':' disabled')+
-    ' onclick="'+(isLog()?"S.agFeito=true;renderDrawer()":"closeDrawer();go('auth')")+'">Solicitar este horário</button>';
+    ' onclick="'+(isLog()?"S.agFeito=true;renderDrawer()":"closeDrawer();irCadastro(null)")+'">Solicitar este horário</button>';
  h+='<p class="tiny muted" style="margin-top:8px">A solicitação não bloqueia a agenda até o tatuador confirmar.</p>';
  return h;
 }
@@ -1573,9 +1624,9 @@ function vArtist(){
  // é preferência de feed, não contato.
  var seg=S.seguindo.indexOf(a.id)>=0;
  h+='<div class="acoestrio">';
- h+=acaoIcone("✨","Pedir orçamento","quoteFor('"+a.id+"','quote')","principal");
+ h+=acaoIcone("✨","Pedir orçamento","quoteFor('"+a.id+"')","principal");
  h+=acaoIcone("🗓","Ver agenda","verAgenda('"+a.id+"')");
- h+=acaoIcone("💬","Conversar",isLog()?"openDrawer('chat')":"go('auth')");
+ h+=acaoIcone("💬","Conversar",isLog()?"openDrawer('chat')":"irCadastro(null)");
  h+=acaoIcone(seg?"✓":"👤",seg?"Seguindo — aparece mais no seu feed":"Seguir — aparece mais no seu feed","alternarSeguir('"+a.id+"')",seg?"ativa":"");
  h+='</div>';
 
@@ -1816,9 +1867,19 @@ function roteiroCadastro(){
  if(p==="fornecedor") r=r.concat([{id:"empresa",t:"Sua empresa"},{id:"catalogo",t:"O que você fornece"},{id:"pronto",t:"Tudo pronto"}]);
  return r;
 }
-function irCadastro(perfil){
+/* Entrar e criar conta são a mesma porta desde que o cadastro virou
+   fluxo único. 'auth' continua respondendo só para não quebrar link
+   antigo; nenhum botão aponta mais para lá.
+
+   voltarPara guarda de onde a pessoa veio. Quem clicou em Conversar e
+   foi mandada para o cadastro volta ao perfil do tatuador, não para a
+   home — perder o contexto no meio do caminho é o que faz gente
+   desistir. */
+function irCadastro(perfil,voltar){
  S.cad={passo:0,perfil:perfil||null,nome:"",email:"",senha:"",msg:"",erro:false};
  S.onbStep=1;
+ S.voltarPara = voltar || (S.route!=="cadastro"&&S.route!=="auth" ? S.route : null);
+ S.voltarArtista = S.artist;
  go("cadastro");
 }
 function passoCad(){
@@ -1850,6 +1911,9 @@ function concluirCadastro(){
  if(p==="tatuador"){
   S.pf={nome:S.onbName,estudio:S.onbEstudio,cidade:S.onbCidade,uf:S.onbUf,estilos:S.onbStyles.slice(),publicado:true};
   go("studio");
+ }else if(S.voltarPara){
+  var v=S.voltarPara,va=S.voltarArtista;S.voltarPara=null;
+  go(v,va);
  }else{
   go("me");
  }
@@ -2521,7 +2585,7 @@ function studioProfile(){
 /* ============ DRAWERS ============ */
 /* No app real os drawers do TopBar abrem para qualquer visitante — o login
    só é exigido na ação final (enviar pedido, finalizar compra). */
-function openDrawer(k){S.menu=false;S.drawer=k;renderDrawer();renderTop()}
+function openDrawer(k){S.menu=false;S.drawer=k;renderDrawer();renderTop();salvarEstado()}
 function closeDrawer(){S.drawer=null;renderDrawer()}
 function renderDrawer(){
  var host=document.getElementById("drawerHost");
@@ -2557,7 +2621,7 @@ function hubBody(){
  }
  var h=back+'<div class="b small" style="margin-top:11px">Recomendações para você</div><div class="tiny muted">Com base nos estilos que você buscou e na sua cidade.</div><div style="margin-top:7px">';
  ARTISTS.slice(0,5).forEach(function(a){
-  h+='<div class="lrow"><div class="av">'+ini(a.name)+'</div><div style="min-width:0"><div class="b small">'+a.name+'</div><div class="tiny muted">'+a.styles.map(function(s){return SL[s]}).join(", ")+' · '+a.city+'</div></div><div class="sp" style="text-align:right"><div>'+cifroes(a)+'</div><button class="btn sm" style="margin-top:3px" onclick="quoteFor(\''+a.id+'\',\'quote\')">Orçar</button></div></div>'});
+  h+='<div class="lrow"><div class="av">'+ini(a.name)+'</div><div style="min-width:0"><div class="b small">'+a.name+'</div><div class="tiny muted">'+a.styles.map(function(s){return SL[s]}).join(", ")+' · '+a.city+'</div></div><div class="sp" style="text-align:right"><div>'+cifroes(a)+'</div><button class="btn sm" style="margin-top:3px" onclick="quoteFor(\''+a.id+'\')">Orçar</button></div></div>'});
  return h+'</div>';
 }
 function assistBody(){
@@ -2587,13 +2651,13 @@ function assistBody(){
   h+='<table class="t" style="margin-top:7px"><tr><th>Estilo</th><th>Tamanho</th><th style="text-align:right">Faixa</th></tr>';
   PRICING.slice(0,5).forEach(function(p){h+='<tr><td class="small">'+SL[p[0]]+'</td><td class="small muted">'+SIZE_L[p[1]]+'</td><td style="text-align:right" class="small">'+brl(p[2])+'–'+brl(p[3])+'</td></tr>'});
   h+='</table></details>';
-  h+='<button class="btn primary blk" style="margin-top:12px" onclick="'+(isLog()?"S.aiStep=2;renderDrawer()":"closeDrawer();go('auth')")+'">'+(S.assistIntent==="schedule"?"Enviar pedido de agendamento":"Enviar pedido a estes tatuadores")+'</button>';
+  h+='<button class="btn primary blk" style="margin-top:12px" onclick="'+(isLog()?"S.aiStep=2;renderDrawer()":"closeDrawer();irCadastro(null)")+'">'+"Enviar pedido a estes tatuadores"+'</button>';
   if(!isLog())h+='<div class="tiny muted" style="margin-top:5px;text-align:center">Requer login</div>';
   h+='<button class="btn blk" style="margin-top:6px" onclick="S.aiStep=0;renderDrawer()">← Refazer análise</button>';
   return h;
  }
  var h='';
- if(a)h+='<div class="banner" style="margin-bottom:11px"><div class="av">'+ini(a.name)+'</div><div><div class="b small">'+(S.assistIntent==="schedule"?"Agendar com ":"Orçar com ")+a.name+'</div><div class="tiny muted">'+a.studio+' · '+a.city+'</div></div></div>';
+ if(a)h+='<div class="banner" style="margin-bottom:11px"><div class="av">'+ini(a.name)+'</div><div><div class="b small">'+"Orçar com "+a.name+'</div><div class="tiny muted">'+a.studio+' · '+a.city+'</div></div></div>';
  h+='<p class="small muted">Envie fotos de referência e, se quiser, do local do corpo. A IA sugere estilo, complexidade e faixa de preço.</p>';
  h+='<div class="tiny muted" style="margin-top:12px">Referências ('+S.aiRefs+'/8)</div>';
  h+='<div class="row wrapf" style="gap:7px;margin-top:5px">';
@@ -3049,16 +3113,19 @@ function render(){
  else if(r==="home")h=vHome();
  else if(r==="artist")h=vArtist();
  else if(r==="plataforma")h=vLanding();
- else if(r==="auth")h=vAuth();
- else if(r==="cadastro"||r==="signup")h=vCadastro();
+ // 'auth' e 'cadastro' eram dois nomes para a mesma tela desde que o
+ // cadastro virou fluxo único. E vAuth nunca existiu: anônimo em rota
+ // protegida caía num ReferenceError e via tela em branco.
+ else if(r==="auth"||r==="cadastro"||r==="signup")h=vCadastro();
  else if(r==="gate")h=vGate();
- else if(r.indexOf("me")===0)h=isLog()?vMe(r):vAuth();
- else if(r.indexOf("studio")===0)h=isLog()?vStudio(r):vAuth();
+ else if(r.indexOf("me")===0)h=isLog()?vMe(r):vCadastro();
+ else if(r.indexOf("studio")===0)h=isLog()?vStudio(r):vCadastro();
  document.getElementById("app").innerHTML=icons(h);
  document.getElementById("sessionSel").value=S.session;
  if(r==="modelo")calcUE();
  if(r==="home")ligarScrollInfinito();
  if(S.autoAssist){S.autoAssist=false;openDrawer("assist")}
+ salvarEstado();
 }
 document.getElementById("sessionSel").addEventListener("change",function(e){
  S.session=e.target.value;
@@ -3070,7 +3137,18 @@ document.getElementById("sessionSel").addEventListener("change",function(e){
 ["staticSearchIc","staticTheme"].forEach(function(id){
  var e=document.getElementById(id);if(e)e.innerHTML=icons(e.innerHTML);
 });
+
+/* Ordem importa: o que estava salvo primeiro, a URL por cima. Um link
+   compartilhado tem que ganhar da última tela em que a pessoa estava. */
+restaurarEstado();
+aplicarURL();
+try{
+ window.addEventListener("hashchange",function(){
+  if(aplicarURL())render();
+ });
+}catch(e){}
 render();
+try{if(!location.hash)location.hash=urlDaRota()}catch(e){}
 </script>
 </body>
 </html>
