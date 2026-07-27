@@ -364,41 +364,27 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 .bub{max-width:78%;padding:8px 11px;border-radius:13px;font-size:13px;margin-bottom:7px}
 .bub.them{background:var(--muted);border-bottom-left-radius:4px}
 .bub.me{background:var(--primary);color:var(--primary-foreground);margin-left:auto;border-bottom-right-radius:4px}
-/* Vantagens: margens da página iguais às das outras telas (vêm do .wrap),
-   e os blocos de leitura centrados dentro delas. */
-/* Escolha de perfil em linha: três opções compactas, sem descrição.
-   Empilhadas ocupavam meia tela num passo que já tem três campos. */
-.perfis{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px}
-.perfilopt{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px;
-  border:1px solid var(--border);border-radius:11px;background:var(--card);text-align:center}
-.perfilopt:hover{border-color:var(--muted-foreground)}
-.perfilopt.on{border-color:var(--accent);background:var(--x-accent-bg)}
-.perfilopt .ic{font-size:19px;color:var(--accent);line-height:1}
-.perfilopt .ic .ico{width:21px;height:21px}
-.perfilopt .nome{font-size:12.5px;font-weight:600}
-.perfilopt .badge{font-size:9.5px;padding:1px 6px}
-/* Separador 'ou' entre email e Google */
-.ou{display:flex;align-items:center;gap:11px;margin:13px 0 11px}
-.ou::before,.ou::after{content:"";flex:1;height:1px;background:var(--border)}
-.ou span{font-size:11px;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:.1em}
-/* Rodapé dos passos: navegação nas pontas, atalho de login ao centro */
-.rodapepassos{display:flex;align-items:center;gap:10px;margin-top:16px}
-.rodapepassos .lado{display:flex;gap:8px;flex:0 0 auto}
-.rodapepassos .meio{flex:1;text-align:center;font-size:12.5px;color:var(--muted-foreground);min-width:0}
-.rodapepassos .meio a{color:var(--accent);font-weight:600;cursor:pointer}
-@media(max-width:460px){
-  .rodapepassos .meio{font-size:11.5px}
-  .perfilopt{padding:10px 4px}
-  .perfilopt .nome{font-size:11.5px}
-}
-.acoescentro{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:16px}
-.segmento.centrado{max-width:420px;margin-left:auto;margin-right:auto}
-.blococentro{max-width:620px;margin-left:auto;margin-right:auto;text-align:center}
-.blococentro.banner{text-align:left}
-.gradeconteudo{display:grid;gap:14px;margin-top:20px;max-width:900px;margin-left:auto;margin-right:auto;
+/* Vantagens: margens da página vêm do .wrap, iguais às demais telas.
+   O ritmo vertical tem três degraus, para o olho separar os níveis:
+     14px  entre coisas do mesmo bloco
+     26px  entre bloco e bloco
+     40px  entre seções
+   No celular cada degrau encolhe, senão a página vira rolagem vazia. */
+.acoescentro{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:6px}
+.segmento.centrado{max-width:420px;margin:26px auto 0}
+.blococentro{max-width:620px;margin:26px auto 0;text-align:center}
+.blococentro.banner{text-align:left;margin-top:16px}
+.gradeconteudo{display:grid;gap:14px;margin:26px auto 0;max-width:900px;
   grid-template-columns:repeat(3,1fr)}
+.secao{margin-top:40px}
+.secao + .gradeconteudo{margin-top:14px}
 @media(max-width:1100px){.gradeconteudo{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:699px){.gradeconteudo{grid-template-columns:1fr}}
+@media(max-width:699px){
+  .gradeconteudo{grid-template-columns:1fr;gap:11px;margin-top:20px}
+  .segmento.centrado{margin-top:20px}
+  .blococentro{margin-top:20px}
+  .secao{margin-top:30px}
+}
 .vantagem{display:flex;flex-direction:column}
 .vantagem .small.muted{flex:1}
 .plan{border:1px solid var(--border);border-radius:var(--radius);padding:18px;background:var(--card);position:relative}
@@ -1534,7 +1520,7 @@ function vLanding(){
   h+='<button class="seg '+(k===x?"on":"")+'" onclick="S.perfilLanding=\''+x+'\';render()">'+PERFIS[x].rotulo+'</button>'});
  h+='</div>';
 
- h+='<div class="blococentro">';
+ h+='<div class="blococentro" style="margin-top:30px">';
  h+='<h1 style="font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.2">'+p.titulo+'</h1>';
  h+='<p class="sub" style="font-size:14.5px">'+p.linha+'</p></div>';
 
@@ -1551,8 +1537,8 @@ function vLanding(){
  });
  h+='</div>';
 
- h+='<div class="blococentro" style="margin-top:26px"><span class="b" style="font-size:15px">Como funciona</span></div>';
- h+='<div class="gradeconteudo" style="margin-top:10px">';
+ h+='<div class="blococentro secao"><span class="b" style="font-size:15px">Como funciona</span></div>';
+ h+='<div class="gradeconteudo">';
  p.passos.forEach(function(x,i){
   h+='<div class="card pad vantagem"><div class="av" style="background:var(--primary);color:var(--primary-foreground);width:26px;height:26px;font-size:11px">'+(i+1)+'</div>';
   h+='<div class="b small" style="margin-top:8px">'+x[0]+'</div>';
@@ -1560,15 +1546,15 @@ function vLanding(){
  });
  h+='</div>';
 
- h+='<div class="card pad blococentro" style="margin-top:26px">';
+ h+='<div class="card pad blococentro secao">';
  h+='<div class="b">'+p.titulo+'</div>';
  h+='<button class="btn primary" style="margin-top:12px" onclick="'+p.ctaAcao+'">'+p.cta+'</button></div>';
 
  if(p.planos){
-  h+='<div class="blococentro" style="margin-top:34px"><span class="badge">Planos</span>';
+  h+='<div class="blococentro secao" style="margin-top:48px"><span class="badge">Planos</span>';
   h+='<h2 style="font-size:21px;font-weight:700;margin-top:6px;letter-spacing:-.02em">Comece de graça</h2>';
   h+='<p class="sub">Evolua quando o volume de pedidos justificar.</p></div>';
-  h+='<div class="gradeconteudo" style="margin-top:16px;align-items:start">';
+  h+='<div class="gradeconteudo" style="align-items:start">';
   PLANS.forEach(function(x){
    h+='<div class="plan '+(x.hl?"hl":"")+'">'+(x.rib?'<span class="rib">'+x.rib+'</span>':'');
    h+='<div class="b" style="font-size:15px">'+x.n+'</div><div class="tiny muted">'+x.tl+'</div>';
@@ -1578,7 +1564,7 @@ function vLanding(){
    h+='</div><button class="btn '+(x.hl?"primary":"")+' blk" style="margin-top:11px" onclick="irCadastro(\'tatuador\')">'+x.cta+'</button></div>';
   });
   h+='</div>';
-  h+='<div class="tiny muted blococentro" style="margin-top:9px">Planos desenhados, sem cobrança implementada.</div>';
+  h+='<div class="tiny muted blococentro" style="margin-top:11px">Planos desenhados, sem cobrança implementada.</div>';
  }
 
  return h+'</div></main>';
