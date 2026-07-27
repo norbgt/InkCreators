@@ -84,6 +84,11 @@ a{color:inherit;text-decoration:none}
 .ico{width:1em;height:1em;display:inline-block;vertical-align:-.14em;flex-shrink:0}
 .iconbtn .ico{width:19px;height:19px;vertical-align:0}
 .stars{display:inline-flex;gap:1px;vertical-align:-.14em}
+/* Faixa de preço em cifrões. O valor exato depende do desenho, então
+   número solto no perfil vira promessa que o orçamento não cumpre. */
+.cifra{font-weight:700;letter-spacing:.06em;color:color-mix(in oklab, var(--muted-foreground) 42%, transparent)}
+.cifra b{color:var(--foreground);font-weight:700}
+.cifra.g{font-size:19px;letter-spacing:.08em}
 .stars .ico{width:.92em;height:.92em;vertical-align:0}
 .pcard .im .ico{width:40px;height:40px;stroke-width:1.2;color:var(--muted-foreground)}
 .thumb .ico,.datebox .ico{width:19px;height:19px}
@@ -388,10 +393,17 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 }
 /* Trio de ações: mesma escala do botão Seguir, em linha. Rolam na
    horizontal se um rótulo crescer, em vez de quebrar linha. */
-.acoestrio{display:flex;gap:6px;margin-top:11px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.acoestrio::-webkit-scrollbar{display:none}
-.acoestrio .btn{flex-shrink:0;white-space:nowrap;padding:7px 10px;font-size:12.5px}
-@media(max-width:460px){.acoestrio .btn{padding:7px 8px;font-size:12px;gap:4px}}
+/* Quatro ações do perfil: mesma largura, sem rótulo. O nome vive no
+   title e no aria-label — quem usa leitor de tela continua ouvindo. */
+.acoestrio{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.acaoic{display:flex;align-items:center;justify-content:center;height:38px;
+  border:1px solid var(--border);background:var(--card);border-radius:10px;
+  color:var(--foreground);transition:background .15s ease,border-color .15s ease}
+.acaoic svg{width:17px;height:17px}
+.acaoic:hover{border-color:var(--muted-foreground)}
+.acaoic.principal{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.acaoic.ativa{background:var(--accent);border-color:var(--accent);color:var(--primary-foreground)}
+@media(pointer:coarse){.acaoic{height:44px}}
 
 /* Perfil em coluna única, largura de leitura. Dimensionado pelo celular:
    o que cabe em 393px cabe em qualquer lugar. */
@@ -695,6 +707,7 @@ var ARTISTS=NAMES.map(function(n,i){
  return {id:"a"+i,name:n,studio:"Studio "+n.split(" ")[0],city:c[0],state:c[1],styles:st,cx:cx,
   bio:BIOS[i%5],years:2+(i%10),rating:+(4.2+((i*7)%8)/10).toFixed(1),reviews:12+(i*11)%180,
   min:min,max:max,verified:i%4===0,insta:i%3===0,seed:i,months:3+(i*5)%42,empty:i===10,
+  agenda:i%5!==3,
   port:[0,1,2,3,4,5,6,7,8].map(function(k){return i*9+k})};
 });
 var SHOP_CATS={
@@ -831,6 +844,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  qStatus:"todos",hub:"menu",aiStep:0,aiRefs:2,
  chatOpen:null,chatFilter:"all",chatQ:"",notifFilter:"all",notifs:NOTIFS.map(function(n){return{...n}}),
  sqSel:"s1",onbStep:1,onbName:"",onbStyles:[],onbPort:0,pfTab:"info",menu:false,autoAssist:false,
+ sqSelAg:null,agArtist:null,agDia:null,agHora:null,agFeito:false,
  ue:{custo:0.35,qtd:40,preco:49,take:8},
  modo:"demo",conn:null,papeis:null,regMsg:"",regErro:false,
  reg:{nome:"",email:"",senha:"",artista:null},
@@ -845,6 +859,13 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
 function brl(c){return "R$ "+(c/100).toLocaleString("pt-BR",{maximumFractionDigits:0})}
 function money(v){return v===0?"Grátis":"R$ "+v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}
 function stars(r){var f=Math.round(r);return '<span class="stars">'+"★★★★★".slice(0,f)+"☆☆☆☆☆".slice(0,5-f)+'</span>'}
+/* Cinco faixas, mesma gramática das estrelas: leitura instantanea, sem
+   fixar um numero que so o orcamento sabe. */
+function faixaPreco(a){var h=a.min/100;return h<150?1:h<200?2:h<250?3:h<300?4:5}
+function cifroes(a,g){var f=faixaPreco(a);
+ return '<span class="cifra'+(g?" g":"")+'"><b>'+"$$$$$".slice(0,f)+'</b>'+"$$$$$".slice(0,5-f)+'</span>'}
+function acaoIcone(ic,rot,acao,cls){
+ return '<button class="acaoic'+(cls?" "+cls:"")+'" onclick="'+acao+'" title="'+rot+'" aria-label="'+rot+'">'+ic+'</button>'}
 function ini(n){return n.split(" ").map(function(x){return x[0]}).slice(0,2).join("")}
 function tg(k){return '<span class="badge '+(k==="real"?"ok":k==="novo"?"acc":"bad")+'" style="margin-left:5px">'+k+'</span>'}
 function isLog(){return S.session!=="anon"}
@@ -1079,7 +1100,7 @@ function publicacao(a){
  h+=a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("");
  h+='<span class="tiny muted sp">★ '+a.rating+' ('+a.reviews+')</span></div>';
 
- h+='<div class="row" style="margin-top:7px"><span class="b small">'+brl(a.min)+' – '+brl(a.max)+'</span><span class="tiny muted">/hora</span>';
+ h+='<div class="row" style="margin-top:7px">'+cifroes(a)+'<span class="tiny muted">por hora</span>';
  h+='<div class="row sp" style="gap:6px">';
  h+='<button class="btnicone" title="Pedir orçamento" aria-label="Pedir orçamento" onclick="quoteFor(\''+a.id+'\',\'quote\')">👛</button>';
  h+='<button class="btnicone" title="Agendar sessão" aria-label="Agendar sessão" onclick="quoteFor(\''+a.id+'\',\'schedule\')">🗓</button></div></div>';
@@ -1112,7 +1133,7 @@ function publicacao(a){
 function alternarSeguir(id){
  var i=S.seguindo.indexOf(id);
  if(i>=0)S.seguindo.splice(i,1);else S.seguindo.push(id);
- renderFeedOnly();
+ if(S.route==="artist")render();else renderFeedOnly();
 }
 function alternarCurtida(id,idx){
  var c=id+":"+idx, i=S.curtidas.indexOf(c);
@@ -1149,7 +1170,7 @@ function aCard(a){
  h+='<div class="tiny muted">'+a.studio+'</div>';
  h+='<div class="tiny muted">📍 '+a.city+'/'+a.state+'</div></div>';
  h+='<div style="text-align:right"><div class="small b">★ '+a.rating+'</div><div class="tiny muted">('+a.reviews+')</div>';
- h+='<div class="tiny b" style="margin-top:4px">'+brl(a.min)+' – '+brl(a.max)+'</div></div></div>';
+ h+='<div style="margin-top:4px">'+cifroes(a)+'</div></div></div>';
  h+='<div class="row" style="margin-top:9px"><div class="row wrapf" style="gap:5px">';
  h+=a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("");
  h+='<span class="badge acc">'+CPLX[a.cx]+'</span></div>';
@@ -1202,6 +1223,60 @@ function renderFeedOnly(){
 }
 /* Como no app real: os botões levam para /artists/$id?action=… e o assistente abre lá */
 function quoteFor(id,intent){S.assistArtist=id;S.assistIntent=intent;S.aiStep=0;S.autoAssist=true;go("artist",id)}
+
+/* --- agenda do tatuador --- */
+function verAgenda(id){S.agArtist=id;S.agDia=null;S.agHora=null;S.agFeito=false;openDrawer("agenda")}
+function diasDaAgenda(a){
+ var hoje=new Date(2026,6,26),r=[];
+ for(var k=1;k<=24&&r.length<8;k++){
+  var d=new Date(hoje.getTime()+k*86400000);
+  if(d.getDay()===0)continue;                              // domingo fechado
+  var q=(a.seed*7+k*13)%5;                                 // 0 a 4 horarios livres
+  if(!q)continue;
+  r.push({rot:d.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"short"}).replace(/\./g,""),
+          horas:["10:00","11:30","14:00","15:30","17:00"].slice(0,q)});
+ }
+ return r;
+}
+function agendaBody(){
+ var a=ARTISTS.filter(function(x){return x.id===S.agArtist})[0]||ARTISTS[0];
+ var h='<div class="banner" style="margin-bottom:12px"><div class="av">'+ini(a.name)+'</div>'+
+   '<div><div class="b small">Agenda de '+a.name+'</div><div class="tiny muted">'+a.studio+' · '+a.city+'</div></div></div>';
+
+ // Agenda fechada nao e beco: e a conversa, que e como se marca hoje.
+ if(!a.agenda){
+  h+='<p class="small muted">Este tatuador prefere não exibir a agenda publicamente. Combine o horário direto com ele.</p>';
+  h+='<button class="btn primary blk" style="margin-top:12px" onclick="'+(isLog()?"openDrawer('chat')":"closeDrawer();go('auth')")+'">💬 Pedir um horário</button>';
+  return h;
+ }
+ if(S.agFeito){
+  h+='<div class="card pad"><div class="b small">✅ Horário solicitado</div>';
+  h+='<p class="small muted" style="margin-top:6px">'+S.agDia+' às '+S.agHora+'. '+a.name.split(" ")[0]+' recebe a solicitação na área de gestão e confirma por lá.</p></div>';
+  h+='<button class="btn blk" style="margin-top:11px" onclick="S.agFeito=false;S.agHora=null;renderDrawer()">Escolher outro horário</button>';
+  return h;
+ }
+ var dias=diasDaAgenda(a);
+ if(!dias.length)return h+'<p class="small muted">Sem horários livres nas próximas semanas.</p>';
+
+ h+='<div class="tiny muted" style="font-weight:600;text-transform:uppercase;letter-spacing:.08em">Dia</div>';
+ h+='<div class="row wrapf" style="gap:6px;margin-top:7px">';
+ dias.forEach(function(d){
+  h+='<button class="chip '+(S.agDia===d.rot?"on":"")+'" onclick="S.agDia=\''+d.rot+'\';S.agHora=null;renderDrawer()">'+d.rot+'</button>'});
+ h+='</div>';
+
+ if(S.agDia){
+  var dd=dias.filter(function(d){return d.rot===S.agDia})[0];
+  h+='<div class="tiny muted" style="margin-top:15px;font-weight:600;text-transform:uppercase;letter-spacing:.08em">Horário</div>';
+  h+='<div class="row wrapf" style="gap:6px;margin-top:7px">';
+  dd.horas.forEach(function(x){
+   h+='<button class="chip '+(S.agHora===x?"on":"")+'" onclick="S.agHora=\''+x+'\';renderDrawer()">'+x+'</button>'});
+  h+='</div>';
+ }
+ h+='<button class="btn primary blk" style="margin-top:16px"'+(S.agHora?'':' disabled')+
+    ' onclick="'+(isLog()?"S.agFeito=true;renderDrawer()":"closeDrawer();go('auth')")+'">Solicitar este horário</button>';
+ h+='<p class="tiny muted" style="margin-top:8px">A solicitação não bloqueia a agenda até o tatuador confirmar.</p>';
+ return h;
+}
 
 /* --- loja --- */
 function secShop(){
@@ -1440,6 +1515,7 @@ function vArtist(){
  if(temInsta)abas.push(["instagram","Instagram"]);
  if(cursosDele.length)abas.push(["cursos","Cursos"]);
  if(eventosDele.length)abas.push(["eventos","Eventos"]);
+ if(a.reviews>0)abas.push(["avaliacoes","Avaliações"]);
  var aba = abas.map(function(x){return x[0]}).indexOf(S.abaPerfil)>=0 ? S.abaPerfil : "portfolio";
 
  var h='<main><div class="wrap"><div class="perfilcol">';
@@ -1458,27 +1534,24 @@ function vArtist(){
  h+='<div class="row wrapf" style="gap:5px;margin-top:11px">'+
     a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'</div>';
 
- h+='<div class="row" style="align-items:baseline;gap:6px;margin-top:9px">';
- h+='<span style="font-size:18px;font-weight:700;letter-spacing:-.02em">'+brl(a.min)+' – '+brl(a.max)+'</span>';
- h+='<span class="tiny muted">/hora</span></div>';
+ h+='<div class="row" style="align-items:center;gap:7px;margin-top:9px">';
+ h+=cifroes(a,true)+'<span class="tiny muted">faixa por hora</span></div>';
 
- // Mesma altura do botão Seguir: ícone ao lado do rótulo, não acima.
+ // Quatro destinos distintos, sem sobreposição: orçar abre o pedido com
+ // este artista; agenda consulta horário livre; conversar é o chat; seguir
+ // é preferência de feed, não contato.
+ var seg=S.seguindo.indexOf(a.id)>=0;
  h+='<div class="acoestrio">';
- h+='<button class="btn sm primary" onclick="quoteFor(\''+a.id+'\',\'quote\')">✨ Orçar</button>';
- h+='<button class="btn sm" onclick="quoteFor(\''+a.id+'\',\'schedule\')">🗓 Agenda</button>';
- h+='<button class="btn sm" onclick="'+(isLog()?"openDrawer('chat')":"go('auth')")+'">💬 Conversar</button>';
- h+='<button class="btn sm" onclick="alternarSeguir(\''+a.id+'\')">'+(S.seguindo.indexOf(a.id)>=0?"✓ Seguindo":"👤 Seguir")+'</button>';
+ h+=acaoIcone("✨","Pedir orçamento","quoteFor('"+a.id+"','quote')","principal");
+ h+=acaoIcone("🗓","Ver agenda","verAgenda('"+a.id+"')");
+ h+=acaoIcone("💬","Conversar",isLog()?"openDrawer('chat')":"go('auth')");
+ h+=acaoIcone(seg?"✓":"👤",seg?"Seguindo — aparece mais no seu feed":"Seguir — aparece mais no seu feed","alternarSeguir('"+a.id+"')",seg?"ativa":"");
  h+='</div>';
 
- // Bio e tabela juntas no recolhido: as duas são consulta, não decisão.
- // Quem já sabe o que quer vai direto no botão; quem quer entender abre.
+ // Só a descrição. Preço por tamanho saiu: número fixo por tamanho é a
+ // mesma promessa que os cifrões evitam — o valor sai do orçamento.
  h+='<details style="margin-top:11px"><summary class="tiny muted" style="cursor:pointer">Sobre o tatuador</summary>';
- h+='<p class="small" style="margin-top:9px">'+a.bio+'</p>';
- h+='<div class="tiny muted" style="margin-top:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em">Preço por tamanho</div>';
- h+='<table class="t" style="margin-top:4px">';
- [["Pequeno",2],["Médio",5],["Grande",8],["Sessão dia",10]].forEach(function(r){
-  h+='<tr><td class="muted small">'+r[0]+'</td><td style="text-align:right" class="b small">'+brl(a.min*r[1])+'</td></tr>'});
- h+='</table></details>';
+ h+='<p class="small" style="margin-top:9px">'+a.bio+'</p></details>';
  h+='</div>';
 
  /* ── TOGGLE: portfólio, instagram, eventos ─────────────────────── */
@@ -1526,9 +1599,10 @@ function vArtist(){
   h+='<div class="tiny muted" style="margin-top:9px">Onde encontrar este artista'+tg("mock")+'</div>';
  }
 
- /* ── AVALIAÇÕES no fim, se houver ──────────────────────────────── */
- if(a.reviews>0){
-  h+='<div class="card pad" style="margin-top:22px"><div class="row"><span class="b small">Avaliações</span>'+tg("mock")+'</div>';
+ /* ── AVALIAÇÕES: aba própria. Antes vinham logo abaixo do carrossel
+       do Instagram e liam como se fossem parte dele. ──────────────── */
+ if(aba==="avaliacoes"){
+  h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b small">Avaliações</span>'+tg("mock")+'</div>';
   h+='<div class="row" style="gap:9px;margin-top:8px"><span class="b" style="font-size:22px">'+a.rating+'</span>';
   h+='<div><div class="tiny">'+stars(a.rating)+'</div><div class="tiny muted">'+a.reviews+' avaliações</div></div></div>';
   h+='<div class="sep"></div>';
@@ -2390,6 +2464,7 @@ function renderDrawer(){
  if(S.drawer==="hub"){t="✨ Orçamentos"+tg("real");b=hubBody()}
  if(S.drawer==="assist"){t="✨ Assistente de orçamento"+tg("real");b=assistBody()}
  if(S.drawer==="chat"){t="💬 Mensagens"+tg("mock");b=chatBody();if(S.chatOpen)f='<div class="row"><input class="fld" placeholder="Escreva uma mensagem…" /><button class="btn primary">Enviar</button></div>'}
+ if(S.drawer==="agenda"){t="🗓 Agenda"+tg("mock");b=agendaBody()}
  if(S.drawer==="notif"){t="🔔 Notificações"+tg("mock");b=notifBody()}
  if(S.drawer==="cart"){t="🛒 Carrinho"+tg("mock");b=cartBody();f=cartFoot()}
  host.innerHTML=icons('<div class="scrim" onclick="closeDrawer()"></div><aside class="drawer">'+
@@ -2416,7 +2491,7 @@ function hubBody(){
  }
  var h=back+'<div class="b small" style="margin-top:11px">Recomendações para você</div><div class="tiny muted">Com base nos estilos que você buscou e na sua cidade.</div><div style="margin-top:7px">';
  ARTISTS.slice(0,5).forEach(function(a){
-  h+='<div class="lrow"><div class="av">'+ini(a.name)+'</div><div style="min-width:0"><div class="b small">'+a.name+'</div><div class="tiny muted">'+a.styles.map(function(s){return SL[s]}).join(", ")+' · '+a.city+'</div></div><div class="sp" style="text-align:right"><div class="b small">'+brl(a.min)+'/h</div><button class="btn sm" style="margin-top:3px" onclick="quoteFor(\''+a.id+'\',\'quote\')">Orçar</button></div></div>'});
+  h+='<div class="lrow"><div class="av">'+ini(a.name)+'</div><div style="min-width:0"><div class="b small">'+a.name+'</div><div class="tiny muted">'+a.styles.map(function(s){return SL[s]}).join(", ")+' · '+a.city+'</div></div><div class="sp" style="text-align:right"><div>'+cifroes(a)+'</div><button class="btn sm" style="margin-top:3px" onclick="quoteFor(\''+a.id+'\',\'quote\')">Orçar</button></div></div>'});
  return h+'</div>';
 }
 function assistBody(){
@@ -2440,7 +2515,7 @@ function assistBody(){
   h+='<div class="row" style="margin-top:11px"><span class="b small">Tatuadores compatíveis</span><span class="sp tiny muted">6 encontrados</span></div>';
   h+='<div>';
   ARTISTS.slice(0,6).forEach(function(x,i){
-   h+='<div class="lrow"><div class="av">'+ini(x.name)+'</div><div style="min-width:0"><div class="b small">'+x.name+'</div><div class="tiny muted">'+x.city+' · '+stars(x.rating)+' '+x.rating+'</div></div><div class="sp" style="text-align:right"><div class="b small">'+brl(x.min)+'/h</div><div class="tiny muted">score '+(2-i*0.2).toFixed(1)+'</div></div></div>'});
+   h+='<div class="lrow"><div class="av">'+ini(x.name)+'</div><div style="min-width:0"><div class="b small">'+x.name+'</div><div class="tiny muted">'+x.city+' · '+stars(x.rating)+' '+x.rating+'</div></div><div class="sp" style="text-align:right"><div>'+cifroes(x)+'</div><div class="tiny muted">score '+(2-i*0.2).toFixed(1)+'</div></div></div>'});
   h+='</div>';
   h+='<details style="margin-top:9px"><summary class="small b" style="cursor:pointer">📋 Ver tabela de referência</summary>';
   h+='<table class="t" style="margin-top:7px"><tr><th>Estilo</th><th>Tamanho</th><th style="text-align:right">Faixa</th></tr>';
