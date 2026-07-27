@@ -401,6 +401,14 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 .pendente:hover{border-color:var(--x-warning) !important;opacity:.85}
 .pendente .ico,.pendente svg{opacity:.9}
 
+/* Contador dentro da sub-aba: diz quanto tem do outro lado sem obrigar
+   a pessoa a ir ver. */
+.seg .selo{display:inline-flex;align-items:center;justify-content:center;
+  min-width:17px;height:17px;padding:0 5px;margin-left:6px;border-radius:999px;
+  background:var(--muted-foreground);color:var(--card);
+  font-size:10px;font-weight:700;line-height:1;vertical-align:1px}
+.seg.on .selo{background:var(--primary);color:var(--primary-foreground)}
+
 /* Galeria do artista. Foto quadrada e informação embaixo: quem compra
    arte decide pelo olho, e o preço só confirma. */
 .gradeobras{grid-template-columns:repeat(2,1fr);gap:11px}
@@ -971,8 +979,26 @@ var SQ=[
  {id:"s4",c:"Marcos Vidal",area:"Punho",st:["minimalista"],min:22000,max:38000,when:"ontem",status:"em análise",cx:1,seed:12,hrs:"1–2h",note:"Símbolo pequeno, traço fino.",city:"São Paulo"},
  {id:"s5",c:"Paula Nunes",area:"Coxa",st:["realismo"],min:180000,max:320000,when:"há 2 dias",status:"respondido",cx:4,seed:15,hrs:"10–12h",note:"Retrato em preto e cinza.",city:"Osasco"}
 ];
+/* O outro lado do orçamento: o que ele respondeu e o que aconteceu
+   depois. Sem isto, o tatuador manda a proposta e o assunto some — que
+   é exatamente o que acontece no WhatsApp hoje. */
+var SQ_ENVIADOS=[
+ {id:"e1",c:"Helena Duarte",area:"Antebraço interno",st:["fineline"],prop:68000,quando:"há 2 dias",
+  situacao:"agendado",resposta:"Aceitou e marcou para 12/08",seed:3},
+ {id:"e2",c:"Paula Nunes",area:"Coxa",st:["realismo"],prop:295000,quando:"há 4 dias",
+  situacao:"aceito",resposta:"Aceitou, falta marcar a data",seed:15},
+ {id:"e3",c:"Tainá Alves",area:"Ombro",st:["oriental"],prop:210000,quando:"há 5 dias",
+  situacao:"aguardando",resposta:"Ainda não respondeu",seed:9},
+ {id:"e4",c:"Marcos Vidal",area:"Punho",st:["minimalista"],prop:34000,quando:"há 1 semana",
+  situacao:"aguardando",resposta:"Ainda não respondeu",seed:12},
+ {id:"e5",c:"Rodrigo Palma",area:"Costela",st:["blackwork"],prop:150000,quando:"há 2 semanas",
+  situacao:"recusado",resposta:"Achou acima do que podia gastar",seed:6}
+];
+function corDaSituacao(s){
+ return s==="agendado"?"ok":s==="aceito"?"acc":s==="recusado"?"bad":"warn";
+}
 var BOOK=[{c:"Helena Duarte",area:"Antebraço interno",h:3,d:2,m:"ago",cents:68000},{c:"Rodrigo Palma",area:"Costela",h:5,d:6,m:"ago",cents:145000},{c:"Tainá Alves",area:"Ombro",h:4,d:13,m:"ago",cents:112000}];
-var REVS=[{c:"Helena Duarte",r:5,t:"Traço impecável e atendimento super atencioso. Já marquei a próxima.",w:"há 3 dias"},{c:"Marcos Vidal",r:5,t:"Estúdio limpo, pontual, explicou todo o cuidado pós.",w:"há 1 semana"},{c:"Paula Nunes",r:4,t:"Resultado ótimo. Só demorou um pouco pra responder o orçamento.",w:"há 2 semanas"},{c:"Rodrigo Palma",r:5,t:"Melhor blackwork que já fiz. Recomendo demais.",w:"há 3 semanas"}];
+var REVS=[{c:"Helena Duarte",r:5,t:"Traço impecável e atendimento super atencioso. Já marquei a próxima.",w:"há 3 dias",resp:"Obrigada, Helena! Até agosto."},{c:"Marcos Vidal",r:5,t:"Estúdio limpo, pontual, explicou todo o cuidado pós.",w:"há 1 semana"},{c:"Paula Nunes",r:4,t:"Resultado ótimo. Só demorou um pouco pra responder o orçamento.",w:"há 2 semanas"},{c:"Rodrigo Palma",r:5,t:"Melhor blackwork que já fiz. Recomendo demais.",w:"há 3 semanas",resp:"Obrigado, Rodrigo! Foi um projeto e tanto."}];
 var PAYS=[{d:"12 jun 2026",t:"Sinal — Blackwork omoplata",w:"Studio Caio",c:45000},{d:"28 mai 2026",t:"Sessão completa — Fineline antebraço",w:"Studio Marina",c:68000},{d:"03 mai 2026",t:"Kit aftercare",w:"Loja Ink Creators",c:13900},{d:"14 fev 2026",t:"Sessão — Minimalista tornozelo",w:"Studio Ana",c:32000}];
 var HIST=[{area:"Antebraço interno",s:"Fineline",a:"Marina Vieira",d:"28 mai 2026",seed:3},{area:"Tornozelo",s:"Minimalista",a:"Ana Petrova",d:"14 fev 2026",seed:8},{area:"Ombro",s:"Oriental",a:"Felipe Tanaka",d:"09 nov 2025",seed:12}];
 var CAMPS=[{t:"Flash day de inverno",s:"ativa",sent:340,o:"62%"},{t:"Reativação — clientes 2025",s:"rascunho",sent:0,o:"—"},{t:"Divulgação workshop fineline",s:"encerrada",sent:512,o:"48%"}];
@@ -1023,7 +1049,8 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  chatOpen:null,chatFilter:"all",chatQ:"",notifFilter:"all",notifs:NOTIFS.map(function(n){return{...n}}),
  sqSel:"s1",onbStep:1,onbName:"",onbStyles:[],onbPort:0,pfTab:"info",menu:false,autoAssist:false,
  sqSelAg:null,agArtist:null,agDia:null,agHora:null,agFeito:false,destaqueAtivo:false,
- voltarPara:null,voltarArtista:null,histAba:"pessoas",
+ voltarPara:null,voltarArtista:null,histAba:"pessoas",sub:{},
+ agendaGoogle:false,googleConectando:false,
  te:{nome:"",email:"",perfil:null,aceite:false,erro:null,enviando:false},
  abaModelo:"painel",painel:{estado:null,dados:null,carregando:false,erro:null,email:"",senha:"",copiado:false},
  ue:{custo:1.20,qtd:1,destaque:120,adesao:12,gmv:600,take:12},
@@ -1071,7 +1098,7 @@ function isArt(){return S.session==="artist"}
 var CHAVE_ESTADO="ink.estado.v2";
 var GUARDA=["session","route","artist","tab","modo","seguindo","curtidas","cart",
  "cad","perfilLanding","abaPerfil","shopAud","shopCat","shopQ","evAba","q",
- "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","histAba","emailConfirmado","emailPendente","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura","ehFornecedor",
+ "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","histAba","sub","agendaGoogle","emailConfirmado","emailPendente","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura","ehFornecedor",
  "notifFilter","pfTab","ue","f","feedLote","caro","cep"];
 function salvarEstado(){
  try{var o={};GUARDA.forEach(function(k){if(S[k]!==undefined)o[k]=S[k]});
@@ -2554,6 +2581,30 @@ function becomeArtist(){
 
 /* ============ SHELL me/studio ============ */
 var ME_NAV=[["me","Visão geral","▦"],["me-quotes","Meus orçamentos","📥"],["me-history","Histórico","🕘"],["me-payments","Pagamentos","🧾"]];
+/* ── SUB-ABAS ──────────────────────────────────────────────────────
+   O menu de cima tinha oito entradas e cada tela empilhava tudo num
+   scroll só. Em vez de acrescentar uma nona, cada tela ganha um par de
+   sub-abas: duas perguntas diferentes, dois conteúdos.
+
+   Um mecanismo para todas, e não seis variações — assim a pessoa
+   aprende o gesto uma vez. O componente é o mesmo do perfil público e
+   já rola na horizontal quando não cabe; com dois itens, cabe sempre.
+
+   O padrão de cada par é o mesmo: à esquerda o que exige ação agora, à
+   direita o que é consulta. */
+function subAba(chave, padrao){
+ return (S.sub&&S.sub[chave])||padrao;
+}
+function abasInternas(chave, opcoes, padrao){
+ var atual=subAba(chave,padrao||opcoes[0][0]);
+ var h='<div class="segmento">';
+ opcoes.forEach(function(o){
+  var marca=o[2]?'<span class="selo">'+o[2]+'</span>':'';
+  h+='<button class="seg '+(atual===o[0]?"on":"")+'" onclick="S.sub=S.sub||{};S.sub[\''+chave+'\']=\''+o[0]+'\';render()">'+o[1]+marca+'</button>';
+ });
+ return h+'</div>';
+}
+
 var ST_NAV=[["studio","Visão geral","▦"],["studio-quotes","Orçamentos","📥"],["studio-schedule","Agenda","🗓"],["studio-caixa","Caixa","👛"],["studio-historico","Histórico","🕘"],["studio-events","Eventos","🎟"],["studio-reviews","Avaliações","★"],["studio-profile","Meu perfil","⚙"]];
 
 /* ═══ CAIXA E HISTÓRICO ════════════════════════════════════════════
@@ -2899,12 +2950,45 @@ function vStudio(sub){
  var h=envHead("studio","Seu estúdio",ST_NAV,sub)+'<main><div class="wrap">';
 
  if(sub==="studio"){
-  h+='<div class="stats">';
   var cx=somaCaixa();
-  [["📥","Orçamentos abertos","7","3 novos hoje"],
-   ["🗓","Agendamentos","3","próximos 14 dias"],
-   ["👛","Sobrou em julho",brl(cx.sobrou),"entrou "+brl(cx.entrou)],
-   ["🕘","Pessoas tatuadas",String(HIST_PESSOAS.length),HIST_PESSOAS.filter(function(p){return p.sessoes>1}).length+" voltaram"]].forEach(function(s){
+  var novosQ=SQ.filter(function(q){return q.status==="novo"}).length;
+  h+=abasInternas("vg",[["dia","Agora",novosQ||""],["mes","O mês"]]);
+
+  /* ── O MÊS ────────────────────────────────────────────────────
+     Consulta, não ação: caixa, pessoas e visitas. Separado do que
+     pede resposta hoje, porque misturar os dois é o que fazia esta
+     tela ter três telas de rolagem no celular. */
+  if(subAba("vg","dia")==="mes"){
+   h+='<div class="stats" style="margin-top:14px">';
+   [["👛","Sobrou em julho",brl(cx.sobrou),"entrou "+brl(cx.entrou)],
+    ["🕘","Pessoas tatuadas",String(HIST_PESSOAS.length),HIST_PESSOAS.filter(function(p){return p.sessoes>1}).length+" voltaram"],
+    ["📈","Visitas ao perfil","932","nesta semana"],
+    ["★","Avaliação","4.8","124 avaliações"]].forEach(function(x){
+    h+='<div class="stat"><div class="lbl">'+x[0]+' '+x[1]+'</div><div class="val">'+x[2]+'</div><div class="hint">'+x[3]+'</div></div>'});
+   h+='</div>';
+   h+='<div class="grid cols2" style="margin-top:15px;align-items:start">';
+   h+='<div class="card pad"><div class="row"><span class="b">Caixa de julho</span>'+tg("mock")+'</div>';
+   h+='<div class="row" style="align-items:baseline;gap:7px;margin-top:8px"><span style="font-size:22px;font-weight:700;letter-spacing:-.02em">'+brl(cx.sobrou)+'</span><span class="tiny muted">sobrou</span></div>';
+   h+='<div class="tiny muted" style="margin-top:3px">Entrou '+brl(cx.entrou)+' · saiu '+brl(cx.saiu)+'</div>';
+   h+='<button class="btn sm blk" style="margin-top:10px" onclick="go(\'studio-caixa\')">Ver o caixa</button></div>';
+   h+='<div class="card pad"><div class="row"><span class="b">Últimas pessoas</span>'+tg("mock")+'</div><div style="margin-top:4px">';
+   HIST_PESSOAS.slice(0,3).forEach(function(p){
+    h+='<div class="lrow"><div class="av">'+ini(p.nome)+'</div><div style="min-width:0"><div class="b small">'+p.nome+'</div>';
+    h+='<div class="tiny muted">'+p.sessoes+' sessão(ões) · última em '+p.ultima+'</div></div></div>';
+   });
+   h+='</div><button class="btn sm blk" style="margin-top:9px" onclick="go(\'studio-historico\')">Ver histórico</button></div>';
+   h+='</div>';
+   h+='<div class="card pad" style="margin-top:15px"><div class="row"><span class="b">Visitas ao perfil</span>'+tg("mock")+'<span class="sp small muted">932 nesta semana</span></div>';
+   h+='<div class="row" style="gap:5px;align-items:flex-end;height:80px;margin-top:11px">';
+   [42,58,35,71,64,88,52].forEach(function(v,i){h+='<div style="flex:1;text-align:center"><div style="background:var(--primary);border-radius:4px 4px 0 0;height:'+v+'%"></div><div class="tiny muted" style="margin-top:4px">'+["s","t","q","q","s","s","d"][i]+'</div></div>'});
+   h+='</div></div>';
+   return h+'</div></main>';
+  }
+
+  h+='<div class="stats" style="margin-top:14px">';
+  [["📥","Pedidos novos",String(novosQ),"esperando sua resposta"],
+   ["🕘","Propostas sem retorno",String(SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length),"clientes que não responderam"],
+   ["🗓","Próximas sessões",String(BOOK.length),"nos próximos 14 dias"]].forEach(function(s){
    h+='<div class="stat"><div class="lbl">'+s[0]+' '+s[1]+'</div><div class="val">'+s[2]+'</div><div class="hint">'+s[3]+'</div></div>'});
   h+='</div><div class="grid cols2" style="margin-top:15px;align-items:start">';
   h+='<div class="card pad"><div class="row"><span class="b">Orçamentos recentes</span>'+tg("real")+'<a class="sp small" style="color:var(--accent);cursor:pointer" onclick="go(\'studio-quotes\')">Ver todos →</a></div><div style="margin-top:4px">';
@@ -2913,31 +2997,42 @@ function vStudio(sub){
   h+='<div class="card pad"><div class="row"><span class="b">Próximos agendamentos</span>'+tg("mock")+'</div><div style="margin-top:4px">';
   BOOK.forEach(function(b){h+='<div class="lrow"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div><div style="min-width:0"><div class="b small">'+b.c+'</div><div class="small muted">'+b.area+' · '+b.h+'h</div></div><div class="sp b small">'+brl(b.cents)+'</div></div>'});
   h+='</div></div></div>';
-  // Os dois atalhos que a proposta de valor promete. Sem eles, "tudo
-  // num lugar só" seria uma frase na landing e nada na tela.
-  h+='<div class="grid cols2" style="margin-top:15px;align-items:start">';
-  h+='<div class="card pad"><div class="row"><span class="b">Caixa de julho</span>'+tg("mock")+'</div>';
-  h+='<div class="row" style="align-items:baseline;gap:7px;margin-top:8px"><span style="font-size:22px;font-weight:700;letter-spacing:-.02em">'+brl(cx.sobrou)+'</span><span class="tiny muted">sobrou</span></div>';
-  h+='<div class="tiny muted" style="margin-top:3px">Entrou '+brl(cx.entrou)+' · saiu '+brl(cx.saiu)+'</div>';
-  h+='<button class="btn sm blk" style="margin-top:10px" onclick="go(\'studio-caixa\')">Ver o caixa</button></div>';
-  h+='<div class="card pad"><div class="row"><span class="b">Últimas pessoas</span>'+tg("mock")+'</div>';
-  h+='<div style="margin-top:4px">';
-  HIST_PESSOAS.slice(0,3).forEach(function(p){
-   h+='<div class="lrow"><div class="av">'+ini(p.nome)+'</div><div style="min-width:0"><div class="b small">'+p.nome+'</div>';
-   h+='<div class="tiny muted">'+p.sessoes+' sessão(ões) · última em '+p.ultima+'</div></div></div>';
-  });
-  h+='</div><button class="btn sm blk" style="margin-top:9px" onclick="go(\'studio-historico\')">Ver histórico</button></div>';
-  h+='</div>';
-
-  h+='<div class="card pad" style="margin-top:15px"><div class="row"><span class="b">Visitas ao perfil</span>'+tg("mock")+'<span class="sp small muted">932 nesta semana</span></div>';
-  h+='<div class="row" style="gap:5px;align-items:flex-end;height:80px;margin-top:11px">';
-  [42,58,35,71,64,88,52].forEach(function(v,i){h+='<div style="flex:1;text-align:center"><div style="background:var(--primary);border-radius:4px 4px 0 0;height:'+v+'%"></div><div class="tiny muted" style="margin-top:4px">'+["s","t","q","q","s","s","d"][i]+'</div></div>'});
-  h+='</div></div>';
  }
 
  if(sub==="studio-quotes"){
+  var novos=SQ.filter(function(q){return q.status==="novo"}).length;
+  var esperando=SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length;
+  h+=abasInternas("orc",[["recebidos","Recebidos",novos||""],["enviados","Enviados",esperando||""]]);
+
+  if(subAba("orc","recebidos")==="enviados"){
+   var agend=SQ_ENVIADOS.filter(function(q){return q.situacao==="agendado"}).length;
+   h+='<div class="stats" style="margin-top:14px">';
+   [["📤","Propostas",SQ_ENVIADOS.length,"últimas duas semanas"],
+    ["🗓","Viraram sessão",agend,"agendadas"],
+    ["🕘","Sem resposta",esperando,"aguardando o cliente"]].forEach(function(x){
+    h+='<div class="stat"><div class="lbl">'+x[0]+' '+x[1]+'</div><div class="val">'+x[2]+'</div><div class="hint">'+x[3]+'</div></div>'});
+   h+='</div>';
+
+   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">O que você respondeu</span>'+tg("mock")+'</div>';
+   h+='<div class="tiny muted" style="margin-top:3px">Cada proposta e o que o cliente fez com ela.</div>';
+   h+='<div style="margin-top:6px">';
+   SQ_ENVIADOS.forEach(function(q){
+    h+='<div class="lrow"><div class="av">'+ini(q.c)+'</div>';
+    h+='<div style="min-width:0;flex:1"><div class="row" style="gap:6px"><span class="b small">'+q.c+'</span>';
+    h+='<span class="badge '+corDaSituacao(q.situacao)+'">'+q.situacao+'</span></div>';
+    h+='<div class="tiny muted">'+q.area+' · '+q.st.map(function(x){return SL[x]}).join(", ")+' · proposta '+q.quando+'</div>';
+    h+='<div class="tiny" style="margin-top:2px">'+q.resposta+'</div></div>';
+    h+='<div class="sp" style="text-align:right"><div class="b small">'+brl(q.prop)+'</div>';
+    h+='<button class="btn sm" style="margin-top:4px">'+(q.situacao==="aceito"?"Marcar data":q.situacao==="aguardando"?"Lembrar":"Ver")+'</button></div></div>';
+   });
+   h+='</div>';
+   h+='<div class="tiny muted" style="margin-top:10px">Proposta sem resposta há mais de uma semana some sozinha do WhatsApp. Aqui ela continua na lista até você decidir o que fazer.</div>';
+   h+='</div>';
+   return h+'</div></main>';
+  }
+
   var sel=SQ.filter(function(q){return q.id===S.sqSel})[0]||SQ[0];
-  h+='<div class="grid cols16" style="align-items:start">';
+  h+='<div class="grid cols16" style="align-items:start;margin-top:14px">';
   h+='<div class="card pad"><div class="row"><span class="b">Pedidos recebidos</span>'+tg("real")+'</div><div style="margin-top:4px">';
   SQ.forEach(function(q){h+=sqRow(q,true)});
   h+='</div></div>';
@@ -2960,7 +3055,55 @@ function vStudio(sub){
  }
 
  if(sub==="studio-schedule"){
-  h+='<div class="card pad"><div class="row"><span class="b">Agenda de agosto</span>'+tg("mock")+'<button class="btn sm sp">+ Bloquear horário</button></div>';
+  h+=abasInternas("ag",[["mes","O mês"],["conexoes","Conexões"]]);
+
+  /* ── Google Agenda ───────────────────────────────────────────
+     Tatuador não vive só na plataforma: tem consulta, aula, viagem.
+     Se a agenda daqui ignora o resto da vida dele, ele marca em cima
+     de um compromisso uma vez e nunca mais confia nela.
+
+     Duas direções, e elas resolvem problemas diferentes: mandar as
+     sessões para o Google é conveniência; trazer os compromissos de
+     lá é o que impede o encontro marcado em cima de outra coisa. */
+  if(subAba("ag","mes")==="conexoes"){
+   h+='<div class="card pad" style="margin-top:14px">';
+   h+='<div class="row" style="gap:11px;align-items:flex-start">';
+   h+='<div class="av" style="background:var(--muted);flex-shrink:0">G</div>';
+   h+='<div style="min-width:0;flex:1"><div class="row" style="gap:7px"><span class="b">Google Agenda</span>';
+   h+=S.agendaGoogle?'<span class="badge ok">conectada</span>':'<span class="badge">não conectada</span>';
+   h+='</div>';
+   h+='<div class="small muted" style="margin-top:4px">'+(S.agendaGoogle
+     ? 'Suas sessões aparecem no Google, e o que você marca lá bloqueia o horário aqui.'
+     : 'Conecte para as suas sessões irem para o Google e para os seus compromissos de lá bloquearem horário aqui.')+'</div>';
+   if(S.agendaGoogle)h+='<div class="tiny muted" style="margin-top:5px">Conectada como <b>voce@gmail.com</b> · última sincronização há 4 minutos</div>';
+   h+='</div></div>';
+
+   if(!S.agendaGoogle){
+    h+='<div class="tiny muted" style="margin-top:12px;padding-top:11px;border-top:1px solid var(--border)"><b>O que pedimos:</b> ver e criar eventos na agenda que você escolher. Nada de e-mail, contatos ou arquivos.</div>';
+    h+='<div class="tiny muted" style="margin-top:5px"><b>O que fazemos:</b> criamos um calendário separado chamado "Ink Creators" — suas sessões não se misturam com o resto, e desconectar leva tudo embora de uma vez.</div>';
+    h+='<button class="btn primary blk" style="margin-top:13px" '+(S.googleConectando?"disabled":"")+' onclick="conectarGoogleAgenda()">'+
+       (S.googleConectando?"Abrindo o Google…":"Conectar com o Google")+'</button>';
+   } else {
+    h+='<div class="sep"></div>';
+    h+='<div class="b small">O que sincroniza</div><div style="margin-top:8px">';
+    [["Sessões confirmadas","vão daqui para o Google",true],
+     ["Compromissos do Google","bloqueiam horário aqui",true],
+     ["Pedidos de orçamento","ficam só aqui",false]].forEach(function(x){
+     h+='<div class="row small" style="align-items:flex-start;padding:5px 0">';
+     h+='<span style="color:var(--'+(x[2]?"x-success":"muted-foreground")+')">'+(x[2]?"✓":"✕")+'</span>';
+     h+='<span'+(x[2]?'':' class="muted"')+'><b>'+x[0]+'</b> — '+x[1]+'</span></div>';
+    });
+    h+='</div>';
+    h+='<button class="btn blk" style="margin-top:11px" onclick="S.agendaGoogle=false;render()">Desconectar</button>';
+    h+='<div class="tiny muted" style="margin-top:7px">Desconectar apaga o calendário "Ink Creators" do seu Google. As sessões continuam aqui.</div>';
+   }
+   h+='</div>';
+   h+='<div class="tiny muted" style="margin-top:11px">Outras conexões — Apple e Outlook — quando houver quem peça'+tg("mock")+'</div>';
+   return h+'</div></main>';
+  }
+
+  h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Agenda de agosto</span>'+tg("mock")+'<button class="btn sm sp">+ Bloquear horário</button></div>';
+  if(S.agendaGoogle)h+='<div class="tiny muted" style="margin-top:5px">✓ Sincronizada com o Google — os dias em cinza vêm de lá.</div>';
   h+='<div class="grid" style="grid-template-columns:repeat(7,1fr);margin-top:11px;gap:5px">';
   ["seg","ter","qua","qui","sex","sáb","dom"].forEach(function(d){h+='<div class="tiny muted b" style="text-align:center">'+d+'</div>'});
   for(var d=1;d<=28;d++){
@@ -2973,20 +3116,29 @@ function vStudio(sub){
  }
 
  if(sub==="studio-events"){
-  h+='<div class="row"><span class="b" style="font-size:16px">Que eu criei</span>'+tg("mock")+'<button class="btn sm sp">+ Novo evento ou curso</button></div>';
-  h+='<div class="card pad" style="margin-top:9px"><div style="margin-top:0">';
-  [EVENTS[4],COURSES[0]].forEach(function(e){
+  var meus=[EVENTS[4],COURSES[0]], deOutros=[EVENTS[0],EVENTS[2],COURSES[2]];
+  h+=abasInternas("ev",[["meus","Que eu criei",String(meus.length)],["participo","Que eu participo",String(deOutros.length)]]);
+
+  if(subAba("ev","meus")==="participo"){
+   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Onde você se inscreveu</span>'+tg("mock")+'</div>';
+   h+='<div class="tiny muted" style="margin-top:3px">Convenção, curso e flash day de outra pessoa. Entram no seu histórico quando acontecem.</div>';
+   h+='<div style="margin-top:6px">';
+   deOutros.forEach(function(e){
+    h+='<div class="lrow"><div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:19px">'+(e.e||"🎟")+'</div>';
+    h+='<div style="min-width:0"><div class="b small">'+e.n+'</div><div class="tiny muted">'+(e.t||"")+' · '+(e.d||e.st)+'</div></div>';
+    h+='<div class="sp"><span class="badge acc">inscrito</span></div></div>'});
+   h+='</div></div>';
+   return h+'</div></main>';
+  }
+
+  h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Seus eventos e cursos</span>'+tg("mock")+
+     '<button class="btn sm sp">＋ Novo</button></div><div style="margin-top:6px">';
+  meus.forEach(function(e){
    h+='<div class="lrow"><div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:19px">'+(e.e||"🎟")+'</div>';
    h+='<div style="min-width:0"><div class="b small">'+e.n+'</div><div class="tiny muted">'+(e.t||"")+' · '+(e.d||e.st)+'</div></div>';
    h+='<div class="sp"><span class="badge ok">publicado</span></div><button class="btn sm" style="margin-left:9px">Editar</button></div>'});
-  h+='</div></div>';
-  h+='<div class="row" style="margin-top:22px"><span class="b" style="font-size:16px">Que estou engajado</span>'+tg("mock")+'</div>';
-  h+='<div class="card pad" style="margin-top:9px">';
-  [EVENTS[0],EVENTS[2],COURSES[2]].forEach(function(e){
-   h+='<div class="lrow"><div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:19px">'+(e.e||"🎟")+'</div>';
-   h+='<div style="min-width:0"><div class="b small">'+e.n+'</div><div class="tiny muted">'+(e.t||"")+' · '+(e.d||e.st)+'</div></div>';
-   h+='<div class="sp"><span class="badge acc">inscrito</span></div></div>'});
   h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:10px">O que você vende aqui entra no caixa, com a comissão já descontada.</div></div>';
  }
 
  /* ── CAIXA ──────────────────────────────────────────────────────
@@ -2994,7 +3146,26 @@ function vStudio(sub){
     ordem em que a pergunta se forma na cabeça de quem abre a tela. */
  if(sub==="studio-caixa"){
   var c=somaCaixa();
-  h+='<div class="stats">';
+  h+=abasInternas("cx",[["resumo","Resumo"],["lancamentos","Lançamentos",String(LANC.length)]]);
+
+  if(subAba("cx","resumo")==="lancamentos"){
+   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Julho</span>'+tg("mock")+'</div>';
+   h+='<table class="t" style="margin-top:9px"><tr><th>Dia</th><th>O quê</th><th style="text-align:right">Valor</th></tr>';
+   LANC.forEach(function(x){
+    h+='<tr><td class="small muted">'+String(x.dia).padStart(2,"0")+'/07</td>';
+    h+='<td><div class="b small">'+x.quem+'</div><div class="tiny muted">'+x.catL+' · '+x.obs+'</div></td>';
+    h+='<td style="text-align:right" class="b small"><span style="color:var(--'+(x.tipo==="entrada"?"x-success":"x-danger")+')">'+
+       (x.tipo==="entrada"?"+":"−")+' '+brl(x.cents)+'</span></td></tr>';
+   });
+   h+='</table>';
+   h+='<div class="row" style="gap:8px;margin-top:12px"><button class="btn sm">＋ Lançar entrada</button><button class="btn sm">＋ Lançar saída</button>';
+   h+='<button class="btn sm sp">Exportar</button></div>';
+   h+='<div class="tiny muted" style="margin-top:9px">Sessão fechada pela plataforma entra sozinha. O resto você lança — e o que você lança é seu, ninguém mais vê.</div>';
+   h+='</div>';
+   return h+'</div></main>';
+  }
+
+  h+='<div class="stats" style="margin-top:14px">';
   [["📈","Entrou em julho",brl(c.entrou),LANC.filter(function(x){return x.tipo==="entrada"}).length+" lançamentos"],
    ["👛","Saiu",brl(c.saiu),"aluguel, material e destaque"],
    ["✅","Sobrou",brl(c.sobrou),c.sobrou>0?"antes de imposto":"mês no vermelho"]].forEach(function(x){
@@ -3012,19 +3183,15 @@ function vStudio(sub){
   });
   h+='</div></div>';
 
-  h+='<div class="card pad" style="margin-top:15px"><div class="row"><span class="b">Lançamentos de julho</span>'+tg("mock")+'</div>';
-  h+='<table class="t" style="margin-top:9px"><tr><th>Dia</th><th>O quê</th><th style="text-align:right">Valor</th></tr>';
-  LANC.forEach(function(x){
-   h+='<tr><td class="small muted">'+String(x.dia).padStart(2,"0")+'/07</td>';
-   h+='<td><div class="b small">'+x.quem+'</div><div class="tiny muted">'+x.catL+' · '+x.obs+'</div></td>';
-   h+='<td style="text-align:right" class="b small"><span style="color:var(--'+(x.tipo==="entrada"?"x-success":"x-danger")+')">'+
-      (x.tipo==="entrada"?"+":"−")+' '+brl(x.cents)+'</span></td></tr>';
+  h+='<div class="card pad" style="margin-top:15px"><div class="row"><span class="b">Últimos lançamentos</span>'+tg("mock")+
+     '<a class="sp small" style="color:var(--accent);cursor:pointer" onclick="S.sub=S.sub||{};S.sub.cx=\'lancamentos\';render()">Ver todos →</a></div>';
+  h+='<div style="margin-top:4px">';
+  LANC.slice(-4).reverse().forEach(function(x){
+   h+='<div class="lrow"><div class="datebox"><span class="m">jul</span><span class="d">'+x.dia+'</span></div>';
+   h+='<div style="min-width:0;flex:1"><div class="b small">'+x.quem+'</div><div class="tiny muted">'+x.catL+'</div></div>';
+   h+='<div class="sp b small" style="color:var(--'+(x.tipo==="entrada"?"x-success":"x-danger")+')">'+(x.tipo==="entrada"?"+":"−")+' '+brl(x.cents)+'</div></div>';
   });
-  h+='</table>';
-  h+='<div class="row" style="gap:8px;margin-top:12px"><button class="btn sm">＋ Lançar entrada</button><button class="btn sm">＋ Lançar saída</button>';
-  h+='<button class="btn sm sp">Exportar</button></div>';
-  h+='<div class="tiny muted" style="margin-top:9px">Sessão fechada pela plataforma entra sozinha. O resto você lança — e o que você lança é seu, ninguém mais vê.</div>';
-  h+='</div>';
+  h+='</div></div>';
  }
 
  /* ── HISTÓRICO ──────────────────────────────────────────────────
@@ -3032,12 +3199,9 @@ function vStudio(sub){
     esteve. A segunda é o que caderno nenhum guarda, porque tatuador
     é itinerante e cada estúdio tem o próprio caderno. */
  if(sub==="studio-historico"){
-  h+='<div class="segmento">';
-  [["pessoas","Quem eu tatuei"],["estudios","Onde eu tatuei"]].forEach(function(x){
-   h+='<button class="seg '+(S.histAba===x[0]?"on":"")+'" onclick="S.histAba=\''+x[0]+'\';render()">'+x[1]+'</button>'});
-  h+='</div>';
+  h+=abasInternas("hist",[["pessoas","Quem eu tatuei"],["estudios","Onde eu tatuei"]]);
 
-  if(S.histAba!=="estudios"){
+  if(subAba("hist","pessoas")!=="estudios"){
    var tot=HIST_PESSOAS.reduce(function(a,p){return a+p.sessoes},0);
    h+='<div class="stats" style="margin-top:14px">';
    [["👥","Pessoas",HIST_PESSOAS.length,"desde set/2024"],
@@ -3088,12 +3252,37 @@ function vStudio(sub){
  }
 
  if(sub==="studio-reviews"){
-  h+='<div class="card pad"><div class="row"><span class="b">Avaliações</span>'+tg("mock")+'</div>';
+  var semResposta=REVS.filter(function(r){return !r.resp}).length;
+  h+=abasInternas("av",[["responder","Sem resposta",semResposta||""],["todas","Todas",String(REVS.length)]],"todas");
+
+  if(subAba("av","todas")==="responder"){
+   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Esperando você</span>'+tg("mock")+'</div>';
+   h+='<div class="tiny muted" style="margin-top:3px">Responder avaliação é o que mostra a quem ainda não te conhece como você lida quando algo não sai perfeito.</div>';
+   h+='<div style="margin-top:6px">';
+   REVS.filter(function(r){return !r.resp}).forEach(function(r){
+    h+='<div style="padding:11px 0;border-bottom:1px solid var(--border)">';
+    h+='<div class="row"><div class="av">'+ini(r.c)+'</div><div style="min-width:0;flex:1"><div class="b small">'+r.c+' <span class="tiny">'+stars(r.r)+'</span></div>';
+    h+='<div class="small muted">'+r.t+'</div><div class="tiny muted" style="margin-top:2px">'+r.w+'</div></div></div>';
+    h+='<div class="row" style="gap:7px;margin-top:9px"><input class="fld" placeholder="Responder publicamente…" style="flex:1" />';
+    h+='<button class="btn sm primary">Enviar</button></div></div>';
+   });
+   h+='</div></div>';
+   return h+'</div></main>';
+  }
+
+  h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Avaliações</span>'+tg("mock")+'</div>';
   h+='<div class="row" style="margin-top:11px;gap:22px;align-items:flex-start"><div style="text-align:center"><div style="font-size:31px;font-weight:700">4.8</div><div>'+stars(4.8)+'</div><div class="tiny muted">124 avaliações</div></div><div style="flex:1">';
   [5,4,3,2,1].forEach(function(n,i){var p=[78,15,5,1,1][i];
    h+='<div class="row" style="gap:7px;margin-bottom:3px"><span class="tiny" style="width:20px">'+n+'★</span><div class="bar" style="flex:1"><i style="width:'+p+'%"></i></div><span class="tiny muted" style="width:28px">'+p+'%</span></div>'});
   h+='</div></div><div class="sep"></div>';
-  REVS.forEach(function(r){h+='<div class="lrow"><div class="av">'+ini(r.c)+'</div><div style="min-width:0"><div class="b small">'+r.c+' <span class="tiny">'+stars(r.r)+'</span></div><div class="small muted">'+r.t+'</div></div><div class="sp tiny muted">'+r.w+'</div><button class="btn sm" style="margin-left:9px">Responder</button></div>'});
+  REVS.forEach(function(r){
+   h+='<div class="lrow"><div class="av">'+ini(r.c)+'</div>';
+   h+='<div style="min-width:0;flex:1"><div class="b small">'+r.c+' <span class="tiny">'+stars(r.r)+'</span></div>';
+   h+='<div class="small muted">'+r.t+'</div>';
+   if(r.resp)h+='<div class="small" style="margin-top:5px;padding-left:9px;border-left:2px solid var(--border)"><span class="tiny muted">Você respondeu:</span><br/>'+r.resp+'</div>';
+   h+='</div><div class="sp tiny muted">'+r.w+'</div>';
+   if(!r.resp)h+='<button class="btn sm" style="margin-left:9px" onclick="S.sub=S.sub||{};S.sub.av=\'responder\';render()">Responder</button>';
+   h+='</div>'});
   h+='</div>';
  }
 
@@ -3109,6 +3298,17 @@ function sqRow(q,full){
  h+='<div class="sp" style="text-align:right"><div class="b small">'+brl(q.min)+'–'+brl(q.max)+'</div><span class="badge '+t+'">'+q.status+'</span></div>';
  return h+'</div>';
 }
+/* No produto real isto abriria o consentimento do Google e voltaria
+   com um token. Aqui mostra o tempo de espera, que é o que a pessoa
+   sente — e a espera é o que faz ela achar que travou. */
+function conectarGoogleAgenda(){
+ if(S.googleConectando)return;
+ S.googleConectando=true;render();
+ setTimeout(function(){
+  S.googleConectando=false;S.agendaGoogle=true;render();
+ },900);
+}
+
 function studioProfile(){
  var h='<div class="row wrapf" style="gap:6px">';
  [["info","Informações"],["portfolio","Portfólio"],["pricing","Tabela de preços"],["insta","Instagram"]].forEach(function(t){

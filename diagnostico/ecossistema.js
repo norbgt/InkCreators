@@ -96,9 +96,12 @@ var tc=tela();
 chk('a aba existe no menu',/studio-caixa/.test(tc));
 chk('mostra entrou, saiu, sobrou',/Entrou em julho/.test(tc)&&/Saiu/.test(tc)&&/Sobrou/.test(tc));
 chk('separa de onde veio',/De onde veio/.test(tc)&&/Sessões/.test(tc)&&/Arte/.test(tc));
-chk('lista os lançamentos',/Lançamentos de julho/.test(tc));
-chk('permite lançar à mão',/Lançar entrada/.test(tc)&&/Lançar saída/.test(tc));
-chk('diz que é privado',/ninguém mais vê/.test(tc));
+chk('resumo mostra os últimos lançamentos',/Últimos lançamentos/.test(tc));
+S.sub={cx:'lancamentos'};g.e("render()");var tcl=tela();
+chk('a sub-aba lista todos',/<table class="t"/.test(tcl));
+chk('permite lançar à mão',/Lançar entrada/.test(tcl)&&/Lançar saída/.test(tcl));
+chk('diz que é privado',/ninguém mais vê/.test(tcl));
+S.sub={};
 var c=g.e("somaCaixa()");
 chk('a conta fecha',c.sobrou===c.entrou-c.saiu,c.entrou+' - '+c.saiu+' ≠ '+c.sobrou);
 chk('tem entrada de sessão, arte e curso',c.porCat.sessao>0&&c.porCat.arte>0&&c.porCat.curso>0);
@@ -119,11 +122,12 @@ chk('explica por que isso importa',/cada estúdio tem o próprio caderno/i.test(
 chk('permite registrar passagem',/Registrar passagem/.test(te));
 
 console.log('── 6. A VISÃO GERAL APONTA PARA AS DUAS ──');
-S.route='studio';g.e("render()");
+S.route='studio';S.sub={vg:'mes'};g.e("render()");
 var tv=tela();
-chk('caixa no resumo',/Caixa de julho/.test(tv)&&/studio-caixa/.test(tv));
-chk('histórico no resumo',/Últimas pessoas/.test(tv)&&/studio-historico/.test(tv));
+chk('caixa no resumo do mês',/Caixa de julho/.test(tv)&&/studio-caixa/.test(tv));
+chk('histórico no resumo do mês',/Últimas pessoas/.test(tv)&&/studio-historico/.test(tv));
 chk('sem "Receita do mês" solta',!/Receita do mês/.test(tv));
+S.sub={};
 
 console.log('── 7. NADA QUEBROU ──');
 ['home','artist','plataforma','cadastro','modelo','conexao','me','studio','studio-caixa','studio-historico','studio-profile','studio-quotes'].forEach(function(r){
