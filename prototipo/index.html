@@ -386,6 +386,10 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
   .blococentro{margin-top:20px}
   .secao{margin-top:30px}
 }
+/* Coluna lateral do perfil: acompanha a rolagem no desktop, vira bloco
+   normal abaixo do conteúdo quando a página passa a ter uma coluna só. */
+.lateral{position:sticky;top:76px}
+@media(max-width:1100px){.lateral{position:static}}
 .vantagem{display:flex;flex-direction:column}
 .vantagem .small.muted{flex:1}
 .plan{border:1px solid var(--border);border-radius:var(--radius);padding:18px;background:var(--card);position:relative}
@@ -1416,52 +1420,86 @@ function listaCursos(){
 /* ============ PERFIL PÚBLICO ============ */
 function vArtist(){
  var a=ARTISTS.filter(function(x){return x.id===S.artist})[0]||ARTISTS[0];
+ var temInsta=!!a.insta;
+ var aba = (!temInsta) ? "portfolio" : S.abaPerfil;
  var h='<main><div class="wrap"><button class="btn sm" onclick="go(\'home\')">← Voltar</button>';
- h+='<div class="grid cols2" style="margin-top:14px;align-items:start"><div>';
+ h+='<div class="grid cols2" style="margin-top:14px;align-items:start">';
+
+ /* ── COLUNA MAIOR: identidade fixa, obra alternável ────────────── */
+ h+='<div>';
  h+='<div class="row" style="gap:13px"><div class="av" style="width:62px;height:62px;font-size:18px">'+ini(a.name)+'</div><div>';
  h+='<h1 class="page">'+a.name+(a.verified?' <span class="badge acc">verificado</span>':'')+'</h1>';
  h+='<p class="sub">'+a.studio+' · '+a.city+', '+a.state+' · '+a.years+' anos</p>';
  h+='<div class="small" style="margin-top:4px">'+stars(a.rating)+' <span class="b">'+a.rating+'</span> <span class="muted">('+a.reviews+' avaliações)</span></div></div></div>';
- h+='<div class="card pad" style="margin-top:14px"><div class="b small">Sobre</div><p style="margin-top:6px">'+a.bio+'</p>';
- h+='<div class="row wrapf" style="gap:5px;margin-top:9px">'+a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'<span class="badge">'+CPLX[a.cx]+'</span></div></div>';
 
- if(a.insta){
-  var ii=S.caro["ig"+a.id]||0;
-  h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b small">📷 Instagram</span><span class="tiny muted">@'+a.name.toLowerCase().replace(/\s+/g,".")+'</span>'+tg("real")+'</div>';
-  h+='<div class="caro" style="height:200px;border-radius:10px;overflow:hidden;margin-top:9px">';
-  for(var k=0;k<6;k++)h+='<div class="sl '+(k===ii?"on":"")+'" style="background-image:'+tex(a.seed*11+k)+'"></div>';
-  h+='<button class="nav l" onclick="caro(\'ig'+a.id+'\',-1,6)">‹</button><button class="nav r" onclick="caro(\'ig'+a.id+'\',1,6)">›</button>';
-  h+='<div class="pips">';for(var k=0;k<6;k++)h+='<i class="'+(k===ii?"on":"")+'"></i>';h+='</div></div>';
-  h+='<div class="tiny muted" style="margin-top:6px">Post #'+(ii+1)+' — puxado do feed do Instagram do artista</div></div>';
+ h+='<div class="card pad" style="margin-top:14px"><div class="b small">Sobre</div><p style="margin-top:6px">'+a.bio+'</p>';
+ h+='<div class="row wrapf" style="gap:5px;margin-top:9px">'+a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'</div></div>';
+
+ // Mesmo componente segmentado do resto da plataforma
+ if(temInsta){
+  h+='<div class="segmento" style="max-width:300px">';
+  [["portfolio","Portfólio"],["instagram","Instagram"]].forEach(function(t){
+   h+='<button class="seg '+(aba===t[0]?"on":"")+'" onclick="S.abaPerfil=\''+t[0]+'\';render()">'+t[1]+'</button>'});
+  h+='</div>';
  }
 
- h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b small">Portfólio</span>'+tg("real")+'</div>';
- h+='<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:9px;gap:7px">';
- a.port.forEach(function(p){h+='<div class="tat" style="aspect-ratio:1;border-radius:9px;background-image:'+tex(p)+'"></div>'});
- h+='</div></div>';
+ if(aba==="portfolio"){
+  h+='<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:14px;gap:7px">';
+  a.port.forEach(function(p){h+='<div class="tat" style="aspect-ratio:1;border-radius:9px;background-image:'+tex(p)+'"></div>'});
+  h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:9px">'+a.port.length+' trabalhos publicados aqui'+tg("real")+'</div>';
+ }else{
+  var ii=S.caro["ig"+a.id]||0;
+  h+='<div class="caro" style="height:300px;border-radius:12px;overflow:hidden;margin-top:14px">';
+  for(var k=0;k<6;k++)h+='<div class="sl '+(k===ii?"on":"")+'" style="background-image:'+tex(a.seed*11+k)+'"></div>';
+  if(ii>0)h+='<button class="nav l" onclick="caro(\'ig'+a.id+'\',-1,6)">‹</button>';
+  if(ii<5)h+='<button class="nav r" onclick="caro(\'ig'+a.id+'\',1,6)">›</button>';
+  h+='<div class="pips">';for(var k=0;k<6;k++)h+='<i class="'+(k===ii?"on":"")+'"></i>';h+='</div></div>';
+  h+='<div class="tiny muted" style="margin-top:9px">Post '+(ii+1)+' de 6 · @'+a.name.toLowerCase().replace(/\s+/g,".")+' — puxado do Instagram do artista'+tg("real")+'</div>';
+ }
+ h+='</div>';
 
- h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b small">Eventos deste artista</span>'+tg("mock")+'</div><div style="margin-top:4px">';
- EVENTS.slice(0,2).forEach(function(e){
-  h+='<div class="lrow"><div class="datebox"><span class="m">'+e.d.split(" ").pop()+'</span><span class="d">'+e.d.split(/[–\s]/)[0]+'</span></div>';
-  h+='<div><div class="b small">'+e.n+'</div><div class="tiny muted">'+e.t+' · '+e.city+'</div></div>';
-  h+='<div class="sp b small">'+(e.cost?money(e.cost):"Grátis")+'</div></div>'});
- h+='</div></div>';
+ /* ── COLUNA MENOR: blocos modulares ────────────────────────────
+    O primeiro é fixo: é o que faz a pessoa agir. Os outros dois só
+    existem se houver conteúdo — perfil novo não mostra caixa vazia. */
+ h+='<div class="lateral">';
 
- h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b small">Avaliações</span>'+tg("mock")+'</div><div style="margin-top:4px">';
- REVS.forEach(function(r){h+='<div class="lrow"><div class="av">'+ini(r.c)+'</div><div style="min-width:0"><div class="b small">'+r.c+' <span class="tiny">'+stars(r.r)+'</span></div><div class="small muted">'+r.t+'</div></div><div class="sp tiny muted">'+r.w+'</div></div>'});
- h+='</div></div></div>';
-
- h+='<div class="card pad" style="position:sticky;top:76px">';
- h+='<div class="tiny muted">Faixa por hora</div><div style="font-size:21px;font-weight:700;letter-spacing:-.02em">'+brl(a.min)+' – '+brl(a.max)+'</div>';
- h+='<div class="sep"></div><div class="tiny muted" style="margin-bottom:5px">Tabela de referência</div>';
- h+='<table class="t"><tr><th>Tamanho</th><th style="text-align:right">Faixa</th></tr>';
- [["Pequeno (até 8cm)",2],["Médio (8–20cm)",5],["Grande (20cm+)",8],["Sessão dia",10]].forEach(function(r){
-  h+='<tr><td class="muted">'+r[0]+'</td><td style="text-align:right" class="b">'+brl(a.min*r[1])+'</td></tr>'});
- h+='</table>';
+ h+='<div class="card pad">';
+ h+='<div class="tiny muted">Faixa por hora</div>';
+ h+='<div style="font-size:21px;font-weight:700;letter-spacing:-.02em">'+brl(a.min)+' – '+brl(a.max)+'</div>';
  h+='<button class="btn primary blk" style="margin-top:13px" onclick="quoteFor(\''+a.id+'\',\'quote\')">✨ Pedir orçamento</button>';
  h+='<button class="btn blk" style="margin-top:7px" onclick="quoteFor(\''+a.id+'\',\'schedule\')">🗓 Agendar sessão</button>';
  h+='<button class="btn blk" style="margin-top:7px" onclick="'+(isLog()?"openDrawer('chat')":"go('auth')")+'">💬 Conversar</button>';
- h+='<div class="tiny muted" style="margin-top:9px">Catálogo e orçamento'+tg("real")+'</div></div>';
+ h+='<details style="margin-top:12px"><summary class="tiny muted" style="cursor:pointer">Ver tabela por tamanho</summary>';
+ h+='<table class="t" style="margin-top:7px">';
+ [["Pequeno",2],["Médio",5],["Grande",8],["Sessão dia",10]].forEach(function(r){
+  h+='<tr><td class="muted small">'+r[0]+'</td><td style="text-align:right" class="b small">'+brl(a.min*r[1])+'</td></tr>'});
+ h+='</table></details>';
+ h+='</div>';
+
+ var eventosDele=EVENTS.slice(0,2);
+ if(eventosDele.length){
+  h+='<div class="card pad" style="margin-top:13px"><div class="row"><span class="b small">Onde encontrar</span>'+tg("mock")+'</div>';
+  eventosDele.forEach(function(e){
+   h+='<div class="lrow"><div class="datebox"><span class="m">'+e.d.split(" ").pop()+'</span><span class="d">'+e.d.split(/[–\s]/)[0]+'</span></div>';
+   h+='<div style="min-width:0"><div class="b small">'+e.n+'</div><div class="tiny muted">'+e.city+'</div></div>';
+   h+='<div class="sp tiny b">'+(e.cost?money(e.cost):"Grátis")+'</div></div>'});
+  h+='</div>';
+ }
+
+ if(a.reviews>0){
+  h+='<div class="card pad" style="margin-top:13px"><div class="row"><span class="b small">Avaliações</span>'+tg("mock")+'</div>';
+  h+='<div class="row" style="gap:9px;margin-top:8px"><span class="b" style="font-size:20px">'+a.rating+'</span>';
+  h+='<div><div class="tiny">'+stars(a.rating)+'</div><div class="tiny muted">'+a.reviews+' avaliações</div></div></div>';
+  h+='<div class="sep"></div>';
+  REVS.slice(0,2).forEach(function(r){
+   h+='<div style="padding:8px 0;border-bottom:1px solid var(--border)"><div class="row"><span class="b small">'+r.c+'</span><span class="tiny sp">'+stars(r.r)+'</span></div>';
+   h+='<div class="tiny muted" style="margin-top:3px">'+r.t+'</div></div>'});
+  h+='<button class="btn sm blk" style="margin-top:10px">Ver todas</button>';
+  h+='</div>';
+ }
+
+ h+='</div>';
  return h+'</div></div></main>';
 }
 
