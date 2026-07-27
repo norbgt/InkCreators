@@ -1470,14 +1470,16 @@ function vArtist(){
  h+='<button class="btn sm" onclick="alternarSeguir(\''+a.id+'\')">'+(S.seguindo.indexOf(a.id)>=0?"✓ Seguindo":"👤 Seguir")+'</button>';
  h+='</div>';
 
- h+='<details style="margin-top:10px"><summary class="tiny muted" style="cursor:pointer">Ver tabela por tamanho</summary>';
- h+='<table class="t" style="margin-top:7px">';
+ // Bio e tabela juntas no recolhido: as duas são consulta, não decisão.
+ // Quem já sabe o que quer vai direto no botão; quem quer entender abre.
+ h+='<details style="margin-top:11px"><summary class="tiny muted" style="cursor:pointer">Sobre o tatuador</summary>';
+ h+='<p class="small" style="margin-top:9px">'+a.bio+'</p>';
+ h+='<div class="tiny muted" style="margin-top:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em">Preço por tamanho</div>';
+ h+='<table class="t" style="margin-top:4px">';
  [["Pequeno",2],["Médio",5],["Grande",8],["Sessão dia",10]].forEach(function(r){
   h+='<tr><td class="muted small">'+r[0]+'</td><td style="text-align:right" class="b small">'+brl(a.min*r[1])+'</td></tr>'});
  h+='</table></details>';
  h+='</div>';
-
- h+='<div class="card pad" style="margin-top:12px"><p class="small">'+a.bio+'</p></div>';
 
  /* ── TOGGLE: portfólio, instagram, eventos ─────────────────────── */
  if(abas.length>1){
