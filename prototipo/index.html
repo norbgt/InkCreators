@@ -156,12 +156,32 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .aba .ico{width:17px;height:17px}
 .abas-acoes{display:flex;gap:7px;flex:0 0 auto;padding-bottom:7px}
 .btn.sm.destaque{background:var(--accent);color:var(--accent-foreground);border-color:var(--accent)}
-/* Tiras: recorte dentro da aba. Uma linha só, rolando quando não couber. */
-.tiras{display:flex;gap:6px;margin-top:16px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.tiras::-webkit-scrollbar{display:none}
-.tira{flex-shrink:0;white-space:nowrap;border:1px solid var(--border);background:var(--card);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600}
-.tira:hover{border-color:var(--muted-foreground)}
-.tira.on{background:var(--accent);color:var(--accent-foreground);border-color:var(--accent)}
+/* Controle segmentado — recorte dentro da aba.
+   Peças unidas num trilho translúcido; a ativa sobe como uma lente.
+   O desfoque de fundo faz o conteúdo que rola por baixo aparecer
+   levemente, dando profundidade sem competir com o conteúdo. */
+.segmento{display:flex;margin-top:16px;padding:3px;border-radius:999px;position:relative;
+  background:color-mix(in oklab, var(--muted) 75%, transparent);
+  backdrop-filter:blur(18px) saturate(170%);
+  -webkit-backdrop-filter:blur(18px) saturate(170%);
+  border:1px solid color-mix(in oklab, var(--foreground) 7%, transparent);
+  box-shadow:inset 0 1px 0 color-mix(in oklab, #fff 55%, transparent), 0 1px 2px rgba(0,0,0,.05);
+  overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.segmento::-webkit-scrollbar{display:none}
+.seg{flex:1 1 0;min-width:0;white-space:nowrap;padding:7px 13px;border-radius:999px;
+  font-size:12.5px;font-weight:600;color:var(--muted-foreground);background:none;
+  transition:color .18s ease, background .18s ease}
+.seg:hover{color:var(--foreground)}
+.seg.on{color:var(--foreground);
+  background:color-mix(in oklab, var(--card) 92%, transparent);
+  box-shadow:0 1px 3px rgba(0,0,0,.11), 0 0 0 .5px color-mix(in oklab, var(--foreground) 6%, transparent),
+    inset 0 1px 0 color-mix(in oklab, #fff 70%, transparent)}
+html[data-dark] .segmento{
+  background:color-mix(in oklab, var(--muted) 60%, transparent);
+  box-shadow:inset 0 1px 0 color-mix(in oklab, #fff 8%, transparent), 0 1px 2px rgba(0,0,0,.3)}
+html[data-dark] .seg.on{
+  background:color-mix(in oklab, var(--card) 96%, transparent);
+  box-shadow:0 1px 4px rgba(0,0,0,.45), inset 0 1px 0 color-mix(in oklab, #fff 10%, transparent)}
 
 /* Barra de localização + mapa pequeno + lista compacta.
    Padrão de app de mobilidade: contexto no topo, decisão na lista. */
@@ -380,8 +400,7 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
   .btnbarra .rot{display:none}
   .btnbarra{padding:0 13px}
   .drawer{width:100%;border-left:none}
-  .subnav,.tiras{margin:0 -18px;padding:0 18px}
-  .tiras{padding-top:2px}
+  .subnav{margin:0 -18px;padding:0 18px}
   /* Rodapé do drawer e da página respeitam a faixa do indicador do iPhone */
   .drawer .df{padding-bottom:calc(11px + env(safe-area-inset-bottom,0px))}
   footer.note{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
@@ -390,7 +409,7 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 /* ── iPhone 16 e menores (até 440px) ─────────────────────────────── */
 @media(max-width:460px){
   .wrap{padding:0 14px}
-  .abas,.subnav,.tiras{margin:0 -14px;padding:0 14px}
+  .abas,.subnav{margin:0 -14px;padding:0 14px}
   .abas{margin-right:0;padding-right:0}
   .aba{padding:11px 12px}
   .abas-acoes .btn.sm{padding:7px 9px;font-size:12px}
@@ -1096,9 +1115,9 @@ function secShop(){
  var nF=(S.shopCat!=="all"?1:0);
 
  // Audiências em linha única, rolando na horizontal quando não couber
- var h='<div class="tiras">';
- [["client","Para quem tatuou"],["artist","Para o tatuador"],["art","Galeria de arte"]].forEach(function(a){
-  h+='<button class="tira '+(S.shopAud===a[0]?"on":"")+'" onclick="S.shopAud=\''+a[0]+'\';S.shopCat=\'all\';S.feedLote=1;render()">'+a[1]+'</button>'});
+ var h='<div class="segmento">';
+ [["client","Cliente"],["artist","Tatuador"],["art","Galeria de arte"]].forEach(function(a){
+  h+='<button class="seg '+(S.shopAud===a[0]?"on":"")+'" onclick="S.shopAud=\''+a[0]+'\';S.shopCat=\'all\';S.feedLote=1;render()">'+a[1]+'</button>'});
  h+='</div>';
 
  var filtros='<div class="fgroup" style="margin-top:0"><span class="gl">Categoria</span>';
@@ -1168,9 +1187,9 @@ function addCart(id){
 function secEvents(){
  var nF=(S.evT!=="all"?1:0)+(S.evP!=="all"?1:0)+(S.evD!=="all"?1:0)+(S.coL!=="all"?1:0);
 
- var h='<div class="tiras">';
+ var h='<div class="segmento">';
  [["perto","Eventos"],["cursos","Cursos"]].forEach(function(t){
-  h+='<button class="tira '+(S.evAba===t[0]?"on":"")+'" onclick="S.evAba=\''+t[0]+'\';S.feedLote=1;render()">'+t[1]+'</button>'});
+  h+='<button class="seg '+(S.evAba===t[0]?"on":"")+'" onclick="S.evAba=\''+t[0]+'\';S.feedLote=1;render()">'+t[1]+'</button>'});
  h+='</div>';
 
  var filtros='';
