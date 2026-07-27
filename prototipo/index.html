@@ -105,6 +105,11 @@ html[data-dark] .logo .marca{content:url("marca/logo-branco.png")}
 .top-actions{margin-left:auto;display:flex;align-items:center;gap:5px}
 .iconbtn{width:35px;height:35px;border-radius:9px;display:flex;align-items:center;justify-content:center;position:relative}
 .iconbtn:hover{background:var(--muted)}
+/* Convite ao tatuador: mesma forma dos outros, cor de acento para
+   continuar sendo notado sem virar um botão maior que os vizinhos. */
+.iconbtn.convite{color:var(--accent)}
+.iconbtn.convite:hover{background:var(--x-accent-bg)}
+.iconbtn.convite.ativo{background:var(--accent);color:var(--accent-foreground)}
 .dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
 /* O número era centrado por line-height, que não considera a borda de
    2px nem a altura real do dígito — ficava fora do eixo. Flexbox centra
@@ -402,7 +407,6 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 /* ── Telefones (até 699px) ───────────────────────────────────────── */
 @media(max-width:699px){
   .search{display:none}
-  .hide-sm{display:none!important}
   h1.page{font-size:21px}
   /* Ações ficam SEMPRE na mesma linha das abas. Quem cede espaço são as
      abas, que rolam na horizontal — nunca os botões, que são a ação. */
@@ -797,7 +801,10 @@ function tog(arr,v){var i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v
 /* ============ TOPBAR ============ */
 function renderTop(){
  var onLanding=S.route==="para-tatuadores";
- var h='<button class="pill hide-sm '+(onLanding?"accent-solid":"accent")+'" onclick="go(\'para-tatuadores\')">🎨 Sou tatuador</button>';
+ // Porta de entrada do tatuador. Vira ícone como os demais, mas em cor de
+ // acento para não se perder entre eles — e some do celular nunca mais,
+ // que é justo onde a conversão acontecia menos por estar escondida.
+ var h='<button class="iconbtn convite'+(onLanding?" ativo":"")+'" title="Sou tatuador — conheça a plataforma" aria-label="Sou tatuador" onclick="go(\'para-tatuadores\')">🎨</button>';
  var nCart=S.cart.reduce(function(a,c){return a+c.q},0);
  var nNotif=S.notifs.filter(function(n){return n.un}).length;
  var nChat=CHATS.reduce(function(a,c){return a+c.un},0);
