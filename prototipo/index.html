@@ -192,7 +192,7 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
   box-shadow:inset 0 1px 0 color-mix(in oklab, #fff 55%, transparent), 0 1px 2px rgba(0,0,0,.05);
   overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .segmento::-webkit-scrollbar{display:none}
-.seg{flex:1 1 0;min-width:0;white-space:nowrap;padding:7px 13px;border-radius:999px;
+.seg{flex:1 1 0;min-width:0;white-space:nowrap;padding:7px 11px;border-radius:999px;
   font-size:12.5px;font-weight:600;color:var(--muted-foreground);background:none;
   transition:color .18s ease, background .18s ease}
 .seg:hover{color:var(--foreground)}
@@ -397,10 +397,11 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 .acaotrio.principal:hover{border-color:var(--primary)}
 @media(pointer:coarse){.acaotrio{padding:12px 4px}}
 
-/* Coluna lateral do perfil: acompanha a rolagem no desktop, vira bloco
-   normal abaixo do conteúdo quando a página passa a ter uma coluna só. */
-.lateral{position:sticky;top:76px}
-@media(max-width:1100px){.lateral{position:static}}
+/* Perfil em coluna única, largura de leitura. Dimensionado pelo celular:
+   o que cabe em 393px cabe em qualquer lugar. */
+.perfilcol{max-width:640px;margin:0 auto}
+.gradeport{grid-template-columns:repeat(3,1fr);gap:7px}
+@media(max-width:460px){.gradeport{gap:5px}}
 .vantagem{display:flex;flex-direction:column}
 .vantagem .small.muted{flex:1}
 .plan{border:1px solid var(--border);border-radius:var(--radius);padding:18px;background:var(--card);position:relative}
@@ -484,6 +485,7 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 
 /* ── iPhone 16 e menores (até 440px) ─────────────────────────────── */
 @media(max-width:460px){
+  .seg{padding:7px 8px;font-size:12px}
   .wrap{padding:0 14px}
   .abas,.subnav{margin:0 -14px;padding:0 14px}
   .abas{margin-right:0;padding-right:0}
@@ -1432,61 +1434,42 @@ function listaCursos(){
 function vArtist(){
  var a=ARTISTS.filter(function(x){return x.id===S.artist})[0]||ARTISTS[0];
  var temInsta=!!a.insta;
- var aba = (!temInsta) ? "portfolio" : S.abaPerfil;
- var h='<main><div class="wrap"><button class="btn sm" onclick="go(\'home\')">← Voltar</button>';
- h+='<div class="grid cols2" style="margin-top:14px;align-items:start">';
+ var eventosDele=EVENTS.slice(0,2);
+ // Cursos que este artista ministra. Deterministico pelo seed, para o
+ // mesmo perfil mostrar sempre os mesmos.
+ var cursosDele=COURSES.filter(function(x,i){return (a.seed+i)%3===0}).slice(0,2);
+ // Coluna única, dimensionada pelo celular. Duas colunas empurravam as
+ // ações para a lateral, que no telefone cai depois de todo o portfólio.
+ var abas=[["portfolio","Portfólio"]];
+ if(temInsta)abas.push(["instagram","Instagram"]);
+ if(cursosDele.length)abas.push(["cursos","Cursos"]);
+ if(eventosDele.length)abas.push(["eventos","Eventos"]);
+ var aba = abas.map(function(x){return x[0]}).indexOf(S.abaPerfil)>=0 ? S.abaPerfil : "portfolio";
 
- /* ── COLUNA MAIOR: identidade fixa, obra alternável ────────────── */
- h+='<div>';
- h+='<div class="row" style="gap:13px"><div class="av" style="width:62px;height:62px;font-size:18px">'+ini(a.name)+'</div><div>';
- h+='<h1 class="page">'+a.name+(a.verified?' <span class="badge acc">verificado</span>':'')+'</h1>';
- h+='<p class="sub">'+a.studio+' · '+a.city+', '+a.state+' · '+a.years+' anos</p>';
- h+='<div class="small" style="margin-top:4px">'+stars(a.rating)+' <span class="b">'+a.rating+'</span> <span class="muted">('+a.reviews+' avaliações)</span></div></div></div>';
+ var h='<main><div class="wrap"><div class="perfilcol">';
+ h+='<button class="btn sm" onclick="go(\'home\')">← Voltar</button>';
 
- h+='<div class="card pad" style="margin-top:14px"><div class="b small">Sobre</div><p style="margin-top:6px">'+a.bio+'</p>';
- h+='<div class="row wrapf" style="gap:5px;margin-top:9px">'+a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'</div></div>';
+ /* ── CABEÇALHO: quem é, quanto cobra, e o que fazer ────────────── */
+ h+='<div class="card pad" style="margin-top:12px">';
+ h+='<div class="row" style="gap:11px;align-items:flex-start">';
+ h+='<div class="av" style="width:52px;height:52px;font-size:16px;flex-shrink:0">'+ini(a.name)+'</div>';
+ h+='<div style="min-width:0;flex:1">';
+ h+='<div class="b" style="font-size:17px">'+a.name+(a.verified?' <span style="color:var(--accent)">✔</span>':'')+'</div>';
+ h+='<div class="small muted">'+a.studio+' · '+a.city+'/'+a.state+'</div>';
+ h+='<div class="tiny muted" style="margin-top:2px">'+stars(a.rating)+' '+a.rating+' ('+a.reviews+') · '+a.years+' anos</div>';
+ h+='</div></div>';
 
- // Mesmo componente segmentado do resto da plataforma
- if(temInsta){
-  h+='<div class="segmento" style="max-width:300px">';
-  [["portfolio","Portfólio"],["instagram","Instagram"]].forEach(function(t){
-   h+='<button class="seg '+(aba===t[0]?"on":"")+'" onclick="S.abaPerfil=\''+t[0]+'\';render()">'+t[1]+'</button>'});
-  h+='</div>';
- }
+ h+='<div class="row" style="align-items:baseline;gap:6px;margin-top:11px">';
+ h+='<span style="font-size:18px;font-weight:700;letter-spacing:-.02em">'+brl(a.min)+' – '+brl(a.max)+'</span>';
+ h+='<span class="tiny muted">/hora</span>';
+ h+='<button class="btn sm sp" onclick="alternarSeguir(\''+a.id+'\')">'+(S.seguindo.indexOf(a.id)>=0?"✓ Seguindo":"👤 Seguir")+'</button></div>';
 
- if(aba==="portfolio"){
-  h+='<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:14px;gap:7px">';
-  a.port.forEach(function(p){h+='<div class="tat" style="aspect-ratio:1;border-radius:9px;background-image:'+tex(p)+'"></div>'});
-  h+='</div>';
-  h+='<div class="tiny muted" style="margin-top:9px">'+a.port.length+' trabalhos publicados aqui'+tg("real")+'</div>';
- }else{
-  var ii=S.caro["ig"+a.id]||0;
-  h+='<div class="caro" style="height:300px;border-radius:12px;overflow:hidden;margin-top:14px">';
-  for(var k=0;k<6;k++)h+='<div class="sl '+(k===ii?"on":"")+'" style="background-image:'+tex(a.seed*11+k)+'"></div>';
-  if(ii>0)h+='<button class="nav l" onclick="caro(\'ig'+a.id+'\',-1,6)">‹</button>';
-  if(ii<5)h+='<button class="nav r" onclick="caro(\'ig'+a.id+'\',1,6)">›</button>';
-  h+='<div class="pips">';for(var k=0;k<6;k++)h+='<i class="'+(k===ii?"on":"")+'"></i>';h+='</div></div>';
-  h+='<div class="tiny muted" style="margin-top:9px">Post '+(ii+1)+' de 6 · @'+a.name.toLowerCase().replace(/\s+/g,".")+' — puxado do Instagram do artista'+tg("real")+'</div>';
- }
- h+='</div>';
-
- /* ── COLUNA MENOR: blocos modulares ────────────────────────────
-    O primeiro é fixo: é o que faz a pessoa agir. Os outros dois só
-    existem se houver conteúdo — perfil novo não mostra caixa vazia. */
- h+='<div class="lateral">';
-
- // Três ações lado a lado, empilhadas em coluna e ícone acima do rótulo.
- // Ocupa a metade da altura de três botões largos, e as três ficam com o
- // mesmo peso — nenhuma some abaixo da dobra.
- h+='<div class="card pad">';
- h+='<div class="row" style="align-items:baseline;gap:7px">';
- h+='<span style="font-size:19px;font-weight:700;letter-spacing:-.02em">'+brl(a.min)+' – '+brl(a.max)+'</span>';
- h+='<span class="tiny muted">/hora</span></div>';
  h+='<div class="acoestrio">';
- h+='<button class="acaotrio principal" onclick="quoteFor(\''+a.id+'\',\'quote\')">✨<span>Orçamento</span></button>';
- h+='<button class="acaotrio" onclick="quoteFor(\''+a.id+'\',\'schedule\')">🗓<span>Agendar</span></button>';
+ h+='<button class="acaotrio principal" onclick="quoteFor(\''+a.id+'\',\'quote\')">✨<span>Orçar</span></button>';
+ h+='<button class="acaotrio" onclick="quoteFor(\''+a.id+'\',\'schedule\')">🗓<span>Agenda</span></button>';
  h+='<button class="acaotrio" onclick="'+(isLog()?"openDrawer('chat')":"go('auth')")+'">💬<span>Conversar</span></button>';
  h+='</div>';
+
  h+='<details style="margin-top:10px"><summary class="tiny muted" style="cursor:pointer">Ver tabela por tamanho</summary>';
  h+='<table class="t" style="margin-top:7px">';
  [["Pequeno",2],["Médio",5],["Grande",8],["Sessão dia",10]].forEach(function(r){
@@ -1494,29 +1477,66 @@ function vArtist(){
  h+='</table></details>';
  h+='</div>';
 
- var eventosDele=EVENTS.slice(0,2);
- if(eventosDele.length){
-  h+='<div class="card pad" style="margin-top:13px"><div class="row"><span class="b small">Onde encontrar</span>'+tg("mock")+'</div>';
-  eventosDele.forEach(function(e){
-   h+='<div class="lrow"><div class="datebox"><span class="m">'+e.d.split(" ").pop()+'</span><span class="d">'+e.d.split(/[–\s]/)[0]+'</span></div>';
-   h+='<div style="min-width:0"><div class="b small">'+e.n+'</div><div class="tiny muted">'+e.city+'</div></div>';
-   h+='<div class="sp tiny b">'+(e.cost?money(e.cost):"Grátis")+'</div></div>'});
+ h+='<div class="card pad" style="margin-top:12px"><p class="small">'+a.bio+'</p>';
+ h+='<div class="row wrapf" style="gap:5px;margin-top:8px">'+a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'</div></div>';
+
+ /* ── TOGGLE: portfólio, instagram, eventos ─────────────────────── */
+ if(abas.length>1){
+  h+='<div class="segmento" style="margin-top:16px">';
+  abas.forEach(function(t){
+   h+='<button class="seg '+(aba===t[0]?"on":"")+'" onclick="S.abaPerfil=\''+t[0]+'\';render()">'+t[1]+'</button>'});
   h+='</div>';
  }
 
+ if(aba==="portfolio"){
+  h+='<div class="grid gradeport" style="margin-top:14px">';
+  a.port.forEach(function(p){h+='<div class="tat" style="aspect-ratio:1;border-radius:9px;background-image:'+tex(p)+'"></div>'});
+  h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:9px">'+a.port.length+' trabalhos publicados aqui'+tg("real")+'</div>';
+ }
+ if(aba==="instagram"){
+  var ii=S.caro["ig"+a.id]||0;
+  h+='<div class="caro" style="aspect-ratio:1;border-radius:12px;overflow:hidden;margin-top:14px">';
+  for(var k=0;k<6;k++)h+='<div class="sl '+(k===ii?"on":"")+'" style="background-image:'+tex(a.seed*11+k)+'"></div>';
+  if(ii>0)h+='<button class="nav l" onclick="caro(\'ig'+a.id+'\',-1,6)">‹</button>';
+  if(ii<5)h+='<button class="nav r" onclick="caro(\'ig'+a.id+'\',1,6)">›</button>';
+  h+='<div class="pips">';for(var k=0;k<6;k++)h+='<i class="'+(k===ii?"on":"")+'"></i>';h+='</div></div>';
+  h+='<div class="tiny muted" style="margin-top:9px">Post '+(ii+1)+' de 6 · @'+a.name.toLowerCase().replace(/\s+/g,".")+tg("real")+'</div>';
+ }
+ if(aba==="cursos"){
+  h+='<div class="lista" style="margin-top:14px">';
+  cursosDele.forEach(function(x){
+   h+='<button class="item compacto"><div class="itemfoto">'+x.e+'</div>';
+   h+='<div class="itemtxt"><div class="b small">'+x.n+'</div>';
+   h+='<div class="tiny muted">'+x.dur+' · início '+x.st+'</div>';
+   h+='<div class="row wrapf" style="gap:4px;margin-top:3px"><span class="badge">'+x.t+'</span><span class="badge">'+x.lv+'</span></div></div>';
+   h+='<div class="itemfim"><div class="b small">'+(x.cost?money(x.cost):"Grátis")+'</div>';
+   h+='<span class="tiny '+(x.spots<6?"":"muted")+'" style="'+(x.spots<6?"color:var(--x-warning)":"")+'">'+x.spots+' vagas</span></div></button>'});
+  h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:9px">Cursos ministrados por este artista'+tg("mock")+'</div>';
+ }
+ if(aba==="eventos"){
+  h+='<div class="lista" style="margin-top:14px">';
+  eventosDele.forEach(function(e){
+   h+='<button class="item"><div class="datebox"><span class="m">'+e.d.split(" ").pop()+'</span><span class="d">'+e.d.split(/[–\s]/)[0]+'</span></div>';
+   h+='<div class="itemtxt"><div class="b small">'+e.n+'</div><div class="tiny muted">'+e.t+' · '+e.city+'</div></div>';
+   h+='<div class="itemfim"><div class="b small">'+(e.cost?money(e.cost):"Grátis")+'</div><span class="tiny muted">participar ›</span></div></button>'});
+  h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:9px">Onde encontrar este artista'+tg("mock")+'</div>';
+ }
+
+ /* ── AVALIAÇÕES no fim, se houver ──────────────────────────────── */
  if(a.reviews>0){
-  h+='<div class="card pad" style="margin-top:13px"><div class="row"><span class="b small">Avaliações</span>'+tg("mock")+'</div>';
-  h+='<div class="row" style="gap:9px;margin-top:8px"><span class="b" style="font-size:20px">'+a.rating+'</span>';
+  h+='<div class="card pad" style="margin-top:22px"><div class="row"><span class="b small">Avaliações</span>'+tg("mock")+'</div>';
+  h+='<div class="row" style="gap:9px;margin-top:8px"><span class="b" style="font-size:22px">'+a.rating+'</span>';
   h+='<div><div class="tiny">'+stars(a.rating)+'</div><div class="tiny muted">'+a.reviews+' avaliações</div></div></div>';
   h+='<div class="sep"></div>';
-  REVS.slice(0,2).forEach(function(r){
-   h+='<div style="padding:8px 0;border-bottom:1px solid var(--border)"><div class="row"><span class="b small">'+r.c+'</span><span class="tiny sp">'+stars(r.r)+'</span></div>';
+  REVS.slice(0,3).forEach(function(r,i,arr){
+   h+='<div style="padding:9px 0'+(i<arr.length-1?';border-bottom:1px solid var(--border)':'')+'"><div class="row"><span class="b small">'+r.c+'</span><span class="tiny sp">'+stars(r.r)+'</span></div>';
    h+='<div class="tiny muted" style="margin-top:3px">'+r.t+'</div></div>'});
-  h+='<button class="btn sm blk" style="margin-top:10px">Ver todas</button>';
-  h+='</div>';
+  h+='<button class="btn sm blk" style="margin-top:10px">Ver todas</button></div>';
  }
 
- h+='</div>';
  return h+'</div></div></main>';
 }
 
