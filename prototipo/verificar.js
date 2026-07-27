@@ -189,7 +189,7 @@
 
     salvarEstado();
     var salvo = "";
-    try { salvo = localStorage.getItem("ink.estado.v1") || ""; } catch (e) {}
+    try { salvo = localStorage.getItem("ink.estado.v2") || ""; } catch (e) {}
     ok("o estado foi salvo", salvo.length > 10);
     ok("a SENHA não foi para o disco", salvo.indexOf(senhaUsada) < 0);
     ok("o e-mail foi", salvo.indexOf("ana@exemplo.com") >= 0);

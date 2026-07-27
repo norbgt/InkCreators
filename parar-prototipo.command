@@ -18,7 +18,7 @@ if [ ! -f "$ESTADO" ]; then
   echo "  Não havia servidor anotado. Nada a fazer."
 else
   read -r PID PORTA < "$ESTADO"
-  if kill -0 "$PID" 2>/dev/null && ps -p "$PID" -o command= 2>/dev/null | grep -q "http\.server $PORTA"; then
+  if kill -0 "$PID" 2>/dev/null && ps -p "$PID" -o command= 2>/dev/null | grep -qE "servidor-local\.py $PORTA|http\.server $PORTA"; then
     kill "$PID" 2>/dev/null
     sleep 0.5
     kill -9 "$PID" 2>/dev/null   # se não saiu com jeito
@@ -27,6 +27,23 @@ else
     echo "  O servidor já não estava rodando."
   fi
   rm -f "$ESTADO"
+fi
+
+# Varre o que tiver sobrado de execuções antigas, que não deixavam
+# registro nenhum.
+sobrou=0
+for p in 8765 8766 8767 8768 8769; do
+  for pid in $(lsof -ti tcp:$p -sTCP:LISTEN 2>/dev/null); do
+    cmd=$(ps -p "$pid" -o command= 2>/dev/null)
+    case "$cmd" in
+      *python*http.server*|*python*servidor-local.py*)
+        kill "$pid" 2>/dev/null && sobrou=$((sobrou+1)) ;;
+    esac
+  done
+done
+if [ "$sobrou" -gt 0 ]; then
+  echo "  Encerrei também $sobrou servidor(es) esquecido(s)."
+
 fi
 
 echo

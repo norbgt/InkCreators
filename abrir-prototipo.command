@@ -2,79 +2,107 @@
 # ═══════════════════════════════════════════════════════════════════
 # Abre o protótipo conectado ao banco.
 #
-# POR QUE NÃO BASTA DAR DOIS CLIQUES NO index.html
-# Ao abrir um arquivo direto do Finder, o navegador usa o endereço
-# file:// e bloqueia, por segurança, o carregamento da biblioteca do
-# Supabase. É uma proteção do navegador, não um defeito nosso.
+# TRÊS COISAS FAZIAM VOCÊ VER A VERSÃO VELHA, E AS TRÊS ESTÃO
+# RESOLVIDAS AQUI:
 #
-# POR QUE ESTE SCRIPT FECHA SOZINHO
-# Antes, ele segurava o servidor em primeiro plano: a janela do
-# Terminal ficava presa até você fechá-la na mão, e cada novo clique
-# abria mais uma. Agora o servidor roda solto, em segundo plano, e a
-# janela se fecha. Clicar de novo não sobe outro servidor — reaproveita
-# o que já está de pé.
+# 1. O `open` do macOS, ao receber uma URL que já está aberta numa aba,
+#    apenas muda o foco para ela — sem recarregar. Por isso o endereço
+#    agora leva um carimbo de tempo: é sempre uma URL nova, e o
+#    navegador é obrigado a buscar.
 #
-# Para encerrar o servidor: dois cliques em parar-prototipo.command.
+# 2. O servidor padrão do Python deixa o navegador guardar os arquivos.
+#    Trocamos por um que responde no-store em tudo.
+#
+# 3. Servidores esquecidos de execuções anteriores continuavam de pé,
+#    às vezes servindo de outra pasta. Agora eles são encerrados antes
+#    de subir o novo.
+#
+# No fim, o script confere que o que o servidor está entregando é o
+# arquivo que está no disco. Se não bater, ele avisa em vez de abrir.
+#
+# Para encerrar: dois cliques em parar-prototipo.command.
 # ═══════════════════════════════════════════════════════════════════
 
-cd "$(dirname "$0")/prototipo" || exit 1
-
+RAIZ="$(cd "$(dirname "$0")" && pwd)"
+PASTA="$RAIZ/prototipo"
 ESTADO="/tmp/ink-creators-prototipo.estado"
+PORTA=8765
 
-# ── Já existe servidor nosso de pé? ────────────────────────────────
-# Confere quatro coisas: o arquivo de estado existe, o processo está
-# vivo, é um http.server, e é o daquela porta. Sem tudo isso, um PID
-# reciclado pelo sistema faria o script achar que está tudo certo e
-# mandar o navegador para uma porta morta.
-servidor_de_pe() {
-  [ -f "$ESTADO" ] || return 1
-  read -r PID PORTA < "$ESTADO" 2>/dev/null
-  [ -n "$PID" ] && [ -n "$PORTA" ] || return 1
-  kill -0 "$PID" 2>/dev/null || return 1
-  ps -p "$PID" -o command= 2>/dev/null | grep -q "http\.server $PORTA" || return 1
-  return 0
-}
-
-if servidor_de_pe; then
-  REAPROVEITADO="sim"
-else
-  REAPROVEITADO="não"
-  PORTA=8765
-  while lsof -i :$PORTA >/dev/null 2>&1; do PORTA=$((PORTA + 1)); done
-
-  # nohup + & : o servidor sobrevive ao fim deste script e da janela.
-  nohup python3 -m http.server "$PORTA" --bind 127.0.0.1 >/dev/null 2>&1 &
-  PID=$!
-  echo "$PID $PORTA" > "$ESTADO"
-
-  # Espera o servidor atender antes de mandar o navegador abrir. Sem
-  # isso o Chrome às vezes chega primeiro e mostra "não foi possível".
-  for _ in 1 2 3 4 5 6 7 8 9 10; do
-    curl -s -o /dev/null "http://127.0.0.1:$PORTA/" && break
-    sleep 0.3
-  done
-fi
-
-URL="http://localhost:$PORTA/"
+cd "$PASTA" || { echo "Não encontrei a pasta prototipo."; read -p "Enter para fechar..."; exit 1; }
 
 echo "═══════════════════════════════════════════"
-echo "  Ink Creators — protótipo conectado"
+echo "  Ink Creators — protótipo"
 echo "═══════════════════════════════════════════"
 echo
-echo "  Endereço:  $URL"
-if [ "$REAPROVEITADO" = "sim" ]; then
-  echo "  O servidor já estava rodando. Só abri no navegador."
-else
-  echo "  Servidor iniciado em segundo plano (processo $PID)."
+
+# ── 1. Encerra qualquer servidor nosso que tenha sobrado ───────────
+# Inclui os que foram abertos por versões antigas deste script, que não
+# deixavam registro nenhum. Procura por quem está escutando nas nossas
+# portas e mata só o que for python servindo HTTP.
+encerrar_antigos() {
+  local achou=0
+  for p in 8765 8766 8767 8768 8769; do
+    for pid in $(lsof -ti tcp:$p -sTCP:LISTEN 2>/dev/null); do
+      local cmd
+      cmd=$(ps -p "$pid" -o command= 2>/dev/null)
+      case "$cmd" in
+        *python*http.server*|*python*servidor-local.py*)
+          kill "$pid" 2>/dev/null && achou=$((achou+1))
+          ;;
+      esac
+    done
+  done
+  [ -f "$ESTADO" ] && rm -f "$ESTADO"
+  if [ "$achou" -gt 0 ]; then
+    echo "  Encerrei $achou servidor(es) de execuções anteriores."
+    sleep 0.6
+  fi
+}
+encerrar_antigos
+
+# ── 2. Sobe o servidor sem cache ───────────────────────────────────
+while lsof -i :$PORTA >/dev/null 2>&1; do PORTA=$((PORTA + 1)); done
+
+nohup python3 "$PASTA/servidor-local.py" "$PORTA" "$PASTA" >/dev/null 2>&1 &
+PID=$!
+echo "$PID $PORTA" > "$ESTADO"
+
+for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do
+  curl -s -o /dev/null "http://127.0.0.1:$PORTA/index.html" && break
+  sleep 0.3
+done
+
+# ── 3. Confere que o servidor entrega o arquivo que está no disco ──
+# Compara o tamanho em bytes. Se diferir, alguma outra coisa está
+# atendendo naquela porta, e abrir o navegador só ia confundir.
+BYTES_DISCO=$(wc -c < "$PASTA/index.html" | tr -d ' ')
+BYTES_SERVIDOS=$(curl -s "http://127.0.0.1:$PORTA/index.html" | wc -c | tr -d ' ')
+
+if [ "$BYTES_DISCO" != "$BYTES_SERVIDOS" ]; then
+  echo "  ✗ O servidor não está entregando o arquivo desta pasta."
+  echo "    no disco: $BYTES_DISCO bytes · servido: $BYTES_SERVIDOS bytes"
+  echo
+  echo "    Mostre esta mensagem à Claude."
+  echo
+  read -p "Enter para fechar..."
+  exit 1
 fi
+
+# ── 4. URL nova a cada abertura ────────────────────────────────────
+# O carimbo de tempo é o que impede o macOS de só focar uma aba antiga
+# sem recarregar. O protótipo ignora esse parâmetro.
+CARIMBO=$(date +%s)
+URL="http://localhost:$PORTA/?v=$CARIMBO"
+
+echo "  ✓ Servindo o arquivo desta pasta ($BYTES_DISCO bytes), sem cache."
+echo
+echo "  Protótipo:   $URL"
+echo "  Verificação: http://localhost:$PORTA/?v=$CARIMBO&verificar=1"
 echo
 echo "  Para encerrar: parar-prototipo.command"
 echo
 
 open "$URL"
 
-# Fecha só a janela deste script. O filtro pelo nome evita fechar
-# qualquer outra janela de Terminal que você tenha aberta.
 osascript -e 'tell application "Terminal" to close (every window whose name contains "abrir-prototipo")' >/dev/null 2>&1 &
-
 exit 0

@@ -93,11 +93,7 @@ Algo como:
 
 ## Antes de mandar: conferir no navegador
 
-Abra o protótipo com `?verificar=1` no fim do endereço:
-
-```
-http://localhost:8765/?verificar=1
-```
+Dois cliques em **`verificar-prototipo.command`**.
 
 Um painel aparece por cima dizendo o que passou e o que não passou. Ele
 usa campos de verdade, no seu navegador — é o único jeito de conferir

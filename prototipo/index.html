@@ -922,7 +922,11 @@ function isArt(){return S.session==="artist"}
    Guardamos uma lista fechada de chaves, não o S inteiro: o estado
    também carrega o que veio do banco (artistas, preços, portfólio),
    que precisa ser buscado de novo e não sobreviver em cache velho. */
-var CHAVE_ESTADO="ink.estado.v1";
+/* v2: o formato do estado mudou quando o cadastro virou três passos.
+   Trocar a chave descarta o estado antigo em vez de restaurá-lo por
+   cima do novo — um S.cad da versão anterior levaria a pessoa para um
+   passo que não existe mais. */
+var CHAVE_ESTADO="ink.estado.v2";
 var GUARDA=["session","route","artist","tab","modo","seguindo","curtidas","cart",
  "cad","perfilLanding","abaPerfil","shopAud","shopCat","shopQ","evAba","q",
  "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario",
