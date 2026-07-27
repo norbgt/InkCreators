@@ -361,6 +361,24 @@ table.t th{text-align:left;font-weight:600;color:var(--muted-foreground);font-si
 table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 .bar{height:6px;background:var(--muted);border-radius:3px;overflow:hidden}
 .bar i{display:block;height:6px;background:var(--primary)}
+/* Rodapé do cadastro. As regras não existiam — a classe era usada e o
+   CSS nunca tinha sido escrito, então os três blocos empilhavam.
+
+   Voltar cola na margem esquerda, Continuar na direita, e o "já tem
+   conta?" fica no centro. No celular o texto do meio desce sozinho:
+   espremer três coisas em 393px faria os botões encolherem, e botão de
+   avançar encolhido é o pior lugar para economizar espaço. */
+.rodapepassos{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
+.rodapepassos .lado{display:flex;align-items:center;gap:8px;flex:1 1 0;min-width:0}
+.rodapepassos .lado:last-child{justify-content:flex-end}
+.rodapepassos .meio{flex:0 1 auto;text-align:center;font-size:12.5px;
+  color:var(--muted-foreground);white-space:nowrap}
+.rodapepassos .meio a{color:var(--accent);cursor:pointer;font-weight:600}
+.rodapepassos .btn{white-space:nowrap}
+@media(max-width:560px){
+  /* O texto do meio passa para uma linha só dele, abaixo dos botões. */
+  .rodapepassos .meio{order:3;flex:1 1 100%;margin-top:4px}
+}
 .steps{display:flex;gap:5px;margin-top:12px}
 .steps i{flex:1;height:4px;border-radius:2px;background:var(--border)}
 .steps i.on{background:var(--primary)}

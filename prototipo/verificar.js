@@ -212,7 +212,36 @@
       ok(caso[0] + ": três passos", roteiroCadastro().length === 3);
     });
 
-    /* ── 7. CONSOLE LIMPO ─────────────────────────────────────── */
+    /* ── 7. O RODAPÉ FICA NUMA LINHA SÓ ───────────────────────── */
+    secao("Voltar e Continuar na mesma linha");
+    irCadastro(null);
+    var rod = document.querySelector(".rodapepassos");
+    ok("o rodapé existe", !!rod);
+    if (rod) {
+      var voltar = rod.querySelector(".lado:first-child .btn");
+      var seguir = document.getElementById("btnAvancarCad");
+      var rr = rod.getBoundingClientRect();
+      var rv = voltar ? voltar.getBoundingClientRect() : null;
+      var rs = seguir ? seguir.getBoundingClientRect() : null;
+
+      ok("as regras de CSS foram aplicadas",
+         getComputedStyle(rod).display === "flex", "display: " + getComputedStyle(rod).display);
+      if (rv && rs) {
+        ok("os dois estão na mesma linha",
+           Math.abs(rv.top - rs.top) < 6,
+           "topo do Voltar " + Math.round(rv.top) + ", do Continuar " + Math.round(rs.top));
+        ok("Voltar encostado na margem esquerda",
+           Math.abs(rv.left - rr.left) < 3,
+           "distância: " + Math.round(rv.left - rr.left) + "px");
+        ok("Continuar encostado na margem direita",
+           Math.abs(rr.right - rs.right) < 3,
+           "distância: " + Math.round(rr.right - rs.right) + "px");
+        ok("um não está em cima do outro", rv.right < rs.left,
+           "Voltar termina em " + Math.round(rv.right) + ", Continuar começa em " + Math.round(rs.left));
+      }
+    }
+
+    /* ── 8. CONSOLE LIMPO ─────────────────────────────────────── */
     secao("Console");
     ok("nenhum erro de JavaScript durante a verificação", errosDeConsole.length === 0,
        errosDeConsole.slice(0, 2).join(" | "));
