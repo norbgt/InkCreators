@@ -392,6 +392,13 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
   .perfilopt .ic{width:32px;height:32px}
 }
 
+/* Aviso que fica até deixar de ser verdade. Amarelo e não vermelho: é
+   pendência, não erro — o perfil continua no ar. */
+.avisopendente{border-color:var(--x-warning);background:var(--x-warning-bg)}
+.pendicone{display:flex;align-items:center;justify-content:center;width:26px;height:26px;
+  border-radius:50%;background:var(--x-warning);color:#fff;font-size:14px;flex-shrink:0}
+.avisopendente .tiny.muted{color:color-mix(in oklab, var(--x-warning) 70%, var(--foreground))}
+
 /* Marcador de sim ou não, no formato de cartão. Área de clique inteira,
    não só o quadradinho — no celular acertar 16px é loteria. */
 .marcador{display:flex;align-items:flex-start;gap:10px;padding:12px 13px;
@@ -929,6 +936,7 @@ var SIZE_L={pequeno:"Pequeno",medio:"Médio",grande:"Grande",sessao_dia:"Sessão
 /* ============ ESTADO ============ */
 var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  roleSource:null,usuario:"",
+ emailConfirmado:null,emailPendente:"",reenvioMsg:"",reenviando:false,
  f:{q:"",styles:[],cx:[],max:null,rating:null,sort:"relevance",painel:null},
  seguindo:[],curtidas:[],feedLote:1,obs:null,
  painel:{discover:null,shop:null,events:null},
@@ -994,7 +1002,7 @@ function isArt(){return S.session==="artist"}
 var CHAVE_ESTADO="ink.estado.v2";
 var GUARDA=["session","route","artist","tab","modo","seguindo","curtidas","cart",
  "cad","perfilLanding","abaPerfil","shopAud","shopCat","shopQ","evAba","q",
- "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura","ehFornecedor",
+ "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","emailConfirmado","emailPendente","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura","ehFornecedor",
  "notifFilter","pfTab","ue","f","feedLote","caro","cep"];
 function salvarEstado(){
  try{var o={};GUARDA.forEach(function(k){if(S[k]!==undefined)o[k]=S[k]});
@@ -2052,6 +2060,12 @@ function concluirCadastro(){
  // gestão mostra em "origem".
  if(S.roleSource!=="google_oauth")S.roleSource="signup_trigger";
  S.usuario=S.cad.usuario;
+ // Conta recém-criada nasce pendente: o e-mail acabou de sair e ninguém
+ // clicou em nada ainda. É o estado real, e é o que a área de gestão
+ // precisa mostrar.
+ S.emailConfirmado=false;
+ S.emailPendente=S.cad.email;
+ S.reenvioMsg="";
  if(p==="tatuador"){
   // O nome de exibição é o nome da conta: perguntar duas vezes a mesma
   // coisa foi o que engordava o fluxo antigo.
@@ -2279,6 +2293,58 @@ function dicaUsuario(){
 
 /* Digitar mexe no botão e nas dicas. Nada além disso — a tela não é
    redesenhada, então o cursor não tem como se mexer. */
+/* ── E-MAIL AINDA NÃO CONFIRMADO ───────────────────────────────────
+   O Supabase manda o e-mail sozinho; o que falta é a pessoa clicar. E
+   quem não clica não sabe que não clicou — some do fluxo achando que
+   está tudo certo, e depois não recebe nem o orçamento nem o aviso de
+   recuperação de senha.
+
+   Por isso o aviso mora na gestão, onde o tatuador volta, e não numa
+   notificação que passa. Fica até deixar de ser verdade. */
+function avisoDeConfirmacao(){
+ if(S.emailConfirmado!==false)return "";        // null = não se aplica
+ var email=S.emailPendente||"seu e-mail";
+ var h='<div class="card pad avisopendente" style="margin-top:13px">';
+ h+='<div class="row" style="gap:9px;align-items:flex-start">';
+ h+='<span class="pendicone">⚠</span>';
+ h+='<div style="min-width:0;flex:1">';
+ h+='<div class="b small">Confirme seu e-mail</div>';
+ h+='<div class="small" style="margin-top:4px">Mandamos um link para <b>'+escapar(email)+'</b>. Enquanto você não clicar nele, não conseguimos avisar sobre orçamentos que chegarem nem recuperar sua senha.</div>';
+ h+='<div class="tiny muted" style="margin-top:6px">Seu perfil continua no ar normalmente. Confirmar é sobre conseguirmos falar com você.</div>';
+ h+='<div class="row wrapf" style="gap:7px;margin-top:11px">';
+ h+='<button class="btn sm primary" '+(S.reenviando?"disabled":"")+' onclick="reenviarEmailDeConfirmacao()">'+(S.reenviando?"Enviando…":"Reenviar e-mail")+'</button>';
+ h+='<button class="btn sm" onclick="conferirConfirmacao()">Já confirmei</button>';
+ h+='</div>';
+ if(S.reenvioMsg)h+='<div class="tiny" style="margin-top:8px">'+escapar(S.reenvioMsg)+'</div>';
+ h+='</div></div></div>';
+ return h;
+}
+
+function reenviarEmailDeConfirmacao(){
+ if(S.reenviando)return;
+ if(S.modo!=="real"){
+  S.reenvioMsg="Em demonstração nada é enviado de verdade. No modo real, o link sai para o seu e-mail.";
+  render();return;
+ }
+ S.reenviando=true;S.reenvioMsg="";render();
+ window.Dados.reenviarConfirmacao(S.emailPendente).then(function(alvo){
+  S.reenviando=false;S.reenvioMsg="Enviado de novo para "+alvo+". Olhe também o lixo eletrônico.";render();
+ }).catch(function(e){
+  S.reenviando=false;S.reenvioMsg=e.message||String(e);render();
+ });
+}
+
+function conferirConfirmacao(){
+ if(S.modo!=="real"){
+  S.emailConfirmado=true;S.reenvioMsg="";render();return;
+ }
+ window.Dados.emailConfirmado().then(function(c){
+  if(c){S.emailConfirmado=true;S.reenvioMsg="";}
+  else S.reenvioMsg="Ainda consta como não confirmado. Se você acabou de clicar, espere alguns segundos e tente de novo.";
+  render();
+ }).catch(function(e){S.reenvioMsg=e.message||String(e);render()});
+}
+
 function atualizarCad(){
  var b=document.getElementById("btnAvancarCad");
  if(b){ if(podeAvancar())b.removeAttribute("disabled"); else b.setAttribute("disabled",""); }
@@ -2752,6 +2818,7 @@ function studioProfile(){
   h+='<div class="row" style="margin-top:9px"><span class="small">Perfil no feed público</span><span class="badge ok sp">publicado</span></div>';
   h+='<div class="tiny muted" style="margin-top:5px">Despublicar esconde seu perfil da busca, mas mantém orçamentos em andamento.</div>';
   h+='<button class="btn blk" style="margin-top:9px">Despublicar perfil</button></div>';
+  h+=avisoDeConfirmacao();
   h+='<div class="card pad" style="margin-top:13px"><div class="row"><span class="b small">Papel da conta</span>'+tg("novo")+'</div>';
   h+='<div class="row wrapf" style="gap:5px;margin-top:8px"><span class="badge ok">cliente</span><span class="badge ok">tatuador</span>'+
      (S.ehFornecedor?'<span class="badge warn">fornecedor</span>':'')+'</div>';

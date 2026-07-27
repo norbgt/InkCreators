@@ -83,6 +83,10 @@ async function criarConta(email, senha, nome, querSerTatuador, extras) {
     password: senha,
     options: {
       data: { display_name: nome, wants_artist: !!querSerTatuador },
+      // Para onde o link do e-mail devolve a pessoa. Sem isto o Supabase
+      // usa a Site URL do painel, que por padrão é localhost:3000 — e o
+      // link chega quebrado para quem confirma do celular.
+      emailRedirectTo: enderecoDeRetorno(),
     },
   });
   if (error) throw error;
@@ -145,6 +149,56 @@ async function removerPapel(papel) {
   const { data, error } = await sb.rpc("remover_meu_papel", { _papel: papel });
   if (error) throw error;
   return data;
+}
+
+/* ── Confirmação de e-mail ─────────────────────────────────────────
+   O Supabase envia o e-mail sozinho quando "Confirm email" está ligado
+   no painel. O que cabe a nós é três coisas: dizer para onde o link
+   volta, saber se a pessoa confirmou, e dar um jeito de reenviar. */
+function enderecoDeRetorno() {
+  try {
+    // Volta para a mesma página de onde a pessoa se cadastrou, na área
+    // de gestão, que é onde o aviso de pendência vive.
+    return location.origin + location.pathname + "#/studio-profile";
+  } catch (e) {
+    return undefined;
+  }
+}
+
+async function emailConfirmado() {
+  await iniciarSupabase();
+  const s = await sessaoAtual();
+  if (!s || !s.user) return null;            // ninguém logado: não se aplica
+  return !!s.user.email_confirmed_at;
+}
+
+async function reenviarConfirmacao(email) {
+  await iniciarSupabase();
+  const s = await sessaoAtual();
+  const alvo = email || (s && s.user ? s.user.email : null);
+  if (!alvo) throw new Error("Não sei para qual e-mail reenviar.");
+
+  const { error } = await sb.auth.resend({
+    type: "signup",
+    email: alvo,
+    options: { emailRedirectTo: enderecoDeRetorno() },
+  });
+  if (error) throw new Error(traduzErroDeEnvio(error));
+  return alvo;
+}
+
+/* O erro mais provável aqui não é bug: é limite de envio. O provedor
+   embutido do Supabase manda 2 e-mails por hora no projeto inteiro, e
+   uma segunda tentativa em menos de 60 segundos também é recusada.
+   Dizer isso com clareza evita que a pessoa fique clicando. */
+function traduzErroDeEnvio(e) {
+  const m = (e && e.message ? e.message : "").toLowerCase();
+  if (m.includes("rate limit") || m.includes("too many") || m.includes("60 seconds"))
+    return "Limite de envio atingido. Espere um minuto e tente de novo — " +
+           "e se persistir, é o limite de 2 e-mails por hora do provedor padrão.";
+  if (m.includes("already confirmed"))
+    return "Este e-mail já foi confirmado. Recarregue a página.";
+  return e && e.message ? e.message : "Não consegui reenviar agora.";
 }
 
 async function entrar(email, senha) {
@@ -622,6 +676,7 @@ window.Dados = {
   testarConexao, criarConta, entrar, sair, sessaoAtual,
   souAdmin, carregarPainelDoTeste, esquecerParticipante,
   usuarioDisponivel, acrescentarPapel, removerPapel,
+  emailConfirmado, reenviarConfirmacao,
   meusPapeis, tornarSeTatuador,
   listarEstilos, listarTatuadores,
   meuPerfilDeArtista, salvarPerfilDeArtista,
