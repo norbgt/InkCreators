@@ -392,6 +392,16 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
   .perfilopt .ic{width:32px;height:32px}
 }
 
+/* Marcador de sim ou não, no formato de cartão. Área de clique inteira,
+   não só o quadradinho — no celular acertar 16px é loteria. */
+.marcador{display:flex;align-items:flex-start;gap:10px;padding:12px 13px;
+  border:1px solid var(--border);border-radius:12px;background:var(--card);
+  cursor:pointer;transition:border-color .15s ease,background .15s ease}
+.marcador:hover{border-color:var(--muted-foreground)}
+.marcador.on{border-color:var(--primary);background:var(--x-accent-bg)}
+.marcador input{width:17px;height:17px;margin-top:1px;flex-shrink:0;accent-color:var(--primary);cursor:pointer}
+@media(pointer:coarse){.marcador{padding:14px 13px}.marcador input{width:20px;height:20px}}
+
 /* Separador "ou", com um fio de cada lado. */
 .ou{display:flex;align-items:center;gap:11px;margin:15px 0;
   color:var(--muted-foreground);font-size:12px}
@@ -945,7 +955,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  pf:{nome:"",estudio:"",cidade:"",uf:"",estilos:[],publicado:false},
  onbEstudio:"",onbCidade:"",onbUf:"",onbAnos:null,onbInsta:"",onbBio:"",
  onbFotos:null,onbMsg:"",onbErro:false,onbPinterest:"",igAberto:false,
- onbModelo:"hora",onbModeloArquivo:"",onbQuerOrcamento:false,arrependido:false,
+ onbModelo:"hora",onbModeloArquivo:"",onbQuerOrcamento:false,arrependido:false,fazCobertura:false,
  precos:null,prMsg:"",prErro:false,
  prNovo:{estilo:"fineline",tamanho:"medio",min:"",max:"",horas:""}};
 
@@ -983,7 +993,7 @@ function isArt(){return S.session==="artist"}
 var CHAVE_ESTADO="ink.estado.v2";
 var GUARDA=["session","route","artist","tab","modo","seguindo","curtidas","cart",
  "cad","perfilLanding","abaPerfil","shopAud","shopCat","shopQ","evAba","q",
- "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario",
+ "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura",
  "notifFilter","pfTab","ue","f","feedLote","caro","cep"];
 function salvarEstado(){
  try{var o={};GUARDA.forEach(function(k){if(S[k]!==undefined)o[k]=S[k]});
@@ -2009,7 +2019,12 @@ function concluirCadastro(){
   // O nome de exibição é o nome da conta: perguntar duas vezes a mesma
   // coisa foi o que engordava o fluxo antigo.
   S.onbName=S.cad.nome;
-  S.pf={nome:S.cad.nome,usuario:S.cad.usuario,estudio:S.onbEstudio,cidade:S.onbCidade,uf:S.onbUf,estilos:S.onbStyles.slice(),publicado:true};
+  // Cobertura vira estilo só na hora de publicar: para o cliente que
+  // busca, é um filtro como outro qualquer; para o tatuador, foi uma
+  // pergunta separada.
+  var estilosPublicados=S.onbStyles.slice();
+  if(S.fazCobertura&&estilosPublicados.indexOf("cobertura")<0)estilosPublicados.push("cobertura");
+  S.pf={nome:S.cad.nome,usuario:S.cad.usuario,estudio:S.onbEstudio,cidade:S.onbCidade,uf:S.onbUf,estilos:estilosPublicados,publicado:true};
   go("studio");
  }else if(S.voltarPara){
   var v=S.voltarPara,va=S.voltarArtista;S.voltarPara=null;
@@ -2090,16 +2105,30 @@ function vCadastro(){
   h+='<div><label class="lb">Nome do estúdio</label><input class="fld" id="onbEstudio" value="'+escapar(S.onbEstudio||"")+'" oninput="S.onbEstudio=this.value" placeholder="Studio ... (ou deixe vazio se atende sozinho)" /></div>';
   h+='<div class="grid" style="grid-template-columns:2fr 1fr;gap:9px"><div><label class="lb">Cidade</label><input class="fld" id="onbCidade" value="'+escapar(S.onbCidade||"")+'" oninput="S.onbCidade=this.value" placeholder="São Paulo" /></div>';
   h+='<div><label class="lb">UF</label><input class="fld" id="onbUf" value="'+escapar(S.onbUf||"")+'" oninput="S.onbUf=this.value.toUpperCase().slice(0,2)" placeholder="SP" /></div></div>';
-  h+='<div><label class="lb">Instagram <span class="muted" style="font-weight:400">(opcional)</span></label><input class="fld" id="onbInsta" value="'+escapar(S.onbInsta||"")+'" oninput="S.onbInsta=this.value.replace(/^@/,\'\')" placeholder="seuperfil" /></div>';
+  h+='<div><label class="lb">Instagram <span class="muted" style="font-weight:400">— opcional</span></label>';
+  h+='<div class="campoprefixo"><span>@</span>';
+  h+='<input class="fld" id="onbInsta" value="'+escapar(S.onbInsta||"")+'" oninput="S.onbInsta=this.value.replace(/[^A-Za-z0-9._]/g,\'\')" placeholder="usuario" /></div></div>';
   h+='</div>';
 
   h+='<div class="sep"></div>';
   h+='<div class="row"><span class="b small">O que você tatua</span><span class="req">obrigatório</span></div>';
   h+='<div class="tiny muted" style="margin-top:3px">É por aqui que os pedidos compatíveis chegam até você. Escolha pelo menos um.</div>';
   h+='<div class="row wrapf" style="gap:6px;margin-top:9px">';
-  STYLES.forEach(function(x){h+='<button class="chip '+(S.onbStyles.indexOf(x.s)>=0?"on":"")+'" onclick="tog(S.onbStyles,\''+x.s+'\')">'+x.l+'</button>'});
+  STYLES.filter(function(x){return ESTILOS_CORRECAO.indexOf(x.s)<0})
+   .forEach(function(x){h+='<button class="chip '+(S.onbStyles.indexOf(x.s)>=0?"on":"")+'" onclick="tog(S.onbStyles,\''+x.s+'\')">'+x.l+'</button>'});
   h+='</div>';
-  if(S.onbStyles.length)h+='<div class="tiny muted" style="margin-top:8px">'+S.onbStyles.length+' estilo(s) selecionado(s)</div>';
+  h+='<div id="contaEstilos" class="tiny muted" style="margin-top:8px">'+contaEstilos()+'</div>';
+
+  /* Cobertura não é estilo, é serviço: quem cobre tatuagem ruim usa o
+     estilo que for. Misturado na grade, obrigava a pessoa a marcá-lo
+     como se fosse mais um traço — e mandava para ela pedidos de
+     arrependimento que ela talvez não queira. Separado, vira uma
+     pergunta de sim ou não. */
+  h+='<label class="marcador'+(S.fazCobertura?" on":"")+'" style="margin-top:13px">';
+  h+='<input type="checkbox" '+(S.fazCobertura?"checked":"")+' onchange="S.fazCobertura=this.checked;render()" />';
+  h+='<span><span class="b small">Também faço coberturas</span>';
+  h+='<span class="tiny muted" style="display:block;margin-top:2px">Cobrir ou corrigir tatuagem de que a pessoa se arrependeu. Os pedidos desse tipo só chegam a quem marca aqui.</span></span>';
+  h+='</label>';
 
   h+='<div class="banner" style="margin-top:15px"><div class="tiny">Depois de criar a conta, a gestão do estúdio te leva pelo portfólio, pela tabela de preços e pelo modelo de orçamento. Nada disso trava a criação da conta.</div></div>';
  }
@@ -2150,6 +2179,11 @@ function vCadastro(){
 
    As funções servem aos dois momentos — o desenho inicial e a
    atualização — para o texto não existir em duas versões. */
+function contaEstilos(){
+ var n=S.onbStyles.length;
+ if(!n)return "Nenhum estilo selecionado ainda.";
+ return n===1 ? "1 estilo selecionado" : n+" estilos selecionados";
+}
 function dicaSenha(){
  var v=S.cad.senha||"";
  if(!v)return "";

@@ -178,6 +178,42 @@
     digitar("onbEstudio", "Studio Ana");
     ok("cursor sobrevive no campo do estúdio", focoAgora() === "onbEstudio", "foco em: " + focoAgora());
 
+    /* ── 4b. COBERTURA À PARTE, INSTAGRAM COM @ ───────────────── */
+    secao("Passo 3 do tatuador");
+    var chips = [].slice.call(document.querySelectorAll('.chip'))
+      .map(function (c) { return c.textContent.trim(); });
+    ok("Cobertura saiu da grade de estilos", chips.indexOf("Cobertura") < 0,
+       "ainda aparece entre os estilos");
+    ok("Blackout continua sendo estilo", chips.indexOf("Blackout") >= 0);
+
+    var marc = document.querySelector(".marcador");
+    ok("existe o grupo separado de cobertura", !!marc);
+    if (marc) {
+      ok("com o rótulo pedido", /Também faço coberturas/.test(marc.innerText));
+      ok("é um checkbox", !!marc.querySelector('input[type="checkbox"]'));
+      ok("a área toda é clicável", marc.tagName === "LABEL");
+      ok("começa desmarcado", !marc.querySelector("input").checked);
+      var alt = marc.getBoundingClientRect().height;
+      ok("alvo de toque confortável", alt >= 44, Math.round(alt) + "px de altura");
+      S.fazCobertura = true; render();
+      ok("marcar muda a aparência do cartão",
+         document.querySelector(".marcador").className.indexOf("on") >= 0);
+      S.fazCobertura = false; render();
+    }
+
+    var insta = document.getElementById("onbInsta");
+    ok("campo de Instagram existe", !!insta);
+    if (insta) {
+      ok("o @ fica desenhado ao lado do campo",
+         insta.parentElement.classList.contains("campoprefixo") &&
+         insta.parentElement.querySelector("span").textContent === "@");
+      ok("o exemplo é o usuário, sem @", insta.placeholder === "usuario");
+      ok("está marcado como opcional", /opcional/.test(insta.closest("div").parentElement.innerText));
+      digitar("onbInsta", "@meu perfil!");
+      ok("limpa o que não pode ir num @", S.onbInsta === "meuperfil", "ficou: " + S.onbInsta);
+      ok("e o cursor não sai do campo", focoAgora() === "onbInsta", "foco em: " + focoAgora());
+    }
+
     /* ── 5. CRIAR CONTA ───────────────────────────────────────── */
     secao("Criar conta entrega no produto");
     var senhaUsada = "123456";
