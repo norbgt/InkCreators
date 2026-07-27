@@ -225,9 +225,25 @@ let eventosDoTatuador = null;
 
   ok("começou a criar conta", g.clicar("Criar conta") === true);
   ok("está no cadastro", g.S.route === "cadastro", g.S.route);
-  g.escopo("S.cad.perfil='tatuador';S.cad.nome='Bruno Lima';S.cad.email='bruno@exemplo.com';S.cad.senha='segredo123';render()");
-  ok("o roteiro é o do tatuador", /Você e seu estúdio/.test(g.tela()) || g.escopo("roteiroCadastro()").length > 3);
-  g.escopo("concluirCadastro()");
+
+  // Passo 1: só nome e e-mail.
+  ok("passo 1 não pede senha", !/type="password"/.test(g.tela()));
+  g.escopo("S.cad.nome='Bruno Lima';S.cad.email='bruno@exemplo.com';render()");
+  ok("passo 1 destrava", !/id="btnAvancarCad" disabled/.test(g.tela()));
+  g.escopo("avancarCad()");
+
+  // Passo 2: usuário e perfil.
+  ok("passo 2 pede nome de usuário", /id="cadUsuario"/.test(g.tela()));
+  g.escopo("S.cad.usuario='bruno.lima';S.cad.perfil='tatuador';render()");
+  ok("o fluxo tem três passos", g.escopo("roteiroCadastro()").length === 3);
+  g.escopo("avancarCad()");
+
+  // Passo 3: um só, e é o do tatuador.
+  ok("passo 3 é o do tatuador", /O que você tatua/.test(g.tela()));
+  ok("passo 3 exige estilo", /id="btnAvancarCad" disabled/.test(g.tela()));
+  g.escopo("tog(S.onbStyles,'realismo');S.onbEstudio='Studio Bruno';render()");
+  ok("escolher estilo destrava", !/id="btnAvancarCad" disabled/.test(g.tela()));
+  g.escopo("avancarCad()");
   ok("virou tatuador", g.S.session === "artist");
   ok("caiu na gestão do estúdio", g.S.route === "studio", g.S.route);
 
@@ -240,7 +256,8 @@ let eventosDoTatuador = null;
   eventosDoTatuador = g.guardado.teste_eventos.slice();
   ok("a jornada virou evento", eventosDoTatuador.length > 5, eventosDoTatuador.length + " evento(s)");
   ok("chegou até studio", eventosDoTatuador.some(e => e.rota === "studio" || e.rota === "studio-profile"));
-  ok("senha nunca saiu do navegador", !/segredo123/.test(JSON.stringify(eventosDoTatuador)));
+  ok("nada digitado saiu do navegador",
+     !/bruno\.lima|bruno@exemplo|Studio Bruno/.test(JSON.stringify(eventosDoTatuador)));
 }
 
 secao("4. JORNADA DO FORNECEDOR — a que ainda é hipótese");

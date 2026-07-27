@@ -272,8 +272,5 @@ function telaDeEntradaDoTeste() {
   return h + '</div></main>';
 }
 
-function escapar(s) {
-  return String(s).replace(/[&<>"']/g, function (c) {
-    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-  });
-}
+/* escapar() vive no index.html: o cadastro depende dela e este arquivo
+   é opcional. Deixar as duas cópias convidava a divergirem. */
