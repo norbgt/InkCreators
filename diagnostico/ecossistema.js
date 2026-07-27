@@ -107,13 +107,13 @@ chk('a conta fecha',c.sobrou===c.entrou-c.saiu,c.entrou+' - '+c.saiu+' ≠ '+c.s
 chk('tem entrada de sessão, arte e curso',c.porCat.sessao>0&&c.porCat.arte>0&&c.porCat.curso>0);
 
 console.log('── 5. HISTÓRICO ──');
-S.route='studio-historico';S.histAba='pessoas';g.e("render()");
+S.route='studio-historico';S.sub={hist:'pessoas'};g.e("render()");
 var th=tela();
 chk('lista quem ele tatuou',/Pessoas que você tatuou/.test(th));
 chk('com quantas sessões e desde quando',/cliente desde/.test(th));
 chk('e quanto cada um gastou',/no total/.test(th));
 chk('diz para que serve',/chamar de volta quem sumiu/.test(th));
-S.histAba='estudios';g.e("render()");
+S.sub={hist:'estudios'};g.e("render()");
 var te=tela();
 chk('lista onde ele tatuou',/Onde você já tatuou/.test(te));
 chk('distingue casa de guest spot',/Guest spot/.test(te)&&/Casa/.test(te));
