@@ -1454,7 +1454,10 @@ function vArtist(){
  h+='<div class="tiny muted" style="margin-top:2px">'+stars(a.rating)+' '+a.rating+' ('+a.reviews+') · '+a.years+' anos</div>';
  h+='</div></div>';
 
- h+='<div class="row" style="align-items:baseline;gap:6px;margin-top:11px">';
+ h+='<div class="row wrapf" style="gap:5px;margin-top:11px">'+
+    a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'</div>';
+
+ h+='<div class="row" style="align-items:baseline;gap:6px;margin-top:9px">';
  h+='<span style="font-size:18px;font-weight:700;letter-spacing:-.02em">'+brl(a.min)+' – '+brl(a.max)+'</span>';
  h+='<span class="tiny muted">/hora</span>';
  h+='<button class="btn sm sp" onclick="alternarSeguir(\''+a.id+'\')">'+(S.seguindo.indexOf(a.id)>=0?"✓ Seguindo":"👤 Seguir")+'</button></div>';
@@ -1473,8 +1476,7 @@ function vArtist(){
  h+='</table></details>';
  h+='</div>';
 
- h+='<div class="card pad" style="margin-top:12px"><p class="small">'+a.bio+'</p>';
- h+='<div class="row wrapf" style="gap:5px;margin-top:8px">'+a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'</div></div>';
+ h+='<div class="card pad" style="margin-top:12px"><p class="small">'+a.bio+'</p></div>';
 
  /* ── TOGGLE: portfólio, instagram, eventos ─────────────────────── */
  if(abas.length>1){
