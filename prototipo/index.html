@@ -386,16 +386,11 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
   .blococentro{margin-top:20px}
   .secao{margin-top:30px}
 }
-/* Trio de ações do perfil: ícone acima do rótulo, três em linha. */
-.acoestrio{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:11px}
-.acaotrio{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-  padding:10px 4px;border:1px solid var(--border);border-radius:10px;background:var(--card);
-  font-size:11.5px;font-weight:600;line-height:1.2;text-align:center}
-.acaotrio:hover{border-color:var(--muted-foreground)}
-.acaotrio .ico{width:18px;height:18px}
-.acaotrio.principal{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
-.acaotrio.principal:hover{border-color:var(--primary)}
-@media(pointer:coarse){.acaotrio{padding:12px 4px}}
+/* Trio de ações: mesma escala do botão Seguir, em linha. Rolam na
+   horizontal se um rótulo crescer, em vez de quebrar linha. */
+.acoestrio{display:flex;gap:6px;margin-top:11px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.acoestrio::-webkit-scrollbar{display:none}
+.acoestrio .btn{flex-shrink:0;white-space:nowrap}
 
 /* Perfil em coluna única, largura de leitura. Dimensionado pelo celular:
    o que cabe em 393px cabe em qualquer lugar. */
@@ -1464,10 +1459,11 @@ function vArtist(){
  h+='<span class="tiny muted">/hora</span>';
  h+='<button class="btn sm sp" onclick="alternarSeguir(\''+a.id+'\')">'+(S.seguindo.indexOf(a.id)>=0?"✓ Seguindo":"👤 Seguir")+'</button></div>';
 
+ // Mesma altura do botão Seguir: ícone ao lado do rótulo, não acima.
  h+='<div class="acoestrio">';
- h+='<button class="acaotrio principal" onclick="quoteFor(\''+a.id+'\',\'quote\')">✨<span>Orçar</span></button>';
- h+='<button class="acaotrio" onclick="quoteFor(\''+a.id+'\',\'schedule\')">🗓<span>Agenda</span></button>';
- h+='<button class="acaotrio" onclick="'+(isLog()?"openDrawer('chat')":"go('auth')")+'">💬<span>Conversar</span></button>';
+ h+='<button class="btn sm primary" onclick="quoteFor(\''+a.id+'\',\'quote\')">✨ Orçar</button>';
+ h+='<button class="btn sm" onclick="quoteFor(\''+a.id+'\',\'schedule\')">🗓 Agenda</button>';
+ h+='<button class="btn sm" onclick="'+(isLog()?"openDrawer('chat')":"go('auth')")+'">💬 Conversar</button>';
  h+='</div>';
 
  h+='<details style="margin-top:10px"><summary class="tiny muted" style="cursor:pointer">Ver tabela por tamanho</summary>';
