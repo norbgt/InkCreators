@@ -1,5 +1,10 @@
 # Confirmação de e-mail no cadastro
 
+> **Situação em 27/07/2026.** A confirmação **já está ligada** — a
+> primeira conta (`theinkcreatorsapp@gmail.com`) foi criada e o Supabase
+> registrou que o e-mail de confirmação saiu. Ela consta como pendente
+> até você clicar no link. Papéis: `admin`, `artist`, `client`.
+
 Duas coisas para ligar no painel do Supabase, e uma restrição que muda
 o plano.
 

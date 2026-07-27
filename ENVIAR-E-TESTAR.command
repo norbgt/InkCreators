@@ -34,7 +34,11 @@ echo "  Enviado. Agora esperando o GitHub Pages republicar."
 echo "  (leva de 1 a 3 minutos na primeira vez)"
 echo
 
-MARCAS=("cadUsuario" "cadSenha" "dicaUsuario" "Também faço coberturas" "COBRANCAS")
+# Marcas do que precisa estar no ar. Uma por ajuste recente: se
+# qualquer uma faltar, o Pages ainda não republicou.
+MARCAS=("cadUsuario" "cadSenha" "dicaUsuario" "Também faço coberturas"
+        "COBRANCAS" "Também sou tatuador" "contaPendente" "avisopendente"
+        "explicarTrava" "rodapepassos" "perfilopt")
 PRONTO=0
 for tentativa in $(seq 1 40); do
   CORPO=$(curl -s -H 'Cache-Control: no-cache' "$SITE/prototipo/index.html?cb=$RANDOM")
@@ -75,6 +79,15 @@ conferir "prototipo/dados.js" 200
 conferir "prototipo/teste.js" 200
 conferir "prototipo/verificar.js" 200
 
+# O publicado tem que ser byte a byte o que está no disco.
+BD=$(wc -c < prototipo/index.html | tr -d " ")
+BP=$(curl -s "$SITE/prototipo/index.html?cb=$RANDOM" | wc -c | tr -d " ")
+if [ "$BD" = "$BP" ]; then
+  echo "    ok   publicado é idêntico ao local ($BD bytes)"
+else
+  echo "    XX   publicado tem $BP bytes, local tem $BD — republicação a meio caminho"
+fi
+
 echo
 echo "═══════════════════════════════════════════════════════"
 echo "  LINK DO TESTE — mande este para as pessoas"
@@ -85,8 +98,14 @@ echo "  Conferir você mesma antes de mandar:"
 echo "     $SITE/?verificar=1"
 echo "═══════════════════════════════════════════════════════"
 echo
+echo "  OS TRÊS ACESSOS"
+echo
+echo "    local    →  http://localhost:8765/         (abrir-prototipo.command)"
+echo "    online   →  $SITE/"
+echo "    teste    →  $SITE/?teste=1"
+echo
 echo "  Falta só uma coisa para o painel funcionar: criar sua"
-echo "  conta pelo protótipo e me dizer o e-mail, para eu dar"
-echo "  o papel de admin."
+echo "  conta em $SITE/#/conexao"
+echo "  e me dizer o e-mail, para eu dar o papel de admin."
 echo
 read -p "Enter para fechar..."
