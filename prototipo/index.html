@@ -105,11 +105,14 @@ html[data-dark] .logo .marca{content:url("marca/logo-branco.png")}
 .top-actions{margin-left:auto;display:flex;align-items:center;gap:5px}
 .iconbtn{width:35px;height:35px;border-radius:9px;display:flex;align-items:center;justify-content:center;position:relative}
 .iconbtn:hover{background:var(--muted)}
-/* Convite ao tatuador: mesma forma dos outros, cor de acento para
-   continuar sendo notado sem virar um botão maior que os vizinhos. */
-.iconbtn.convite{color:var(--accent)}
-.iconbtn.convite:hover{background:var(--x-accent-bg)}
-.iconbtn.convite.ativo{background:var(--accent);color:var(--accent-foreground)}
+/* Convite: pill com rótulo, em cor de acento. Tem texto porque é espaço
+   de conversão — ícone sozinho não anuncia o que oferece. */
+.pill.convite{color:var(--accent);border-color:var(--accent-bd)}
+.pill.convite:hover{background:var(--x-accent-bg);border-color:var(--accent)}
+.pill.convite.ativo{background:var(--accent);color:var(--accent-foreground);border-color:var(--accent)}
+.pill.convite .ico{width:15px;height:15px}
+/* Só o rótulo some no celular; o botão continua lá, em cor de acento. */
+@media(max-width:560px){.pill.convite .rot{display:none}.pill.convite{padding:6px 10px}}
 .dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
 /* O número era centrado por line-height, que não considera a borda de
    2px nem a altura real do dígito — ficava fora do eixo. Flexbox centra
@@ -361,6 +364,8 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 .bub{max-width:78%;padding:8px 11px;border-radius:13px;font-size:13px;margin-bottom:7px}
 .bub.them{background:var(--muted);border-bottom-left-radius:4px}
 .bub.me{background:var(--primary);color:var(--primary-foreground);margin-left:auto;border-bottom-right-radius:4px}
+.vantagem{display:flex;flex-direction:column}
+.vantagem .small.muted{flex:1}
 .plan{border:1px solid var(--border);border-radius:var(--radius);padding:18px;background:var(--card);position:relative}
 .plan.hl{border:2px solid var(--primary)}
 .plan .rib{position:absolute;top:-10px;left:18px;background:var(--primary);color:var(--primary-foreground);border-radius:999px;padding:2px 10px;font-size:10.5px;font-weight:700}
@@ -804,7 +809,7 @@ function renderTop(){
  // Porta de entrada do tatuador. Vira ícone como os demais, mas em cor de
  // acento para não se perder entre eles — e some do celular nunca mais,
  // que é justo onde a conversão acontecia menos por estar escondida.
- var h='<button class="pill convite'+(naPlataforma?" ativo":"")+'" title="Conheça o que a plataforma oferece" onclick="go(\'plataforma\')">✨<span class="rot">A plataforma</span></button>';
+ var h='<button class="pill convite'+(naPlataforma?" ativo":"")+'" title="Vantagens para cliente, tatuador e fornecedor" onclick="go(\'plataforma\')">✨<span class="rot">Vantagens</span></button>';
  var nCart=S.cart.reduce(function(a,c){return a+c.q},0);
  var nNotif=S.notifs.filter(function(n){return n.un}).length;
  var nChat=CHATS.reduce(function(a,c){return a+c.un},0);
@@ -1422,54 +1427,54 @@ function vArtist(){
 }
 
 /* ============ LANDING TATUADORES ============ */
+/* Mesma forma para os três perfis: uma linha de resumo, três vantagens
+   com uma frase cada, três passos. Assimetria aqui viraria hierarquia
+   involuntária — o perfil com mais texto pareceria o mais importante. */
 var PERFIS={
  cliente:{
+  rotulo:"Cliente",
   titulo:"Descubra quem faz o traço que você quer",
-  linha:"Pare de garimpar no Instagram e mandar mensagem para dez pessoas sem saber quanto custa.",
-  dor:"Hoje, quem quer se tatuar não sabe quanto vai pagar nem quem faz o estilo que tem em mente. Descobrir isso significa procurar no Instagram, mandar mensagem para várias pessoas e esperar resposta — muitas vezes sem receber preço nenhum.",
-  ganhos:[
-   ["✨","Faixa de preço antes de conversar","Você envia referências e recebe uma estimativa de quanto aquilo custa, com base em estilo, complexidade e tamanho."],
-   ["👥","Propostas de quem faz aquele traço","Seu pedido vai para tatuadores compatíveis com o estilo e a sua cidade — não para qualquer um."],
-   ["🖼","Portfólio de verdade","Cada perfil mostra o trabalho real, os estilos que domina e a faixa de preço por tamanho."],
-   ["🩹","Cobertura e correção","Se você se arrependeu de uma tatuagem, marca isso no pedido e vai direto para quem é especialista."]
+  linha:"Sem garimpar no Instagram nem mandar mensagem para dez pessoas sem saber o preço.",
+  vantagens:[
+   ["👛","Preço antes da conversa","Você envia referências e recebe a faixa de valor daquela tatuagem."],
+   ["👥","Quem faz o seu estilo","O pedido vai só para tatuadores compatíveis com o traço e a sua cidade."],
+   ["🩹","Cobertura e correção","Se você se arrependeu, marca no pedido e vai direto para quem é especialista."]
   ],
-  passos:[["Envie referências","Fotos do que você quer, e do local do corpo se ajudar."],
-   ["Receba a estimativa","Estilo sugerido, complexidade e faixa de preço."],
-   ["Compare propostas","Tatuadores compatíveis respondem com valor e mensagem."],
-   ["Agende","Escolhe quem quiser e marca a sessão."]],
+  passos:[["Envie referências","Fotos do que você quer."],
+   ["Receba a estimativa","Estilo, complexidade e faixa de preço."],
+   ["Compare e agende","Escolhe a proposta e marca a sessão."]],
   cta:"Criar conta grátis", ctaAcao:"S.signupRole=false;go('signup')",
   estado:"real"
  },
  tatuador:{
-  titulo:"Seu estúdio, com orçamento inteligente e agenda num só lugar",
-  linha:"Receba pedidos já pré-analisados, responda com sua proposta e mantenha portfólio e agenda organizados.",
-  dor:"Boa parte do tempo de um tatuador vai para pedido desalinhado: gente que quer um estilo que você não faz, ou que some quando descobre o preço. E a negociação acontece no privado, sem parâmetro nenhum.",
-  ganhos:[
-   ["📥","Pedidos filtrados","Só chega o que combina com seus estilos e sua cidade, já com a análise de complexidade pronta."],
-   ["🖼","Portfólio que é seu","Tatuadores relatam perda de conta e banimento no Instagram, sem aviso. Aqui o portfólio não depende de rede social."],
-   ["👛","Preço claro desde o começo","Sua tabela por estilo e tamanho aparece no perfil, então a conversa já começa alinhada."],
-   ["🗓","Agenda integrada","Do aceite da proposta ao agendamento, sem sair da plataforma."]
+  rotulo:"Tatuador",
+  titulo:"Seu estúdio com orçamento e agenda num só lugar",
+  linha:"Receba pedidos já analisados, responda com sua proposta e mantenha tudo organizado.",
+  vantagens:[
+   ["📥","Só pedido que combina","Chega o que bate com seus estilos e sua cidade, já com a complexidade avaliada."],
+   ["🖼","Portfólio que é seu","Não depende do Instagram, onde tatuador perde conta sem aviso nem recurso."],
+   ["🗓","Do orçamento à agenda","Cliente aceita a proposta e a sessão entra na sua agenda, sem sair daqui."]
   ],
-  passos:[["Crie seu perfil","Estilos, portfólio e faixa de preço em poucos minutos."],
-   ["Receba pedidos","Já com estilo e complexidade sugeridos pela análise."],
-   ["Responda","Envie valor e mensagem direto por aqui."],
-   ["Execute","Cliente aceita, a sessão entra na agenda e fica no histórico."]],
+  passos:[["Monte seu perfil","Estilos, portfólio e faixa de preço."],
+   ["Receba pedidos","Já com estilo e complexidade sugeridos."],
+   ["Responda e execute","Envia o valor, cliente aceita, sessão agendada."]],
   cta:"Criar perfil de tatuador", ctaAcao:"S.signupRole=true;go('signup')",
   estado:"real", planos:true
  },
  fornecedor:{
-  titulo:"Alcance tatuadores no momento da decisão de compra",
-  linha:"Marcas de tinta, equipamento e descartáveis não têm canal direto para quem compra todo mês.",
-  dor:"Fornecedor de material de tatuagem hoje depende de representante, feira e boca a boca. Não existe um lugar onde o tatuador já esteja, decidindo o que comprar, com histórico do que usa.",
-  ganhos:[
-   ["🏪","Loja dentro do fluxo","O tatuador já está aqui gerenciando orçamentos e agenda. Comprar material vira parte da rotina, não uma ida a outro site."],
-   ["🎯","Público qualificado","Quem navega é profissional em atividade, com portfólio e agenda — não curioso."],
-   ["📈","Sinal de demanda","Os estilos mais buscados e os materiais mais vistos indicam o que vai vender antes de vender."]
+  rotulo:"Fornecedor",
+  titulo:"Alcance tatuadores na hora de comprar",
+  linha:"Hoje o material chega ao estúdio por representante, feira e boca a boca.",
+  vantagens:[
+   ["🏪","Loja dentro do fluxo","O tatuador já está aqui gerenciando orçamentos — comprar vira parte da rotina."],
+   ["🎯","Público qualificado","Quem navega é profissional em atividade, com portfólio e agenda ativos."],
+   ["📈","Sinal de demanda","Os estilos mais buscados indicam que material vai vender antes de vender."]
   ],
-  passos:[["Cadastre seu catálogo","Produtos, preços e disponibilidade."],
-   ["Apareça na loja","Na aba do tatuador, junto do que ele já procura."],
+  passos:[["Cadastre o catálogo","Produtos, preços e disponibilidade."],
+   ["Apareça na loja","Junto do que o tatuador já procura."],
    ["Acompanhe","Veja o que é visto, salvo e comprado."]],
-  cta:"Quero saber mais", ctaAcao:"alert('Ainda nao existe cadastro de fornecedor. Este botao entraria numa lista de espera.')",
+  cta:"Entrar na lista de espera",
+  ctaAcao:"alert('Ainda nao existe cadastro de fornecedor. Este botao entraria numa lista de espera.')",
   estado:"hipotese"
  }
 };
@@ -1478,57 +1483,56 @@ function vLanding(){
  var k=S.perfilLanding, p=PERFIS[k];
  var h='<main><div class="wrap" style="max-width:820px">';
 
- h+='<div style="text-align:center;padding:18px 0 6px">';
- h+='<span class="badge acc">A plataforma</span>';
- h+='<h1 style="font-size:30px;font-weight:800;letter-spacing:-.03em;margin-top:11px;line-height:1.2">'+p.titulo+'</h1>';
- h+='<p class="sub" style="font-size:15px;max-width:560px;margin:9px auto 0">'+p.linha+'</p></div>';
+ // Mesma faixa de Lojas e Eventos: contexto à esquerda, ação principal à
+ // direita. Aqui a ação é cadastrar, não orçar.
+ h+='<div class="linhaabas"><div class="abas">';
+ h+='<span class="aba on" style="cursor:default">✨<span>Vantagens</span></span>';
+ h+='</div><div class="abas-acoes">';
+ h+='<button class="btn sm" onclick="go(\'home\')">🏪 Ver a plataforma</button>';
+ h+='<button class="btn sm destaque" onclick="'+p.ctaAcao+'">👤 Cadastrar</button>';
+ h+='</div></div>';
 
- // Mesmo componente segmentado da loja
- h+='<div class="segmento" style="max-width:420px;margin:18px auto 0">';
- [["cliente","Cliente"],["tatuador","Tatuador"],["fornecedor","Fornecedor"]].forEach(function(x){
-  h+='<button class="seg '+(k===x[0]?"on":"")+'" onclick="S.perfilLanding=\''+x[0]+'\';render()">'+x[1]+'</button>'});
+ h+='<div class="segmento" style="max-width:420px;margin-top:16px">';
+ Object.keys(PERFIS).forEach(function(x){
+  h+='<button class="seg '+(k===x?"on":"")+'" onclick="S.perfilLanding=\''+x+'\';render()">'+PERFIS[x].rotulo+'</button>'});
  h+='</div>';
 
+ h+='<div style="margin-top:20px">';
+ h+='<h1 style="font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.2">'+p.titulo+'</h1>';
+ h+='<p class="sub" style="font-size:14.5px;max-width:560px">'+p.linha+'</p></div>';
+
  if(p.estado==="hipotese"){
-  h+='<div class="banner" style="margin-top:16px;background:var(--x-warning-bg);border-color:var(--x-warning)">';
-  h+='<div><div class="b small" style="color:var(--x-warning)">Ainda não existe.</div>';
-  h+='<div class="tiny" style="color:var(--x-warning);margin-top:3px">Fornecedor é uma hipótese de negócio, não um lado da plataforma hoje. Não há cadastro, catálogo nem cobrança — o que está aqui é a proposta em estudo.</div></div></div>';
+  h+='<div class="banner" style="margin-top:14px;background:var(--x-warning-bg);border-color:var(--x-warning)">';
+  h+='<div class="tiny" style="color:var(--x-warning)"><b>Ainda não existe.</b> Fornecedor é hipótese de negócio, não um lado da plataforma hoje — sem cadastro, catálogo ou cobrança.</div></div>';
  }
 
- h+='<div class="card pad" style="margin-top:16px"><div class="tiny muted" style="text-transform:uppercase;letter-spacing:.1em;font-weight:700">O problema hoje</div>';
- h+='<p style="margin-top:7px">'+p.dor+'</p></div>';
-
- h+='<div class="row" style="margin-top:26px"><span class="b" style="font-size:16px">O que você ganha</span></div>';
- h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-top:11px">';
- p.ganhos.forEach(function(g){
-  h+='<div class="card pad"><div style="font-size:20px;color:var(--accent)">'+g[0]+'</div>';
-  h+='<div class="b small" style="margin-top:7px">'+g[1]+'</div>';
+ h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-top:20px">';
+ p.vantagens.forEach(function(g){
+  h+='<div class="card pad vantagem"><div style="font-size:20px;color:var(--accent)">'+g[0]+'</div>';
+  h+='<div class="b small" style="margin-top:8px">'+g[1]+'</div>';
   h+='<div class="small muted" style="margin-top:4px">'+g[2]+'</div></div>';
  });
  h+='</div>';
 
- h+='<div class="row" style="margin-top:26px"><span class="b" style="font-size:16px">Como funciona</span></div>';
- h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-top:11px">';
+ h+='<div class="row" style="margin-top:26px"><span class="b" style="font-size:15px">Como funciona</span></div>';
+ h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-top:10px">';
  p.passos.forEach(function(x,i){
-  h+='<div class="card pad"><div class="av" style="background:var(--primary);color:var(--primary-foreground);width:28px;height:28px;font-size:12px">'+(i+1)+'</div>';
+  h+='<div class="card pad vantagem"><div class="av" style="background:var(--primary);color:var(--primary-foreground);width:26px;height:26px;font-size:11px">'+(i+1)+'</div>';
   h+='<div class="b small" style="margin-top:8px">'+x[0]+'</div>';
   h+='<div class="small muted" style="margin-top:3px">'+x[1]+'</div></div>';
  });
  h+='</div>';
 
- if(k==="tatuador"){
-  h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:26px">';
-  [["2.400+","tatuadores cadastrados"],["18 mil","orçamentos gerados"],["4,8","nota média"],["62%","dos pedidos viram sessão"]].forEach(function(x){
-   h+='<div class="stat" style="text-align:center"><div class="val">'+x[0]+'</div><div class="hint">'+x[1]+'</div></div>'});
-  h+='</div>';
-  h+='<div class="tiny muted" style="margin-top:7px;text-align:center">Números ilustrativos — a plataforma ainda não está em operação.</div>';
- }
+ h+='<div class="card pad" style="margin-top:26px;text-align:center">';
+ h+='<div class="b">'+p.titulo+'</div>';
+ h+='<button class="btn primary" style="margin-top:12px" onclick="'+p.ctaAcao+'">'+p.cta+'</button></div>';
 
+ // Planos não são vantagem: entram depois, e só para quem paga.
  if(p.planos){
-  h+='<div style="text-align:center;margin-top:36px"><span class="badge">Planos</span>';
-  h+='<h2 style="font-size:23px;font-weight:700;margin-top:7px;letter-spacing:-.02em">Comece de graça</h2>';
+  h+='<div style="text-align:center;margin-top:34px"><span class="badge">Planos</span>';
+  h+='<h2 style="font-size:21px;font-weight:700;margin-top:6px;letter-spacing:-.02em">Comece de graça</h2>';
   h+='<p class="sub">Evolua quando o volume de pedidos justificar.</p></div>';
-  h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(215px,1fr));margin-top:18px;align-items:start">';
+  h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(215px,1fr));margin-top:16px;align-items:start">';
   PLANS.forEach(function(x){
    h+='<div class="plan '+(x.hl?"hl":"")+'">'+(x.rib?'<span class="rib">'+x.rib+'</span>':'');
    h+='<div class="b" style="font-size:15px">'+x.n+'</div><div class="tiny muted">'+x.tl+'</div>';
@@ -1540,12 +1544,6 @@ function vLanding(){
   h+='</div>';
   h+='<div class="tiny muted" style="margin-top:9px;text-align:center">Planos desenhados, sem cobrança implementada.</div>';
  }
-
- h+='<div class="card pad" style="margin-top:30px;text-align:center">';
- h+='<div class="b" style="font-size:17px">'+p.titulo+'</div>';
- h+='<div class="row" style="justify-content:center;gap:9px;margin-top:13px">';
- h+='<button class="btn primary" onclick="'+p.ctaAcao+'">'+p.cta+'</button>';
- h+='<button class="btn" onclick="go(\'home\')">Ver a plataforma</button></div></div>';
 
  return h+'</div></main>';
 }
