@@ -401,6 +401,20 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 .pendente:hover{border-color:var(--x-warning) !important;opacity:.85}
 .pendente .ico,.pendente svg{opacity:.9}
 
+/* Galeria do artista. Foto quadrada e informação embaixo: quem compra
+   arte decide pelo olho, e o preço só confirma. */
+.gradeobras{grid-template-columns:repeat(2,1fr);gap:11px}
+@media(min-width:560px){.gradeobras{grid-template-columns:repeat(3,1fr)}}
+.obra{display:flex;flex-direction:column;text-align:left;border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;background:var(--card);cursor:pointer;
+  transition:border-color .15s ease}
+.obra:hover{border-color:var(--muted-foreground)}
+.obrafoto{position:relative;aspect-ratio:1;background-size:cover;background-position:center}
+.obraetiq{position:absolute;top:7px;left:7px;background:var(--primary);color:var(--primary-foreground);
+  font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  padding:3px 7px;border-radius:999px}
+.obrainfo{padding:9px 10px 11px}
+
 /* Convite do teste. Faixa embaixo: acompanha a rolagem sem cobrir o
    conteúdo, e no celular respeita a área segura do aparelho. */
 .convitebarra{position:fixed;left:0;right:0;bottom:0;z-index:900;
@@ -818,9 +832,32 @@ var ARTISTS=NAMES.map(function(n,i){
  return {id:"a"+i,name:n,studio:"Studio "+n.split(" ")[0],city:c[0],state:c[1],styles:st,cx:cx,
   bio:BIOS[i%5],years:2+(i%10),rating:+(4.2+((i*7)%8)/10).toFixed(1),reviews:12+(i*11)%180,
   min:min,max:max,verified:i%4===0,insta:i%3===0,seed:i,months:3+(i*5)%42,empty:i===10,
-  agenda:i%5!==3,destaque:i%6===1,
+  agenda:i%5!==3,destaque:i%6===1,galeria:i%3!==2,
   port:[0,1,2,3,4,5,6,7,8].map(function(k){return i*9+k})};
 });
+/* A galeria de cada artista. Tatuagem não é o único destino do traço:
+   quem desenha bem vende print, quadro e estampa — e hoje isso vive num
+   Instagram separado, sem ligação com o perfil de tatuador. */
+var TIPOS_ARTE=[["print","Print"],["quadro","Quadro"],["estampa","Estampa"],["original","Original"]];
+function obrasDoArtista(a){
+ if(!a.galeria)return [];
+ var n=2+(a.seed%3);          // 2 a 4 obras, sempre as mesmas para o mesmo artista
+ var r=[];
+ for(var i=0;i<n;i++){
+  var t=TIPOS_ARTE[(a.seed+i)%TIPOS_ARTE.length];
+  var unico=t[0]==="original";
+  r.push({
+   id:a.id+"-o"+i,
+   nome:["Estudo de folhagem","Composição em preto","Serpente e lua","Mão e linha","Retrato em pontos","Fragmento"][(a.seed+i)%6],
+   tipo:t[0], tipoL:t[1],
+   preco: unico ? 40000+((a.seed+i)%8)*15000 : 8000+((a.seed+i)%6)*3500,
+   unico:unico,
+   restam: unico?1:3+((a.seed+i*3)%12),
+   seed:a.seed*17+i
+  });
+ }
+ return r;
+}
 var SHOP_CATS={
  artist:[["all","Todos"],["needles","Agulhas & Cartuchos"],["inks","Tintas"],["machines","Máquinas & Pedais"],["accessories","Acessórios"],["hygiene","Higiene & Descartáveis"]],
  client:[["all","Todos"],["healing","Cicatrizantes"],["moisturizers","Hidratantes"],["color","Realce de cor"],["sunscreen","Proteção solar"],["kits","Kits pós-tattoo"]],
@@ -982,13 +1019,14 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  evT:"all",evP:"all",evD:"all",evSort:"distance",evSel:"e1",evLoc:"São Paulo, SP",
  coT:"all",coL:"all",coP:"all",coSort:"recent",
  qStatus:"todos",hub:"menu",aiStep:0,aiRefs:2,
+ aiEstilos:[],aiFora:[],aiParte:"",aiCidade:"",aiFaixa:"",aiObs:"",
  chatOpen:null,chatFilter:"all",chatQ:"",notifFilter:"all",notifs:NOTIFS.map(function(n){return{...n}}),
  sqSel:"s1",onbStep:1,onbName:"",onbStyles:[],onbPort:0,pfTab:"info",menu:false,autoAssist:false,
  sqSelAg:null,agArtist:null,agDia:null,agHora:null,agFeito:false,destaqueAtivo:false,
- voltarPara:null,voltarArtista:null,
+ voltarPara:null,voltarArtista:null,histAba:"pessoas",
  te:{nome:"",email:"",perfil:null,aceite:false,erro:null,enviando:false},
  abaModelo:"painel",painel:{estado:null,dados:null,carregando:false,erro:null,email:"",senha:"",copiado:false},
- ue:{custo:0.35,qtd:40,destaque:120,adesao:12,gmv:600,take:12},
+ ue:{custo:1.20,qtd:1,destaque:120,adesao:12,gmv:600,take:12},
  modo:"demo",conn:null,papeis:null,regMsg:"",regErro:false,
  reg:{nome:"",email:"",senha:"",artista:null},
  reaisArtistas:null,carregando:false,pfMsg:"",pfErro:false,
@@ -1033,7 +1071,7 @@ function isArt(){return S.session==="artist"}
 var CHAVE_ESTADO="ink.estado.v2";
 var GUARDA=["session","route","artist","tab","modo","seguindo","curtidas","cart",
  "cad","perfilLanding","abaPerfil","shopAud","shopCat","shopQ","evAba","q",
- "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","emailConfirmado","emailPendente","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura","ehFornecedor",
+ "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","histAba","emailConfirmado","emailPendente","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura","ehFornecedor",
  "notifFilter","pfTab","ue","f","feedLote","caro","cep"];
 function salvarEstado(){
  try{var o={};GUARDA.forEach(function(k){if(S[k]!==undefined)o[k]=S[k]});
@@ -1726,7 +1764,9 @@ function vArtist(){
  var cursosDele=COURSES.filter(function(x,i){return (a.seed+i)%3===0}).slice(0,2);
  // Coluna única, dimensionada pelo celular. Duas colunas empurravam as
  // ações para a lateral, que no telefone cai depois de todo o portfólio.
+ var obras=obrasDoArtista(a);
  var abas=[["portfolio","Portfólio"]];
+ if(obras.length)abas.push(["galeria","Galeria"]);
  if(temInsta)abas.push(["instagram","Instagram"]);
  if(cursosDele.length)abas.push(["cursos","Cursos"]);
  if(eventosDele.length)abas.push(["eventos","Eventos"]);
@@ -1787,6 +1827,20 @@ function vArtist(){
   h+='</div>';
   h+='<div class="tiny muted" style="margin-top:9px">'+a.port.length+' trabalhos publicados aqui'+tg("real")+'</div>';
  }
+ if(aba==="galeria"){
+  h+='<div class="tiny muted" style="margin-top:14px">Arte à venda deste artista. Comprar não passa pelo orçamento — é uma peça pronta.</div>';
+  h+='<div class="grid gradeobras" style="margin-top:9px">';
+  obras.forEach(function(o){
+   h+='<button class="obra">';
+   h+='<div class="obrafoto" style="background-image:'+tex(o.seed)+'">'+(o.unico?'<span class="obraetiq">único</span>':'')+'</div>';
+   h+='<div class="obrainfo"><div class="b small">'+o.nome+'</div>';
+   h+='<div class="tiny muted">'+o.tipoL+' · '+(o.unico?"peça única":o.restam+" disponíveis")+'</div>';
+   h+='<div class="b small" style="margin-top:3px">'+brl(o.preco)+'</div></div>';
+   h+='</button>';
+  });
+  h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:9px">'+obras.length+' obra(s) à venda'+tg("mock")+'</div>';
+ }
  if(aba==="instagram"){
   var ii=S.caro["ig"+a.id]||0;
   h+='<div class="caro" style="aspect-ratio:1;border-radius:12px;overflow:hidden;margin-top:14px">';
@@ -1838,49 +1892,57 @@ function vArtist(){
 /* Mesma forma para os três perfis: uma linha de resumo, três vantagens
    com uma frase cada, três passos. Assimetria aqui viraria hierarquia
    involuntária — o perfil com mais texto pareceria o mais importante. */
+/* ═══ A PROPOSTA DE VALOR, POR PERFIL ══════════════════════════════
+   O que a plataforma é: o lugar onde quem tatua e quem se tatua se
+   encontram — junto com os estúdios que abrigam esse trabalho e a arte
+   que sai dele.
+
+   O que ela deixou de prometer: orçamento calculado por máquina. Quem
+   sabe quanto custa uma tatuagem é o tatuador que vai fazer, e ele já
+   estava do outro lado do pedido. */
 var PERFIS={
  cliente:{
   rotulo:"Cliente",
-  titulo:"Descubra quem faz o traço que você quer",
-  linha:"Sem garimpar no Instagram nem mandar mensagem para dez pessoas sem saber o preço.",
+  titulo:"O lugar de quem gosta de tatuagem",
+  linha:"Descubra artistas, veja o trabalho de perto, peça orçamento a quem faz o seu estilo — e acompanhe a cena depois de sair do estúdio.",
   vantagens:[
-   ["👛","Preço antes da conversa","Você envia referências e recebe a faixa de valor daquela tatuagem."],
-   ["👥","Quem faz o seu estilo","O pedido vai só para tatuadores compatíveis com o traço e a sua cidade."],
-   ["🩹","Cobertura e correção","Se você se arrependeu, marca no pedido e vai direto para quem é especialista."]
+   ["👥","Quem faz o seu traço","Você escolhe o estilo e o pedido vai só para quem trabalha com aquilo, na sua cidade. Nada de mandar mensagem para dez pessoas."],
+   ["👛","Preço de quem vai fazer","Cada tatuador responde com o preço dele. Você compara propostas de verdade, não uma estimativa automática."],
+   ["🖼","Mais que a tatuagem","Os artistas que você segue também vendem arte, dão curso e aparecem em convenção. Tudo aparece no mesmo lugar."]
   ],
-  passos:[["Envie referências","Fotos do que você quer."],
-   ["Receba a estimativa","Estilo, complexidade e faixa de preço."],
-   ["Compare e agende","Escolhe a proposta e marca a sessão."]],
+  passos:[["Descubra","Navegue pelo trabalho de quem tatua perto de você."],
+   ["Peça orçamento","Diga o estilo, mostre referências, escolha para quem vai."],
+   ["Compare e marque","Cada um responde com preço e prazo. Você escolhe."]],
   cta:"Criar conta grátis", ctaAcao:"irCadastro('cliente')",
   estado:"real",
   cobranca:{titulo:"Para você, não custa nada",
-   texto:"Buscar, pedir orçamento, conversar e agendar são grátis, sempre. A plataforma se sustenta com destaque de catálogo, comissão nas vendas de loja e cursos, e contrato com estúdios.",
+   texto:"Buscar, pedir orçamento, conversar e agendar são grátis, sempre. A plataforma se sustenta com destaque de catálogo, comissão nas vendas de loja e arte, e contrato com estúdios.",
    itens:["Nenhuma taxa sobre a sua tatuagem","O que você compra na loja não tem acréscimo","Destaque no feed vem sempre marcado como tal"]}
  },
  tatuador:{
   rotulo:"Tatuador",
-  titulo:"Seu estúdio com orçamento e agenda num só lugar",
-  linha:"Receba pedidos já analisados, responda com sua proposta e mantenha tudo organizado.",
+  titulo:"Sua vida profissional num lugar só",
+  linha:"Portfólio, galeria, orçamentos, agenda, caixa e o histórico de quem você tatuou e dos estúdios por onde passou.",
   vantagens:[
-   ["📥","Só pedido que combina","Chega o que bate com seus estilos e sua cidade, já com a complexidade avaliada."],
-   ["🖼","Portfólio que é seu","Não depende do Instagram, onde tatuador perde conta sem aviso nem recurso."],
-   ["🗓","Do orçamento à agenda","Cliente aceita a proposta e a sessão entra na sua agenda, sem sair daqui."]
+   ["📥","Pedido que combina","Chega o que bate com os seus estilos e a sua cidade, com referências e o que a pessoa quer gastar. Você responde com o seu preço."],
+   ["👛","O caixa do seu mês","O que entrou de sessão, de arte e de curso, e o que saiu. Sem planilha paralela."],
+   ["🕘","Seu histórico inteiro","Quem você já tatuou, o que fez em cada um, e em que estúdios você passou. Some da agenda de papel para sempre."]
   ],
-  passos:[["Monte seu perfil","Estilos, portfólio e faixa de preço."],
-   ["Receba pedidos","Já com estilo e complexidade sugeridos."],
-   ["Responda e execute","Envia o valor, cliente aceita, sessão agendada."]],
+  passos:[["Monte seu perfil","Estilos, cidade, portfólio e a arte que você vende."],
+   ["Receba pedidos","Só de quem procura o que você faz."],
+   ["Responda e registre","Combina o preço, faz a sessão, e fica registrado."]],
   cta:"Criar conta de tatuador", ctaAcao:"irCadastro('tatuador')",
   estado:"real", planos:true,
   cobranca:{titulo:"Você só paga se quiser mais",
    texto:"Não existe mensalidade para existir no catálogo, e a plataforma não fica com percentual da sua tatuagem. O que é pago é opcional e vem depois de você já estar rodando.",
-   itens:["Perfil, portfólio, orçamento e agenda: sem custo","Destaque no catálogo: opcional, por período","Curso ou evento seu: comissão só quando vende","Estúdio com equipe: contrato Enterprise"]}
+   itens:["Perfil, portfólio, orçamento, agenda e caixa: sem custo","Destaque no catálogo: opcional, por período","Arte, curso ou evento seu: comissão só quando vende","Estúdio com equipe: contrato Enterprise"]}
  },
  fornecedor:{
   rotulo:"Fornecedor",
   titulo:"Alcance tatuadores na hora de comprar",
   linha:"Hoje o material chega ao estúdio por representante, feira e boca a boca.",
   vantagens:[
-   ["🏪","Loja dentro do fluxo","O tatuador já está aqui gerenciando orçamentos — comprar vira parte da rotina."],
+   ["🏪","Loja dentro do fluxo","O tatuador já está aqui gerenciando orçamentos e caixa — comprar vira parte da rotina."],
    ["🎯","Público qualificado","Quem navega é profissional em atividade, com portfólio e agenda ativos."],
    ["📈","Sinal de demanda","Os estilos mais buscados indicam que material vai vender antes de vender."]
   ],
@@ -1896,6 +1958,16 @@ var PERFIS={
  }
 };
 
+/* Os quatro lados do ecossistema, na abertura de Conhecer. Não é
+   enfeite: quem chega precisa entender em cinco segundos que isto não é
+   um diretório de tatuadores. */
+var ECOSSISTEMA=[
+ ["👥","Pessoas","Quem quer se tatuar, descobre artistas e acompanha o trabalho deles."],
+ ["🎨","Artistas","Tatuadores com portfólio, agenda, caixa e histórico no mesmo lugar."],
+ ["🏪","Estúdios","Onde o trabalho acontece — incluindo os de passagem, que é como o ofício funciona."],
+ ["🖼","Arte","A galeria de cada artista: print, quadro, estampa. Tatuagem não é o único destino do traço."]
+];
+
 function vLanding(){
  var k=S.perfilLanding, p=PERFIS[k];
  // .wrap padrão, sem largura própria: assim a margem lateral bate com a
@@ -1908,13 +1980,27 @@ function vLanding(){
  h+='<button class="btn sm destaque" onclick="irCadastro(\''+k+'\')">👤 Criar conta</button>';
  h+='</div>';
 
+ /* A abertura fala do ecossistema antes de falar de perfil. Quem chega
+    precisa entender o que é o lugar antes de escolher onde se encaixa. */
+ h+='<div class="blococentro" style="margin-top:22px">';
+ h+='<h1 style="font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.2">Onde a tatuagem acontece</h1>';
+ h+='<p class="sub" style="font-size:14.5px">Pessoas, artistas, estúdios e arte no mesmo lugar. Descobrir, orçar, marcar, comprar e voltar — sem sair daqui.</p></div>';
+ h+='<div class="gradeconteudo" style="margin-top:16px">';
+ ECOSSISTEMA.forEach(function(x){
+  h+='<div class="card pad vantagem"><div style="font-size:20px;color:var(--accent)">'+x[0]+'</div>';
+  h+='<div class="b small" style="margin-top:8px">'+x[1]+'</div>';
+  h+='<div class="small muted" style="margin-top:4px">'+x[2]+'</div></div>';
+ });
+ h+='</div>';
+
+ h+='<div class="blococentro secao" style="margin-top:40px"><span class="b" style="font-size:15px">E para você, o que isso significa?</span></div>';
  h+='<div class="segmento centrado">';
  Object.keys(PERFIS).forEach(function(x){
   h+='<button class="seg '+(k===x?"on":"")+'" onclick="S.perfilLanding=\''+x+'\';render()">'+PERFIS[x].rotulo+'</button>'});
  h+='</div>';
 
- h+='<div class="blococentro" style="margin-top:30px">';
- h+='<h1 style="font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.2">'+p.titulo+'</h1>';
+ h+='<div class="blococentro" style="margin-top:26px">';
+ h+='<h2 style="font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.2">'+p.titulo+'</h2>';
  h+='<p class="sub" style="font-size:14.5px">'+p.linha+'</p></div>';
 
  if(p.estado==="hipotese"){
@@ -2468,7 +2554,66 @@ function becomeArtist(){
 
 /* ============ SHELL me/studio ============ */
 var ME_NAV=[["me","Visão geral","▦"],["me-quotes","Meus orçamentos","📥"],["me-history","Histórico","🕘"],["me-payments","Pagamentos","🧾"]];
-var ST_NAV=[["studio","Visão geral","▦"],["studio-quotes","Orçamentos","📥"],["studio-schedule","Agenda","🗓"],["studio-events","Eventos","🎟"],["studio-campaigns","Campanhas","📣"],["studio-reviews","Avaliações","★"],["studio-profile","Meu perfil","⚙"]];
+var ST_NAV=[["studio","Visão geral","▦"],["studio-quotes","Orçamentos","📥"],["studio-schedule","Agenda","🗓"],["studio-caixa","Caixa","👛"],["studio-historico","Histórico","🕘"],["studio-events","Eventos","🎟"],["studio-reviews","Avaliações","★"],["studio-profile","Meu perfil","⚙"]];
+
+/* ═══ CAIXA E HISTÓRICO ════════════════════════════════════════════
+   As duas telas que sustentam "tudo num lugar só". Uma responde
+   "quanto entrou este mês"; a outra, "quem eu já tatuei e onde eu
+   estive". Nenhuma das duas existe em caderno de agenda, e é isso que
+   as torna a aposta de retenção do modelo.
+
+   Dados fictícios, deterministas: o mesmo mês sempre mostra os mesmos
+   números, senão testar vira loteria. */
+var LANC=(function(){
+ var f=[["Sessão","sessao","Helena Duarte","Fineline no antebraço"],
+        ["Sessão","sessao","Rafael Costa","Blackwork nas costas — 2ª de 3"],
+        ["Arte","arte","Venda de print","Estudo de folhagem, 2 unidades"],
+        ["Sessão","sessao","Bruna Aoki","Cobertura no ombro"],
+        ["Curso","curso","Turma de fineline","4 inscrições"],
+        ["Sessão","sessao","Igor Menezes","Lettering no antebraço"],
+        ["Arte","arte","Venda de original","Serpente e lua"],
+        ["Sessão","sessao","Clara Vaz","Pontilhismo na panturrilha"]];
+ var g=[["Aluguel da cadeira","estudio","Studio Marina — julho"],
+        ["Material","material","Cartuchos, tinta e descartáveis"],
+        ["Destaque no catálogo","plataforma","Julho"]];
+ var l=[];
+ f.forEach(function(x,i){
+  l.push({dia:2+i*3,tipo:"entrada",cat:x[1],catL:x[0],quem:x[2],obs:x[3],
+          cents:x[1]==="sessao"?(45000+(i*7%5)*22000):x[1]==="arte"?(9000+(i%3)*12000):68000});
+ });
+ g.forEach(function(x,i){
+  l.push({dia:5+i*9,tipo:"saida",cat:x[1],catL:x[0],quem:x[0],obs:x[2],
+          cents:x[1]==="estudio"?120000:x[1]==="material"?43500:12000});
+ });
+ return l.sort(function(a,b){return a.dia-b.dia});
+})();
+
+var HIST_PESSOAS=[
+ {nome:"Helena Duarte",sessoes:4,desde:"mar/2025",ultima:"12 jul",trabalhos:"Fineline, folhagem no antebraço e ombro",gasto:186000,seed:3},
+ {nome:"Rafael Costa",sessoes:3,desde:"nov/2025",ultima:"05 jul",trabalhos:"Blackwork nas costas, em andamento",gasto:240000,seed:11},
+ {nome:"Bruna Aoki",sessoes:2,desde:"jan/2026",ultima:"21 jun",trabalhos:"Cobertura no ombro",gasto:95000,seed:7},
+ {nome:"Igor Menezes",sessoes:1,desde:"jul/2026",ultima:"18 jul",trabalhos:"Lettering no antebraço",gasto:52000,seed:19},
+ {nome:"Clara Vaz",sessoes:5,desde:"set/2024",ultima:"02 jul",trabalhos:"Pontilhismo — perna fechada em quatro sessões",gasto:310000,seed:23}
+];
+
+/* Tatuador é itinerante: guest spot, convenção, estúdio de amigo. O
+   histórico registra onde ele esteve, não só onde ele está. */
+var HIST_ESTUDIOS=[
+ {nome:"Studio Marina",cidade:"São Paulo/SP",tipo:"Casa",periodo:"desde mar/2024",sessoes:38,atual:true},
+ {nome:"Black Lotus",cidade:"Curitiba/PR",tipo:"Guest spot",periodo:"mai/2026, 5 dias",sessoes:7},
+ {nome:"Convenção Sul",cidade:"Porto Alegre/RS",tipo:"Convenção",periodo:"abr/2026, 3 dias",sessoes:4},
+ {nome:"Ateliê Bruta",cidade:"São Paulo/SP",tipo:"Guest spot",periodo:"fev/2026, 4 dias",sessoes:6},
+ {nome:"Casa Preta",cidade:"Rio de Janeiro/RJ",tipo:"Guest spot",periodo:"nov/2025, 6 dias",sessoes:9}
+];
+
+function somaCaixa(){
+ var e=0,sa=0,porCat={};
+ LANC.forEach(function(x){
+  if(x.tipo==="entrada"){e+=x.cents;porCat[x.cat]=(porCat[x.cat]||0)+x.cents}
+  else sa+=x.cents;
+ });
+ return {entrou:e,saiu:sa,sobrou:e-sa,porCat:porCat};
+}
 function envHead(kind,title,nav,act){
  var h='<div class="envhead"><div class="wrap" style="padding-top:16px">';
  h+='<div class="row wrapf"><div><div class="kicker">'+(kind==="me"?"Minha área":"Ambiente do tatuador")+'</div><h1 class="page" style="margin-top:2px">'+title+'</h1></div>';
@@ -2755,7 +2900,11 @@ function vStudio(sub){
 
  if(sub==="studio"){
   h+='<div class="stats">';
-  [["📥","Orçamentos abertos","7","3 novos hoje"],["🗓","Agendamentos","3","Próximos 14 dias"],["📈","Receita do mês","R$ 12.800","+18% vs. mês passado"],["★","Avaliação média","4.8","124 reviews"]].forEach(function(s){
+  var cx=somaCaixa();
+  [["📥","Orçamentos abertos","7","3 novos hoje"],
+   ["🗓","Agendamentos","3","próximos 14 dias"],
+   ["👛","Sobrou em julho",brl(cx.sobrou),"entrou "+brl(cx.entrou)],
+   ["🕘","Pessoas tatuadas",String(HIST_PESSOAS.length),HIST_PESSOAS.filter(function(p){return p.sessoes>1}).length+" voltaram"]].forEach(function(s){
    h+='<div class="stat"><div class="lbl">'+s[0]+' '+s[1]+'</div><div class="val">'+s[2]+'</div><div class="hint">'+s[3]+'</div></div>'});
   h+='</div><div class="grid cols2" style="margin-top:15px;align-items:start">';
   h+='<div class="card pad"><div class="row"><span class="b">Orçamentos recentes</span>'+tg("real")+'<a class="sp small" style="color:var(--accent);cursor:pointer" onclick="go(\'studio-quotes\')">Ver todos →</a></div><div style="margin-top:4px">';
@@ -2764,6 +2913,22 @@ function vStudio(sub){
   h+='<div class="card pad"><div class="row"><span class="b">Próximos agendamentos</span>'+tg("mock")+'</div><div style="margin-top:4px">';
   BOOK.forEach(function(b){h+='<div class="lrow"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div><div style="min-width:0"><div class="b small">'+b.c+'</div><div class="small muted">'+b.area+' · '+b.h+'h</div></div><div class="sp b small">'+brl(b.cents)+'</div></div>'});
   h+='</div></div></div>';
+  // Os dois atalhos que a proposta de valor promete. Sem eles, "tudo
+  // num lugar só" seria uma frase na landing e nada na tela.
+  h+='<div class="grid cols2" style="margin-top:15px;align-items:start">';
+  h+='<div class="card pad"><div class="row"><span class="b">Caixa de julho</span>'+tg("mock")+'</div>';
+  h+='<div class="row" style="align-items:baseline;gap:7px;margin-top:8px"><span style="font-size:22px;font-weight:700;letter-spacing:-.02em">'+brl(cx.sobrou)+'</span><span class="tiny muted">sobrou</span></div>';
+  h+='<div class="tiny muted" style="margin-top:3px">Entrou '+brl(cx.entrou)+' · saiu '+brl(cx.saiu)+'</div>';
+  h+='<button class="btn sm blk" style="margin-top:10px" onclick="go(\'studio-caixa\')">Ver o caixa</button></div>';
+  h+='<div class="card pad"><div class="row"><span class="b">Últimas pessoas</span>'+tg("mock")+'</div>';
+  h+='<div style="margin-top:4px">';
+  HIST_PESSOAS.slice(0,3).forEach(function(p){
+   h+='<div class="lrow"><div class="av">'+ini(p.nome)+'</div><div style="min-width:0"><div class="b small">'+p.nome+'</div>';
+   h+='<div class="tiny muted">'+p.sessoes+' sessão(ões) · última em '+p.ultima+'</div></div></div>';
+  });
+  h+='</div><button class="btn sm blk" style="margin-top:9px" onclick="go(\'studio-historico\')">Ver histórico</button></div>';
+  h+='</div>';
+
   h+='<div class="card pad" style="margin-top:15px"><div class="row"><span class="b">Visitas ao perfil</span>'+tg("mock")+'<span class="sp small muted">932 nesta semana</span></div>';
   h+='<div class="row" style="gap:5px;align-items:flex-end;height:80px;margin-top:11px">';
   [42,58,35,71,64,88,52].forEach(function(v,i){h+='<div style="flex:1;text-align:center"><div style="background:var(--primary);border-radius:4px 4px 0 0;height:'+v+'%"></div><div class="tiny muted" style="margin-top:4px">'+["s","t","q","q","s","s","d"][i]+'</div></div>'});
@@ -2782,7 +2947,7 @@ function vStudio(sub){
   h+='<div class="row" style="gap:6px;margin-top:5px">';
   for(var k=0;k<3;k++)h+='<div class="thumbsq" style="background-image:'+tex(sel.seed+k)+'"></div>';
   h+='</div>';
-  h+='<div class="sep"></div><div class="tiny muted">Análise da IA</div>';
+  h+='<div class="sep"></div><div class="tiny muted">Estilos identificados</div>';
   h+='<div class="row wrapf" style="gap:5px;margin-top:5px">'+sel.st.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'<span class="badge">'+CPLX[sel.cx]+'</span></div>';
   h+='<div class="b" style="font-size:17px;margin-top:7px">'+brl(sel.min)+' – '+brl(sel.max)+'</div>';
   h+='<div class="tiny muted">'+sel.hrs+' estimadas</div>';
@@ -2822,6 +2987,95 @@ function vStudio(sub){
    h+='<div style="min-width:0"><div class="b small">'+e.n+'</div><div class="tiny muted">'+(e.t||"")+' · '+(e.d||e.st)+'</div></div>';
    h+='<div class="sp"><span class="badge acc">inscrito</span></div></div>'});
   h+='</div>';
+ }
+
+ /* ── CAIXA ──────────────────────────────────────────────────────
+    O que entrou, o que saiu, o que sobrou. Nessa ordem, porque é a
+    ordem em que a pergunta se forma na cabeça de quem abre a tela. */
+ if(sub==="studio-caixa"){
+  var c=somaCaixa();
+  h+='<div class="stats">';
+  [["📈","Entrou em julho",brl(c.entrou),LANC.filter(function(x){return x.tipo==="entrada"}).length+" lançamentos"],
+   ["👛","Saiu",brl(c.saiu),"aluguel, material e destaque"],
+   ["✅","Sobrou",brl(c.sobrou),c.sobrou>0?"antes de imposto":"mês no vermelho"]].forEach(function(x){
+   h+='<div class="stat"><div class="lbl">'+x[0]+' '+x[1]+'</div><div class="val">'+x[2]+'</div><div class="hint">'+x[3]+'</div></div>'});
+  h+='</div>';
+
+  h+='<div class="card pad" style="margin-top:15px"><div class="row"><span class="b">De onde veio</span>'+tg("mock")+'</div>';
+  h+='<div class="tiny muted" style="margin-top:3px">Sessão é o grosso, mas não é tudo — e é isso que a planilha do caderno não mostra.</div>';
+  h+='<div style="margin-top:12px">';
+  [["sessao","Sessões"],["arte","Arte"],["curso","Curso"]].forEach(function(k){
+   var v=c.porCat[k[0]]||0, pc=c.entrou?Math.round(v/c.entrou*100):0;
+   h+='<div style="margin-bottom:11px"><div class="row tiny"><span>'+k[1]+'</span><span class="sp b">'+brl(v)+' · '+pc+'%</span></div>';
+   h+='<div style="height:7px;background:var(--muted);border-radius:99px;margin-top:4px;overflow:hidden">';
+   h+='<div style="height:100%;width:'+pc+'%;background:var(--primary);border-radius:99px"></div></div></div>';
+  });
+  h+='</div></div>';
+
+  h+='<div class="card pad" style="margin-top:15px"><div class="row"><span class="b">Lançamentos de julho</span>'+tg("mock")+'</div>';
+  h+='<table class="t" style="margin-top:9px"><tr><th>Dia</th><th>O quê</th><th style="text-align:right">Valor</th></tr>';
+  LANC.forEach(function(x){
+   h+='<tr><td class="small muted">'+String(x.dia).padStart(2,"0")+'/07</td>';
+   h+='<td><div class="b small">'+x.quem+'</div><div class="tiny muted">'+x.catL+' · '+x.obs+'</div></td>';
+   h+='<td style="text-align:right" class="b small"><span style="color:var(--'+(x.tipo==="entrada"?"x-success":"x-danger")+')">'+
+      (x.tipo==="entrada"?"+":"−")+' '+brl(x.cents)+'</span></td></tr>';
+  });
+  h+='</table>';
+  h+='<div class="row" style="gap:8px;margin-top:12px"><button class="btn sm">＋ Lançar entrada</button><button class="btn sm">＋ Lançar saída</button>';
+  h+='<button class="btn sm sp">Exportar</button></div>';
+  h+='<div class="tiny muted" style="margin-top:9px">Sessão fechada pela plataforma entra sozinha. O resto você lança — e o que você lança é seu, ninguém mais vê.</div>';
+  h+='</div>';
+ }
+
+ /* ── HISTÓRICO ──────────────────────────────────────────────────
+    Duas listas que só existem aqui: quem ele tatuou, e onde ele
+    esteve. A segunda é o que caderno nenhum guarda, porque tatuador
+    é itinerante e cada estúdio tem o próprio caderno. */
+ if(sub==="studio-historico"){
+  h+='<div class="segmento">';
+  [["pessoas","Quem eu tatuei"],["estudios","Onde eu tatuei"]].forEach(function(x){
+   h+='<button class="seg '+(S.histAba===x[0]?"on":"")+'" onclick="S.histAba=\''+x[0]+'\';render()">'+x[1]+'</button>'});
+  h+='</div>';
+
+  if(S.histAba!=="estudios"){
+   var tot=HIST_PESSOAS.reduce(function(a,p){return a+p.sessoes},0);
+   h+='<div class="stats" style="margin-top:14px">';
+   [["👥","Pessoas",HIST_PESSOAS.length,"desde set/2024"],
+    ["◉","Sessões",tot,"registradas"],
+    ["📈","Voltaram",HIST_PESSOAS.filter(function(p){return p.sessoes>1}).length,"mais de uma vez"]].forEach(function(x){
+    h+='<div class="stat"><div class="lbl">'+x[0]+' '+x[1]+'</div><div class="val">'+x[2]+'</div><div class="hint">'+x[3]+'</div></div>'});
+   h+='</div>';
+   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Pessoas que você tatuou</span>'+tg("mock")+'</div>';
+   h+='<div style="margin-top:4px">';
+   HIST_PESSOAS.forEach(function(p){
+    h+='<div class="lrow"><div class="av">'+ini(p.nome)+'</div>';
+    h+='<div style="min-width:0;flex:1"><div class="b small">'+p.nome+'</div>';
+    h+='<div class="tiny muted">'+p.trabalhos+'</div>';
+    h+='<div class="tiny muted" style="margin-top:2px">'+p.sessoes+' sessão(ões) · cliente desde '+p.desde+' · última em '+p.ultima+'</div></div>';
+    h+='<div class="sp" style="text-align:right"><div class="b small">'+brl(p.gasto)+'</div><div class="tiny muted">no total</div></div></div>';
+   });
+   h+='</div>';
+   h+='<div class="tiny muted" style="margin-top:10px">Saber quem voltou, e quando, é o que permite chamar de volta quem sumiu.</div></div>';
+  } else {
+   h+='<div class="stats" style="margin-top:14px">';
+   [["🏪","Estúdios",HIST_ESTUDIOS.length,"incluindo os de passagem"],
+    ["📍","Cidades",4,"São Paulo, Curitiba, Porto Alegre, Rio"],
+    ["◉","Sessões fora",HIST_ESTUDIOS.filter(function(e){return !e.atual}).reduce(function(a,e){return a+e.sessoes},0),"em guest spot e convenção"]].forEach(function(x){
+    h+='<div class="stat"><div class="lbl">'+x[0]+' '+x[1]+'</div><div class="val">'+x[2]+'</div><div class="hint">'+x[3]+'</div></div>'});
+   h+='</div>';
+   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Onde você já tatuou</span>'+tg("mock")+'</div>';
+   h+='<div class="tiny muted" style="margin-top:3px">Casa, guest spot e convenção. Cada estúdio tem o próprio caderno — aqui fica o seu.</div>';
+   h+='<div style="margin-top:8px">';
+   HIST_ESTUDIOS.forEach(function(e){
+    h+='<div class="lrow"><div class="av">'+ini(e.nome)+'</div>';
+    h+='<div style="min-width:0;flex:1"><div class="row" style="gap:6px"><span class="b small">'+e.nome+'</span>';
+    h+='<span class="badge'+(e.atual?" ok":"")+'">'+e.tipo+'</span></div>';
+    h+='<div class="tiny muted">'+e.cidade+' · '+e.periodo+'</div></div>';
+    h+='<div class="sp" style="text-align:right"><div class="b small">'+e.sessoes+'</div><div class="tiny muted">sessões</div></div></div>';
+   });
+   h+='</div>';
+   h+='<button class="btn sm blk" style="margin-top:11px">＋ Registrar passagem por um estúdio</button></div>';
+  }
  }
 
  if(sub==="studio-campaigns"){
@@ -2939,7 +3193,7 @@ function studioProfile(){
    h+='<div><div class="tat" style="aspect-ratio:1;border-radius:9px;background-image:'+tex(k*4+2)+';position:relative">';
    h+='<span class="badge" style="position:absolute;top:5px;left:5px;background:rgba(0,0,0,.6);color:#fff">'+(k+1)+'</span></div>';
    h+='<select class="fld" style="margin-top:5px;font-size:11.5px;padding:5px 7px"><option>'+STYLES[k%15].l+'</option><option>Outro estilo…</option></select>';
-   h+='<div class="row" style="gap:4px;margin-top:4px"><button class="btn sm" style="flex:1;font-size:11px" onclick="alert(\'analyzePortfolioImage — sugere estilo por IA\')">✨ Analisar</button><button class="btn sm" style="font-size:11px">✕</button></div></div>';
+   h+='<div class="row" style="gap:4px;margin-top:4px"><button class="btn sm" style="flex:1;font-size:11px" onclick="alert(\'Marcar estilo de cada imagem do portfólio\')">🏷 Marcar estilo</button><button class="btn sm" style="font-size:11px">✕</button></div></div>';
   }
   h+='</div></div>';
  }
@@ -3012,7 +3266,7 @@ function renderDrawer(){
  var pintarGaveta=function(x){comFoco(function(){host.innerHTML=x})};
  var t="",b="",f="";
  if(S.drawer==="hub"){t="✨ Orçamentos"+tg("real");b=hubBody()}
- if(S.drawer==="assist"){t="✨ Assistente de orçamento"+tg("real");b=assistBody()}
+ if(S.drawer==="assist"){t="✨ Pedir orçamento"+tg("real");b=assistBody()}
  if(S.drawer==="chat"){t="💬 Mensagens"+tg("mock");b=chatBody();if(S.chatOpen)f='<div class="row"><input class="fld" placeholder="Escreva uma mensagem…" /><button class="btn primary">Enviar</button></div>'}
  if(S.drawer==="trava"){t="⚠ Confirmação pendente";b=corpoDaTrava()}
  if(S.drawer==="agenda"){t="🗓 Agenda"+tg("mock");b=agendaBody()}
@@ -3026,9 +3280,9 @@ function renderDrawer(){
 function hubBody(){
  if(S.hub==="menu"){
   var h='<p class="small muted">Escolha como quer seguir.</p><div class="grid" style="gap:10px;margin-top:12px">';
-  [["new","✨","Novo pedido","Gere um pool com o seu desenho e receba propostas de tatuadores compatíveis."],
+  [["new","✨","Novo pedido","Descreva o que você quer e receba propostas de quem trabalha com aquele estilo."],
    ["pool","🌐","Pool aberto","Pedidos ativos aguardando propostas. Tatuadores prospectam aqui."],
-   ["rec","🎯","Recomendações","A plataforma sugere matches com base no seu perfil e histórico."]].forEach(function(m){
+   ["rec","🎯","Para você","Tatuadores dos estilos que você salvou e segue, na sua cidade."]].forEach(function(m){
    h+='<div class="card pad" style="cursor:pointer" onclick="S.hub=\''+m[0]+'\';renderDrawer()"><div class="row"><span style="font-size:19px">'+m[1]+'</span><div><div class="b small">'+m[2]+'</div><div class="tiny muted">'+m[3]+'</div></div><span class="sp">›</span></div></div>'});
   return h+'</div>';
  }
@@ -3040,74 +3294,132 @@ function hubBody(){
    h+='<div class="lrow"><div class="thumb" style="background-image:'+tex(q.seed)+'"></div><div style="min-width:0"><div class="b small">'+q.area+'</div><div class="tiny muted">'+q.st.map(function(s){return SL[s]}).join(", ")+' · '+q.when+'</div></div><div class="sp b small">'+brl(q.min)+'+</div></div>'});
   return h+'</div>';
  }
- var h=back+'<div class="b small" style="margin-top:11px">Recomendações para você</div><div class="tiny muted">Com base nos estilos que você buscou e na sua cidade.</div><div style="margin-top:7px">';
+ var h=back+'<div class="b small" style="margin-top:11px">Recomendações para você</div><div class="tiny muted">Dos estilos que você salvou e da sua cidade.</div><div style="margin-top:7px">';
  ARTISTS.slice(0,5).forEach(function(a){
   h+='<div class="lrow"><div class="av">'+ini(a.name)+'</div><div style="min-width:0"><div class="b small">'+a.name+'</div><div class="tiny muted">'+a.styles.map(function(s){return SL[s]}).join(", ")+' · '+a.city+'</div></div><div class="sp" style="text-align:right"><div>'+cifroes(a)+'</div><button class="btn sm" style="margin-top:3px" onclick="quoteFor(\''+a.id+'\')">Orçar</button></div></div>'});
  return h+'</div>';
 }
+/* ── PEDIDO DE ORÇAMENTO ───────────────────────────────────────────
+   Sem análise automática. O cliente diz o que quer, mostra referências
+   e escolhe os estilos que combinam; o pedido vai para quem trabalha
+   com aquilo, na cidade dele, e cada tatuador responde com o preço
+   dele.
+
+   Tirar a IA daqui tira também a promessa mais difícil de cumprir:
+   estimar preço de tatuagem por foto. Quem sabe quanto custa é o
+   tatuador que vai fazer — e ele já estava do outro lado do pedido. */
 function assistBody(){
  var a=S.assistArtist?ARTISTS.filter(function(x){return x.id===S.assistArtist})[0]:null;
+
+ /* Passo 2: enviado. */
  if(S.aiStep===2){
-  var h='<div class="card pad" style="background:var(--x-success-bg);border-color:var(--x-success-bg)"><div class="b small" style="color:var(--x-success)">Pedido enviado a 6 tatuadores compatíveis.</div>';
-  h+='<div class="tiny" style="color:var(--x-success);margin-top:3px">Acompanhe as respostas em Meus orçamentos.</div></div>';
+  var h='<div class="card pad" style="background:var(--x-success-bg);border-color:var(--x-success-bg)"><div class="b small" style="color:var(--x-success)">'+
+    (a?"Pedido enviado para "+a.name+".":"Pedido enviado para 6 tatuadores.")+'</div>';
+  h+='<div class="tiny" style="color:var(--x-success);margin-top:3px">Cada um responde com o preço e o prazo dele. Você compara e escolhe.</div></div>';
   h+='<button class="btn blk" style="margin-top:11px" onclick="closeDrawer();go(\'me-quotes\')">Ver meus orçamentos</button>';
   return h;
  }
+
+ /* Passo 1: para quem vai. Não é sugestão de máquina — é a lista de
+    quem faz aquele estilo naquela cidade, que a pessoa pode mexer. */
  if(S.aiStep===1){
-  var h='<div class="card pad" style="background:var(--muted)"><div class="tiny muted">Sugestão da IA</div>';
-  h+='<div class="row wrapf" style="gap:5px;margin-top:5px">';
-  h+=S.arrependido
-   ? '<span class="badge acc">Cobertura</span><span class="badge acc">Blackout</span><span class="badge">Complexo 4</span>'
-   : '<span class="badge">Fineline</span><span class="badge">Minimalista</span><span class="badge">Complexo 2</span>';
+  var compat=tatuadoresCompativeis();
+  var h='<div class="card pad" style="background:var(--muted)"><div class="b small">Seu pedido</div>';
+  h+='<div class="row wrapf" style="gap:5px;margin-top:6px">';
+  (S.aiEstilos.length?S.aiEstilos:["—"]).forEach(function(x){h+='<span class="badge acc">'+(SL[x]||x)+'</span>'});
   h+='</div>';
-  h+='<div style="font-size:19px;font-weight:700;margin-top:8px">'+brl(45000)+' – '+brl(72000)+'</div>';
-  h+='<div class="tiny muted">3 a 4 horas estimadas</div>';
-  h+='<p class="small" style="margin-top:7px">Traço fino com folhagem delicada, sem preenchimento sólido. O antebraço interno é sensível mas plano, o que facilita o traço contínuo.</p></div>';
-  h+='<div class="row" style="margin-top:11px"><span class="b small">Tatuadores compatíveis</span><span class="sp tiny muted">6 encontrados</span></div>';
-  h+='<div>';
-  ARTISTS.slice(0,6).forEach(function(x,i){
-   h+='<div class="lrow"><div class="av">'+ini(x.name)+'</div><div style="min-width:0"><div class="b small">'+x.name+'</div><div class="tiny muted">'+x.city+' · '+stars(x.rating)+' '+x.rating+'</div></div><div class="sp" style="text-align:right"><div>'+cifroes(x)+'</div><div class="tiny muted">score '+(2-i*0.2).toFixed(1)+'</div></div></div>'});
+  h+='<div class="tiny muted" style="margin-top:7px">'+escapar(S.aiParte||"Local não informado")+' · '+escapar(S.aiCidade||"—")+'</div>';
+  if(S.arrependido)h+='<div class="tiny" style="margin-top:5px;color:var(--accent)">Cobertura ou correção — vai só para quem faz.</div>';
   h+='</div>';
-  h+='<details style="margin-top:9px"><summary class="small b" style="cursor:pointer">📋 Ver tabela de referência</summary>';
-  h+='<table class="t" style="margin-top:7px"><tr><th>Estilo</th><th>Tamanho</th><th style="text-align:right">Faixa</th></tr>';
-  PRICING.slice(0,5).forEach(function(p){h+='<tr><td class="small">'+SL[p[0]]+'</td><td class="small muted">'+SIZE_L[p[1]]+'</td><td style="text-align:right" class="small">'+brl(p[2])+'–'+brl(p[3])+'</td></tr>'});
-  h+='</table></details>';
-  h+='<button class="btn primary blk" style="margin-top:12px" onclick="'+(isLog()?"S.aiStep=2;renderDrawer()":"closeDrawer();irCadastro(null)")+'">'+"Enviar pedido a estes tatuadores"+'</button>';
-  if(!isLog())h+='<div class="tiny muted" style="margin-top:5px;text-align:center">Requer login</div>';
-  h+='<button class="btn blk" style="margin-top:6px" onclick="S.aiStep=0;renderDrawer()">← Refazer análise</button>';
+
+  h+='<div class="row" style="margin-top:13px"><span class="b small">Vai para</span><span class="sp tiny muted">'+compat.length+' tatuador(es)</span></div>';
+  h+='<div class="tiny muted" style="margin-top:3px">Quem trabalha com o que você escolheu, na sua cidade ou perto. Você pode tirar alguém da lista.</div>';
+  h+='<div style="margin-top:6px">';
+  compat.forEach(function(x){
+   var fora=S.aiFora.indexOf(x.id)>=0;
+   h+='<div class="lrow"'+(fora?' style="opacity:.45"':'')+'><div class="av">'+ini(x.name)+'</div>';
+   h+='<div style="min-width:0"><div class="b small">'+x.name+'</div>';
+   h+='<div class="tiny muted">'+x.city+' · '+stars(x.rating)+' '+x.rating+'</div></div>';
+   h+='<div class="sp" style="text-align:right"><div>'+cifroes(x)+'</div>';
+   h+='<button class="btn sm" style="margin-top:3px" onclick="tog(S.aiFora,\''+x.id+'\')">'+(fora?"Incluir":"Tirar")+'</button></div></div>';
+  });
+  h+='</div>';
+
+  var vao=compat.filter(function(x){return S.aiFora.indexOf(x.id)<0}).length;
+  h+='<div class="tiny muted" style="margin-top:11px">Cada tatuador responde com o preço dele. Ninguém vê a proposta do outro.</div>';
+  h+='<button class="btn primary blk" style="margin-top:12px" '+(vao?"":"disabled")+' onclick="'+(isLog()?"S.aiStep=2;renderDrawer()":"closeDrawer();irCadastro(null)")+'">'+
+     (vao?"Enviar para "+vao+" tatuador(es)":"Escolha ao menos um")+'</button>';
+  if(!isLog())h+='<div class="tiny muted" style="margin-top:5px;text-align:center">Precisa de conta</div>';
+  h+='<button class="btn blk" style="margin-top:6px" onclick="S.aiStep=0;renderDrawer()">← Voltar ao pedido</button>';
   return h;
  }
+
+ /* Passo 0: o pedido. */
  var h='';
- if(a)h+='<div class="banner" style="margin-bottom:11px"><div class="av">'+ini(a.name)+'</div><div><div class="b small">'+"Orçar com "+a.name+'</div><div class="tiny muted">'+a.studio+' · '+a.city+'</div></div></div>';
- h+='<p class="small muted">Envie fotos de referência e, se quiser, do local do corpo. A IA sugere estilo, complexidade e faixa de preço.</p>';
- h+='<div class="tiny muted" style="margin-top:12px">Referências ('+S.aiRefs+'/8)</div>';
- h+='<div class="row wrapf" style="gap:7px;margin-top:5px">';
+ if(a)h+='<div class="banner" style="margin-bottom:11px"><div class="av">'+ini(a.name)+'</div><div><div class="b small">Orçar com '+a.name+'</div><div class="tiny muted">'+a.studio+' · '+a.city+'</div></div></div>';
+ h+='<p class="small muted">Conte o que você quer. Quem trabalha com isso responde com o preço e o prazo.</p>';
+
+ h+='<div class="tiny muted" style="margin-top:13px;font-weight:600;text-transform:uppercase;letter-spacing:.08em">Referências ('+S.aiRefs+'/8)</div>';
+ h+='<div class="tiny muted" style="margin-top:2px">Prints, desenhos, fotos de tatuagens que te agradam.</div>';
+ h+='<div class="row wrapf" style="gap:7px;margin-top:7px">';
  for(var k=0;k<S.aiRefs;k++)h+='<div class="thumbsq" style="background-image:'+tex(k*6+4)+'"><span class="x" onclick="S.aiRefs--;renderDrawer()">✕</span></div>';
  h+='<button style="width:56px;height:56px;border:1.5px dashed var(--border);border-radius:8px;color:var(--muted-foreground)" onclick="S.aiRefs=Math.min(8,S.aiRefs+1);renderDrawer()">＋</button></div>';
- h+='<div class="tiny muted" style="margin-top:11px">Foto do local do corpo (opcional)</div>';
- h+='<div class="row" style="gap:7px;margin-top:5px"><div class="thumbsq" style="background-image:'+tex(31)+'"></div><span class="tiny muted">Ajuda a estimar tamanho e tempo</span></div>';
- // Arrependimento: demanda específica e mal atendida. Quem quer cobrir ou
- // corrigir precisa de quem faz cobertura e blackout — não de qualquer um.
- h+='<div class="card pad" style="margin-top:13px;'+(S.arrependido?'border-color:var(--accent);background:var(--x-accent-bg)':'')+'">';
- h+='<div class="row" style="align-items:flex-start;gap:10px">';
- h+='<button class="chip '+(S.arrependido?"on":"")+'" style="margin-top:2px" onclick="S.arrependido=!S.arrependido;renderDrawer()">'+(S.arrependido?"✓":"")+'</button>';
- h+='<div style="flex:1"><div class="b small">Quero cobrir ou corrigir uma tatuagem</div>';
- h+='<div class="tiny muted" style="margin-top:3px">Marque se você se arrependeu de uma tatuagem. Encaminhamos seu pedido para quem é especialista em cobertura e blackout, em vez de qualquer tatuador.</div></div></div>';
- if(S.arrependido){
-  h+='<div class="tiny" style="margin-top:9px;color:var(--accent)">Seu pedido vai priorizar tatuadores que fazem '+ESTILOS_CORRECAO.map(function(s){return SL[s]}).join(" e ")+'. Uma foto da tatuagem atual ajuda muito na avaliação.</div>';
- }
- h+='</div>';
 
- h+='<div class="grid" style="gap:9px;margin-top:13px">';
- h+='<div><label class="lb">Parte do corpo</label><input class="fld" value="Antebraço interno" /></div>';
- h+='<div><label class="lb">Cidade</label><input class="fld" value="'+(a?a.city:"São Paulo")+'" /></div>';
- h+='<div><label class="lb">Teto por hora (opcional)</label><div class="row wrapf" style="gap:5px">';
- [25000,35000,50000,70000].forEach(function(p){h+='<span class="chip">'+brl(p)+'</span>'});
- h+='</div></div>';
- h+='<div><label class="lb">Observações</label><textarea class="fld" style="height:62px;resize:vertical">Quero algo delicado, sem sombreado pesado.</textarea></div></div>';
- h+='<button class="btn primary blk" style="margin-top:12px" onclick="S.aiStep=1;renderDrawer()">Analisar com IA</button>';
+ h+='<div class="sep"></div>';
+ h+='<div class="row"><span class="b small">Estilo que você quer</span><span class="req">obrigatório</span></div>';
+ h+='<div class="tiny muted" style="margin-top:3px">É o que define para quem o pedido vai. Escolha um ou mais.</div>';
+ h+='<div class="row wrapf" style="gap:6px;margin-top:9px">';
+ STYLES.filter(function(x){return ESTILOS_CORRECAO.indexOf(x.s)<0}).forEach(function(x){
+  h+='<button class="chip '+(S.aiEstilos.indexOf(x.s)>=0?"on":"")+'" onclick="tog(S.aiEstilos,\''+x.s+'\')">'+x.l+'</button>'});
+ h+='</div>';
+ h+='<div class="tiny muted" style="margin-top:7px">Não sabe dizer? Escolha os que mais parecem com suas referências — dá para mudar depois.</div>';
+
+ /* Arrependimento: demanda específica e mal atendida. Quem quer cobrir
+    ou corrigir precisa de quem faz cobertura, não de qualquer um. */
+ h+='<label class="marcador'+(S.arrependido?" on":"")+'" style="margin-top:13px">';
+ h+='<input type="checkbox" '+(S.arrependido?"checked":"")+' onchange="S.arrependido=this.checked;renderDrawer()" />';
+ h+='<span><span class="b small">Quero cobrir ou corrigir uma tatuagem</span>';
+ h+='<span class="tiny muted" style="display:block;margin-top:2px">O pedido vai só para quem faz cobertura. Uma foto da tatuagem atual ajuda muito.</span></span></label>';
+
+ h+='<div class="sep"></div>';
+ h+='<div class="grid" style="gap:9px">';
+ h+='<div><label class="lb">Parte do corpo</label><input class="fld" id="aiParte" value="'+escapar(S.aiParte)+'" oninput="S.aiParte=this.value" placeholder="Antebraço interno" /></div>';
+ h+='<div><label class="lb">Cidade</label><input class="fld" id="aiCidade" value="'+escapar(S.aiCidade||(a?a.city:""))+'" oninput="S.aiCidade=this.value" placeholder="São Paulo" /></div>';
+ h+='<div><label class="lb">Quanto você pretende gastar <span class="muted" style="font-weight:400">— opcional</span></label><div class="row wrapf" style="gap:5px">';
+ [["ate500","até R$ 500"],["500a1500","R$ 500 a 1.500"],["1500a3000","R$ 1.500 a 3.000"],["acima3000","acima de R$ 3.000"]].forEach(function(f){
+  h+='<button class="chip '+(S.aiFaixa===f[0]?"on":"")+'" onclick="S.aiFaixa=S.aiFaixa===\''+f[0]+'\'?\'\':\''+f[0]+'\';renderDrawer()">'+f[1]+'</button>'});
+ h+='</div><div class="tiny muted" style="margin-top:4px">Ajuda quem responde a saber se cabe. Não aparece como oferta.</div></div>';
+ h+='<div><label class="lb">Observações</label><textarea class="fld" id="aiObs" style="height:62px;resize:vertical" oninput="S.aiObs=this.value" placeholder="Tamanho aproximado, se tem prazo, o que você não quer…">'+escapar(S.aiObs)+'</textarea></div></div>';
+
+ var pronto=S.aiEstilos.length>0 && (S.aiCidade||a);
+ h+='<button class="btn primary blk" style="margin-top:13px" '+(pronto?"":"disabled")+' onclick="S.aiStep=1;renderDrawer()">'+
+    (pronto?"Ver para quem vai →":"Escolha o estilo e a cidade")+'</button>';
  return h;
 }
+
+/* Quem faz o que a pessoa pediu. Se ela marcou cobertura, só quem
+   cobre. Nada de pontuação: ou o tatuador trabalha com aquilo, ou não. */
+function tatuadoresCompativeis(){
+ if(S.assistArtist){
+  var so=ARTISTS.filter(function(x){return x.id===S.assistArtist});
+  if(so.length)return so;
+ }
+ var quer=S.arrependido?ESTILOS_CORRECAO:S.aiEstilos;
+ var cid=(S.aiCidade||"").toLowerCase();
+ var l=ARTISTS.filter(function(x){
+  var faz=quer.length===0||x.styles.some(function(s){return quer.indexOf(s)>=0});
+  return faz;
+ });
+ // Mesma cidade primeiro. Quem está longe continua na lista, porque
+ // tatuador viaja e o cliente pode querer.
+ l.sort(function(x,y){
+  var mx=cid&&x.city.toLowerCase().indexOf(cid)>=0?0:1;
+  var my=cid&&y.city.toLowerCase().indexOf(cid)>=0?0:1;
+  return mx-my||y.rating-x.rating;
+ });
+ return l.slice(0,6);
+}
+
 function chatBody(){
  if(S.chatOpen){
   var c=CHATS.filter(function(x){return x.id===S.chatOpen})[0];
@@ -3195,15 +3507,15 @@ function calcShip(){
    que é hipótese, porque a maior parte do modelo ainda não foi validada. */
 
 var LINHAS=[
- {n:"Orçamento por IA + matching",papel:"Núcleo",back:"real",
-  desc:"Cliente envia referências, a IA sugere estilo, complexidade e faixa de preço, e o pedido chega a tatuadores compatíveis.",
-  def:"alta",porq:"Única lógica não trivial do sistema. Resolve dor dos dois lados: o cliente não sabe quanto custa, o tatuador perde tempo com pedido desalinhado."},
- {n:"Descoberta de tatuadores",papel:"Sustenta o núcleo",back:"real",
-  desc:"Catálogo público com portfólio, estilos, faixa de preço e avaliações.",
-  def:"média",porq:"Necessário para o orçamento funcionar, mas por si só é diretório — fácil de replicar."},
- {n:"Gestão de estúdio",papel:"Retenção",back:"parcial",
-  desc:"Agenda, propostas, campanhas, avaliações e perfil profissional.",
-  def:"média",porq:"Prende o tatuador na plataforma, mas concorre com agenda de papel e WhatsApp."},
+ {n:"Encontro entre cliente e artista",papel:"Núcleo",back:"real",
+  desc:"Catálogo, perfis, portfólio, galeria e o pedido de orçamento que liga os dois lados.",
+  def:"média",porq:"O valor não está numa função difícil de copiar, e sim em ter os dois lados no mesmo lugar. Difícil de replicar não pela tecnologia, e sim pela densidade — o que também significa que começa fraco."},
+ {n:"Pedido de orçamento",papel:"Sustenta o núcleo",back:"real",
+  desc:"O cliente descreve o que quer, escolhe estilo e cidade, e o pedido vai para quem trabalha com aquilo. Cada tatuador responde com o preço dele.",
+  def:"baixa",porq:"Formulário e encaminhamento. Fácil de copiar; o que não é fácil é ter tatuador do outro lado para receber."},
+ {n:"Gestão do estúdio",papel:"Retenção",back:"parcial",
+  desc:"Orçamentos, agenda, fluxo de caixa, histórico de quem ele tatuou e dos estúdios por onde passou.",
+  def:"média",porq:"É a aposta de retenção do modelo: tudo num lugar só. Concorre com caderno, planilha e WhatsApp — que são gratuitos e já estão instalados no hábito."},
  {n:"Loja de materiais e arte",papel:"Adjacência",back:"nenhum",
   desc:"Insumos para tatuador, pós-tattoo para cliente, e arte dos artistas.",
   def:"baixa",porq:"Qualquer e-commerce faz. Margem baixa, operação logística pesada."},
@@ -3249,8 +3561,8 @@ var PERGUNTAS=[
  {q:"Quem paga: tatuador ou cliente?",
   ctx:"Respondida em 26/07/2026. O cliente não paga nada. O tatuador paga só se quiser destaque, ou se tiver estúdio com equipe. Quem vende na loja, curso ou evento paga percentual sobre venda fechada.",
   st:"decidida"},
- {q:"Quanto custa um orçamento?",
-  ctx:"Cada análise envia até 8 imagens a um modelo de visão. Sem esse número, qualquer preço é chute — inclusive o plano gratuito, que pode virar prejuízo proporcional ao sucesso.",
+ {q:"O que prende o tatuador?",
+  ctx:"A aposta é 'tudo num lugar só': orçamento, agenda, fluxo de caixa, histórico. Mas o concorrente é o caderno e o WhatsApp, que são grátis e já estão no hábito. Se o tatuador entra e não volta, a densidade nunca aparece — e sem densidade não há ecossistema nem destaque para vender.",
   st:"mensurável"},
  {q:"A plataforma processa o pagamento?",
   ctx:"Da tatuagem, não — foi o que fez a comissão sobre a sessão cair. Da loja, cursos e eventos, sim: sem isso não há como reter o percentual. É o pré-requisito técnico mais pesado das três cobranças escolhidas.",
@@ -3601,10 +3913,10 @@ function vModelo(){
  h+='<div class="row" style="margin-top:26px"><span class="b" style="font-size:16px">Economia unitária</span>';
  h+='<span class="sp tiny muted">simule para ver o buraco</span></div>';
  h+='<div class="card pad" style="margin-top:10px">';
- h+='<div class="small muted">Cada tatuador no catálogo gera custo de IA todo mês, pague ou não pague. As duas cobranças que escalam com volume precisam cobrir isso. Ajuste para ver onde vira lucro.</div>';
+ h+='<div class="small muted">Sem análise automática, o custo por tatuador virou quase só armazenamento de imagem e banda. O que era o maior custo variável deixou de existir — e com ele, a urgência de cobrar cedo.</div>';
  h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-top:12px">';
- h+='<div><label class="lb">Custo por análise de IA (R$)</label><input class="fld" type="number" step="0.01" value="'+S.ue.custo+'" oninput="S.ue.custo=+this.value||0;calcUE()" /></div>';
- h+='<div><label class="lb">Orçamentos por tatuador/mês</label><input class="fld" type="number" value="'+S.ue.qtd+'" oninput="S.ue.qtd=+this.value||0;calcUE()" /></div>';
+ h+='<div><label class="lb">Infraestrutura por tatuador/mês (R$)</label><input class="fld" type="number" step="0.01" value="'+S.ue.custo+'" oninput="S.ue.custo=+this.value||0;calcUE()" /></div>';
+ h+='<div><label class="lb">Multiplicador de uso</label><input class="fld" type="number" step="0.1" value="'+S.ue.qtd+'" oninput="S.ue.qtd=+this.value||0;calcUE()" /></div>';
  h+='<div><label class="lb">Destaque no catálogo (R$/mês)</label><input class="fld" type="number" value="'+S.ue.destaque+'" oninput="S.ue.destaque=+this.value||0;calcUE()" /></div>';
  h+='<div><label class="lb">Tatuadores que contratam destaque (%)</label><input class="fld" type="number" value="'+S.ue.adesao+'" oninput="S.ue.adesao=+this.value||0;calcUE()" /></div>';
  h+='<div><label class="lb">Venda de loja e cursos por tatuador/mês (R$)</label><input class="fld" type="number" value="'+S.ue.gmv+'" oninput="S.ue.gmv=+this.value||0;calcUE()" /></div>';
@@ -3643,7 +3955,7 @@ function calcUE(){
  var el=document.getElementById("ueOut");
  if(!el)return;
  var h='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">';
- h+='<div class="stat"><div class="lbl">Custo de IA por tatuador/mês</div><div class="val">R$ '+custoMes.toFixed(2)+'</div><div class="hint">todo perfil do catálogo custa</div></div>';
+ h+='<div class="stat"><div class="lbl">Custo por tatuador/mês</div><div class="val">R$ '+custoMes.toFixed(2)+'</div><div class="hint">imagem e banda</div></div>';
  h+='<div class="stat"><div class="lbl">Receita de destaque</div><div class="val">R$ '+recDestaque.toFixed(2)+'</div><div class="hint">média por tatuador</div></div>';
  h+='<div class="stat"><div class="lbl">Receita de comissão</div><div class="val">R$ '+recComissao.toFixed(2)+'</div><div class="hint">loja, cursos e eventos</div></div>';
  h+='<div class="stat"><div class="lbl">Margem por tatuador/mês</div><div class="val" style="color:'+(margem<0?'var(--x-danger)':'var(--x-success)')+'">R$ '+margem.toFixed(2)+'</div>';
@@ -3652,7 +3964,7 @@ function calcUE(){
  if(margem<0){
   var falta=u.adesao>0?Math.ceil((custoMes-recComissao)/(u.destaque/100)):null;
   h+='<div class="banner" style="margin-top:10px;background:var(--x-danger-bg);border-color:var(--x-danger)"><div class="small" style="color:var(--x-danger)"><b>No vermelho.</b> Cada tatuador no catálogo custa mais do que devolve. '+
-   (falta&&falta<=100?'Precisaria de '+falta+'% de adesão ao destaque para empatar sem mexer no resto.':'Nem 100% de adesão ao destaque cobriria — o custo de IA precisa cair ou a comissão precisa crescer.')+'</div></div>';
+   (falta&&falta<=100?'Precisaria de '+falta+'% de adesão ao destaque para empatar sem mexer no resto.':'Nem 100% de adesão ao destaque cobriria. Com custo de infraestrutura tão baixo, isso só acontece se a receita for perto de zero — ou seja, ninguém contratando e ninguém vendendo.')+'</div></div>';
  } else {
   h+='<div class="banner" style="margin-top:10px"><div class="small"><b>No azul.</b> Sobram R$ '+margem.toFixed(2)+' por tatuador antes de time e infraestrutura. Enterprise não entra nesta conta — tem ticket e custo de venda próprios.</div></div>';
  }
@@ -3711,7 +4023,7 @@ function vConexao(){
   ["Catálogo de tatuadores","real","Só publicados aparecem — garantido por política, não por filtro."],
   ["Perfil e portfólio do tatuador","real","Criação e edição gravam no banco."],
   ["Pedido de orçamento + matching","real","Grava o pedido e convida tatuadores compatíveis por estilo e cidade."],
-  ["Análise por IA","pendente","Precisa de chave própria do provedor. Hoje o resultado é simulado."],
+  ["Envio real de imagens","pendente","Precisa de bucket e limite por conta. Hoje o provedor. Hoje o resultado é simulado."],
   ["Upload de imagens","pendente","Buckets existem, a interface ainda não envia."],
   ["Loja, chat, agenda, eventos, campanhas, avaliações, pagamentos","nenhum","Não existem tabelas. Interface apenas."]
  ].forEach(function(l,i,arr){

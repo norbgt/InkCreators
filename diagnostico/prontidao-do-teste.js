@@ -144,8 +144,8 @@ secao("1. TODAS AS TELAS, NOS TRÊS PERFIS");
 {
   const rotas = ["home", "artist", "plataforma", "cadastro", "gate", "modelo", "conexao",
     "me", "me-quotes", "me-saved", "me-orders", "me-events",
-    "studio", "studio-quotes", "studio-schedule", "studio-events",
-    "studio-campaigns", "studio-reviews", "studio-profile"];
+    "studio", "studio-quotes", "studio-schedule", "studio-caixa",
+    "studio-historico", "studio-events", "studio-reviews", "studio-profile"];
   const gavetas = ["hub", "assist", "chat", "notif", "cart", "agenda"];
   let quebradas = 0, vazias = 0;
   for (const [rotulo, sessao] of [["anônimo", "anon"], ["cliente", "client"], ["tatuador", "artist"]]) {
