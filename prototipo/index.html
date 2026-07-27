@@ -390,7 +390,8 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
    horizontal se um rótulo crescer, em vez de quebrar linha. */
 .acoestrio{display:flex;gap:6px;margin-top:11px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .acoestrio::-webkit-scrollbar{display:none}
-.acoestrio .btn{flex-shrink:0;white-space:nowrap}
+.acoestrio .btn{flex-shrink:0;white-space:nowrap;padding:7px 10px;font-size:12.5px}
+@media(max-width:460px){.acoestrio .btn{padding:7px 8px;font-size:12px;gap:4px}}
 
 /* Perfil em coluna única, largura de leitura. Dimensionado pelo celular:
    o que cabe em 393px cabe em qualquer lugar. */
@@ -1459,14 +1460,14 @@ function vArtist(){
 
  h+='<div class="row" style="align-items:baseline;gap:6px;margin-top:9px">';
  h+='<span style="font-size:18px;font-weight:700;letter-spacing:-.02em">'+brl(a.min)+' – '+brl(a.max)+'</span>';
- h+='<span class="tiny muted">/hora</span>';
- h+='<button class="btn sm sp" onclick="alternarSeguir(\''+a.id+'\')">'+(S.seguindo.indexOf(a.id)>=0?"✓ Seguindo":"👤 Seguir")+'</button></div>';
+ h+='<span class="tiny muted">/hora</span></div>';
 
  // Mesma altura do botão Seguir: ícone ao lado do rótulo, não acima.
  h+='<div class="acoestrio">';
  h+='<button class="btn sm primary" onclick="quoteFor(\''+a.id+'\',\'quote\')">✨ Orçar</button>';
  h+='<button class="btn sm" onclick="quoteFor(\''+a.id+'\',\'schedule\')">🗓 Agenda</button>';
  h+='<button class="btn sm" onclick="'+(isLog()?"openDrawer('chat')":"go('auth')")+'">💬 Conversar</button>';
+ h+='<button class="btn sm" onclick="alternarSeguir(\''+a.id+'\')">'+(S.seguindo.indexOf(a.id)>=0?"✓ Seguindo":"👤 Seguir")+'</button>';
  h+='</div>';
 
  h+='<details style="margin-top:10px"><summary class="tiny muted" style="cursor:pointer">Ver tabela por tamanho</summary>';
