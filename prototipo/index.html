@@ -615,7 +615,7 @@ var IC={
  "▲":"cup","▼":"cdown","▾":"cdown","📣":"megaphone","✨":"sparkle","🪡":"needle","🧴":"droplet",
  "🫙":"jar","🖊":"pen","✒":"pen","🦶":"disc","💺":"chair","🧤":"glove","🩹":"bandage","🧼":"soap",
  "☀":"sun","📦":"box","🏞":"frame","👕":"shirt","🏷":"tag","💡":"bulb","🖤":"heart","⬛":"square",
- "🌫":"waves","◉":"cross","◌":"disc","⇧":"upload","⭐":"star","⚙️":"filtro","↕":"ordenar","♡":"heart"
+ "🌫":"waves","◉":"cross","◌":"disc","⭐":"star","⚙️":"filtro","↕":"ordenar","♡":"heart"
 };
 var ICRE=new RegExp("(?:"+Object.keys(IC).map(function(k){return k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}).join("|")+")\\uFE0F?|★|☆","gu");
 function icons(h){
@@ -885,7 +885,7 @@ function vHome(){
  [["discover","👥","Tatuadores"],["shop","🛍","Lojas"],["events","🗓","Eventos"]].forEach(function(t){
   h+='<button class="aba '+(S.tab===t[0]?"on":"")+'" onclick="irAba(\''+t[0]+'\')">'+t[1]+'<span>'+t[2]+'</span></button>'});
  h+='</div><div class="abas-acoes">';
- if(S.tab==="discover")h+='<button class="btn sm" onclick="'+(isLog()?"go('studio-profile')":"go('plataforma')")+'">⇧ Publicar</button>';
+ if(S.tab==="discover")h+='<button class="btn sm" onclick="'+(isLog()?"go('studio-profile')":"go('plataforma')")+'">🖌 Publicar</button>';
  if(S.tab==="shop")h+='<button class="btn sm" onclick="go(\'studio\')">🏪 Vender</button>';
  if(S.tab==="events")h+='<button class="btn sm">📣 Divulgar</button>';
  h+='<button class="btn sm destaque" onclick="S.hub=\'menu\';openDrawer(\'hub\')">✨ Orçamentos</button>';
