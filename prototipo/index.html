@@ -765,7 +765,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  f:{q:"",styles:[],cx:[],max:null,rating:null,sort:"relevance",painel:null},
  seguindo:[],curtidas:[],feedLote:1,obs:null,
  painel:{discover:null,shop:null,events:null},
- shopSort:"relevance",evAba:"perto",coQ:"",
+ shopSort:"relevance",evAba:"perto",coQ:"",perfilLanding:"cliente",
  local:{lat:-23.5505,lng:-46.6333},localReal:false,localNome:"",
  buscandoLocal:false,localErro:"",precisao:0,
  caro:{},shopAud:"art",shopCat:"all",shopQ:"",cart:[{id:"p10",q:1},{id:"p15",q:2}],cep:"",ship:null,
@@ -800,11 +800,11 @@ function tog(arr,v){var i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v
 
 /* ============ TOPBAR ============ */
 function renderTop(){
- var onLanding=S.route==="para-tatuadores";
+ var naPlataforma=S.route==="plataforma";
  // Porta de entrada do tatuador. Vira ícone como os demais, mas em cor de
  // acento para não se perder entre eles — e some do celular nunca mais,
  // que é justo onde a conversão acontecia menos por estar escondida.
- var h='<button class="iconbtn convite'+(onLanding?" ativo":"")+'" title="Sou tatuador — conheça a plataforma" aria-label="Sou tatuador" onclick="go(\'para-tatuadores\')">🎨</button>';
+ var h='<button class="pill convite'+(naPlataforma?" ativo":"")+'" title="Conheça o que a plataforma oferece" onclick="go(\'plataforma\')">✨<span class="rot">A plataforma</span></button>';
  var nCart=S.cart.reduce(function(a,c){return a+c.q},0);
  var nNotif=S.notifs.filter(function(n){return n.un}).length;
  var nChat=CHATS.reduce(function(a,c){return a+c.un},0);
@@ -841,7 +841,7 @@ function vHome(){
  [["discover","👥","Tatuadores"],["shop","🛍","Lojas"],["events","🗓","Eventos"]].forEach(function(t){
   h+='<button class="aba '+(S.tab===t[0]?"on":"")+'" onclick="irAba(\''+t[0]+'\')">'+t[1]+'<span>'+t[2]+'</span></button>'});
  h+='</div><div class="abas-acoes">';
- if(S.tab==="discover")h+='<button class="btn sm" onclick="'+(isLog()?"go('studio-profile')":"go('para-tatuadores')")+'">🖼 Publicar</button>';
+ if(S.tab==="discover")h+='<button class="btn sm" onclick="'+(isLog()?"go('studio-profile')":"go('plataforma')")+'">🖼 Publicar</button>';
  if(S.tab==="shop")h+='<button class="btn sm" onclick="go(\'studio\')">🏪 Vender</button>';
  if(S.tab==="events")h+='<button class="btn sm">📣 Divulgar</button>';
  h+='<button class="btn sm destaque" onclick="S.hub=\'menu\';openDrawer(\'hub\')">✨ Orçamentos</button>';
@@ -1422,48 +1422,131 @@ function vArtist(){
 }
 
 /* ============ LANDING TATUADORES ============ */
+var PERFIS={
+ cliente:{
+  titulo:"Descubra quem faz o traço que você quer",
+  linha:"Pare de garimpar no Instagram e mandar mensagem para dez pessoas sem saber quanto custa.",
+  dor:"Hoje, quem quer se tatuar não sabe quanto vai pagar nem quem faz o estilo que tem em mente. Descobrir isso significa procurar no Instagram, mandar mensagem para várias pessoas e esperar resposta — muitas vezes sem receber preço nenhum.",
+  ganhos:[
+   ["✨","Faixa de preço antes de conversar","Você envia referências e recebe uma estimativa de quanto aquilo custa, com base em estilo, complexidade e tamanho."],
+   ["👥","Propostas de quem faz aquele traço","Seu pedido vai para tatuadores compatíveis com o estilo e a sua cidade — não para qualquer um."],
+   ["🖼","Portfólio de verdade","Cada perfil mostra o trabalho real, os estilos que domina e a faixa de preço por tamanho."],
+   ["🩹","Cobertura e correção","Se você se arrependeu de uma tatuagem, marca isso no pedido e vai direto para quem é especialista."]
+  ],
+  passos:[["Envie referências","Fotos do que você quer, e do local do corpo se ajudar."],
+   ["Receba a estimativa","Estilo sugerido, complexidade e faixa de preço."],
+   ["Compare propostas","Tatuadores compatíveis respondem com valor e mensagem."],
+   ["Agende","Escolhe quem quiser e marca a sessão."]],
+  cta:"Criar conta grátis", ctaAcao:"S.signupRole=false;go('signup')",
+  estado:"real"
+ },
+ tatuador:{
+  titulo:"Seu estúdio, com orçamento inteligente e agenda num só lugar",
+  linha:"Receba pedidos já pré-analisados, responda com sua proposta e mantenha portfólio e agenda organizados.",
+  dor:"Boa parte do tempo de um tatuador vai para pedido desalinhado: gente que quer um estilo que você não faz, ou que some quando descobre o preço. E a negociação acontece no privado, sem parâmetro nenhum.",
+  ganhos:[
+   ["📥","Pedidos filtrados","Só chega o que combina com seus estilos e sua cidade, já com a análise de complexidade pronta."],
+   ["🖼","Portfólio que é seu","Tatuadores relatam perda de conta e banimento no Instagram, sem aviso. Aqui o portfólio não depende de rede social."],
+   ["👛","Preço claro desde o começo","Sua tabela por estilo e tamanho aparece no perfil, então a conversa já começa alinhada."],
+   ["🗓","Agenda integrada","Do aceite da proposta ao agendamento, sem sair da plataforma."]
+  ],
+  passos:[["Crie seu perfil","Estilos, portfólio e faixa de preço em poucos minutos."],
+   ["Receba pedidos","Já com estilo e complexidade sugeridos pela análise."],
+   ["Responda","Envie valor e mensagem direto por aqui."],
+   ["Execute","Cliente aceita, a sessão entra na agenda e fica no histórico."]],
+  cta:"Criar perfil de tatuador", ctaAcao:"S.signupRole=true;go('signup')",
+  estado:"real", planos:true
+ },
+ fornecedor:{
+  titulo:"Alcance tatuadores no momento da decisão de compra",
+  linha:"Marcas de tinta, equipamento e descartáveis não têm canal direto para quem compra todo mês.",
+  dor:"Fornecedor de material de tatuagem hoje depende de representante, feira e boca a boca. Não existe um lugar onde o tatuador já esteja, decidindo o que comprar, com histórico do que usa.",
+  ganhos:[
+   ["🏪","Loja dentro do fluxo","O tatuador já está aqui gerenciando orçamentos e agenda. Comprar material vira parte da rotina, não uma ida a outro site."],
+   ["🎯","Público qualificado","Quem navega é profissional em atividade, com portfólio e agenda — não curioso."],
+   ["📈","Sinal de demanda","Os estilos mais buscados e os materiais mais vistos indicam o que vai vender antes de vender."]
+  ],
+  passos:[["Cadastre seu catálogo","Produtos, preços e disponibilidade."],
+   ["Apareça na loja","Na aba do tatuador, junto do que ele já procura."],
+   ["Acompanhe","Veja o que é visto, salvo e comprado."]],
+  cta:"Quero saber mais", ctaAcao:"alert('Ainda nao existe cadastro de fornecedor. Este botao entraria numa lista de espera.')",
+  estado:"hipotese"
+ }
+};
+
 function vLanding(){
- var h='<main><div class="wrap">';
- h+='<div style="text-align:center;padding:20px 0 10px"><span class="badge acc">Para tatuadores</span>';
- h+='<h1 style="font-size:36px;font-weight:800;letter-spacing:-.03em;margin-top:12px;line-height:1.15">Seu estúdio, com orçamento<br/>inteligente e agenda num só lugar</h1>';
- h+='<p class="sub" style="font-size:15px;max-width:600px;margin:10px auto 0">Receba pedidos já pré-analisados por IA, responda com sua proposta e mantenha portfólio, agenda e avaliações organizados.</p>';
- h+='<div class="row" style="justify-content:center;gap:9px;margin-top:18px"><button class="btn primary" onclick="S.signupRole=true;go(\'signup\')">Criar perfil de tatuador</button><button class="btn" onclick="go(\'home\')">Ver a plataforma</button></div></div>';
+ var k=S.perfilLanding, p=PERFIS[k];
+ var h='<main><div class="wrap" style="max-width:820px">';
 
- h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin-top:30px">';
- [["✨","Orçamento por IA","O cliente envia referências e a IA sugere estilo, complexidade e faixa de preço antes de chegar até você."],
-  ["📥","Pedidos filtrados","Você só recebe pedidos compatíveis com seus estilos e sua cidade."],
-  ["🗓","Agenda integrada","Do aceite da proposta ao agendamento, sem sair da plataforma."],
-  ["🖼","Portfólio e Instagram","Publique seu trabalho ou puxe direto do seu feed do Instagram."]].forEach(function(f){
-  h+='<div class="card pad"><div style="font-size:21px">'+f[0]+'</div><div class="b" style="margin-top:6px">'+f[1]+'</div><div class="small muted" style="margin-top:3px">'+f[2]+'</div></div>'});
+ h+='<div style="text-align:center;padding:18px 0 6px">';
+ h+='<span class="badge acc">A plataforma</span>';
+ h+='<h1 style="font-size:30px;font-weight:800;letter-spacing:-.03em;margin-top:11px;line-height:1.2">'+p.titulo+'</h1>';
+ h+='<p class="sub" style="font-size:15px;max-width:560px;margin:9px auto 0">'+p.linha+'</p></div>';
+
+ // Mesmo componente segmentado da loja
+ h+='<div class="segmento" style="max-width:420px;margin:18px auto 0">';
+ [["cliente","Cliente"],["tatuador","Tatuador"],["fornecedor","Fornecedor"]].forEach(function(x){
+  h+='<button class="seg '+(k===x[0]?"on":"")+'" onclick="S.perfilLanding=\''+x[0]+'\';render()">'+x[1]+'</button>'});
  h+='</div>';
 
- h+='<div style="text-align:center;margin-top:44px"><span class="badge">Como funciona</span><h2 style="font-size:26px;font-weight:700;margin-top:8px;letter-spacing:-.02em">Do pedido à agulha em quatro passos</h2></div>';
- h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-top:18px">';
- [["1","Crie seu perfil","Estilos, portfólio e faixa de preço em poucos minutos."],
-  ["2","Receba pedidos","A triagem por IA já chega com estilo e complexidade sugeridos."],
-  ["3","Responda","Envie sua proposta com valor e mensagem direto pela plataforma."],
-  ["4","Agende e execute","Cliente aceita, sessão entra na agenda e o histórico fica registrado."]].forEach(function(s){
-  h+='<div class="card pad"><div class="av" style="background:var(--primary);color:var(--primary-foreground)">'+s[0]+'</div><div class="b" style="margin-top:8px">'+s[1]+'</div><div class="small muted" style="margin-top:3px">'+s[2]+'</div></div>'});
- h+='</div>';
+ if(p.estado==="hipotese"){
+  h+='<div class="banner" style="margin-top:16px;background:var(--x-warning-bg);border-color:var(--x-warning)">';
+  h+='<div><div class="b small" style="color:var(--x-warning)">Ainda não existe.</div>';
+  h+='<div class="tiny" style="color:var(--x-warning);margin-top:3px">Fornecedor é uma hipótese de negócio, não um lado da plataforma hoje. Não há cadastro, catálogo nem cobrança — o que está aqui é a proposta em estudo.</div></div></div>';
+ }
 
- h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-top:34px">';
- [["2.400+","tatuadores cadastrados"],["18 mil","orçamentos gerados"],["4,8","nota média da plataforma"],["62%","dos pedidos viram sessão"]].forEach(function(s){
-  h+='<div class="stat" style="text-align:center"><div class="val">'+s[0]+'</div><div class="hint">'+s[1]+'</div></div>'});
- h+='</div>';
+ h+='<div class="card pad" style="margin-top:16px"><div class="tiny muted" style="text-transform:uppercase;letter-spacing:.1em;font-weight:700">O problema hoje</div>';
+ h+='<p style="margin-top:7px">'+p.dor+'</p></div>';
 
- h+='<div style="text-align:center;margin-top:46px"><span class="badge">Planos</span>';
- h+='<h2 style="font-size:26px;font-weight:700;margin-top:8px;letter-spacing:-.02em">Benefícios de membro</h2>';
- h+='<p class="sub">Comece de graça e evolua quando o volume de pedidos justificar.</p></div>';
- h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-top:22px;align-items:start">';
- PLANS.forEach(function(p){
-  h+='<div class="plan '+(p.hl?"hl":"")+'">'+(p.rib?'<span class="rib">'+p.rib+'</span>':'');
-  h+='<div class="b" style="font-size:16px">'+p.n+'</div><div class="tiny muted">'+p.tl+'</div>';
-  h+='<div style="margin-top:12px"><span style="font-size:26px;font-weight:700;letter-spacing:-.02em">'+p.p+'</span> <span class="small muted">'+p.pe+'</span></div>';
-  h+='<div style="margin-top:12px">';
-  p.f.forEach(function(x){h+='<div class="row small" style="align-items:flex-start;margin-bottom:6px"><span style="color:var(--x-success)">✓</span><span>'+x+'</span></div>'});
-  h+='</div><button class="btn '+(p.hl?"primary":"")+' blk" style="margin-top:12px" onclick="S.signupRole=true;go(\'signup\')">'+p.cta+'</button></div>';
+ h+='<div class="row" style="margin-top:26px"><span class="b" style="font-size:16px">O que você ganha</span></div>';
+ h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-top:11px">';
+ p.ganhos.forEach(function(g){
+  h+='<div class="card pad"><div style="font-size:20px;color:var(--accent)">'+g[0]+'</div>';
+  h+='<div class="b small" style="margin-top:7px">'+g[1]+'</div>';
+  h+='<div class="small muted" style="margin-top:4px">'+g[2]+'</div></div>';
  });
- h+='</div>'+tg("mock")+' <span class="tiny muted">Planos são apenas interface — não há cobrança nem tabela de assinatura no backend.</span>';
+ h+='</div>';
+
+ h+='<div class="row" style="margin-top:26px"><span class="b" style="font-size:16px">Como funciona</span></div>';
+ h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-top:11px">';
+ p.passos.forEach(function(x,i){
+  h+='<div class="card pad"><div class="av" style="background:var(--primary);color:var(--primary-foreground);width:28px;height:28px;font-size:12px">'+(i+1)+'</div>';
+  h+='<div class="b small" style="margin-top:8px">'+x[0]+'</div>';
+  h+='<div class="small muted" style="margin-top:3px">'+x[1]+'</div></div>';
+ });
+ h+='</div>';
+
+ if(k==="tatuador"){
+  h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:26px">';
+  [["2.400+","tatuadores cadastrados"],["18 mil","orçamentos gerados"],["4,8","nota média"],["62%","dos pedidos viram sessão"]].forEach(function(x){
+   h+='<div class="stat" style="text-align:center"><div class="val">'+x[0]+'</div><div class="hint">'+x[1]+'</div></div>'});
+  h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:7px;text-align:center">Números ilustrativos — a plataforma ainda não está em operação.</div>';
+ }
+
+ if(p.planos){
+  h+='<div style="text-align:center;margin-top:36px"><span class="badge">Planos</span>';
+  h+='<h2 style="font-size:23px;font-weight:700;margin-top:7px;letter-spacing:-.02em">Comece de graça</h2>';
+  h+='<p class="sub">Evolua quando o volume de pedidos justificar.</p></div>';
+  h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(215px,1fr));margin-top:18px;align-items:start">';
+  PLANS.forEach(function(x){
+   h+='<div class="plan '+(x.hl?"hl":"")+'">'+(x.rib?'<span class="rib">'+x.rib+'</span>':'');
+   h+='<div class="b" style="font-size:15px">'+x.n+'</div><div class="tiny muted">'+x.tl+'</div>';
+   h+='<div style="margin-top:11px"><span style="font-size:24px;font-weight:700;letter-spacing:-.02em">'+x.p+'</span> <span class="small muted">'+x.pe+'</span></div>';
+   h+='<div style="margin-top:11px">';
+   x.f.forEach(function(y){h+='<div class="row small" style="align-items:flex-start;margin-bottom:5px"><span style="color:var(--x-success)">✓</span><span>'+y+'</span></div>'});
+   h+='</div><button class="btn '+(x.hl?"primary":"")+' blk" style="margin-top:11px" onclick="S.signupRole=true;go(\'signup\')">'+x.cta+'</button></div>';
+  });
+  h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:9px;text-align:center">Planos desenhados, sem cobrança implementada.</div>';
+ }
+
+ h+='<div class="card pad" style="margin-top:30px;text-align:center">';
+ h+='<div class="b" style="font-size:17px">'+p.titulo+'</div>';
+ h+='<div class="row" style="justify-content:center;gap:9px;margin-top:13px">';
+ h+='<button class="btn primary" onclick="'+p.ctaAcao+'">'+p.cta+'</button>';
+ h+='<button class="btn" onclick="go(\'home\')">Ver a plataforma</button></div></div>';
+
  return h+'</div></main>';
 }
 
@@ -2021,7 +2104,7 @@ function studioProfile(){
   h+='<div class="row" style="gap:5px;margin-top:8px"><span class="badge ok">cliente</span><span class="badge ok">tatuador</span></div>';
   h+='<div class="tiny muted" style="margin-top:6px">origem: '+(S.roleSource||"signup_trigger")+'</div>';
   h+='<div class="tiny muted" style="margin-top:4px">O papel de cliente nunca é removido — você continua podendo comprar, se tatuar e ir a eventos.</div></div>';
-  h+='<div class="card pad" style="margin-top:13px"><div class="b small">Plano</div><div class="row" style="margin-top:7px"><span class="badge acc">Free</span><span class="sp tiny muted">5 orçamentos/mês</span></div><button class="btn blk" style="margin-top:9px" onclick="go(\'para-tatuadores\')">Ver planos</button></div></div></div>';
+  h+='<div class="card pad" style="margin-top:13px"><div class="b small">Plano</div><div class="row" style="margin-top:7px"><span class="badge acc">Free</span><span class="sp tiny muted">5 orçamentos/mês</span></div><button class="btn blk" style="margin-top:9px" onclick="go(\'plataforma\')">Ver planos</button></div></div></div>';
  }
 
  if(S.pfTab==="portfolio"){
@@ -2426,7 +2509,7 @@ function vModelo(){
  h+='</div>';
 
  h+='<div class="row" style="margin-top:20px;gap:8px"><button class="btn" onclick="go(\'home\')">← Voltar ao produto</button>';
- h+='<button class="btn" onclick="go(\'para-tatuadores\')">Ver os planos como estão hoje</button></div>';
+ h+='<button class="btn" onclick="go(\'plataforma\')">Ver os planos como estão hoje</button></div>';
 
  return h+'</div></main>';
 }
@@ -2603,7 +2686,7 @@ function render(){
  else if(r==="modelo")h=vModelo();
  else if(r==="home")h=vHome();
  else if(r==="artist")h=vArtist();
- else if(r==="para-tatuadores")h=vLanding();
+ else if(r==="plataforma")h=vLanding();
  else if(r==="auth")h=vAuth();
  else if(r==="signup")h=vSignup();
  else if(r==="gate")h=vGate();
