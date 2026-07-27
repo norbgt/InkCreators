@@ -386,6 +386,17 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
   .blococentro{margin-top:20px}
   .secao{margin-top:30px}
 }
+/* Trio de ações do perfil: ícone acima do rótulo, três em linha. */
+.acoestrio{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:11px}
+.acaotrio{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  padding:10px 4px;border:1px solid var(--border);border-radius:10px;background:var(--card);
+  font-size:11.5px;font-weight:600;line-height:1.2;text-align:center}
+.acaotrio:hover{border-color:var(--muted-foreground)}
+.acaotrio .ico{width:18px;height:18px}
+.acaotrio.principal{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
+.acaotrio.principal:hover{border-color:var(--primary)}
+@media(pointer:coarse){.acaotrio{padding:12px 4px}}
+
 /* Coluna lateral do perfil: acompanha a rolagem no desktop, vira bloco
    normal abaixo do conteúdo quando a página passa a ter uma coluna só. */
 .lateral{position:sticky;top:76px}
@@ -1464,13 +1475,19 @@ function vArtist(){
     existem se houver conteúdo — perfil novo não mostra caixa vazia. */
  h+='<div class="lateral">';
 
+ // Três ações lado a lado, empilhadas em coluna e ícone acima do rótulo.
+ // Ocupa a metade da altura de três botões largos, e as três ficam com o
+ // mesmo peso — nenhuma some abaixo da dobra.
  h+='<div class="card pad">';
- h+='<div class="tiny muted">Faixa por hora</div>';
- h+='<div style="font-size:21px;font-weight:700;letter-spacing:-.02em">'+brl(a.min)+' – '+brl(a.max)+'</div>';
- h+='<button class="btn primary blk" style="margin-top:13px" onclick="quoteFor(\''+a.id+'\',\'quote\')">✨ Pedir orçamento</button>';
- h+='<button class="btn blk" style="margin-top:7px" onclick="quoteFor(\''+a.id+'\',\'schedule\')">🗓 Agendar sessão</button>';
- h+='<button class="btn blk" style="margin-top:7px" onclick="'+(isLog()?"openDrawer('chat')":"go('auth')")+'">💬 Conversar</button>';
- h+='<details style="margin-top:12px"><summary class="tiny muted" style="cursor:pointer">Ver tabela por tamanho</summary>';
+ h+='<div class="row" style="align-items:baseline;gap:7px">';
+ h+='<span style="font-size:19px;font-weight:700;letter-spacing:-.02em">'+brl(a.min)+' – '+brl(a.max)+'</span>';
+ h+='<span class="tiny muted">/hora</span></div>';
+ h+='<div class="acoestrio">';
+ h+='<button class="acaotrio principal" onclick="quoteFor(\''+a.id+'\',\'quote\')">✨<span>Orçamento</span></button>';
+ h+='<button class="acaotrio" onclick="quoteFor(\''+a.id+'\',\'schedule\')">🗓<span>Agendar</span></button>';
+ h+='<button class="acaotrio" onclick="'+(isLog()?"openDrawer('chat')":"go('auth')")+'">💬<span>Conversar</span></button>';
+ h+='</div>';
+ h+='<details style="margin-top:10px"><summary class="tiny muted" style="cursor:pointer">Ver tabela por tamanho</summary>';
  h+='<table class="t" style="margin-top:7px">';
  [["Pequeno",2],["Médio",5],["Grande",8],["Sessão dia",10]].forEach(function(r){
   h+='<tr><td class="muted small">'+r[0]+'</td><td style="text-align:right" class="b small">'+brl(a.min*r[1])+'</td></tr>'});
