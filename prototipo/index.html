@@ -260,9 +260,9 @@ html[data-dark] .seg.on{
 /* Feed em publicações, uma por vez */
 .feedposts{max-width:440px;margin:14px auto 0}
 .post{border:1px solid var(--border);border-radius:12px;background:var(--card);overflow:hidden;margin-bottom:14px}
-.postinfo{padding:11px 13px 12px}
-.btnseguir{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 10px;border:1px solid var(--border);border-radius:7px;background:var(--card);font-size:12px;font-weight:600;flex-shrink:0;white-space:nowrap}
-.btnicone{width:34px;height:34px;border:1px solid var(--border);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.postinfo{padding:10px 12px 11px}
+.btnseguir{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border:1px solid var(--border);border-radius:7px;background:var(--card);font-size:12px;font-weight:600;flex-shrink:0;white-space:nowrap}
+.btnicone{width:32px;height:32px;border:1px solid var(--border);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .btnicone:hover{border-color:var(--muted-foreground)}
 .btnicone .ico{width:17px;height:17px}
 .btnseguir:hover{border-color:var(--muted-foreground)}
@@ -370,6 +370,7 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
      26px  entre bloco e bloco
      40px  entre seções
    No celular cada degrau encolhe, senão a página vira rolagem vazia. */
+.resumobusca{margin-top:10px}
 .acoescentro{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:6px}
 .segmento.centrado{max-width:420px;margin:26px auto 0}
 .blococentro{max-width:620px;margin:26px auto 0;text-align:center}
@@ -432,6 +433,20 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 
 /* ── Telefones (até 699px) ───────────────────────────────────────── */
 @media(max-width:699px){
+  /* Feed precisa começar cedo: o primeiro card tem de caber inteiro e
+     ainda deixar ver o começo do segundo. Cada pixel aqui é pixel de foto. */
+  main{padding:14px 0 60px}
+  h1.page{font-size:19px}
+  p.sub{font-size:12.5px;margin-top:2px}
+  .feedposts{margin-top:10px}
+  .resumobusca{margin-top:6px;font-size:11px}
+  .postinfo{padding:9px 12px 10px}
+  /* No telefone o subtítulo da home cede lugar à foto: o título já diz. */
+  .subhome{display:none}
+  /* 7:5 em vez de 4:3 — devolve 13px por card sem achatar o trabalho. */
+  .postimg{aspect-ratio:7/5}
+  .aba{padding:9px 13px}
+  .btnbarra,.barrabusca .campo input{height:42px}
   .search{display:none}
   h1.page{font-size:21px}
   /* Ações ficam SEMPRE na mesma linha das abas. Quem cede espaço são as
@@ -600,7 +615,7 @@ var IC={
  "▲":"cup","▼":"cdown","▾":"cdown","📣":"megaphone","✨":"sparkle","🪡":"needle","🧴":"droplet",
  "🫙":"jar","🖊":"pen","✒":"pen","🦶":"disc","💺":"chair","🧤":"glove","🩹":"bandage","🧼":"soap",
  "☀":"sun","📦":"box","🏞":"frame","👕":"shirt","🏷":"tag","💡":"bulb","🖤":"heart","⬛":"square",
- "🌫":"waves","◉":"cross","◌":"disc","⭐":"star","⚙️":"filtro","↕":"ordenar","♡":"heart"
+ "🌫":"waves","◉":"cross","◌":"disc","⇧":"upload","⭐":"star","⚙️":"filtro","↕":"ordenar","♡":"heart"
 };
 var ICRE=new RegExp("(?:"+Object.keys(IC).map(function(k){return k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}).join("|")+")\\uFE0F?|★|☆","gu");
 function icons(h){
@@ -863,14 +878,14 @@ function iconBtn(ic,k,n){
 function vHome(){
  var h='<main><div class="wrap">';
  h+='<h1 class="page">Arte que combina com você</h1>';
- h+='<p class="sub">Interaja com artistas, estúdios e arte</p>';
+ h+='<p class="sub subhome">Interaja com artistas, estúdios e arte</p>';
  // Abas de verdade: faixa com sublinhado, rolável na horizontal. As ações
  // ficam fora da faixa para não rolarem junto e sumirem da vista.
  h+='<div class="linhaabas"><div class="abas">';
  [["discover","👥","Tatuadores"],["shop","🛍","Lojas"],["events","🗓","Eventos"]].forEach(function(t){
   h+='<button class="aba '+(S.tab===t[0]?"on":"")+'" onclick="irAba(\''+t[0]+'\')">'+t[1]+'<span>'+t[2]+'</span></button>'});
  h+='</div><div class="abas-acoes">';
- if(S.tab==="discover")h+='<button class="btn sm" onclick="'+(isLog()?"go('studio-profile')":"go('plataforma')")+'">🖼 Publicar</button>';
+ if(S.tab==="discover")h+='<button class="btn sm" onclick="'+(isLog()?"go('studio-profile')":"go('plataforma')")+'">⇧ Publicar</button>';
  if(S.tab==="shop")h+='<button class="btn sm" onclick="go(\'studio\')">🏪 Vender</button>';
  if(S.tab==="events")h+='<button class="btn sm">📣 Divulgar</button>';
  h+='<button class="btn sm destaque" onclick="S.hub=\'menu\';openDrawer(\'hub\')">✨ Orçamentos</button>';
@@ -910,7 +925,7 @@ function barraBusca(cfg){
  }
 
  var rot=(cfg.ordenacoes.filter(function(o){return o[0]===cfg.sort})[0]||cfg.ordenacoes[0])[1];
- h+='<div class="tiny muted" style="margin-top:10px">'+rot+(cfg.nFiltros?' · '+cfg.nFiltros+' filtro'+(cfg.nFiltros>1?"s":""):'')+'</div>';
+ h+='<div class="tiny muted resumobusca">'+rot+(cfg.nFiltros?' · '+cfg.nFiltros+' filtro'+(cfg.nFiltros>1?"s":""):'')+'</div>';
  return h;
 }
 /* A galeria é a vitrine da loja: é o que tem cara de obra, não de
