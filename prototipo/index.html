@@ -847,7 +847,7 @@ function renderTop(){
  // Porta de entrada do tatuador. Vira ícone como os demais, mas em cor de
  // acento para não se perder entre eles — e some do celular nunca mais,
  // que é justo onde a conversão acontecia menos por estar escondida.
- var h='<button class="pill convite'+(naPlataforma?" ativo":"")+'" title="Conheça o que a plataforma oferece para cada perfil" onclick="go(\'plataforma\')">✨<span class="rot">Conhecer mais</span></button>';
+ var h='<button class="pill convite'+(naPlataforma?" ativo":"")+'" title="Conheça o que a plataforma oferece para cada perfil" onclick="go(\'plataforma\')">✨<span class="rot">Conhecer</span></button>';
  var nCart=S.cart.reduce(function(a,c){return a+c.q},0);
  var nNotif=S.notifs.filter(function(n){return n.un}).length;
  var nChat=CHATS.reduce(function(a,c){return a+c.un},0);
