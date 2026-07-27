@@ -4,6 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Ink Creators — protótipo</title>
+<link rel="icon" type="image/png" href="marca/favicon.png" />
+<link rel="apple-touch-icon" href="marca/logo-preto.png" />
 <style>
 :root{
   /* ── Tokens oficiais shadcn/ui — mesmos valores de src/styles.css do projeto ── */
@@ -90,7 +92,10 @@ a{color:inherit;text-decoration:none}
 header.top{position:sticky;top:0;z-index:40;background:var(--background);border-bottom:1px solid var(--border)}
 .top-in{display:flex;align-items:center;gap:14px;height:60px}
 .logo{display:flex;align-items:center;gap:9px;cursor:pointer}
-.logo .mark{width:33px;height:33px;border-radius:9px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900}
+/* A marca é op-art de alto contraste: no tema escuro precisa inverter,
+   senão o preto do padrão desaparece no fundo. Duas imagens, uma por tema. */
+.logo .marca{width:34px;height:34px;flex-shrink:0;object-fit:contain;display:block}
+html[data-dark] .logo .marca{content:url("marca/logo-branco.png")}
 .logo .txt{display:flex;flex-direction:column;line-height:1;font-size:11.5px;font-weight:900;text-transform:uppercase;letter-spacing:-.01em}
 .search{flex:1;max-width:400px;position:relative}
 .search input{width:100%;height:35px;border:1px solid var(--border);border-radius:999px;padding:0 14px 0 32px;outline:none}
@@ -112,6 +117,8 @@ header.top{position:sticky;top:0;z-index:40;background:var(--background);border-
 .pill:hover{border-color:var(--muted-foreground)}
 .pill.solid{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
 .pill.accent{background:var(--x-accent-bg);color:var(--accent);border-color:var(--x-accent-border)}
+.marcagrande{width:64px;height:64px;object-fit:contain;display:block}
+html[data-dark] .marcagrande{content:url("marca/logo-branco.png")}
 .avatarbtn{width:33px;height:33px;border-radius:50%;background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;border:1px solid var(--border)}
 
 main{padding:24px 0 60px}
@@ -459,7 +466,10 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 </div></div>
 
 <header class="top"><div class="wrap top-in">
-  <div class="logo" onclick="go('home')"><span class="mark">I</span><span class="txt"><span>Ink</span><span>Creators</span></span></div>
+  <div class="logo" onclick="go('home')">
+    <img class="marca" src="marca/logo-preto.png" alt="Ink Creators" />
+    <span class="txt"><span>Ink</span><span>Creators</span></span>
+  </div>
   <div class="search"><span class="ic" id="staticSearchIc">⌕</span><input placeholder="Buscar tatuadores, estilos, estúdios…" /></div>
   <div class="top-actions" id="topActions"></div>
 </div></header>
@@ -1441,7 +1451,9 @@ function vLanding(){
 
 /* ============ AUTH ============ */
 function vAuth(){
- var h='<main><div class="authwrap"><h1 class="page">Entre na sua conta</h1><p class="sub">Continue de onde parou.</p>';
+ var h='<main><div class="authwrap">';
+ h+='<img class="marcagrande" src="marca/logo-preto.png" alt="Ink Creators" style="margin-bottom:18px" />';
+ h+='<h1 class="page">Entre na sua conta</h1><p class="sub">Continue de onde parou.</p>';
  h+='<button class="btn blk" style="margin-top:18px" onclick="S.gateRole=null;go(\'gate\')">Continuar com Google</button>';
  h+='<div class="row" style="margin:14px 0"><div style="flex:1;height:1px;background:var(--border)"></div><span class="tiny muted">ou</span><div style="flex:1;height:1px;background:var(--border)"></div></div>';
  h+='<div class="grid" style="gap:8px"><input class="fld" placeholder="nome@email.com" /><input class="fld" type="password" placeholder="senha" /></div>';
