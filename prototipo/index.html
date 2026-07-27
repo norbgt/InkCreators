@@ -364,6 +364,16 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 .bub{max-width:78%;padding:8px 11px;border-radius:13px;font-size:13px;margin-bottom:7px}
 .bub.them{background:var(--muted);border-bottom-left-radius:4px}
 .bub.me{background:var(--primary);color:var(--primary-foreground);margin-left:auto;border-bottom-right-radius:4px}
+/* Vantagens: margens da página iguais às das outras telas (vêm do .wrap),
+   e os blocos de leitura centrados dentro delas. */
+.acoescentro{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:16px}
+.segmento.centrado{max-width:420px;margin-left:auto;margin-right:auto}
+.blococentro{max-width:620px;margin-left:auto;margin-right:auto;text-align:center}
+.blococentro.banner{text-align:left}
+.gradeconteudo{display:grid;gap:14px;margin-top:20px;max-width:900px;margin-left:auto;margin-right:auto;
+  grid-template-columns:repeat(3,1fr)}
+@media(max-width:1100px){.gradeconteudo{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:699px){.gradeconteudo{grid-template-columns:1fr}}
 .vantagem{display:flex;flex-direction:column}
 .vantagem .small.muted{flex:1}
 .plan{border:1px solid var(--border);border-radius:var(--radius);padding:18px;background:var(--card);position:relative}
@@ -1484,30 +1494,31 @@ var PERFIS={
 
 function vLanding(){
  var k=S.perfilLanding, p=PERFIS[k];
- var h='<main><div class="wrap" style="max-width:820px">';
+ // .wrap padrão, sem largura própria: assim a margem lateral bate com a
+ // do logo na barra superior, igual às outras telas. O que é centralizado
+ // são os blocos de dentro, não a página.
+ var h='<main><div class="wrap">';
 
- // Mesma faixa de Lojas e Eventos: contexto à esquerda, ação principal à
- // direita. Aqui a ação é cadastrar, não orçar.
- h+='<div class="linhaabas" style="justify-content:flex-end"><div class="abas-acoes">';
+ h+='<div class="acoescentro">';
  h+='<button class="btn sm" onclick="go(\'home\')">🏪 Ver a plataforma</button>';
  h+='<button class="btn sm destaque" onclick="irCadastro(\''+k+'\')">👤 Criar conta</button>';
- h+='</div></div>';
+ h+='</div>';
 
- h+='<div class="segmento" style="max-width:420px;margin-top:16px">';
+ h+='<div class="segmento centrado">';
  Object.keys(PERFIS).forEach(function(x){
   h+='<button class="seg '+(k===x?"on":"")+'" onclick="S.perfilLanding=\''+x+'\';render()">'+PERFIS[x].rotulo+'</button>'});
  h+='</div>';
 
- h+='<div style="margin-top:20px">';
+ h+='<div class="blococentro">';
  h+='<h1 style="font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.2">'+p.titulo+'</h1>';
- h+='<p class="sub" style="font-size:14.5px;max-width:560px">'+p.linha+'</p></div>';
+ h+='<p class="sub" style="font-size:14.5px">'+p.linha+'</p></div>';
 
  if(p.estado==="hipotese"){
-  h+='<div class="banner" style="margin-top:14px;background:var(--x-warning-bg);border-color:var(--x-warning)">';
+  h+='<div class="banner blococentro" style="background:var(--x-warning-bg);border-color:var(--x-warning);text-align:left">';
   h+='<div class="tiny" style="color:var(--x-warning)"><b>Ainda não existe.</b> Fornecedor é hipótese de negócio, não um lado da plataforma hoje — sem cadastro, catálogo ou cobrança.</div></div>';
  }
 
- h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-top:20px">';
+ h+='<div class="gradeconteudo">';
  p.vantagens.forEach(function(g){
   h+='<div class="card pad vantagem"><div style="font-size:20px;color:var(--accent)">'+g[0]+'</div>';
   h+='<div class="b small" style="margin-top:8px">'+g[1]+'</div>';
@@ -1515,8 +1526,8 @@ function vLanding(){
  });
  h+='</div>';
 
- h+='<div class="row" style="margin-top:26px"><span class="b" style="font-size:15px">Como funciona</span></div>';
- h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-top:10px">';
+ h+='<div class="blococentro" style="margin-top:26px"><span class="b" style="font-size:15px">Como funciona</span></div>';
+ h+='<div class="gradeconteudo" style="margin-top:10px">';
  p.passos.forEach(function(x,i){
   h+='<div class="card pad vantagem"><div class="av" style="background:var(--primary);color:var(--primary-foreground);width:26px;height:26px;font-size:11px">'+(i+1)+'</div>';
   h+='<div class="b small" style="margin-top:8px">'+x[0]+'</div>';
@@ -1524,16 +1535,15 @@ function vLanding(){
  });
  h+='</div>';
 
- h+='<div class="card pad" style="margin-top:26px;text-align:center">';
+ h+='<div class="card pad blococentro" style="margin-top:26px">';
  h+='<div class="b">'+p.titulo+'</div>';
  h+='<button class="btn primary" style="margin-top:12px" onclick="'+p.ctaAcao+'">'+p.cta+'</button></div>';
 
- // Planos não são vantagem: entram depois, e só para quem paga.
  if(p.planos){
-  h+='<div style="text-align:center;margin-top:34px"><span class="badge">Planos</span>';
+  h+='<div class="blococentro" style="margin-top:34px"><span class="badge">Planos</span>';
   h+='<h2 style="font-size:21px;font-weight:700;margin-top:6px;letter-spacing:-.02em">Comece de graça</h2>';
   h+='<p class="sub">Evolua quando o volume de pedidos justificar.</p></div>';
-  h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(215px,1fr));margin-top:16px;align-items:start">';
+  h+='<div class="gradeconteudo" style="margin-top:16px;align-items:start">';
   PLANS.forEach(function(x){
    h+='<div class="plan '+(x.hl?"hl":"")+'">'+(x.rib?'<span class="rib">'+x.rib+'</span>':'');
    h+='<div class="b" style="font-size:15px">'+x.n+'</div><div class="tiny muted">'+x.tl+'</div>';
@@ -1543,25 +1553,12 @@ function vLanding(){
    h+='</div><button class="btn '+(x.hl?"primary":"")+' blk" style="margin-top:11px" onclick="irCadastro(\'tatuador\')">'+x.cta+'</button></div>';
   });
   h+='</div>';
-  h+='<div class="tiny muted" style="margin-top:9px;text-align:center">Planos desenhados, sem cobrança implementada.</div>';
+  h+='<div class="tiny muted blococentro" style="margin-top:9px">Planos desenhados, sem cobrança implementada.</div>';
  }
 
  return h+'</div></main>';
 }
 
-/* ============ AUTH ============ */
-function vAuth(){
- var h='<main><div class="authwrap">';
- h+='<img class="marcagrande" src="marca/logo-preto.png" alt="Ink Creators" style="margin-bottom:18px" />';
- h+='<h1 class="page">Entre na sua conta</h1><p class="sub">Continue de onde parou.</p>';
- h+='<button class="btn blk" style="margin-top:18px" onclick="S.gateRole=null;go(\'gate\')">Continuar com Google</button>';
- h+='<div class="row" style="margin:14px 0"><div style="flex:1;height:1px;background:var(--border)"></div><span class="tiny muted">ou</span><div style="flex:1;height:1px;background:var(--border)"></div></div>';
- h+='<div class="grid" style="gap:8px"><input class="fld" placeholder="nome@email.com" /><input class="fld" type="password" placeholder="senha" /></div>';
- h+='<div class="row" style="justify-content:flex-end;margin-top:6px"><a class="tiny muted" style="cursor:pointer">Esqueci minha senha</a></div>';
- h+='<button class="btn primary blk" style="margin-top:10px" onclick="S.session=\'client\';go(\'me\')">Entrar</button>';
- h+='<p class="small muted" style="margin-top:13px;text-align:center">Não tem conta? <a class="b" style="cursor:pointer;color:var(--accent)" onclick="irCadastro()">Criar conta</a></p>';
- return h+'</div></main>';
-}
 /* ═══ CADASTRO UNIFICADO ═══════════════════════════════════════════
    Um fluxo só para os três perfis. O primeiro passo cria a conta e
    pergunta quem é a pessoa; os passos seguintes mudam conforme a
