@@ -935,7 +935,8 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  shopSort:"relevance",evAba:"perto",coQ:"",perfilLanding:"cliente",
  cad:{passo:0,perfil:null,nome:"",email:"",senha:"",usuario:"",msg:"",erro:false,viaGoogle:false},
  cli:{estilos:[],cidade:"",uf:""},
- forn:{nome:"",cnpj:"",site:"",cidade:"",cats:[],qtd:""},
+ forn:{nome:"",cnpj:"",site:"",cidade:"",cats:[],qtd:"",tambemTatuador:false},
+ ehFornecedor:false,
  local:{lat:-23.5505,lng:-46.6333},localReal:false,localNome:"",
  buscandoLocal:false,localErro:"",precisao:0,
  caro:{},shopAud:"art",shopCat:"all",shopQ:"",cart:[{id:"p10",q:1},{id:"p15",q:2}],cep:"",ship:null,
@@ -993,7 +994,7 @@ function isArt(){return S.session==="artist"}
 var CHAVE_ESTADO="ink.estado.v2";
 var GUARDA=["session","route","artist","tab","modo","seguindo","curtidas","cart",
  "cad","perfilLanding","abaPerfil","shopAud","shopCat","shopQ","evAba","q",
- "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura",
+ "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura","ehFornecedor",
  "notifFilter","pfTab","ue","f","feedLote","caro","cep"];
 function salvarEstado(){
  try{var o={};GUARDA.forEach(function(k){if(S[k]!==undefined)o[k]=S[k]});
@@ -1998,7 +1999,8 @@ function podeAvancar(){
  if(id==="perfil")  return !!c.perfil && usuarioValido(c.usuario) && usuarioLivre(c.usuario);
  if(id==="tatuador")return S.onbStyles.length>0;
  if(id==="fornecedor") return (S.forn.nome||"").trim().length>1;
- return true;                                    // cliente: tudo opcional
+ if(id==="cliente")    return (S.cli.cidade||"").trim().length>1 && /^[A-Z]{2}$/.test(S.cli.uf||"");
+ return true;
 }
 function avancarCad(){
  var r=roteiroCadastro();
@@ -2012,7 +2014,18 @@ function voltarCad(){
 
 function concluirCadastro(){
  var p=S.cad.perfil;
- if(p==="fornecedor"){
+
+ /* Fornecedor que também tatua não fica na lista de espera: o lado
+    tatuador existe de verdade, e é ele que dá à pessoa um lugar para
+    onde ir. O papel de fornecedor fica marcado na mesma conta, e passa
+    a valer quando o módulo existir. Duas contas para a mesma pessoa
+    seria o pior dos dois mundos — nenhuma com o histórico inteiro. */
+ if(p==="fornecedor"&&S.forn.tambemTatuador){
+  S.ehFornecedor=true;
+  p="tatuador";
+  S.cad.perfil="tatuador";
+ } else if(p==="fornecedor"){
+  S.ehFornecedor=true;
   S.cad.msg="Fornecedor ainda não tem cadastro de verdade — não existe tabela nem cobrança. Você entrou numa lista de espera fictícia.";
   S.cad.erro=false;S.cad.passo=roteiroCadastro().length-1;render();return;
  }
@@ -2026,6 +2039,12 @@ function concluirCadastro(){
   // O nome de exibição é o nome da conta: perguntar duas vezes a mesma
   // coisa foi o que engordava o fluxo antigo.
   S.onbName=S.cad.nome;
+  // Quem veio pelo lado fornecedor já disse empresa e cidade. Repetir a
+  // pergunta seria o mesmo que pedir dois cadastros com outro nome.
+  if(S.ehFornecedor){
+   if(!S.onbEstudio)S.onbEstudio=S.forn.nome||"";
+   if(!S.onbCidade)S.onbCidade=S.forn.cidade||"";
+  }
   // Cobertura vira estilo só na hora de publicar: para o cliente que
   // busca, é um filtro como outro qualquer; para o tatuador, foi uma
   // pergunta separada.
@@ -2099,16 +2118,25 @@ function vCadastro(){
  }
 
  /* ── PASSO 3, CLIENTE ─────────────────────────────────────────── */
+ /* Onde antes do quê: a cidade decide quem pode te atender, e o estilo
+    só refina dentro disso. Perguntar o gosto antes de saber se existe
+    alguém perto é começar pela ponta que não muda nada. */
  if(passo.id==="cliente"){
-  h+='<div class="small muted">Ajuda a plataforma a te mostrar quem faz o que você quer. Tudo opcional — dá para pular e ajustar depois.</div>';
-  h+='<div class="tiny muted" style="margin-top:14px;font-weight:600;text-transform:uppercase;letter-spacing:.08em">Estilos que te interessam</div>';
-  h+='<div class="row wrapf" style="gap:6px;margin-top:7px">';
-  STYLES.forEach(function(x){h+='<button class="chip '+(S.cli.estilos.indexOf(x.s)>=0?"on":"")+'" onclick="tog(S.cli.estilos,\''+x.s+'\')">'+x.l+'</button>'});
+  h+='<div class="small muted">Duas coisas e você está dentro.</div>';
+
+  h+='<div class="row" style="margin-top:14px"><span class="b small">Onde você quer se tatuar</span><span class="req">obrigatório</span></div>';
+  h+='<div class="grid" style="grid-template-columns:2fr 1fr;gap:9px;margin-top:8px">';
+  h+='<div><label class="lb">Cidade</label><input class="fld" id="cliCidade" value="'+escapar(S.cli.cidade)+'" oninput="S.cli.cidade=this.value;atualizarCad()" placeholder="São Paulo" /></div>';
+  h+='<div><label class="lb">UF</label><input class="fld" id="cliUf" value="'+escapar(S.cli.uf)+'" oninput="S.cli.uf=this.value.toUpperCase().slice(0,2);atualizarCad()" placeholder="SP" /></div></div>';
+  h+='<div class="tiny muted" style="margin-top:7px">É o que faz seus pedidos chegarem a quem atende perto de você.</div>';
+
+  h+='<div class="sep"></div>';
+  h+='<div class="row"><span class="b small">Estilos que te interessam</span><span class="tiny muted sp">opcional</span></div>';
+  h+='<div class="tiny muted" style="margin-top:3px">Refina o que aparece no seu feed. Dá para mudar quando quiser.</div>';
+  h+='<div class="row wrapf" style="gap:6px;margin-top:9px">';
+  STYLES.filter(function(x){return ESTILOS_CORRECAO.indexOf(x.s)<0})
+   .forEach(function(x){h+='<button class="chip '+(S.cli.estilos.indexOf(x.s)>=0?"on":"")+'" onclick="tog(S.cli.estilos,\''+x.s+'\')">'+x.l+'</button>'});
   h+='</div>';
-  h+='<div class="grid" style="grid-template-columns:2fr 1fr;gap:9px;margin-top:15px">';
-  h+='<div><label class="lb">Sua cidade</label><input class="fld" id="cliCidade" value="'+escapar(S.cli.cidade)+'" oninput="S.cli.cidade=this.value" placeholder="São Paulo" /></div>';
-  h+='<div><label class="lb">UF</label><input class="fld" id="cliUf" value="'+escapar(S.cli.uf)+'" oninput="S.cli.uf=this.value.toUpperCase().slice(0,2)" placeholder="SP" /></div></div>';
-  h+='<div class="tiny muted" style="margin-top:9px">A cidade faz seus pedidos chegarem a quem atende perto de você.</div>';
  }
 
  /* ── PASSO 3, TATUADOR ────────────────────────────────────────────
@@ -2169,6 +2197,20 @@ function vCadastro(){
   [["needles","Agulhas e cartuchos"],["inks","Tintas"],["machines","Máquinas e pedais"],["accessories","Acessórios"],["hygiene","Higiene e descartáveis"],["healing","Cicatrizantes"],["moisturizers","Hidratantes"],["kits","Kits pós-tattoo"]].forEach(function(x){
    h+='<button class="chip '+(S.forn.cats.indexOf(x[0])>=0?"on":"")+'" onclick="tog(S.forn.cats,\''+x[0]+'\')">'+x[1]+'</button>'});
   h+='</div>';
+
+  /* Muita gente que vende material também tatua — quem fabrica agulha
+     costuma ser quem usa. Sem esta pergunta, essa pessoa criaria duas
+     contas para a mesma pessoa, e nenhuma das duas teria o histórico
+     completo. Marcar aqui acrescenta o papel; não abre outro cadastro. */
+  h+='<div class="sep"></div>';
+  h+='<label class="marcador'+(S.forn.tambemTatuador?" on":"")+'">';
+  h+='<input type="checkbox" '+(S.forn.tambemTatuador?"checked":"")+' onchange="S.forn.tambemTatuador=this.checked;render()" />';
+  h+='<span><span class="b small">Também sou tatuador</span>';
+  h+='<span class="tiny muted" style="display:block;margin-top:2px">Uma conta só, com os dois papéis. Você atende clientes e vende material sem se cadastrar duas vezes.</span></span>';
+  h+='</label>';
+  if(S.forn.tambemTatuador){
+   h+='<div class="banner" style="margin-top:11px"><div class="tiny">Ao criar a conta você cai na gestão do estúdio, que é onde o lado tatuador se completa: estilos, portfólio e preços. O catálogo de fornecedor fica guardado para quando essa parte existir.</div></div>';
+  }
  }
 
  if(c.msg)h+='<div class="banner" style="margin-top:13px;'+(c.erro?'background:var(--x-danger-bg);border-color:var(--x-danger)':'')+'"><div class="small">'+c.msg+'</div></div>';
@@ -2176,7 +2218,10 @@ function vCadastro(){
  h+='</div>';
 
  var ultimo = i===2;
- var podePular = passo.id==="cliente";
+ // Sem "Pular": o único passo que oferecia era o do cliente, e o que
+ // ele pede — cidade — é o que faz o pedido chegar a alguém. Pular ali
+ // era oferecer uma conta que não funciona.
+ var podePular = false;
  h+='<div class="rodapepassos">';
  h+='<div class="lado"><button class="btn" '+(i===0?"disabled":"")+' onclick="voltarCad()">← Voltar</button>';
  if(podePular)h+='<button class="btn" onclick="avancarCad()">Pular</button>';
@@ -2691,9 +2736,22 @@ function studioProfile(){
   h+='<div class="tiny muted" style="margin-top:5px">Despublicar esconde seu perfil da busca, mas mantém orçamentos em andamento.</div>';
   h+='<button class="btn blk" style="margin-top:9px">Despublicar perfil</button></div>';
   h+='<div class="card pad" style="margin-top:13px"><div class="row"><span class="b small">Papel da conta</span>'+tg("novo")+'</div>';
-  h+='<div class="row" style="gap:5px;margin-top:8px"><span class="badge ok">cliente</span><span class="badge ok">tatuador</span></div>';
+  h+='<div class="row wrapf" style="gap:5px;margin-top:8px"><span class="badge ok">cliente</span><span class="badge ok">tatuador</span>'+
+     (S.ehFornecedor?'<span class="badge warn">fornecedor</span>':'')+'</div>';
   h+='<div class="tiny muted" style="margin-top:6px">origem: '+(S.roleSource||"signup_trigger")+'</div>';
-  h+='<div class="tiny muted" style="margin-top:4px">O papel de cliente nunca é removido — você continua podendo comprar, se tatuar e ir a eventos.</div></div>';
+  h+='<div class="tiny muted" style="margin-top:4px">O papel de cliente nunca é removido — você continua podendo comprar, se tatuar e ir a eventos.</div>';
+
+  /* O caminho de volta: quem já é tatuador acrescenta o papel de
+     fornecedor aqui, sem passar por cadastro nenhum. É a mesma conta,
+     mais uma coisa que ela pode fazer. */
+  h+='<div class="sep"></div>';
+  h+='<label class="marcador'+(S.ehFornecedor?" on":"")+'">';
+  h+='<input type="checkbox" '+(S.ehFornecedor?"checked":"")+' onchange="S.ehFornecedor=this.checked;render()" />';
+  h+='<span><span class="b small">Também vendo material para tatuadores</span>';
+  h+='<span class="tiny muted" style="display:block;margin-top:2px">Acrescenta o papel de fornecedor a esta conta. Não cria cadastro novo, não muda seu perfil público, e você pode desmarcar quando quiser.</span></span>';
+  h+='</label>';
+  if(S.ehFornecedor)h+='<div class="tiny muted" style="margin-top:8px">O catálogo de fornecedor ainda não existe'+tg("mock")+'. O papel fica registrado para quando existir.</div>';
+  h+='</div>';
   // Não existe plano a exibir: o básico é grátis. O que cabe aqui é o
   // que ele pode contratar, e por quê.
   h+='<div class="card pad" style="margin-top:13px"><div class="b small">O que você paga</div>';

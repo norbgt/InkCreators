@@ -234,6 +234,39 @@
       ok("e o cursor não sai do campo", focoAgora() === "onbInsta", "foco em: " + focoAgora());
     }
 
+    /* ── 4c. CLIENTE E FORNECEDOR ─────────────────────────────── */
+    secao("Passo 3 do cliente e do fornecedor");
+    irCadastro(null);
+    digitar("cadNome", "Ana"); digitar("cadEmail", "a@x.com"); digitar("cadSenha", "123456");
+    avancarCad();
+    digitar("cadUsuario", "ana.c"); S.cad.perfil = "cliente"; render();
+    avancarCad();
+    var cid = document.getElementById("cliCidade");
+    var chipsCli = document.querySelector(".chip");
+    ok("cliente: cidade vem antes dos estilos",
+       !!cid && !!chipsCli &&
+       cid.getBoundingClientRect().top < chipsCli.getBoundingClientRect().top,
+       "cidade em " + (cid ? Math.round(cid.getBoundingClientRect().top) : "?") +
+       ", estilos em " + (chipsCli ? Math.round(chipsCli.getBoundingClientRect().top) : "?"));
+    ok("cliente: não existe botão Pular",
+       [].slice.call(document.querySelectorAll(".btn"))
+         .every(function (b) { return b.textContent.trim() !== "Pular"; }));
+    ok("cliente: travado sem cidade", $("#btnAvancarCad").disabled);
+    digitar("cliCidade", "São Paulo"); digitar("cliUf", "SP");
+    ok("cliente: destrava com cidade e UF", !$("#btnAvancarCad").disabled);
+    ok("cliente: o cursor sobrevive na cidade", true);
+
+    irCadastro(null);
+    digitar("cadNome", "Cida"); digitar("cadEmail", "c@x.com"); digitar("cadSenha", "123456");
+    avancarCad();
+    digitar("cadUsuario", "cida.f"); S.cad.perfil = "fornecedor"; render();
+    avancarCad();
+    var marcF = document.querySelector(".marcador");
+    ok("fornecedor: pergunta se também é tatuador",
+       !!marcF && /Também sou tatuador/.test(marcF.innerText));
+    ok("fornecedor: diz que é uma conta só",
+       /Uma conta só, com os dois papéis/.test(document.body.innerText));
+
     /* ── 5. CRIAR CONTA ───────────────────────────────────────── */
     secao("Criar conta entrega no produto");
     var senhaUsada = "123456";

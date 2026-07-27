@@ -49,6 +49,32 @@ O estado do protótipo é salvo em `localStorage` para sobreviver a um
 F5. A senha é removida antes de gravar: ela vive só na memória da aba e
 some junto com ela. Testado.
 
+## Um perfil não obriga a outra conta
+
+Quem vende material muitas vezes também tatua — quem fabrica agulha
+costuma ser quem usa. O passo 3 do fornecedor pergunta isso, e marcar
+acrescenta o papel à mesma conta em vez de abrir outro cadastro. Duas
+contas para a mesma pessoa seria o pior dos dois mundos: nenhuma com o
+histórico inteiro.
+
+O caminho de volta existe também: quem já é tatuador acrescenta o papel
+de fornecedor pela gestão do estúdio, marcando uma caixa. Sem passar por
+cadastro nenhum, sem mudar o perfil público, e reversível.
+
+Quando o fornecedor também tatua, o que ele já disse é reaproveitado —
+a empresa vira o estúdio, a cidade vira a cidade. Perguntar de novo
+seria pedir dois cadastros com outro nome.
+
+## O cliente informa onde antes do quê
+
+A cidade decide quem pode atender; o estilo só refina dentro disso.
+Perguntar o gosto antes de saber se existe alguém perto é começar pela
+ponta que não muda nada.
+
+Por isso cidade e UF são obrigatórias e o botão "Pular" saiu. Pular ali
+era oferecer uma conta que não funciona: sem cidade, o pedido não chega
+a ninguém. Os estilos continuam opcionais.
+
 ## Nome de usuário
 
 Formato: 3 a 20 caracteres, letras minúsculas, números, ponto e traço
