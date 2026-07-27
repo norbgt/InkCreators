@@ -546,7 +546,7 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
   <button id="staticTheme" onclick="toggleDark()" style="color:#fff">◐ tema</button>
 </div></div>
 
-<header class="top"><div class="wrap top-in">
+<header class="top" id="topbar"><div class="wrap top-in">
   <div class="logo" onclick="go('home')">
     <img class="marca" src="marca/logo-preto.png" alt="Ink Creators" />
     <span class="txt"><span>Ink</span><span>Creators</span></span>
@@ -557,6 +557,7 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 
 <div id="app"></div>
 <script src="dados.js"></script>
+<script src="teste.js"></script>
 <footer class="note"><div class="wrap">Protótipo navegável recriado a partir do código exportado do Lovable. Dados fictícios.</div></footer>
 <div id="drawerHost"></div>
 
@@ -873,6 +874,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  sqSel:"s1",onbStep:1,onbName:"",onbStyles:[],onbPort:0,pfTab:"info",menu:false,autoAssist:false,
  sqSelAg:null,agArtist:null,agDia:null,agHora:null,agFeito:false,destaqueAtivo:false,
  voltarPara:null,voltarArtista:null,
+ te:{nome:"",email:"",perfil:null,aceite:false,erro:null,enviando:false},
  ue:{custo:0.35,qtd:40,destaque:120,adesao:12,gmv:600,take:12},
  modo:"demo",conn:null,papeis:null,regMsg:"",regErro:false,
  reg:{nome:"",email:"",senha:"",artista:null},
@@ -2585,7 +2587,8 @@ function studioProfile(){
 /* ============ DRAWERS ============ */
 /* No app real os drawers do TopBar abrem para qualquer visitante — o login
    só é exigido na ação final (enviar pedido, finalizar compra). */
-function openDrawer(k){S.menu=false;S.drawer=k;renderDrawer();renderTop();salvarEstado()}
+function openDrawer(k){S.menu=false;S.drawer=k;renderDrawer();renderTop();salvarEstado();
+ if(typeof registrarGaveta==="function")registrarGaveta(k,S.route)}
 function closeDrawer(){S.drawer=null;renderDrawer()}
 function renderDrawer(){
  var host=document.getElementById("drawerHost");
@@ -3126,6 +3129,45 @@ function render(){
  if(r==="home")ligarScrollInfinito();
  if(S.autoAssist){S.autoAssist=false;openDrawer("assist")}
  salvarEstado();
+ if(typeof registrarRota==="function")registrarRota(r);
+}
+
+/* ── PORTÃO DO TESTE ───────────────────────────────────────────────
+   Com ?teste=1 e sem consentimento ainda, a tela de entrada substitui
+   tudo — barra superior inclusive. Sem o parâmetro, este bloco inteiro
+   não roda e o protótipo é o protótipo de sempre. */
+function precisaDoPortao(){
+ return typeof testeLigado==="function" && testeLigado() && !T.ligado;
+}
+function renderEntrada(){
+ document.getElementById("app").innerHTML=icons(telaDeEntradaDoTeste());
+}
+function entrarNoTeste(){
+ if(S.te.enviando)return;
+ S.te.enviando=true;S.te.erro=null;renderEntrada();
+ abrirSessaoDeTeste(S.te.nome,S.te.email,S.te.perfil).then(function(r){
+  S.te.enviando=false;
+  if(!r.ok){S.te.erro=r.erro;renderEntrada();return}
+  ligarCapturaDeCliques();
+  ligarEnvioAutomatico();
+  S.route="home";S.tab="discover";
+  document.getElementById("topbar").style.display="";
+  render();
+ });
+}
+function iniciarPortaoDoTeste(){
+ if(!testeLigado())return false;
+ var salva=sessaoSalva();
+ if(salva&&salva.id){                       // já consentiu antes: retoma
+  T.sessao=salva;T.ligado=true;T.ordem=0;
+  ligarCapturaDeCliques();ligarEnvioAutomatico();
+  registrar("entrada",{rota:S.route,detalhe:{retomada:true}});
+  return false;
+ }
+ var tb=document.getElementById("topbar");
+ if(tb)tb.style.display="none";
+ renderEntrada();
+ return true;                                // segura o render normal
 }
 document.getElementById("sessionSel").addEventListener("change",function(e){
  S.session=e.target.value;
@@ -3142,13 +3184,16 @@ document.getElementById("sessionSel").addEventListener("change",function(e){
    compartilhado tem que ganhar da última tela em que a pessoa estava. */
 restaurarEstado();
 aplicarURL();
+var seguraPeloPortao = (typeof testeLigado==="function") && iniciarPortaoDoTeste();
 try{
  window.addEventListener("hashchange",function(){
   if(aplicarURL())render();
  });
 }catch(e){}
-render();
-try{if(!location.hash)location.hash=urlDaRota()}catch(e){}
+if(!seguraPeloPortao){
+ render();
+ try{if(!location.hash)location.hash=urlDaRota()}catch(e){}
+}
 </script>
 </body>
 </html>
