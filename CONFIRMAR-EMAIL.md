@@ -94,17 +94,62 @@ sete vezes.
 
 ---
 
-## O que eu não fiz, e por quê
+## O que uma conta pendente pode fazer
 
-**Não bloqueei nada.** Um tatuador com e-mail não confirmado hoje
-publica perfil e recebe pedidos normalmente. Dá para ser mais duro —
-por exemplo, não publicar o perfil até confirmar.
+Decidido em 27/07/2026. Sem e-mail confirmado, a conta **navega e não
+produz**.
 
-O argumento a favor: pedido que chega para quem não lê e-mail é pedido
-perdido, e o cliente fica esperando resposta que não vem.
+| | Pendente | Confirmada |
+|---|---|---|
+| Ver catálogo, perfis, portfólios | sim | sim |
+| Ver agenda de um tatuador | sim | sim |
+| Seguir, salvar, curtir | sim | sim |
+| Editar o próprio cadastro | sim | sim |
+| Publicar perfil, portfólio, preços | **não** | sim |
+| Conversar | **não** | sim |
+| Pedir orçamento | **não** | sim |
+| Responder orçamento | **não** | sim |
 
-O argumento contra: bloquear no começo, quando o e-mail pode ter caído
-no spam, é a forma mais rápida de perder alguém que teria ficado.
+Duas coisas continuam liberadas de propósito. **Editar o próprio
+cadastro**, porque travar isso deixaria a pessoa sem poder consertar um
+e-mail digitado errado — que é justamente a causa mais provável de ela
+não ter recebido nada. E **seguir e salvar**, porque é preferência de
+navegação, não conteúdo publicado nem contato com outra pessoa.
 
-É sua decisão. Se quiser bloquear, me diga onde: publicar o perfil,
-receber orçamento, ou os dois.
+### Onde a regra vive
+
+**No banco**, na migração 24. Cada política de escrita das tabelas de
+conteúdo e de orçamento passou a exigir `private.email_confirmado()`.
+
+Isso importa: a chave publicável está no navegador de todo mundo, e
+qualquer pessoa pode chamar a API direto. Trava que só existe na tela é
+sugestão.
+
+Testado com duas contas, uma confirmada e outra não: a pendente não cria
+perfil de artista, não pede orçamento e não põe foto em portfólio
+nenhum; a confirmada faz as três. E a pendente continua lendo o catálogo
+e editando o próprio cadastro.
+
+### Na tela
+
+Os botões travados **não ficam apagados**. Botão desabilitado não
+explica nada e deixa a pessoa sem saber o que fazer. Eles ficam
+tracejados, em amarelo, e o clique abre uma explicação com o que ela
+pode fazer agora, o que fica esperando, por que exigimos, e os botões
+de reenviar e de conferir.
+
+---
+
+## O risco que essa decisão cria
+
+Bloquear no começo, quando o e-mail pode ter caído no spam, é a forma
+mais rápida de perder alguém que teria ficado. Some isso ao limite de 2
+e-mails por hora do provedor padrão e você tem um funil que fecha
+sozinho.
+
+Duas coisas reduzem isso, e nenhuma está feita:
+
+1. **SMTP próprio**, que tira o limite e melhora a entrega — e-mail que
+   sai de domínio próprio cai menos no spam.
+2. **Medir quantos confirmam.** Se a taxa vier baixa, o problema não é
+   a regra: é o e-mail não estar chegando.

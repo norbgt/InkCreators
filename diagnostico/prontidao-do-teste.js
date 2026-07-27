@@ -193,6 +193,43 @@ secao("1b. TODA CLASSE USADA TEM CSS");
      "sem CSS: " + orfas.join(", "));
 }
 
+/* ── 1c. Nenhuma concatenação sobrou por resolver ───────────────
+   Segunda vez que este defeito aparece: dentro de uma string de
+   template, escrever "f(\''+x+'\')" produz f(''+x+'') literal, porque
+   as aspas escapadas não fecham a string — o valor nunca entra. O botão
+   fica lá, com aparência normal, e não faz nada.
+
+   Nenhum teste funcional pega: o botão existe, o clique dispara, e a
+   função recebe uma variável que não existe naquele escopo. Só olhando
+   o HTML gerado dá para ver. */
+secao("1c. NENHUMA CONCATENAÇÃO SOBROU POR RESOLVER");
+{
+  const g = ambiente();
+  g.S.session = "client"; g.S.modo = "demo"; g.S.artist = "a0"; g.S.agArtist = "a0";
+  const suspeitas = [];
+  for (const r of ["home", "artist", "plataforma", "cadastro", "modelo", "me", "studio", "studio-profile"]) {
+    g.S.route = r;
+    try { g.escopo("render()"); } catch (e) { continue; }
+    for (const o of g.tela().match(/onclick="[^"]*"/g) || []) {
+      // '+algo+' que sobrou cru no atributo, ou parêntese com aspas vazias
+      if (/\+\s*[a-z_$][\w.$]*\s*\+/i.test(o) || /\(\s*''\s*\+/.test(o)) {
+        suspeitas.push(r + ": " + o.slice(0, 70));
+      }
+    }
+  }
+  for (const d of ["hub", "assist", "chat", "notif", "cart", "agenda", "trava"]) {
+    g.S.drawer = d;
+    try { g.escopo("renderDrawer()"); } catch (e) { continue; }
+    for (const o of g.gaveta().match(/onclick="[^"]*"/g) || []) {
+      if (/\+\s*[a-z_$][\w.$]*\s*\+/i.test(o) || /\(\s*''\s*\+/.test(o)) {
+        suspeitas.push("gaveta " + d + ": " + o.slice(0, 70));
+      }
+    }
+  }
+  ok("todo onclick tem valor resolvido", suspeitas.length === 0,
+     suspeitas.slice(0, 3).join(" | "));
+}
+
 /* ── 2 e 3. As jornadas, clicando de verdade ───────────────────── */
 secao("2. JORNADA DO CLIENTE — descobrir, orçar, agendar");
 let eventosDoCliente = null, sessaoDoCliente = null;

@@ -392,6 +392,15 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
   .perfilopt .ic{width:32px;height:32px}
 }
 
+/* Ação que existe mas ainda não funciona. Não é desabilitada: botão
+   apagado não explica nada, e a pessoa fica sem saber o que fazer.
+   Clicável, com cara de espera, e o clique abre a explicação. */
+.pendente{border-style:dashed !important;border-color:var(--x-warning) !important;
+  background:var(--x-warning-bg) !important;color:var(--x-warning) !important;
+  box-shadow:none !important}
+.pendente:hover{border-color:var(--x-warning) !important;opacity:.85}
+.pendente .ico,.pendente svg{opacity:.9}
+
 /* Aviso que fica até deixar de ser verdade. Amarelo e não vermelho: é
    pendência, não erro — o perfil continua no ar. */
 .avisopendente{border-color:var(--x-warning);background:var(--x-warning-bg)}
@@ -936,7 +945,7 @@ var SIZE_L={pequeno:"Pequeno",medio:"Médio",grande:"Grande",sessao_dia:"Sessão
 /* ============ ESTADO ============ */
 var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  roleSource:null,usuario:"",
- emailConfirmado:null,emailPendente:"",reenvioMsg:"",reenviando:false,
+ emailConfirmado:null,emailPendente:"",reenvioMsg:"",reenviando:false,travaMsg:"",
  f:{q:"",styles:[],cx:[],max:null,rating:null,sort:"relevance",painel:null},
  seguindo:[],curtidas:[],feedLote:1,obs:null,
  painel:{discover:null,shop:null,events:null},
@@ -1058,7 +1067,9 @@ function renderTop(){
  var nChat=CHATS.reduce(function(a,c){return a+c.un},0);
  h+=iconBtn("🛒","cart",nCart);
  h+=iconBtn("🔔","notif",nNotif);
- h+=iconBtn("💬","chat",nChat);
+ h+=contaPendente()
+   ? '<button class="iconbtn pendente" title="Conversar" aria-label="Conversar" onclick="explicarTrava(\'conversar\')">💬</button>'
+   : iconBtn("💬","chat",nChat);
  if(!isLog()){
   h+='<button class="pill solid" onclick="go(\'auth\')">👤 Entrar</button>';
  }else{
@@ -1278,7 +1289,7 @@ function publicacao(a){
 
  h+='<div class="row" style="margin-top:7px">'+cifroes(a)+'<span class="tiny muted">por hora</span>';
  h+='<div class="row sp" style="gap:6px">';
- h+='<button class="btnicone" title="Pedir orçamento" aria-label="Pedir orçamento" onclick="quoteFor(\''+a.id+'\')">👛</button>';
+ h+='<button class="btnicone'+(contaPendente()?" pendente":"")+'" title="Pedir orçamento" aria-label="Pedir orçamento" onclick="'+(contaPendente()?"explicarTrava(\'pedir orçamento\')":"quoteFor('"+a.id+"')")+'">👛</button>';
  h+='<button class="btnicone" title="Ver agenda" aria-label="Ver agenda" onclick="verAgenda(\''+a.id+'\')">🗓</button></div></div>';
 
  if(nCurtidas||segue){
@@ -1719,9 +1730,15 @@ function vArtist(){
  // é preferência de feed, não contato.
  var seg=S.seguindo.indexOf(a.id)>=0;
  h+='<div class="acoestrio">';
- h+=acaoIcone("✨","Pedir orçamento","quoteFor('"+a.id+"')","principal");
+ // Ver agenda é leitura: continua liberado. Orçar e conversar produzem
+ // e se comunicam, então dependem do e-mail confirmado.
+ h+=acaoIcone("✨","Pedir orçamento",
+   contaPendente()?"explicarTrava('pedir orçamento')":"quoteFor('"+a.id+"')",
+   contaPendente()?"pendente":"principal");
  h+=acaoIcone("🗓","Ver agenda","verAgenda('"+a.id+"')");
- h+=acaoIcone("💬","Conversar",isLog()?"openDrawer('chat')":"irCadastro(null)");
+ h+=acaoIcone("💬","Conversar",
+   contaPendente()?"explicarTrava('conversar')":(isLog()?"openDrawer('chat')":"irCadastro(null)"),
+   contaPendente()?"pendente":"");
  h+=acaoIcone(seg?"✓":"👤",seg?"Seguindo — aparece mais no seu feed":"Seguir — aparece mais no seu feed","alternarSeguir('"+a.id+"')",seg?"ativa":"");
  h+='</div>';
 
@@ -2301,6 +2318,43 @@ function dicaUsuario(){
 
    Por isso o aviso mora na gestão, onde o tatuador volta, e não numa
    notificação que passa. Fica até deixar de ser verdade. */
+/* ── O QUE UMA CONTA PENDENTE PODE FAZER ───────────────────────────
+   Regra: quem não confirmou o e-mail navega pelo conteúdo dos outros e
+   não produz nada próprio — não publica, não conversa, não pede nem
+   oferece orçamento.
+
+   Isto aqui é cortesia, não segurança: quem garante é a RLS no banco
+   (migração 24). A tela existe para a pessoa entender antes de tentar,
+   em vez de descobrir com um erro depois de escrever tudo. */
+function contaPendente(){ return S.emailConfirmado===false }
+
+function explicarTrava(oque){
+ S.travaMsg=oque;
+ openDrawer("trava");
+}
+function corpoDaTrava(){
+ var h='<div class="banner" style="background:var(--x-warning-bg);border-color:var(--x-warning)">';
+ h+='<div><div class="b small">Confirme seu e-mail para '+escapar(S.travaMsg||"isso")+'</div>';
+ h+='<div class="tiny" style="margin-top:4px">Mandamos um link para <b>'+escapar(S.emailPendente||"seu e-mail")+'</b>.</div></div></div>';
+ h+='<p class="small" style="margin-top:13px">Enquanto o e-mail não é confirmado, sua conta funciona como visita: você navega pelo catálogo, abre perfis e vê portfólios à vontade.</p>';
+ h+='<div class="b small" style="margin-top:15px">O que fica esperando</div>';
+ h+='<div style="margin-top:7px">';
+ [["🖼","Publicar o que é seu","perfil, portfólio, preços e agenda"],
+  ["💬","Conversar","com tatuadores e clientes"],
+  ["✨","Pedir e responder orçamento","dos dois lados"]].forEach(function(x){
+  h+='<div class="row small" style="align-items:flex-start;gap:9px;padding:6px 0">';
+  h+='<span style="color:var(--muted-foreground)">'+x[0]+'</span>';
+  h+='<span><b>'+x[1]+'</b><span class="muted"> — '+x[2]+'</span></span></div>';
+ });
+ h+='</div>';
+ h+='<div class="tiny muted" style="margin-top:13px;padding-top:11px;border-top:1px solid var(--border)">Por que exigimos: sem e-mail confirmado não conseguimos avisar quando um orçamento chega, e ninguém do outro lado tem como te alcançar.</div>';
+ h+='<div class="row wrapf" style="gap:7px;margin-top:14px">';
+ h+='<button class="btn primary" '+(S.reenviando?"disabled":"")+' onclick="reenviarEmailDeConfirmacao()">'+(S.reenviando?"Enviando…":"Reenviar e-mail")+'</button>';
+ h+='<button class="btn" onclick="conferirConfirmacao();closeDrawer()">Já confirmei</button></div>';
+ if(S.reenvioMsg)h+='<div class="tiny" style="margin-top:9px">'+escapar(S.reenvioMsg)+'</div>';
+ return h;
+}
+
 function avisoDeConfirmacao(){
  if(S.emailConfirmado!==false)return "";        // null = não se aplica
  var email=S.emailPendente||"seu e-mail";
@@ -2309,8 +2363,9 @@ function avisoDeConfirmacao(){
  h+='<span class="pendicone">⚠</span>';
  h+='<div style="min-width:0;flex:1">';
  h+='<div class="b small">Confirme seu e-mail</div>';
- h+='<div class="small" style="margin-top:4px">Mandamos um link para <b>'+escapar(email)+'</b>. Enquanto você não clicar nele, não conseguimos avisar sobre orçamentos que chegarem nem recuperar sua senha.</div>';
- h+='<div class="tiny muted" style="margin-top:6px">Seu perfil continua no ar normalmente. Confirmar é sobre conseguirmos falar com você.</div>';
+ h+='<div class="small" style="margin-top:4px">Mandamos um link para <b>'+escapar(email)+'</b>. Até você clicar nele, sua conta funciona como visita.</div>';
+ h+='<div class="small" style="margin-top:7px"><b>Você pode</b> navegar pelo catálogo, abrir perfis e ver portfólios.</div>';
+ h+='<div class="small" style="margin-top:3px"><b>Fica esperando</b> publicar seu perfil e portfólio, conversar, e pedir ou responder orçamento.</div>';
  h+='<div class="row wrapf" style="gap:7px;margin-top:11px">';
  h+='<button class="btn sm primary" '+(S.reenviando?"disabled":"")+' onclick="reenviarEmailDeConfirmacao()">'+(S.reenviando?"Enviando…":"Reenviar e-mail")+'</button>';
  h+='<button class="btn sm" onclick="conferirConfirmacao()">Já confirmei</button>';
@@ -2817,7 +2872,9 @@ function studioProfile(){
   h+='<div><div class="card pad"><div class="row"><span class="b small">Publicação</span></div>';
   h+='<div class="row" style="margin-top:9px"><span class="small">Perfil no feed público</span><span class="badge ok sp">publicado</span></div>';
   h+='<div class="tiny muted" style="margin-top:5px">Despublicar esconde seu perfil da busca, mas mantém orçamentos em andamento.</div>';
-  h+='<button class="btn blk" style="margin-top:9px">Despublicar perfil</button></div>';
+  h+=contaPendente()
+    ? '<button class="btn blk pendente" style="margin-top:9px" onclick="explicarTrava(\'publicar seu perfil\')">Publicar perfil</button></div>'
+    : '<button class="btn blk" style="margin-top:9px">Despublicar perfil</button></div>';
   h+=avisoDeConfirmacao();
   h+='<div class="card pad" style="margin-top:13px"><div class="row"><span class="b small">Papel da conta</span>'+tg("novo")+'</div>';
   h+='<div class="row wrapf" style="gap:5px;margin-top:8px"><span class="badge ok">cliente</span><span class="badge ok">tatuador</span>'+
@@ -2931,6 +2988,7 @@ function renderDrawer(){
  if(S.drawer==="hub"){t="✨ Orçamentos"+tg("real");b=hubBody()}
  if(S.drawer==="assist"){t="✨ Assistente de orçamento"+tg("real");b=assistBody()}
  if(S.drawer==="chat"){t="💬 Mensagens"+tg("mock");b=chatBody();if(S.chatOpen)f='<div class="row"><input class="fld" placeholder="Escreva uma mensagem…" /><button class="btn primary">Enviar</button></div>'}
+ if(S.drawer==="trava"){t="⚠ Confirmação pendente";b=corpoDaTrava()}
  if(S.drawer==="agenda"){t="🗓 Agenda"+tg("mock");b=agendaBody()}
  if(S.drawer==="notif"){t="🔔 Notificações"+tg("mock");b=notifBody()}
  if(S.drawer==="cart"){t="🛒 Carrinho"+tg("mock");b=cartBody();f=cartFoot()}
