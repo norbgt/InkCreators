@@ -1986,6 +1986,16 @@ function sugerirUsuario(nome){
 function irCadastro(perfil,voltar){
  S.cad={passo:0,perfil:perfil||null,nome:"",email:"",senha:"",usuario:"",msg:"",erro:false,viaGoogle:false};
  S.onbStep=1;
+
+ /* Começar de novo começa limpo. Sem isto, quem desiste no passo 3 e
+    recomeça encontra os estilos que já tinha marcado, a cidade que já
+    tinha digitado — rascunho de uma tentativa que ela abandonou de
+    propósito. Foi um teste do roteiro que encontrou: o segundo cadastro
+    de tatuador já nascia com estilo escolhido. */
+ S.onbStyles=[];S.onbEstudio="";S.onbCidade="";S.onbUf="";S.onbInsta="";
+ S.fazCobertura=false;
+ S.cli={estilos:[],cidade:"",uf:""};
+ S.forn={nome:"",cnpj:"",site:"",cidade:"",cats:[],qtd:"",tambemTatuador:false};
  // Volta para onde a pessoa estava — menos quando ela estava na página
  // de venda. Devolver alguém que acabou de converter para o discurso de
  // conversão é o único caso em que retomar o contexto atrapalha.

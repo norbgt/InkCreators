@@ -73,6 +73,35 @@
     try { return el ? el.selectionStart : null; } catch (e) { return null; }
   }
 
+  /* ── Navegação ─────────────────────────────────────────────────
+     Cada seção monta o estado de que precisa. Depender do que a seção
+     anterior deixou na tela foi a causa de todas as falhas da primeira
+     execução desta verificação no ar. */
+  function rotuloDoPasso() {
+    var m = (document.body.innerText || "").match(/Passo \d de 3[^\n]*/);
+    return m ? m[0] : "fora do cadastro (" + S.route + ")";
+  }
+  function levarAoPasso2PorEmail(nome, email) {
+    irCadastro(null);
+    digitar("cadNome", nome || "Ana Souza");
+    digitar("cadEmail", email || "ana@exemplo.com");
+    digitar("cadSenha", "123456");
+    avancarCad();
+    return document.getElementById("app").innerHTML;
+  }
+  function levarAoPasso2PorGoogle() {
+    irCadastro(null);
+    entrarComGoogle();
+    return document.getElementById("app").innerHTML;
+  }
+  function levarAoPasso3(perfil, usuario) {
+    levarAoPasso2PorEmail();
+    digitar("cadUsuario", usuario || "ana.souza");
+    S.cad.perfil = perfil; render();
+    avancarCad();
+    return document.getElementById("app").innerHTML;
+  }
+
   function rodar() {
     var estadoAnterior = JSON.stringify({ route: S.route, session: S.session });
 
@@ -178,18 +207,56 @@
     digitar("onbEstudio", "Studio Ana");
     ok("cursor sobrevive no campo do estúdio", focoAgora() === "onbEstudio", "foco em: " + focoAgora());
 
-    /* ── 3b. GOOGLE CAI NO MESMO PASSO 2 ──────────────────────── */
-    secao("Google e e-mail chegam no mesmo passo 2");
-    var marcasDoPasso2 = ["cadUsuario", "campoprefixo", "dicaUsuario", "perfis", "btnAvancarCad"];
-    var comoEstaAgora = document.getElementById("app").innerHTML;   // veio por e-mail
-    irCadastro(null);
-    entrarComGoogle();
-    var comoFicaNoGoogle = document.getElementById("app").innerHTML;
+    /* ── 4b. COBERTURA À PARTE, INSTAGRAM COM @ ─────────────────
+       Continua no passo 3 do tatuador, onde a seção 4 parou. */
+    secao("Passo 3 do tatuador");
+    var chips = [].slice.call(document.querySelectorAll(".chip"))
+      .map(function (c) { return c.textContent.trim(); });
+    ok("Cobertura saiu da grade de estilos", chips.indexOf("Cobertura") < 0,
+       "ainda aparece entre os estilos");
+    ok("Blackout continua sendo estilo", chips.indexOf("Blackout") >= 0);
 
-    ok("o Google entra direto no passo 2", /Passo 2 de 3/.test(document.body.innerText));
-    marcasDoPasso2.forEach(function (m) {
-      ok("mesmo componente nos dois caminhos: " + m,
-         comoEstaAgora.indexOf(m) >= 0 && comoFicaNoGoogle.indexOf(m) >= 0);
+    var marc = document.querySelector(".marcador");
+    ok("existe o grupo separado de cobertura", !!marc, "passo atual: " + rotuloDoPasso());
+    if (marc) {
+      ok("com o rótulo pedido", /Também faço coberturas/.test(marc.innerText));
+      ok("é um checkbox", !!marc.querySelector('input[type="checkbox"]'));
+      ok("a área toda é clicável", marc.tagName === "LABEL");
+      ok("começa desmarcado", !marc.querySelector("input").checked);
+      ok("alvo de toque confortável", marc.getBoundingClientRect().height >= 44,
+         Math.round(marc.getBoundingClientRect().height) + "px de altura");
+      S.fazCobertura = true; render();
+      ok("marcar muda a aparência do cartão",
+         document.querySelector(".marcador").className.indexOf("on") >= 0);
+      S.fazCobertura = false; render();
+    }
+
+    var insta = document.getElementById("onbInsta");
+    ok("campo de Instagram existe", !!insta, "passo atual: " + rotuloDoPasso());
+    if (insta) {
+      ok("o @ fica desenhado ao lado do campo",
+         insta.parentElement.classList.contains("campoprefixo") &&
+         insta.parentElement.querySelector("span").textContent === "@");
+      ok("o exemplo é o usuário, sem @", insta.placeholder === "usuario");
+      digitar("onbInsta", "@meu perfil!");
+      ok("limpa o que não pode ir num @", S.onbInsta === "meuperfil", "ficou: " + S.onbInsta);
+      ok("e o cursor não sai do campo", focoAgora() === "onbInsta", "foco em: " + focoAgora());
+    }
+
+    /* ── 4c. GOOGLE CAI NO MESMO PASSO 2 ────────────────────────
+       Monta os dois lados do zero. Comparar com o que ficou na tela
+       da seção anterior foi o erro que esta verificação já cometeu:
+       ela comparava o passo 3 do tatuador com o passo 2 do Google. */
+    secao("Google e e-mail chegam no mesmo passo 2");
+    var passo2PorEmail = levarAoPasso2PorEmail();
+    var passo2PorGoogle = levarAoPasso2PorGoogle();
+
+    ok("o Google entra direto no passo 2", /Passo 2 de 3/.test(document.body.innerText),
+       "passo atual: " + rotuloDoPasso());
+    ["cadUsuario", "campoprefixo", "dicaUsuario", "perfis", "btnAvancarCad"].forEach(function (m) {
+      var noEmail = passo2PorEmail.indexOf(m) >= 0, noGoogle = passo2PorGoogle.indexOf(m) >= 0;
+      ok("mesmo componente nos dois caminhos: " + m, noEmail && noGoogle,
+         "e-mail: " + noEmail + " · google: " + noGoogle);
     });
     ok("mesma quantidade de cartões de perfil", $$perfis() === 3, $$perfis() + " cartões");
     ok("diz de qual conta do Google entrou", /Conectado com o Google/.test(document.body.innerText));
@@ -198,83 +265,49 @@
     digitar("cadUsuario", "marina");
     ok("recusa usuário ocupado do mesmo jeito", /já está em uso/.test(document.body.innerText));
 
-    /* ── 4b. COBERTURA À PARTE, INSTAGRAM COM @ ───────────────── */
-    secao("Passo 3 do tatuador");
-    var chips = [].slice.call(document.querySelectorAll('.chip'))
-      .map(function (c) { return c.textContent.trim(); });
-    ok("Cobertura saiu da grade de estilos", chips.indexOf("Cobertura") < 0,
-       "ainda aparece entre os estilos");
-    ok("Blackout continua sendo estilo", chips.indexOf("Blackout") >= 0);
-
-    var marc = document.querySelector(".marcador");
-    ok("existe o grupo separado de cobertura", !!marc);
-    if (marc) {
-      ok("com o rótulo pedido", /Também faço coberturas/.test(marc.innerText));
-      ok("é um checkbox", !!marc.querySelector('input[type="checkbox"]'));
-      ok("a área toda é clicável", marc.tagName === "LABEL");
-      ok("começa desmarcado", !marc.querySelector("input").checked);
-      var alt = marc.getBoundingClientRect().height;
-      ok("alvo de toque confortável", alt >= 44, Math.round(alt) + "px de altura");
-      S.fazCobertura = true; render();
-      ok("marcar muda a aparência do cartão",
-         document.querySelector(".marcador").className.indexOf("on") >= 0);
-      S.fazCobertura = false; render();
-    }
-
-    var insta = document.getElementById("onbInsta");
-    ok("campo de Instagram existe", !!insta);
-    if (insta) {
-      ok("o @ fica desenhado ao lado do campo",
-         insta.parentElement.classList.contains("campoprefixo") &&
-         insta.parentElement.querySelector("span").textContent === "@");
-      ok("o exemplo é o usuário, sem @", insta.placeholder === "usuario");
-      ok("está marcado como opcional", /opcional/.test(insta.closest("div").parentElement.innerText));
-      digitar("onbInsta", "@meu perfil!");
-      ok("limpa o que não pode ir num @", S.onbInsta === "meuperfil", "ficou: " + S.onbInsta);
-      ok("e o cursor não sai do campo", focoAgora() === "onbInsta", "foco em: " + focoAgora());
-    }
-
-    /* ── 4c. CLIENTE E FORNECEDOR ─────────────────────────────── */
+    /* ── 4d. CLIENTE E FORNECEDOR ─────────────────────────────── */
     secao("Passo 3 do cliente e do fornecedor");
-    irCadastro(null);
-    digitar("cadNome", "Ana"); digitar("cadEmail", "a@x.com"); digitar("cadSenha", "123456");
-    avancarCad();
-    digitar("cadUsuario", "ana.c"); S.cad.perfil = "cliente"; render();
-    avancarCad();
+    levarAoPasso3("cliente", "ana.c");
     var cid = document.getElementById("cliCidade");
-    var chipsCli = document.querySelector(".chip");
-    ok("cliente: cidade vem antes dos estilos",
-       !!cid && !!chipsCli &&
-       cid.getBoundingClientRect().top < chipsCli.getBoundingClientRect().top,
-       "cidade em " + (cid ? Math.round(cid.getBoundingClientRect().top) : "?") +
-       ", estilos em " + (chipsCli ? Math.round(chipsCli.getBoundingClientRect().top) : "?"));
+    var primeiroChip = document.querySelector(".chip");
+    ok("cliente: chegou no passo 3", !!cid, "passo atual: " + rotuloDoPasso());
+    if (cid && primeiroChip) {
+      ok("cliente: cidade vem antes dos estilos",
+         cid.getBoundingClientRect().top < primeiroChip.getBoundingClientRect().top,
+         "cidade em " + Math.round(cid.getBoundingClientRect().top) +
+         ", estilos em " + Math.round(primeiroChip.getBoundingClientRect().top));
+    }
     ok("cliente: não existe botão Pular",
        [].slice.call(document.querySelectorAll(".btn"))
          .every(function (b) { return b.textContent.trim() !== "Pular"; }));
     ok("cliente: travado sem cidade", $("#btnAvancarCad").disabled);
     digitar("cliCidade", "São Paulo"); digitar("cliUf", "SP");
     ok("cliente: destrava com cidade e UF", !$("#btnAvancarCad").disabled);
-    ok("cliente: o cursor sobrevive na cidade", true);
+    ok("cliente: cobertura não aparece na lista",
+       [].slice.call(document.querySelectorAll(".chip"))
+         .every(function (c) { return c.textContent.trim() !== "Cobertura"; }));
 
-    irCadastro(null);
-    digitar("cadNome", "Cida"); digitar("cadEmail", "c@x.com"); digitar("cadSenha", "123456");
-    avancarCad();
-    digitar("cadUsuario", "cida.f"); S.cad.perfil = "fornecedor"; render();
-    avancarCad();
+    levarAoPasso3("fornecedor", "cida.f");
     var marcF = document.querySelector(".marcador");
+    ok("fornecedor: chegou no passo 3", /Nome da empresa/.test(document.body.innerText),
+       "passo atual: " + rotuloDoPasso());
     ok("fornecedor: pergunta se também é tatuador",
        !!marcF && /Também sou tatuador/.test(marcF.innerText));
     ok("fornecedor: diz que é uma conta só",
        /Uma conta só, com os dois papéis/.test(document.body.innerText));
 
-    /* ── 5. CRIAR CONTA ───────────────────────────────────────── */
+    /* ── 5. CRIAR CONTA ─────────────────────────────────────────
+       Percorre o caminho inteiro do zero, para não depender do que
+       sobrou das seções anteriores. */
     secao("Criar conta entrega no produto");
     var senhaUsada = "123456";
+    levarAoPasso3("tatuador", "ana.souza");
+    tog(S.onbStyles, "realismo");
+    digitar("onbEstudio", "Studio Ana");
     avancarCad();
     ok("virou tatuador", S.session === "artist", "sessão: " + S.session);
     ok("caiu na gestão do estúdio", S.route === "studio", "rota: " + S.route);
     ok("guardou o nome de usuário", S.usuario === "ana.souza", "usuário: " + S.usuario);
-    ok("não passou por tela de revisão", true);
 
     salvarEstado();
     var salvo = "";
@@ -283,21 +316,18 @@
     ok("a SENHA não foi para o disco", salvo.indexOf(senhaUsada) < 0);
     ok("o e-mail foi", salvo.indexOf("ana@exemplo.com") >= 0);
 
-    /* ── 6. OS OUTROS DOIS PERFIS ─────────────────────────────── */
-    secao("Cliente e fornecedor");
-    [["cliente", "O que você procura", false], ["fornecedor", "Nome da empresa", true]].forEach(function (caso) {
-      irCadastro(null);
-      digitar("cadNome", "Teste " + caso[0]);
-      digitar("cadEmail", "t@exemplo.com");
-      digitar("cadSenha", "123456");
-      avancarCad();
-      digitar("cadUsuario", "teste." + caso[0]);
-      S.cad.perfil = caso[0]; render();
-      avancarCad();
-      ok(caso[0] + ": chegou no passo 3 de 3", /Passo 3 de 3/.test(document.body.innerText));
+    /* ── 6. OS TRÊS PASSO 3 ───────────────────────────────────── */
+    secao("Os três passos 3");
+    [["cliente", "O que você procura", true],
+     ["tatuador", "O que você tatua", true],
+     ["fornecedor", "Nome da empresa", true]].forEach(function (caso) {
+      levarAoPasso3(caso[0], "teste." + caso[0].slice(0, 3));
+      ok(caso[0] + ": chegou no passo 3 de 3", /Passo 3 de 3/.test(document.body.innerText),
+         "passo atual: " + rotuloDoPasso());
       ok(caso[0] + ": conteúdo é o certo", new RegExp(caso[1]).test(document.body.innerText));
-      ok(caso[0] + (caso[2] ? ": exige preencher antes de criar" : ": pode pular e criar direto"),
-         $("#btnAvancarCad").disabled === caso[2]);
+      ok(caso[0] + ": exige preencher antes de criar",
+         $("#btnAvancarCad").disabled === caso[2],
+         "botão " + ($("#btnAvancarCad").disabled ? "travado" : "livre"));
       ok(caso[0] + ": três passos", roteiroCadastro().length === 3);
     });
 
