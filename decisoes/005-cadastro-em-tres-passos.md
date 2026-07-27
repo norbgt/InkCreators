@@ -11,8 +11,8 @@
 | Tatuador | 5 ou 6 passos | 3 passos |
 | Fornecedor | 4 passos | 3 passos |
 
-**Passo 1 — nome e e-mail.** Nada mais. Quem abandona ali já deixou como
-ser encontrado, e essa é a razão de ele vir sozinho.
+**Passo 1 — nome, e-mail e senha.** Nada além disso. Quem abandona ali
+já deixou uma conta utilizável, e não um cadastro pela metade.
 
 **Passo 2 — nome de usuário e perfil.** O `@` da pessoa na plataforma, e
 se ela é cliente, tatuador ou fornecedor. Essa escolha define o passo 3
@@ -23,10 +23,6 @@ pessoa no produto. A tela de revisão saiu: revisar o que você acabou de
 digitar em duas telas é cerimônia, não conferência.
 
 ## O que saiu do caminho
-
-**A senha.** O acesso passa a ser por link enviado no e-mail. Não é só
-economia de campo: senha é o item que mais gera abandono e o que mais
-gera suporte depois.
 
 **Portfólio e preços do tatuador.** Exigir foto no cadastro trava quem
 está com o celular na mão e sem as imagens à mão. Ficam na gestão do
@@ -39,15 +35,19 @@ Vai para a gestão do estúdio pelo mesmo motivo.
 
 ## Consequência para o backend
 
-`criarConta(email, senha, ...)` em `dados.js` usa senha. O fluxo
-desenhado usa link mágico — `signInWithOtp` no Supabase, não
-`signUp`. Também não existe coluna de nome de usuário em `profiles`,
-e ela precisa ser única.
+`criarConta(email, senha, nome, querSerTatuador)` em `dados.js`
+continua servindo — a senha permaneceu no passo 1.
 
-**Isto ainda não foi feito.** O protótipo mostra a intenção; o modo
-real continua com o fluxo antigo. Quando você decidir seguir com este
-desenho, é uma migração pequena (uma coluna, um índice único) e uma
-troca de método na camada de autenticação.
+O que falta: **não existe coluna de nome de usuário em `profiles`**, e
+ela precisa ser única. É uma migração pequena, uma coluna com índice
+único, mas ainda não foi feita. O protótipo mostra a intenção; o modo
+real ainda ignora o campo.
+
+## Onde a senha não entra
+
+O estado do protótipo é salvo em `localStorage` para sobreviver a um
+F5. A senha é removida antes de gravar: ela vive só na memória da aba e
+some junto com ela. Testado.
 
 ## Nome de usuário
 

@@ -868,7 +868,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  seguindo:[],curtidas:[],feedLote:1,obs:null,
  painel:{discover:null,shop:null,events:null},
  shopSort:"relevance",evAba:"perto",coQ:"",perfilLanding:"cliente",
- cad:{passo:0,perfil:null,nome:"",email:"",usuario:"",msg:"",erro:false},
+ cad:{passo:0,perfil:null,nome:"",email:"",senha:"",usuario:"",msg:"",erro:false},
  cli:{estilos:[],cidade:"",uf:""},
  forn:{nome:"",cnpj:"",site:"",cidade:"",cats:[],qtd:""},
  local:{lat:-23.5505,lng:-46.6333},localReal:false,localNome:"",
@@ -928,6 +928,9 @@ var GUARDA=["session","route","artist","tab","modo","seguindo","curtidas","cart"
  "notifFilter","pfTab","ue","f","feedLote","caro","cep"];
 function salvarEstado(){
  try{var o={};GUARDA.forEach(function(k){if(S[k]!==undefined)o[k]=S[k]});
+  // Senha em disco não. Ela sobrevive à recarga só enquanto a aba
+  // estiver viva, e some junto com ela.
+  if(o.cad)o.cad=Object.assign({},o.cad,{senha:""});
   localStorage.setItem(CHAVE_ESTADO,JSON.stringify(o))}catch(e){}
 }
 function restaurarEstado(){
@@ -1904,7 +1907,7 @@ function sugerirUsuario(nome){
    home — perder o contexto no meio do caminho é o que faz gente
    desistir. */
 function irCadastro(perfil,voltar){
- S.cad={passo:0,perfil:perfil||null,nome:"",email:"",usuario:"",msg:"",erro:false};
+ S.cad={passo:0,perfil:perfil||null,nome:"",email:"",senha:"",usuario:"",msg:"",erro:false};
  S.onbStep=1;
  // Volta para onde a pessoa estava — menos quando ela estava na página
  // de venda. Devolver alguém que acabou de converter para o discurso de
@@ -1921,7 +1924,7 @@ function passoCad(){
 }
 function podeAvancar(){
  var id=passoCad().id, c=S.cad;
- if(id==="conta")   return c.nome.trim().length>1 && /.+@.+\..+/.test(c.email);
+ if(id==="conta")   return c.nome.trim().length>1 && /.+@.+\..+/.test(c.email) && (c.senha||"").length>=6;
  if(id==="perfil")  return !!c.perfil && usuarioValido(c.usuario) && usuarioLivre(c.usuario);
  if(id==="tatuador")return S.onbStyles.length>0;
  if(id==="fornecedor") return (S.forn.nome||"").trim().length>1;
@@ -1967,14 +1970,16 @@ function vCadastro(){
  h+='<div class="card pad" style="margin-top:14px">';
 
  /* ── PASSO 1: só o que faz existir um contato ─────────────────────
-    Nome e e-mail, nada mais. Sem senha: o acesso é por link enviado no
-    e-mail. Quem abandona aqui já deixou como ser encontrado. */
+    Nome, e-mail e senha. Nada além disso — quem abandona aqui já deixou
+    uma conta utilizável, não um cadastro pela metade. */
  if(passo.id==="conta"){
   h+='<div class="grid" style="gap:10px">';
   h+='<div><label class="lb">Seu nome</label><input class="fld" id="cadNome" value="'+escapar(c.nome)+'" oninput="S.cad.nome=this.value;atualizarCad()" placeholder="Como quer ser chamado" /></div>';
   h+='<div><label class="lb">E-mail</label><input class="fld" id="cadEmail" type="email" value="'+escapar(c.email)+'" oninput="S.cad.email=this.value;atualizarCad()" placeholder="nome@email.com" /></div>';
+  h+='<div><label class="lb">Senha</label><input class="fld" id="cadSenha" type="password" value="'+escapar(c.senha)+'" oninput="S.cad.senha=this.value;atualizarCad()" placeholder="mínimo 6 caracteres" /></div>';
   h+='</div>';
-  h+='<div class="tiny muted" style="margin-top:8px">Enviamos um link de acesso para esse e-mail. Sem senha para criar nem para esquecer.</div>';
+  if(c.senha)h+='<div class="tiny" style="margin-top:6px;color:var(--'+(c.senha.length>=6?"x-success":"muted-foreground")+')">'+
+    (c.senha.length>=6?"✓ Senha válida":"Faltam "+(6-c.senha.length)+" caractere(s) para a senha")+'</div>';
 
   h+='<div class="ou"><span>ou</span></div>';
   h+='<button class="btn blk" onclick="S.gateRole=null;go(\'gate\')">Continuar com Google</button>';

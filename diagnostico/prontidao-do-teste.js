@@ -226,9 +226,12 @@ let eventosDoTatuador = null;
   ok("começou a criar conta", g.clicar("Criar conta") === true);
   ok("está no cadastro", g.S.route === "cadastro", g.S.route);
 
-  // Passo 1: só nome e e-mail.
-  ok("passo 1 não pede senha", !/type="password"/.test(g.tela()));
+  // Passo 1: nome, e-mail e senha. E nada além disso.
+  ok("passo 1 pede senha", /id="cadSenha"/.test(g.tela()));
+  ok("passo 1 não pede mais nada", !/cadUsuario/.test(g.tela()) && !/class="perfis"/.test(g.tela()));
   g.escopo("S.cad.nome='Bruno Lima';S.cad.email='bruno@exemplo.com';render()");
+  ok("sem senha continua travado", /id="btnAvancarCad" disabled/.test(g.tela()));
+  g.escopo("S.cad.senha='segredo123';render()");
   ok("passo 1 destrava", !/id="btnAvancarCad" disabled/.test(g.tela()));
   g.escopo("avancarCad()");
 
@@ -257,7 +260,7 @@ let eventosDoTatuador = null;
   ok("a jornada virou evento", eventosDoTatuador.length > 5, eventosDoTatuador.length + " evento(s)");
   ok("chegou até studio", eventosDoTatuador.some(e => e.rota === "studio" || e.rota === "studio-profile"));
   ok("nada digitado saiu do navegador",
-     !/bruno\.lima|bruno@exemplo|Studio Bruno/.test(JSON.stringify(eventosDoTatuador)));
+     !/segredo123|bruno\.lima|bruno@exemplo|Studio Bruno/.test(JSON.stringify(eventosDoTatuador)));
 }
 
 secao("4. JORNADA DO FORNECEDOR — a que ainda é hipótese");
