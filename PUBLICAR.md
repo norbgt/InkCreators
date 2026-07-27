@@ -68,6 +68,19 @@ Ele também aparece pronto para copiar dentro do próprio protótipo, em
 igual e não registra nada — inclusive quando você mesma navega para
 conferir alguma coisa.
 
+### Como o teste começa
+
+Visitante, na descoberta, com o catálogo fictício: doze tatuadores,
+vinte produtos, dez eventos e seis cursos. Ninguém precisa criar conta
+para navegar — e é justamente o que queremos medir primeiro, o que a
+pessoa entende sem estar logada.
+
+A barra de desenvolvimento (papel, banco, modelo de negócio) fica
+escondida durante o teste, e as rotas internas desviam para a home.
+Não é esconder sujeira: é que trocar para "banco real" mostraria um
+catálogo vazio, porque não existe tatuador cadastrado ainda — e o
+participante estaria testando outra coisa.
+
 ### O que a pessoa vê
 
 Antes de qualquer tela, uma entrada pedindo nome, e-mail e se ela chega

@@ -618,7 +618,7 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 </head>
 <body>
 
-<div class="protobar"><div class="wrap">
+<div class="protobar" id="protobar"><div class="wrap">
   <span class="b">Protótipo Ink Creators</span>
   <span style="color:#aaa"><span class="tag real">real</span> backend <span class="tag mock">mock</span> só UI <span class="tag new">novo</span> proposta</span>
   <span class="sp"></span>
@@ -2327,6 +2327,7 @@ function dicaUsuario(){
    (migração 24). A tela existe para a pessoa entender antes de tentar,
    em vez de descobrir com um erro depois de escrever tudo. */
 function contaPendente(){ return S.emailConfirmado===false }
+function emTeste(){ return typeof T!=="undefined" && T.ligado===true }
 
 function explicarTrava(oque){
  S.travaMsg=oque;
@@ -3810,6 +3811,10 @@ function comFoco(pintar){
 function render(){
  renderTop();
  var r=S.route,h="";
+ // O espaço de trabalho e a conexão com o banco não são produto. Quem
+ // entrou pelo link do teste não deveria nem tropeçar neles.
+ if(emTeste()&&(r==="modelo"||r==="conexao")){S.route="home";r="home"}
+
  if(r==="conexao")h=vConexao();
  else if(r==="modelo")h=vModelo();
  else if(r==="home")h=vHome();
@@ -3849,17 +3854,37 @@ function entrarNoTeste(){
   if(!r.ok){S.te.erro=r.erro;renderEntrada();return}
   ligarCapturaDeCliques();
   ligarEnvioAutomatico();
-  S.route="home";S.tab="discover";
-  document.getElementById("topbar").style.display="";
+  prepararSessaoDeTeste();
   render();
  });
 }
+/* ── COMO O TESTE COMEÇA ───────────────────────────────────────────
+   Visitante, na descoberta, com os dados fictícios. Três garantias, e
+   cada uma existe por um motivo:
+
+   · visitante, porque a primeira coisa que queremos saber é o que a
+     pessoa entende sem estar logada;
+   · dados fictícios, porque o banco real tem zero tatuadores — quem
+     caísse nele veria um catálogo vazio e um teste sem objeto;
+   · barra de desenvolvimento escondida, porque ela deixa trocar de
+     papel e de banco, e nada disso existe no produto. O participante
+     que mexesse ali estaria testando outra coisa. */
+function prepararSessaoDeTeste(){
+ S.session="anon";
+ S.modo="demo";
+ S.route="home";S.tab="discover";
+ S.emailConfirmado=null;
+ var pb=document.getElementById("protobar"); if(pb)pb.style.display="none";
+ var tb=document.getElementById("topbar");   if(tb)tb.style.display="";
+}
+
 function iniciarPortaoDoTeste(){
  if(!testeLigado())return false;
  var salva=sessaoSalva();
  if(salva&&salva.id){                       // já consentiu antes: retoma
   T.sessao=salva;T.ligado=true;T.ordem=0;
   ligarCapturaDeCliques();ligarEnvioAutomatico();
+  var pb=document.getElementById("protobar"); if(pb)pb.style.display="none";
   registrar("entrada",{rota:S.route,detalhe:{retomada:true}});
   return false;
  }
