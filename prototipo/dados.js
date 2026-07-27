@@ -73,8 +73,9 @@ async function testarConexao() {
 
 /* ── Autenticação ─────────────────────────────────────────────────── */
 
-async function criarConta(email, senha, nome, querSerTatuador) {
+async function criarConta(email, senha, nome, querSerTatuador, extras) {
   await iniciarSupabase();
+  extras = extras || {};
   // wants_artist vai em user_metadata e é lido pelo gatilho handle_new_user
   // no banco, que semeia os papéis. É a decisão 001 em funcionamento.
   const { data, error } = await sb.auth.signUp({
@@ -84,6 +85,64 @@ async function criarConta(email, senha, nome, querSerTatuador) {
       data: { display_name: nome, wants_artist: !!querSerTatuador },
     },
   });
+  if (error) throw error;
+
+  // O cadastro de três passos coleta nome de usuário e, para o cliente,
+  // cidade e UF. Isso não cabe no signUp: vai para o perfil logo depois,
+  // com a sessão que o próprio signUp devolveu.
+  const campos = {};
+  if (extras.usuario) campos.handle = String(extras.usuario).toLowerCase();
+  if (extras.cidade) campos.city = extras.cidade;
+  if (extras.uf) campos.state = String(extras.uf).toUpperCase().slice(0, 2);
+  if (Object.keys(campos).length && data && data.user) {
+    const r = await sb.from("profiles").update(campos).eq("id", data.user.id);
+    if (r.error) throw new Error(traduzErroDePerfil(r.error));
+  }
+  if (extras.tambemFornecedor) await acrescentarPapel("supplier");
+  return data;
+}
+
+function traduzErroDePerfil(e) {
+  const m = (e && e.message ? e.message : "").toLowerCase();
+  if (m.includes("profiles_handle_key") || m.includes("duplicate key"))
+    return "Esse nome de usuário já está em uso.";
+  if (m.includes("profiles_handle_formato"))
+    return "Nome de usuário inválido: 3 a 20 caracteres, minúsculas, números, ponto e traço baixo.";
+  if (m.includes("reservado"))
+    return "Esse nome de usuário é reservado.";
+  return e && e.message ? e.message : "Não consegui salvar o perfil.";
+}
+
+/* ── Nome de usuário ───────────────────────────────────────────────
+   Consulta antes de tentar gravar, para a pessoa saber enquanto digita.
+   A palavra final continua sendo do banco: o índice único e o gatilho
+   de reservados decidem, e duas pessoas digitando o mesmo nome ao mesmo
+   tempo só descobrem lá. */
+async function usuarioDisponivel(handle) {
+  await iniciarSupabase();
+  const h = String(handle || "").toLowerCase();
+  if (!/^[a-z0-9._]{3,20}$/.test(h)) return { livre: false, motivo: "formato" };
+
+  const res = await sb.from("handles_reservados").select("handle").eq("handle", h).maybeSingle();
+  if (res.data) return { livre: false, motivo: "reservado" };
+
+  const p = await sb.from("profiles").select("id").eq("handle", h).maybeSingle();
+  if (p.error && p.error.code !== "PGRST116") throw p.error;
+  return { livre: !p.data, motivo: p.data ? "ocupado" : null };
+}
+
+/* ── Papéis ────────────────────────────────────────────────────────
+   Acrescentar papel, nunca criar conta. Quem vende material e também
+   tatua é uma pessoa só; duas contas deixariam as duas pela metade. */
+async function acrescentarPapel(papel) {
+  await iniciarSupabase();
+  const { data, error } = await sb.rpc("acrescentar_meu_papel", { _papel: papel });
+  if (error) throw error;
+  return data;
+}
+async function removerPapel(papel) {
+  await iniciarSupabase();
+  const { data, error } = await sb.rpc("remover_meu_papel", { _papel: papel });
   if (error) throw error;
   return data;
 }
@@ -562,6 +621,7 @@ async function esquecerParticipante(email) {
 window.Dados = {
   testarConexao, criarConta, entrar, sair, sessaoAtual,
   souAdmin, carregarPainelDoTeste, esquecerParticipante,
+  usuarioDisponivel, acrescentarPapel, removerPapel,
   meusPapeis, tornarSeTatuador,
   listarEstilos, listarTatuadores,
   meuPerfilDeArtista, salvarPerfilDeArtista,

@@ -1961,7 +1961,14 @@ function roteiroCadastro(){
 /* Nome de usuário: o que vira @ na plataforma e endereço do perfil.
    A lista de ocupados é fictícia — serve para a pessoa encontrar o
    atrito de verdade, que é descobrir que o nome que ela quer já foi. */
-var USUARIOS_OCUPADOS=["marina","admin","inkcreators","tattoo","suporte","contato","teste"];
+/* Espelha public.handles_reservados no banco (migração 21) mais alguns
+   nomes "já usados" fictícios, para a pessoa esbarrar no atrito real de
+   descobrir que o nome que ela queria já foi. Em modo real quem responde
+   é o banco: Dados.usuarioDisponivel consulta a tabela e o índice único
+   dá a palavra final. */
+var USUARIOS_OCUPADOS=["admin","suporte","contato","ajuda","inkcreators","ink","oficial",
+ "root","api","teste","tattoo","sobre","conta",
+ "marina","bruno","ana"];
 function usuarioValido(u){return /^[a-z0-9._]{3,20}$/.test(u||"")}
 function usuarioLivre(u){return USUARIOS_OCUPADOS.indexOf((u||"").toLowerCase())<0}
 function sugerirUsuario(nome){
