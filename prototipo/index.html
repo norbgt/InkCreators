@@ -216,6 +216,24 @@ html[data-dark] .seg.on{
    Padrão de app de mobilidade: contexto no topo, decisão na lista. */
 .avisoerro{margin-top:12px;padding:9px 12px;border-radius:9px;background:var(--x-warning-bg);color:var(--x-warning);font-size:12.5px}
 .avisook{padding:9px 12px;border-radius:9px;background:var(--x-success-bg);color:var(--x-success);font-size:12.5px}
+
+/* Marcos do passaporte. Cartão pequeno, sem barra de progresso e sem
+   estado "bloqueado": um marco ou aconteceu, ou não está aqui. Mostrar
+   o que falta transformaria decisão permanente em tarefa. */
+.marcos{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.marco{display:flex;gap:9px;align-items:flex-start;padding:10px 11px;border:1px solid var(--border);
+  border-radius:11px;background:var(--card)}
+.marco .mic{font-size:16px;line-height:1.2;flex-shrink:0}
+.marco .mic svg{width:16px;height:16px}
+
+/* Check-in. O QR fica em fundo branco sempre, inclusive no tema
+   escuro: câmera lê contraste, e um QR invertido não lê. */
+.qrcx{display:inline-block;padding:12px;border-radius:14px;background:#fff;margin:15px auto 9px;
+  box-shadow:0 2px 14px rgba(0,0,0,.14)}
+.qrcx svg{display:block}
+.codigo{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:27px;font-weight:700;
+  letter-spacing:.28em;padding-left:.28em;margin-top:3px}
+.relogio{font-size:34px;font-weight:700;letter-spacing:-.03em;margin:16px 0 4px}
 .btnlocal{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);background:none}
 .btnlocal:hover{background:var(--muted);color:var(--foreground)}
 .btnlocal.on{color:var(--accent)}
@@ -700,6 +718,7 @@ body:has(.convitebarra) main{padding-bottom:96px}
     <option value="anon">Visitante</option>
     <option value="client">Cliente</option>
     <option value="artist">Cliente + tatuador</option>
+    <option value="forn">Fornecedor</option>
   </select>
   <button id="staticModelo" onclick="go('modelo')" style="color:#fff">◈ modelo de negócio</button>
   <button id="staticConexao" onclick="go('conexao')" style="color:#fff">◉ banco <span id="pilhaStatus" style="opacity:.6">demo</span></button>
@@ -1057,6 +1076,99 @@ var BOOK=[{c:"Helena Duarte",area:"Antebraço interno",h:3,d:2,m:"ago",cents:680
 var REVS=[{c:"Helena Duarte",r:5,t:"Traço impecável e atendimento super atencioso. Já marquei a próxima.",w:"há 3 dias",resp:"Obrigada, Helena! Até agosto."},{c:"Marcos Vidal",r:5,t:"Estúdio limpo, pontual, explicou todo o cuidado pós.",w:"há 1 semana"},{c:"Paula Nunes",r:4,t:"Resultado ótimo. Só demorou um pouco pra responder o orçamento.",w:"há 2 semanas"},{c:"Rodrigo Palma",r:5,t:"Melhor blackwork que já fiz. Recomendo demais.",w:"há 3 semanas",resp:"Obrigado, Rodrigo! Foi um projeto e tanto."}];
 var PAYS=[{d:"12 jun 2026",t:"Sinal — Blackwork omoplata",w:"Studio Caio",c:45000},{d:"28 mai 2026",t:"Sessão completa — Fineline antebraço",w:"Studio Marina",c:68000},{d:"03 mai 2026",t:"Kit aftercare",w:"Loja Ink Creators",c:13900},{d:"14 fev 2026",t:"Sessão — Minimalista tornozelo",w:"Studio Ana",c:32000}];
 var HIST=[{area:"Antebraço interno",s:"Fineline",a:"Marina Vieira",d:"28 mai 2026",seed:3},{area:"Tornozelo",s:"Minimalista",a:"Ana Petrova",d:"14 fev 2026",seed:8},{area:"Ombro",s:"Oriental",a:"Felipe Tanaka",d:"09 nov 2025",seed:12}];
+/* ═══ O PASSAPORTE DO CLIENTE ══════════════════════════════════════
+   Cada linha é uma sessão que já aconteceu. Não existe meta, não existe
+   barra de progresso, não existe "faltam duas para". A escolha é
+   deliberada: tatuagem é permanente, e uma interface que mostra o que
+   falta transforma decisão irreversível em tarefa a completar.
+
+   O que ela mostra é acervo — o mesmo prazer de olhar um passaporte
+   carimbado, que registra sem cobrar o próximo carimbo.
+
+   'verificado' vem do check-in por QR feito na hora da sessão. Sem ele
+   a linha continua valendo, mas como declaração da pessoa: é a
+   diferença entre "eu digo que tatuei com fulano" e "fulano e eu
+   confirmamos um ao outro, naquele dia, naquele lugar". Essa distinção
+   é o que dá valor ao registro — e o que dá reputação ao tatuador.
+
+   'publico' nasce falso em todas. Parte do corpo e localização são
+   dados sensíveis; o padrão fechado é o único defensável. */
+var PASS=[
+ {id:"pa1",quando:"28 mai 2026",ordem:6,artista:"Marina Vieira",arh:"@marinavtattoo",destaque:false,
+  estudio:"Studio Marina",cidade:"São Paulo",uf:"SP",pais:"Brasil",continente:"América do Sul",
+  estilo:"fineline",parte:"Antebraço interno",horas:3.5,seed:3,verificado:true,publico:false},
+ {id:"pa2",quando:"11 mar 2026",ordem:5,artista:"Klaus Berger",arh:"@klausberger",destaque:true,
+  estudio:"Kreuzberg Ink",cidade:"Berlim",uf:"",pais:"Alemanha",continente:"Europa",
+  estilo:"blackwork",parte:"Costela",horas:6,seed:6,verificado:true,publico:false},
+ {id:"pa3",quando:"14 fev 2026",ordem:4,artista:"Ana Petrova",arh:"@anapetrova",destaque:false,
+  estudio:"Studio Ana",cidade:"São Paulo",uf:"SP",pais:"Brasil",continente:"América do Sul",
+  estilo:"minimalista",parte:"Tornozelo",horas:1.5,seed:8,verificado:true,publico:false},
+ {id:"pa4",quando:"02 dez 2025",ordem:3,artista:"Rita Salgado",arh:"@ritasalgado",destaque:true,
+  estudio:"Casa Tinta",cidade:"Lisboa",uf:"",pais:"Portugal",continente:"Europa",
+  estilo:"neotradicional",parte:"Panturrilha",horas:4,seed:17,verificado:false,publico:false},
+ {id:"pa5",quando:"09 nov 2025",ordem:2,artista:"Felipe Tanaka",arh:"@felipetanaka",destaque:false,
+  estudio:"Studio Felipe",cidade:"São Paulo",uf:"SP",pais:"Brasil",continente:"América do Sul",
+  estilo:"oriental",parte:"Ombro",horas:5,seed:12,verificado:true,publico:false},
+ {id:"pa6",quando:"21 jul 2024",ordem:1,artista:"Ana Petrova",arh:"@anapetrova",destaque:false,
+  estudio:"Studio Ana",cidade:"São Paulo",uf:"SP",pais:"Brasil",continente:"América do Sul",
+  estilo:"minimalista",parte:"Pulso",horas:1,seed:22,verificado:false,publico:false}
+];
+
+/* ── FORMAÇÃO ──────────────────────────────────────────────────────
+   O caminho de cliente a tatuador, registrado do mesmo jeito que o
+   passaporte: o que já foi feito. A trilha existe porque um cliente que
+   faz três cursos não é mais só cliente — e hoje ele teria que criar
+   uma conta nova para virar tatuador, jogando fora o histórico que é
+   justamente a prova de que se capacitou. */
+var FORMACAO=[
+ {id:"f1",curso:"Introdução ao Blackwork",quem:"Caio Lobo",horas:6,quando:"mar 2026",estado:"concluido",nivel:"Iniciante"},
+ {id:"f2",curso:"Fundamentos de Linework",quem:"Marina Vasques",horas:12,quando:"jun 2026",estado:"concluido",nivel:"Iniciante"},
+ {id:"f3",curso:"Sombreado Suave em Fineline",quem:"Ana Petrova",horas:10,quando:"em curso",estado:"andamento",nivel:"Intermediário"}
+];
+
+/* ═══ FORNECEDOR ═══════════════════════════════════════════════════
+   Quatro frentes, e elas não são quatro produtos: são uma cadeia.
+
+   A marca vende pós-tatuagem para quem acabou de tatuar (a hora em que
+   a pessoa mais precisa e menos sabe escolher). Para ser escolhida, ela
+   precisa de confiança — e confiança em material de tatuagem não vem de
+   anúncio, vem de tatuador. Daí as recomendações. E o tatuador que
+   recomenda com frequência vira embaixador, que é a relação formalizada.
+
+   A ordem importa: recomendação primeiro, embaixador depois. Uma marca
+   que sai comprando embaixadores antes de ter recomendação espontânea
+   está comprando alcance, não confiança — e o cliente percebe. */
+var FORN_PRODUTOS=[
+ {id:"fp1",n:"Pomada cicatrizante 30g",cat:"pós-tatuagem",preco:4900,estoque:340,vendas:128,e:"🧴"},
+ {id:"fp2",n:"Filme protetor 10m",cat:"pós-tatuagem",preco:8900,estoque:96,vendas:74,e:"🩹"},
+ {id:"fp3",n:"Protetor solar FPS 50 para tatuagem",cat:"pós-tatuagem",preco:6900,estoque:210,vendas:61,e:"☀"},
+ {id:"fp4",n:"Sabonete neutro 200ml",cat:"pós-tatuagem",preco:3200,estoque:0,vendas:44,e:"🧼"},
+ {id:"fp5",n:"Kit primeiros dias",cat:"kit",preco:13900,estoque:58,vendas:96,e:"📦"}
+];
+var FORN_PEDIDOS=[
+ {id:"fo1",quem:"Helena Duarte",item:"Kit primeiros dias",valor:13900,quando:"há 2 h",estado:"a enviar",origem:"pós-sessão"},
+ {id:"fo2",quem:"Studio Marina",item:"Pomada cicatrizante 30g ×12",valor:52800,quando:"há 6 h",estado:"a enviar",origem:"estúdio"},
+ {id:"fo3",quem:"Rodrigo Palma",item:"Protetor solar FPS 50",valor:6900,quando:"ontem",estado:"enviado",origem:"loja"},
+ {id:"fo4",quem:"Tainá Alves",item:"Filme protetor 10m",valor:8900,quando:"há 3 dias",estado:"entregue",origem:"pós-sessão"}
+];
+/* alcance é o número de seguidores do tatuador na plataforma, não fora
+   dela. Prometer alcance de Instagram seria vender o que não se mede. */
+var EMBAIXADORES=[
+ {id:"em1",nome:"Marina Vieira",h:"@marinavtattoo",cidade:"São Paulo",alcance:4200,estado:"ativo",desde:"fev 2026",vendas:38,estilo:"fineline"},
+ {id:"em2",nome:"Klaus Berger",h:"@klausberger",cidade:"Berlim",alcance:9100,estado:"ativo",desde:"abr 2026",vendas:52,estilo:"blackwork"},
+ {id:"em3",nome:"Felipe Tanaka",h:"@felipetanaka",cidade:"São Paulo",alcance:2600,estado:"convidado",desde:"há 4 dias",vendas:0,estilo:"oriental"},
+ {id:"em4",nome:"Bruna Okabe",h:"@brunaokabe",cidade:"Curitiba",alcance:3300,estado:"convidado",desde:"há 1 semana",vendas:0,estilo:"neotradicional"},
+ {id:"em5",nome:"Rita Salgado",h:"@ritasalgado",cidade:"Lisboa",alcance:7400,estado:"recusou",desde:"há 2 semanas",vendas:0,estilo:"neotradicional"}
+];
+var RECOMENDACOES=[
+ {id:"re1",de:"Klaus Berger",h:"@klausberger",produto:"Pomada cicatrizante 30g",quando:"há 3 dias",
+  texto:"Uso em todo fechamento grande. Não borra pigmento e o cliente não volta com reação.",peso:"alto"},
+ {id:"re2",de:"Marina Vieira",h:"@marinavtattoo",produto:"Kit primeiros dias",quando:"há 1 semana",
+  texto:"Entrego junto com a sessão. Resolve a parte em que o cliente mais erra, que são os três primeiros dias.",peso:"alto"},
+ {id:"re3",de:"Felipe Tanaka",h:"@felipetanaka",produto:"Protetor solar FPS 50 para tatuagem",quando:"há 3 semanas",
+  texto:"Recomendo depois da cicatrização. Preto e cinza é o que mais sofre com sol.",peso:"médio"}
+];
+
 var CAMPS=[{t:"Flash day de inverno",s:"ativa",sent:340,o:"62%"},{t:"Reativação — clientes 2025",s:"rascunho",sent:0,o:"—"},{t:"Divulgação workshop fineline",s:"encerrada",sent:512,o:"48%"}];
 var CHAT_TAGS=[["primeiro_contato","Primeiro contato",""],["orcamento_solicitado","Orçamento solicitado","warn"],["orcamento_enviado","Orçamento enviado","blu"],["orcamento_aceito","Orçamento aceito","vio"],["agendado","Agendado","tea"],["tatuagem_feita","Tatuagem feita","ok"]];
 var CHATS=[
@@ -1103,7 +1215,12 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  qStatus:"todos",hub:"menu",aiStep:0,aiRefs:2,
  aiEstilos:[],aiFora:[],aiParte:"",aiCidade:"",aiFaixa:"",aiObs:"",
  chatOpen:null,chatFilter:"all",chatQ:"",notifFilter:"all",notifs:NOTIFS.map(function(n){return{...n}}),
- sqSel:"s1",orcPasso:"lista",orcEnviado:null,onbStep:1,onbName:"",onbStyles:[],onbPort:0,pfTab:"info",menu:false,autoAssist:false,
+ sqSel:"s1",orcPasso:"lista",orcEnviado:null,
+ /* Check-in aberto agora. Um por vez, de propósito: o QR na tela é de
+    uma sessão específica, e duas sessões abertas ao mesmo tempo é a
+    receita para o cliente errado carimbar o passaporte. */
+ checkin:{aberto:false,codigo:null,sessao:null,confirmado:false,inicio:null,fim:null,erro:null},
+ passPub:[], passSel:null, checkinCod:"", onbStep:1,onbName:"",onbStyles:[],onbPort:0,pfTab:"info",menu:false,autoAssist:false,
  sqSelAg:null,agArtist:null,agDia:null,agHora:null,agFeito:false,destaqueAtivo:false,
  voltarPara:null,voltarArtista:null,histAba:"pessoas",sub:{},
  agendaGoogle:false,googleConectando:false,
@@ -1138,6 +1255,159 @@ function isLog(){return S.session!=="anon"}
 function escapar(x){return String(x==null?"":x).replace(/[&<>"']/g,function(c){
  return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})}
 function isArt(){return S.session==="artist"}
+function isForn(){return S.session==="forn"}
+
+/* ═══ CHECK-IN POR QR ══════════════════════════════════════════════
+   O tatuador abre o check-in na hora em que a pessoa senta. A tela
+   dele mostra um QR; a pessoa aponta a câmera e confirma. Pronto: a
+   sessão fica registrada dos dois lados, no mesmo instante, por duas
+   pessoas que estavam no mesmo lugar.
+
+   Por que isso vale mais que um formulário depois:
+   · para o cliente, vira carimbo verificado no passaporte — a diferença
+     entre dizer que tatuou com alguém e ter isso confirmado;
+   · para o tatuador, vira reputação que não dá para inventar, e um
+     relógio honesto: quanto tempo levou, em que estilo, em que cidade;
+   · para a plataforma, é o único dado de sessão que nasce confiável,
+     porque exige as duas partes presentes.
+
+   O código de seis caracteres existe porque câmera falha: luz ruim,
+   lente suja, celular velho. Um fluxo que só funciona com QR trava a
+   sessão por causa de uma câmera. */
+function novoCodigoCheckin(){
+ var abc="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sem I, O, 0 e 1: viram engano ao ditar
+ var c="";
+ for(var i=0;i<6;i++)c+=abc[Math.floor(Math.random()*abc.length)];
+ return c;
+}
+
+/* Um QR de mentira, mas estável: o mesmo código desenha sempre o mesmo
+   padrão. Se fosse aleatório a cada repintura, o quadrado piscaria a
+   cada clique e pareceria defeito. */
+function qrFalso(codigo,lado){
+ lado=lado||160;
+ var n=21, cel=lado/n, semente=0, i;
+ for(i=0;i<codigo.length;i++)semente=(semente*31+codigo.charCodeAt(i))>>>0;
+ function proximo(){ semente=(semente*1103515245+12345)>>>0; return (semente>>>16)&1 }
+ var h='<svg viewBox="0 0 '+lado+' '+lado+'" width="'+lado+'" height="'+lado+'" role="img" aria-label="Código do check-in">';
+ h+='<rect width="'+lado+'" height="'+lado+'" fill="#fff"/>';
+ function ancora(cx,cy){
+  var r='<rect x="'+(cx*cel)+'" y="'+(cy*cel)+'" width="'+(7*cel)+'" height="'+(7*cel)+'" fill="#111"/>';
+  r+='<rect x="'+((cx+1)*cel)+'" y="'+((cy+1)*cel)+'" width="'+(5*cel)+'" height="'+(5*cel)+'" fill="#fff"/>';
+  r+='<rect x="'+((cx+2)*cel)+'" y="'+((cy+2)*cel)+'" width="'+(3*cel)+'" height="'+(3*cel)+'" fill="#111"/>';
+  return r;
+ }
+ for(var y=0;y<n;y++)for(var x=0;x<n;x++){
+  var naAncora=(x<8&&y<8)||(x>n-9&&y<8)||(x<8&&y>n-9);
+  if(naAncora){proximo();continue}
+  if(proximo())h+='<rect x="'+(x*cel)+'" y="'+(y*cel)+'" width="'+cel+'" height="'+cel+'" fill="#111"/>';
+ }
+ h+=ancora(0,0)+ancora(n-7,0)+ancora(0,n-7);
+ return h+'</svg>';
+}
+
+function abrirCheckin(i){
+ var b=BOOK[i]||BOOK[0];
+ S.checkin={aberto:true,codigo:novoCodigoCheckin(),sessao:b,confirmado:false,inicio:null,fim:null,erro:null};
+ S.sub=S.sub||{}; S.sub.ck="agora";
+ go("studio-checkin");
+}
+function fecharCheckin(){
+ S.checkin={aberto:false,codigo:null,sessao:null,confirmado:false,inicio:null,fim:null,erro:null};
+ render();
+}
+/* O cliente digita o código, ou toca em escanear — que aqui faz o que a
+   câmera faria: entrega o código que está na tela do tatuador. */
+function escanearCheckin(){
+ if(!S.checkin.aberto){S.checkin.erro="Nenhum check-in aberto. Peça ao tatuador para abrir o dele.";render();return}
+ S.checkinCod=S.checkin.codigo;
+ confirmarCheckin();
+}
+function confirmarCheckin(){
+ var digitado=(S.checkinCod||"").trim().toUpperCase();
+ if(!S.checkin.aberto){S.checkin.erro="Nenhum check-in aberto agora.";render();return}
+ if(digitado!==S.checkin.codigo){S.checkin.erro="Esse código não confere com nenhum check-in aberto.";render();return}
+ S.checkin.erro=null;
+ S.checkin.confirmado=true;
+ S.checkin.quando=agoraHm();
+ render();
+}
+function iniciarSessaoCheckin(){ S.checkin.inicio=Date.now(); render() }
+function encerrarSessaoCheckin(){
+ S.checkin.fim=Date.now();
+ /* A sessão encerrada vira linha no passaporte do cliente, privada
+    como todas. Guardá-la pública por padrão seria decidir por ele
+    justamente no momento em que ele está menos disponível para
+    decidir — acabou de levar quatro horas de agulha. */
+ var b=S.checkin.sessao||BOOK[0];
+ PASS.unshift({id:"pa"+Date.now(),quando:"hoje",ordem:PASS.length+1,artista:"Marina Vieira",arh:"@marinavtattoo",
+  destaque:false,estudio:"Studio Marina",cidade:"São Paulo",uf:"SP",pais:"Brasil",continente:"América do Sul",
+  estilo:"fineline",parte:b.area,horas:duracaoCheckin(),seed:31,verificado:true,publico:false});
+ render();
+}
+function duracaoCheckin(){
+ if(!S.checkin.inicio||!S.checkin.fim)return 0;
+ return Math.max(0.1,(S.checkin.fim-S.checkin.inicio)/3600000);
+}
+function agoraHm(){
+ var d=new Date();
+ return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
+}
+function horasBonitas(h){
+ if(!h)return "—";
+ var m=Math.round(h*60);
+ return m<60 ? m+" min" : Math.floor(m/60)+"h"+(m%60?("0"+(m%60)).slice(-2):"");
+}
+
+/* ═══ MARCOS DO PASSAPORTE ═════════════════════════════════════════
+   Derivados dos fatos, sempre no passado. Nenhuma regra aqui olha para
+   frente: não existe "faltam", não existe "próximo nível", não existe
+   contagem regressiva. Um marco só nasce depois de acontecer, e a data
+   dele é a data da sessão que o produziu.
+
+   É a diferença entre um álbum e uma cartela de bingo. */
+function marcosDo(l){
+ var m=[], vistos={}, paises={}, estilos={};
+ var ordenado=l.slice().sort(function(a,b){return a.ordem-b.ordem});
+ ordenado.forEach(function(t,i){
+  if(i===0)m.push({ic:"✨",t:"A primeira",d:t.quando,p:"com "+t.artista+", em "+t.cidade});
+  if(!estilos[t.estilo]){estilos[t.estilo]=1;
+   if(i>0)m.push({ic:"🎨",t:"Primeira em "+(SL[t.estilo]||t.estilo),d:t.quando,p:"com "+t.artista});}
+  if(!paises[t.pais]){paises[t.pais]=1;
+   if(i>0)m.push({ic:"🌐",t:"Primeira vez em "+t.pais,d:t.quando,p:t.cidade+" · "+t.estudio});}
+  if(t.destaque)m.push({ic:"⭐",t:"Tatuou com "+t.artista,d:t.quando,p:"perfil em destaque no catálogo"});
+ });
+ var n=ordenado.length;
+ [5,10,25].forEach(function(marca){
+  if(n>=marca)m.push({ic:"🕘",t:marca+" sessões",d:ordenado[marca-1].quando,p:"desde "+ordenado[0].quando});
+ });
+ var continentes={}; ordenado.forEach(function(t){continentes[t.continente]=1});
+ var nc=Object.keys(continentes).length;
+ if(nc>1)m.push({ic:"🌐",t:nc+" continentes",d:"",p:Object.keys(continentes).join(" · ")});
+ return m.reverse();
+}
+function passPublico(t){ return S.passPub.indexOf(t.id)>=0 }
+function alternarPassPublico(id){
+ var i=S.passPub.indexOf(id);
+ if(i>=0)S.passPub.splice(i,1); else S.passPub.push(id);
+ render();
+}
+function resumoDoPassaporte(l){
+ var paises={}, estilos={}, artistas={}, horas=0, ver=0;
+ l.forEach(function(t){paises[t.pais]=1;estilos[t.estilo]=1;artistas[t.artista]=1;horas+=t.horas;if(t.verificado)ver++});
+ return {sessoes:l.length,paises:Object.keys(paises).length,estilos:Object.keys(estilos).length,
+         artistas:Object.keys(artistas).length,horas:horas,verificadas:ver};
+}
+
+/* ═══ REPUTAÇÃO VERIFICADA ═════════════════════════════════════════
+   Quantas sessões daquele tatuador foram confirmadas por check-in.
+   Diferente de avaliação: avaliação diz o que acharam, isto diz que
+   aconteceu. Um perfil pode comprar elogio; não pode comprar duas
+   pessoas presentes no mesmo lugar. */
+function sessoesVerificadas(a){
+ var base=(a.reviews||0);
+ return Math.round(base*0.62)+11;
+}
 /* ═══ PERSISTÊNCIA ═══════════════════════════════════════════════
    Até aqui um F5 apagava tudo: sessão, carrinho, seguidos, curtidas,
    progresso de cadastro e a própria tela. Num teste com gente de
@@ -1155,7 +1425,7 @@ var CHAVE_ESTADO="ink.estado.v2";
 var GUARDA=["session","route","artist","tab","modo","seguindo","curtidas","cart",
  "cad","perfilLanding","abaPerfil","shopAud","shopCat","shopQ","evAba","q",
  "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","histAba","sub","agendaGoogle","emailConfirmado","emailPendente","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura","ehFornecedor",
- "notifFilter","pfTab","ue","f","feedLote","caro","cep","sqSel","orcPasso"];
+ "notifFilter","pfTab","ue","f","feedLote","caro","cep","sqSel","orcPasso","passPub","checkin"];
 // orcEnviado fica de fora de propósito: é a confirmação de uma ação que
 // acabou de acontecer. Sobreviver à recarga faria a tela comemorar de
 // novo um envio de ontem.
@@ -1435,6 +1705,13 @@ function publicacao(a){
  h+='<div class="row wrapf" style="gap:5px;margin-top:9px">';
  h+=a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("");
  h+='<span class="tiny muted sp">★ '+a.rating+' ('+a.reviews+')</span></div>';
+ /* Reputação antes do orçamento, e não depois. Avaliação diz o que
+    acharam; sessão verificada diz que aconteceu — duas pessoas
+    confirmaram uma à outra, no mesmo lugar, na hora. É o número que
+    não dá para comprar, e por isso ele fica ao lado da estrela. */
+ h+='<div class="tiny muted" style="margin-top:4px">'+
+    '<span title="Sessões confirmadas por check-in das duas partes">✓ '+sessoesVerificadas(a)+' sessões verificadas</span>'+
+    ' · '+kmDe(a)+' km de você</div>';
 
  h+='<div class="row" style="margin-top:7px">'+cifroes(a)+'<span class="tiny muted">por hora</span>';
  h+='<div class="row sp" style="gap:6px">';
@@ -2001,18 +2278,19 @@ var PERFIS={
   titulo:"O lugar de quem gosta de tatuagem",
   linha:"Descubra artistas, veja o trabalho de perto, peça orçamento a quem faz o seu estilo — e acompanhe a cena depois de sair do estúdio.",
   vantagens:[
-   ["👥","Quem faz o seu traço","Você escolhe o estilo e o pedido vai só para quem trabalha com aquilo, na sua cidade. Nada de mandar mensagem para dez pessoas."],
-   ["👛","Preço de quem vai fazer","Cada tatuador responde com o preço dele. Você compara propostas de verdade, não uma estimativa automática."],
-   ["🖼","Mais que a tatuagem","Os artistas que você segue também vendem arte, dão curso e aparecem em convenção. Tudo aparece no mesmo lugar."]
+   ["✅","Saber com quem você vai tatuar","Antes de pedir qualquer preço você vê avaliações e quantas sessões daquele tatuador foram confirmadas pelos dois lados. Elogio se compra; duas pessoas presentes no mesmo lugar, não."],
+   ["👥","Quem faz o seu traço, perto de você","Busca por estilo e por proximidade. O pedido vai só para quem trabalha com aquilo, na sua cidade — nada de mandar mensagem para dez pessoas."],
+   ["👛","Preço de quem vai fazer","Cada tatuador responde com o preço dele, olhando as suas referências. Você compara propostas de verdade, não uma estimativa automática."],
+   ["🌐","Um passaporte do que você já fez","Cada sessão vira um carimbo: com quem, onde, qual estilo. Privado por padrão, seu para sempre, e verificado quando você faz o check-in na hora."]
   ],
-  passos:[["Descubra","Navegue pelo trabalho de quem tatua perto de você."],
+  passos:[["Descubra e confira","Estilo, proximidade e reputação, antes de falar de preço."],
    ["Peça orçamento","Diga o estilo, mostre referências, escolha para quem vai."],
-   ["Compare e marque","Cada um responde com preço e prazo. Você escolhe."]],
+   ["Tatue e carimbe","Na hora da sessão, um check-in registra onde você esteve e com quem."]],
   cta:"Criar conta grátis", ctaAcao:"irCadastro('cliente')",
   estado:"real",
   cobranca:{titulo:"Para você, não custa nada",
-   texto:"Buscar, pedir orçamento, conversar e agendar são grátis, sempre. A plataforma se sustenta com destaque de catálogo, comissão nas vendas de loja e arte, e contrato com estúdios.",
-   itens:["Nenhuma taxa sobre a sua tatuagem","O que você compra na loja não tem acréscimo","Destaque no feed vem sempre marcado como tal"]}
+   texto:"Buscar, pedir orçamento, conversar, agendar e manter seu passaporte são grátis, sempre. A plataforma se sustenta com destaque de catálogo, comissão nas vendas de loja e arte, e contrato com estúdios.",
+   itens:["Nenhuma taxa sobre a sua tatuagem","O que você compra na loja não tem acréscimo","Destaque no feed vem sempre marcado como tal","Seu histórico é privado por padrão e nunca é vendido"]}
  },
  tatuador:{
   rotulo:"Tatuador",
@@ -2034,19 +2312,19 @@ var PERFIS={
  },
  fornecedor:{
   rotulo:"Fornecedor",
-  titulo:"Alcance tatuadores na hora de comprar",
-  linha:"Hoje o material chega ao estúdio por representante, feira e boca a boca.",
+  titulo:"Confiança de tatuador, venda para o cliente",
+  linha:"Material de tatuagem não se vende por anúncio: se vende porque um tatuador falou bem. Aqui essa recomendação vira caminho até quem acabou de tatuar.",
   vantagens:[
-   ["🏪","Loja dentro do fluxo","O tatuador já está aqui gerenciando orçamentos e caixa — comprar vira parte da rotina."],
-   ["🎯","Público qualificado","Quem navega é profissional em atividade, com portfólio e agenda ativos."],
-   ["📈","Sinal de demanda","Os estilos mais buscados indicam que material vai vender antes de vender."]
+   ["★","Recomendação de quem usa","Tatuadores que compram da sua marca recomendam, e a recomendação aparece no produto, para o cliente, na hora da compra. É o que faz uma pomada desconhecida virar a pomada que a Marina usa."],
+   ["👥","Embaixadores, não anúncios","Quem já recomenda espontaneamente é quem vale convidar. Cada embaixador tem link próprio e venda atribuída — a relação se justifica por resultado, não por permuta."],
+   ["🧴","Venda no pós-sessão","O cliente acabou de sair do estúdio e não sabe o que comprar. É a hora em que ele mais precisa e menos sabe escolher — e a única em que uma marca certa vale mais que um preço menor."]
   ],
-  passos:[["Cadastre o catálogo","Produtos, preços e disponibilidade."],
-   ["Apareça na loja","Junto do que o tatuador já procura."],
-   ["Acompanhe","Veja o que é visto, salvo e comprado."]],
+  passos:[["Publique o catálogo","Produtos de pós-tatuagem, preço e estoque."],
+   ["Colha recomendação","De tatuadores que já compraram. Pedir a quem nunca usou é propaganda, e queima a marca."],
+   ["Convide embaixadores","Entre quem recomendou. Acompanhe a venda atribuída a cada um."]],
   cobranca:{titulo:"Comissão sobre o que vender",
-   texto:"Sem mensalidade e sem taxa de entrada. A plataforma recebe um percentual de cada venda fechada, e nada quando não há venda.",
-   itens:["Cadastro de catálogo sem custo","Percentual só sobre venda concluída","Sai da sua margem, não do preço do comprador"]},
+   texto:"Sem mensalidade e sem taxa de entrada. A plataforma recebe um percentual de cada venda fechada, e nada quando não há venda. A comissão maior é sobre a venda de pós-sessão, porque é a que a plataforma cria.",
+   itens:["Cadastro de catálogo sem custo","Percentual só sobre venda concluída","Sai da sua margem, não do preço do comprador","Recomendação de tatuador nunca é paga por posição"]},
   cta:"Entrar na lista de espera",
   ctaAcao:"alert('Ainda nao existe cadastro de fornecedor. Este botao entraria numa lista de espera.')",
   estado:"hipotese"
@@ -2648,7 +2926,7 @@ function becomeArtist(){
 }
 
 /* ============ SHELL me/studio ============ */
-var ME_NAV=[["me","Visão geral","▦"],["me-quotes","Meus orçamentos","📥"],["me-history","Histórico","🕘"],["me-payments","Pagamentos","🧾"]];
+var ME_NAV=[["me","Visão geral","▦"],["me-passaporte","Passaporte","🌐"],["me-quotes","Meus orçamentos","📥"],["me-formacao","Formação","📋"],["me-payments","Pagamentos","🧾"]];
 /* ── SUB-ABAS ──────────────────────────────────────────────────────
    O menu de cima tinha oito entradas e cada tela empilhava tudo num
    scroll só. Em vez de acrescentar uma nona, cada tela ganha um par de
@@ -2696,7 +2974,7 @@ function abasInternas(chave, opcoes, padrao){
  return h+'</div>';
 }
 
-var ST_NAV=[["studio","Visão geral","▦"],["studio-quotes","Orçamentos","📥"],["studio-schedule","Agenda","🗓"],["studio-caixa","Caixa","👛"],["studio-historico","Histórico","🕘"],["studio-events","Eventos","🎟"],["studio-reviews","Avaliações","★"],["studio-profile","Meu perfil","⚙"]];
+var ST_NAV=[["studio","Visão geral","▦"],["studio-quotes","Orçamentos","📥"],["studio-checkin","Check-in","📱"],["studio-schedule","Agenda","🗓"],["studio-caixa","Caixa","👛"],["studio-historico","Histórico","🕘"],["studio-events","Eventos","🎟"],["studio-reviews","Avaliações","★"],["studio-profile","Meu perfil","⚙"]];
 
 /* ═══ CAIXA E HISTÓRICO ════════════════════════════════════════════
    As duas telas que sustentam "tudo num lugar só". Uma responde
@@ -2758,8 +3036,10 @@ function somaCaixa(){
 }
 function envHead(kind,title,nav,act){
  var h='<div class="envhead"><div class="wrap" style="padding-top:16px">';
- h+='<div class="row wrapf"><div><div class="kicker">'+(kind==="me"?"Minha área":"Ambiente do tatuador")+'</div><h1 class="page" style="margin-top:2px">'+title+'</h1></div>';
- h+='<button class="pill sp" onclick="go(\'home\')">← '+(kind==="me"?"Descobrir tatuadores":"App do cliente")+'</button></div>';
+ var chapeu = kind==="me" ? "Minha área" : kind==="forn" ? "Ambiente da marca" : "Ambiente do tatuador";
+ var volta  = kind==="me" ? "Descobrir tatuadores" : kind==="forn" ? "Ver a plataforma" : "App do cliente";
+ h+='<div class="row wrapf"><div><div class="kicker">'+chapeu+'</div><h1 class="page" style="margin-top:2px">'+title+'</h1></div>';
+ h+='<button class="pill sp" onclick="go(\'home\')">← '+volta+'</button></div>';
  h+='<div class="subnav '+(kind==="me"?"client":"")+'">';
  nav.forEach(function(n){h+='<a class="'+(act===n[0]?"on":"")+'" onclick="go(\''+n[0]+'\')">'+n[2]+' '+n[1]+'</a>'});
  return h+'</div></div></div>';
@@ -2771,16 +3051,116 @@ function vMe(sub){
  if(!isArt())h+='<div class="banner" style="margin-bottom:16px"><div><div class="b small">Também é tatuador(a)? Crie seu perfil profissional.</div><div class="tiny muted">Seu acesso de cliente continua igual — nada é removido.</div></div><button class="btn sp" onclick="becomeArtist()">Tornar-se tatuador</button>'+tg("novo")+'</div>';
 
  if(sub==="me"){
-  h+='<div class="stats">';
-  [["📥","Orçamentos ativos","2","Acompanhe as respostas"],["✅","Sessões agendadas","1","Confirmadas pelo tatuador"],["✨","Tatuagens feitas","3","No seu histórico"],["👛","Total investido","R$ 1.589","Soma dos pagamentos"]].forEach(function(s){
-   h+='<div class="stat"><div class="lbl">'+s[0]+' '+s[1]+'</div><div class="val">'+s[2]+'</div><div class="hint">'+s[3]+'</div></div>'});
-  h+='</div><div class="grid cols2" style="margin-top:15px;align-items:start">';
+  var rp=resumoDoPassaporte(PASS);
+  /* Check-in em primeiro lugar quando existe um aberto: é a única coisa
+     nesta tela que tem hora marcada. */
+  if(S.checkin.aberto&&!S.checkin.confirmado){
+   h+='<button class="convitecx" style="width:100%;text-align:left;margin-bottom:15px" onclick="go(\'checkin\')">';
+   h+='<div class="b small">Tem um check-in esperando você</div>';
+   h+='<div class="tiny muted">O tatuador abriu o check-in desta sessão. Escaneie para registrar.</div></button>';
+  }
+  h+='<div class="grandes">';
+  [["📥","Orçamentos ativos",CQ.filter(function(q){return q.status==="aguardando"||q.status==="respondido"}).length,"esperando resposta","me-quotes",null,null,true],
+   ["🌐","Sessões no passaporte",rp.sessoes,rp.verificadas+" verificadas","me-passaporte",null,null,false],
+   ["🎨","Estilos que você fez",rp.estilos,rp.artistas+" tatuadores","me-passaporte",null,null,false],
+   ["📋","Horas de formação",FORMACAO.reduce(function(t,f){return t+(f.estado==="concluido"?f.horas:0)},0),FORMACAO.filter(function(f){return f.estado==="concluido"}).length+" cursos concluídos","me-formacao",null,null,false]
+  ].forEach(function(x){h+=cartaoGrande(x)});
+  h+='</div>';
+
+  h+='<div class="grid cols2" style="margin-top:20px;align-items:start">';
   h+='<div class="card pad"><div class="row"><span class="b">Orçamentos em andamento</span>'+tg("real")+'<a class="sp small" style="color:var(--accent);cursor:pointer" onclick="go(\'me-quotes\')">Ver todos →</a></div><div style="margin-top:4px">';
   CQ.slice(0,3).forEach(function(q){h+=cqRow(q)});
   h+='</div></div>';
-  h+='<div class="card pad"><div class="row"><span class="b">Última tatuagem</span>'+tg("mock")+'</div>';
-  h+='<div class="tat" style="aspect-ratio:1;border-radius:10px;margin-top:9px;background-image:'+tex(HIST[0].seed)+'"></div>';
-  h+='<div class="b small" style="margin-top:8px">'+HIST[0].area+'</div><div class="small muted">'+HIST[0].s+' · '+HIST[0].a+'</div><div class="tiny muted">'+HIST[0].d+'</div></div></div>';
+  h+='<div class="card pad"><div class="row"><span class="b">Último carimbo</span>'+tg("novo")+'</div>';
+  h+='<div class="tat" style="aspect-ratio:16/10;border-radius:10px;margin-top:9px;background-image:'+tex(PASS[0].seed)+'"></div>';
+  h+='<div class="row" style="margin-top:8px;gap:6px"><span class="b small">'+PASS[0].parte+'</span>';
+  h+=PASS[0].verificado?'<span class="badge ok">✓ verificado</span>':'<span class="badge">declarado</span>';
+  h+='</div><div class="small muted">'+(SL[PASS[0].estilo]||PASS[0].estilo)+' · '+PASS[0].artista+'</div>';
+  h+='<div class="tiny muted">'+PASS[0].cidade+' · '+PASS[0].quando+'</div>';
+  h+='<button class="btn blk sm" style="margin-top:10px" onclick="go(\'me-passaporte\')">Ver o passaporte</button></div></div>';
+ }
+
+ /* ── PASSAPORTE ──────────────────────────────────────────────────
+    Acervo, não placar. Os marcos ficam acima porque são a leitura
+    rápida; a lista de sessões fica abaixo porque é a prova. */
+ if(sub==="me-passaporte"||sub==="me-history"){
+  var l=PASS, r2=resumoDoPassaporte(l), nPub=l.filter(passPublico).length;
+  h+='<div class="card pad"><div class="row wrapf"><span class="b">'+(nPub?'Perfil parcialmente aberto':'Seu passaporte está privado')+'</span>';
+  h+=(nPub?'<span class="badge warn sp">'+nPub+' de '+l.length+' visíveis</span>':'<span class="badge ok sp">🔒 só você vê</span>')+'</div>';
+  h+='<div class="tiny muted" style="margin-top:4px">Parte do corpo, estúdio e cidade dizem muito sobre você. Nada aqui aparece para ninguém até você liberar, sessão por sessão.</div></div>';
+
+  h+='<div class="grandes" style="margin-top:15px">';
+  [["🌐","Sessões",r2.sessoes,r2.verificadas+" com check-in","me-passaporte",null,null,false],
+   ["🎨","Estilos",r2.estilos,"diferentes","me-passaporte",null,null,false],
+   ["📍","Países",r2.paises,"onde você tatuou","me-passaporte",null,null,false],
+   ["🕘","Horas sob agulha",Math.round(r2.horas),"somando as sessões","me-passaporte",null,null,false]
+  ].forEach(function(x){h+=cartaoGrande(x)});
+  h+='</div>';
+
+  var mk=marcosDo(l);
+  h+='<div class="row" style="margin-top:22px"><span class="b" style="font-size:15px">Marcos</span>';
+  h+='<span class="sp tiny muted">o que já aconteceu</span></div>';
+  h+='<div class="tiny muted" style="margin-top:2px">Nenhum marco cobra o próximo. Eles aparecem depois, não antes.</div>';
+  h+='<div class="marcos" style="margin-top:9px">';
+  mk.forEach(function(x){
+   h+='<div class="marco"><span class="mic">'+x.ic+'</span><div style="min-width:0">';
+   h+='<div class="b small">'+x.t+'</div><div class="tiny muted">'+x.p+(x.d?' · '+x.d:'')+'</div></div></div>';
+  });
+  h+='</div>';
+
+  h+='<div class="row" style="margin-top:22px"><span class="b" style="font-size:15px">Sessões</span>';
+  h+='<button class="btn sm sp" onclick="go(\'checkin\')">Fazer check-in</button></div>';
+  h+='<div class="lista">';
+  l.forEach(function(t){
+   var pub=passPublico(t);
+   h+='<div class="item" style="cursor:default">';
+   h+='<div class="thumbsq" style="background-image:'+tex(t.seed)+'"></div>';
+   h+='<div class="itemtxt"><div class="row" style="gap:6px"><span class="b small">'+t.parte+'</span>';
+   h+=t.verificado?'<span class="badge ok" title="Confirmado por check-in na hora da sessão">✓ verificado</span>'
+                  :'<span class="badge" title="Você registrou depois; ninguém confirmou">declarado</span>';
+   h+='</div>';
+   h+='<div class="tiny muted">'+(SL[t.estilo]||t.estilo)+' · '+t.artista+' · '+t.estudio+'</div>';
+   h+='<div class="tiny muted">'+t.cidade+(t.uf?"/"+t.uf:"")+' · '+t.pais+' · '+t.quando+' · '+horasBonitas(t.horas)+'</div></div>';
+   h+='<div class="itemfim"><button class="btn sm '+(pub?"primary":"")+'" onclick="alternarPassPublico(\''+t.id+'\')">'+(pub?"Visível":"🔒 Só eu")+'</button></div>';
+   h+='</div>';
+  });
+  h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:9px">Uma sessão verificada nasce do check-in: você e o tatuador confirmaram um ao outro, na hora, no mesmo lugar. É o que faz o registro valer alguma coisa para os dois.</div>';
+ }
+
+ /* ── FORMAÇÃO ────────────────────────────────────────────────────
+    O caminho de cliente a tatuador. Existe porque hoje quem se
+    capacita teria que abrir conta nova para virar tatuador — jogando
+    fora justamente o histórico que prova a capacitação. */
+ if(sub==="me-formacao"){
+  var feitos=FORMACAO.filter(function(f){return f.estado==="concluido"});
+  var horasF=feitos.reduce(function(t,f){return t+f.horas},0);
+  h+='<div class="grandes">';
+  [["📋","Cursos concluídos",feitos.length,"registrados no seu perfil","me-formacao",null,null,false],
+   ["🕘","Horas de formação",horasF,"somando os concluídos","me-formacao",null,null,false],
+   ["🎨","Em andamento",FORMACAO.length-feitos.length,"curso(s) abertos","me-formacao",null,null,false]
+  ].forEach(function(x){h+=cartaoGrande(x)});
+  h+='</div>';
+
+  h+='<div class="card pad" style="margin-top:16px"><div class="row"><span class="b">Sua trilha</span>'+tg("novo")+'</div>';
+  h+='<div class="lista" style="margin-top:9px">';
+  FORMACAO.forEach(function(f){
+   h+='<div class="item" style="cursor:default"><div class="itemfoto">'+(f.estado==="concluido"?"✅":"🕘")+'</div>';
+   h+='<div class="itemtxt"><div class="b small">'+f.curso+'</div>';
+   h+='<div class="tiny muted">'+f.quem+' · '+f.horas+'h · '+f.nivel+'</div></div>';
+   h+='<div class="itemfim"><span class="badge '+(f.estado==="concluido"?"ok":"warn")+'">'+(f.estado==="concluido"?"concluído":"em curso")+'</span>';
+   h+='<span class="tiny muted">'+f.quando+'</span></div></div>';
+  });
+  h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:10px">O que você conclui fica no seu perfil. Se um dia você abrir um perfil de tatuador, esta trilha vai junto — é a mesma conta, e o histórico é seu.</div>';
+  h+='<button class="btn sm" style="margin-top:11px" onclick="go(\'plataforma\');S.tab=\'events\';S.evAba=\'cursos\'">Ver cursos disponíveis</button>';
+  h+='</div>';
+
+  if(!isArt()){
+   h+='<div class="card pad" style="margin-top:15px"><div class="row"><span class="b">Quer atender como tatuador?</span>'+tg("novo")+'</div>';
+   h+='<div class="small muted" style="margin-top:5px">Seu acesso de cliente continua igual, o passaporte continua seu, e a trilha acima passa a aparecer no seu perfil profissional. Não é conta nova: é o mesmo cadastro ganhando um papel.</div>';
+   h+='<button class="btn primary" style="margin-top:11px" onclick="becomeArtist()">Criar meu perfil de tatuador</button></div>';
+  }
  }
  if(sub==="me-quotes"){
   h+='<div class="card pad"><div class="row wrapf"><span class="b">Meus orçamentos</span>'+tg("real")+'<button class="btn sm sp" onclick="S.hub=\'new\';openDrawer(\'hub\')">✨ Novo orçamento</button></div>';
@@ -2808,6 +3188,52 @@ function vMe(sub){
  }
  return h+'</div></main>';
 }
+/* ═══ CHECK-IN — LADO DO CLIENTE ═══════════════════════════════════
+   Uma tela só, com uma decisão só. O que ela precisa fazer bem é
+   dizer, antes de qualquer botão, o que vai ficar registrado e quem vai
+   ver — porque é aqui que a pessoa aceita gravar onde esteve, com quem
+   e em que parte do corpo. Consentimento pedido depois do fato não é
+   consentimento. */
+function vCheckin(){
+ var c=S.checkin;
+ var h='<main><div class="wrap" style="max-width:520px">';
+ h+='<button class="btn sm" style="margin-top:16px" onclick="go(\'me-passaporte\')">‹ Passaporte</button>';
+
+ if(c.confirmado){
+  h+='<div class="card pad" style="margin-top:12px;text-align:center">';
+  h+='<div style="font-size:34px">✅</div>';
+  h+='<div class="b" style="margin-top:6px;font-size:17px">Check-in feito às '+(c.quando||agoraHm())+'</div>';
+  h+='<div class="small muted" style="margin-top:4px">Esta sessão entra no seu passaporte como <b>verificada</b>: você e o tatuador confirmaram um ao outro, aqui, agora.</div>';
+  h+='<div class="sep"></div>';
+  h+='<div class="small">'+(c.sessao?c.sessao.c:"")+' · '+(c.sessao?c.sessao.area:"")+'</div>';
+  h+='<div class="tiny muted">Studio Marina · São Paulo</div>';
+  h+='<div class="avisook" style="margin-top:12px;text-align:left">Continua privada. Ninguém vê esta sessão até você abrir, e você abre uma por uma no passaporte.</div>';
+  h+='<button class="btn primary blk" style="margin-top:12px" onclick="go(\'me-passaporte\')">Ver no passaporte</button>';
+  h+='</div></div></main>';
+  return h;
+ }
+
+ h+='<div class="card pad" style="margin-top:12px">';
+ h+='<div class="b" style="font-size:17px">Check-in da sessão</div>';
+ h+='<div class="small muted" style="margin-top:4px">Na hora de sentar, o tatuador abre um check-in e mostra o código. Aponte a câmera ou digite as seis letras.</div>';
+
+ h+='<div class="sep"></div>';
+ h+='<div class="tiny muted"><b>O que fica registrado:</b> a data, o tatuador, o estúdio, a cidade, o estilo e a parte do corpo.</div>';
+ h+='<div class="tiny muted" style="margin-top:4px"><b>Quem vê:</b> só você. O passaporte nasce fechado e você libera sessão por sessão, se quiser.</div>';
+ h+='<div class="tiny muted" style="margin-top:4px"><b>Por que vale a pena:</b> vira um carimbo que ninguém pode inventar — e do outro lado vira reputação real para quem te tatuou.</div>';
+ h+='<div class="sep"></div>';
+
+ h+='<button class="btn primary blk" onclick="escanearCheckin()">📷 Escanear o QR</button>';
+ h+='<div class="ou" style="margin:12px 0"><span>ou</span></div>';
+ h+='<label class="lb" for="ckCod">Código de seis letras</label>';
+ h+='<input class="fld" id="ckCod" maxlength="6" style="text-transform:uppercase;letter-spacing:.22em;font-weight:700;text-align:center;font-size:19px" value="'+escapar(S.checkinCod||"")+'" oninput="S.checkinCod=this.value" placeholder="ABC123" />';
+ if(c.erro)h+='<div class="avisoerro" style="margin-top:9px">'+c.erro+'</div>';
+ h+='<button class="btn blk" style="margin-top:10px" onclick="confirmarCheckin()">Confirmar presença</button>';
+ if(!c.aberto)h+='<div class="tiny muted" style="margin-top:10px">Nenhum check-in aberto no momento. Quem abre é o tatuador, na tela dele — em <b>Cliente + tatuador → Check-in</b> você consegue ver os dois lados.</div>';
+ h+='</div></div></main>';
+ return h;
+}
+
 function cqRow(q,full){
  var t=q.status==="respondido"?"ok":q.status==="agendado"?"acc":q.status==="recusado"?"bad":q.status==="expirado"?"":"warn";
  var h='<div class="lrow"><div class="thumb" style="background-image:'+tex(q.seed)+'"></div>';
@@ -3034,6 +3460,195 @@ async function concluirOnboardingReal(){
 function togStyle(s){var i=S.onbStyles.indexOf(s);if(i>=0)S.onbStyles.splice(i,1);else if(S.onbStyles.length<6)S.onbStyles.push(s);render()}
 function renderOnbBtn(){var b=document.getElementById("onbNext");if(b)b.disabled=S.onbName.trim().length<2}
 
+/* ============ FORNECEDOR ============
+   Quatro frentes que formam uma cadeia, e a ordem importa:
+
+   recomendação → embaixador → loja → cliente
+
+   Uma marca compra alcance quando começa por embaixador. Começando por
+   recomendação espontânea, ela descobre quem já usa o produto de
+   verdade — e é essa a pessoa que vale convidar. A tela reflete isso:
+   recomendações vêm antes de embaixadores na navegação, e a lista de
+   candidatos a embaixador sai de quem já recomendou.
+
+   Nada disto tem backend. É proposta, e a etiqueta em cada tela diz. */
+var FORN_NAV=[["forn","Visão geral","▦"],["forn-recomendacoes","Recomendações","★"],
+ ["forn-embaixadores","Embaixadores","👥"],["forn-loja","Minha loja","🛍"],["forn-perfil","Perfil da marca","⚙"]];
+
+function vForn(sub){
+ if(!isForn())return '<main><div class="wrap"><div class="card pad" style="max-width:500px;margin:36px auto;text-align:center"><div style="font-size:25px">🔒</div><div class="b" style="margin-top:7px">Ambiente do fornecedor</div><p class="small muted" style="margin-top:5px">Esta conta não tem o papel <code>supplier</code>. Troque o papel na barra de desenvolvimento para navegar por aqui.</p><button class="btn blk" style="margin-top:12px" onclick="go(\'home\')">Voltar</button></div></div></main>';
+
+ var h=envHead("forn","Nordeste Ink Care",FORN_NAV,sub)+'<main><div class="wrap">';
+ h+='<div class="banner" style="margin-top:14px"><div class="tiny"><b>Perfil em estudo.</b> Nenhuma destas telas grava no banco — não existe cadastro de fornecedor ainda. O que está aqui é a proposta, para o teste com usuários dizer se ela faz sentido antes de virar tabela.</div></div>';
+
+ /* ── VISÃO GERAL ─────────────────────────────────────────────── */
+ if(sub==="forn"){
+  var aEnviar=FORN_PEDIDOS.filter(function(x){return x.estado==="a enviar"}).length;
+  var convidados=EMBAIXADORES.filter(function(x){return x.estado==="convidado"}).length;
+  var ativos=EMBAIXADORES.filter(function(x){return x.estado==="ativo"}).length;
+  var semEstoque=FORN_PRODUTOS.filter(function(x){return x.estoque===0}).length;
+  var posSessao=FORN_PEDIDOS.filter(function(x){return x.origem==="pós-sessão"}).length;
+  var alcance=EMBAIXADORES.filter(function(x){return x.estado==="ativo"}).reduce(function(t,x){return t+x.alcance},0);
+
+  h+='<div class="row" style="margin-top:15px"><span class="b" style="font-size:15px">Precisa de você</span></div>';
+  h+='<div class="grandes" style="margin-top:7px">';
+  [["📦","Pedidos a enviar",aEnviar,"clientes esperando","forn-loja","fl","pedidos",aEnviar>0],
+   ["👥","Convites sem resposta",convidados,"tatuadores convidados","forn-embaixadores","fe","convites",convidados>0],
+   ["🏷","Produtos sem estoque",semEstoque,"saíram da vitrine","forn-loja","fl","produtos",semEstoque>0]
+  ].forEach(function(x){h+=cartaoGrande(x)});
+  h+='</div>';
+
+  h+='<div class="row" style="margin-top:19px"><span class="b" style="font-size:15px">Confiança que você tem</span>';
+  h+='<span class="sp tiny muted">o que sustenta a marca</span></div>';
+  h+='<div class="grandes" style="margin-top:7px">';
+  [["★","Recomendações",RECOMENDACOES.length,"de tatuadores atuantes","forn-recomendacoes","fr","recebidas",false],
+   ["👥","Embaixadores ativos",ativos,"com contrato aberto","forn-embaixadores","fe","ativos",false],
+   ["🌐","Alcance na plataforma",alcance.toLocaleString("pt-BR"),"seguidores dos embaixadores","forn-embaixadores","fe","ativos",false]
+  ].forEach(function(x){h+=cartaoGrande(x)});
+  h+='</div>';
+
+  h+='<div class="row" style="margin-top:19px"><span class="b" style="font-size:15px">Como vai o mês</span>';
+  h+='<span class="sp tiny muted">julho</span></div>';
+  h+='<div class="grandes" style="margin-top:7px">';
+  [["👛","Vendido",brl(FORN_PEDIDOS.reduce(function(t,x){return t+x.valor},0)),FORN_PEDIDOS.length+" pedidos","forn-loja","fl","pedidos",false],
+   ["✨","Vindos do pós-sessão",posSessao,"de "+FORN_PEDIDOS.length+" pedidos","forn-loja","fl","pedidos",false],
+   ["🛍","Produtos na vitrine",FORN_PRODUTOS.length,"catálogo publicado","forn-loja","fl","produtos",false],
+   ["📈","Vendas por embaixador",EMBAIXADORES.reduce(function(t,x){return t+x.vendas},0),"atribuídas ao link deles","forn-embaixadores","fe","ativos",false]
+  ].forEach(function(x){h+=cartaoGrande(x)});
+  h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:18px">O caminho que a marca percorre aqui é sempre o mesmo: alguém recomenda, essa pessoa vira embaixadora, e a venda acontece no momento em que o cliente mais precisa — logo depois da sessão.</div>';
+ }
+
+ /* ── RECOMENDAÇÕES ───────────────────────────────────────────────
+    Vêm antes de embaixadores de propósito. A recomendação espontânea é
+    o sinal; o contrato é a consequência. Inverter a ordem é comprar
+    alcance de quem nunca usou o produto — e o cliente percebe. */
+ if(sub==="forn-recomendacoes"){
+  h+=abasInternas("fr",[["recebidas","Recebidas",RECOMENDACOES.length],["pedir","Pedir"]]);
+  if(subAba("fr","recebidas")==="pedir"){
+   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Pedir recomendação</span>'+tg("novo")+'</div>';
+   h+='<div class="tiny muted" style="margin-top:3px">Só aparecem aqui tatuadores que já compraram da sua marca. Pedir recomendação a quem nunca usou é pedir propaganda, e é isso que corrói a confiança que esta tela existe para construir.</div>';
+   h+='<div class="lista" style="margin-top:10px">';
+   [["Bruna Okabe","@brunaokabe","Curitiba","comprou 4 vezes"],
+    ["Igor Falcão","@igorfalcao","Porto Alegre","comprou 2 vezes"],
+    ["Ana Petrova","@anapetrova","São Paulo","comprou 9 vezes"]].forEach(function(x){
+    h+='<div class="item" style="cursor:default"><div class="av">'+ini(x[0])+'</div>';
+    h+='<div class="itemtxt"><div class="b small">'+x[0]+'</div><div class="tiny muted">'+x[1]+' · '+x[2]+'</div>';
+    h+='<div class="tiny muted">'+x[3]+'</div></div>';
+    h+='<div class="itemfim"><button class="btn sm" onclick="alert(\'pedirRecomendacao(brand_id, artist_id)\')">Pedir</button></div></div>';
+   });
+   h+='</div></div>';
+   return h+'</div></main>';
+  }
+  h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">O que tatuadores dizem da sua marca</span>'+tg("novo")+'</div>';
+  h+='<div class="tiny muted" style="margin-top:3px">Estas recomendações aparecem no produto, para o cliente, na hora da compra. É o que faz uma pomada desconhecida virar a pomada que a Marina usa.</div>';
+  h+='<div style="margin-top:10px">';
+  RECOMENDACOES.forEach(function(r){
+   h+='<div class="lrow" style="align-items:flex-start"><div class="av">'+ini(r.de)+'</div>';
+   h+='<div style="min-width:0;flex:1"><div class="row" style="gap:6px"><span class="b small">'+r.de+'</span>';
+   h+='<span class="tiny muted">'+r.h+'</span>';
+   h+=(r.peso==="alto"?'<span class="badge acc">alto alcance</span>':'')+'</div>';
+   h+='<div class="tiny muted">sobre '+r.produto+' · '+r.quando+'</div>';
+   h+='<div class="small" style="margin-top:4px;font-style:italic">"'+r.texto+'"</div></div>';
+   h+='<div class="sp"><button class="btn sm" onclick="alert(\'destacarRecomendacao(id)\')">Destacar</button></div></div>';
+  });
+  h+='</div></div>';
+ }
+
+ /* ── EMBAIXADORES ────────────────────────────────────────────── */
+ if(sub==="forn-embaixadores"){
+  var conv=EMBAIXADORES.filter(function(x){return x.estado==="convidado"});
+  var ativ=EMBAIXADORES.filter(function(x){return x.estado==="ativo"});
+  h+=abasInternas("fe",[["convites","Convites",conv.length||""],["ativos","Ativos",ativ.length||""]]);
+
+  if(subAba("fe","convites")==="ativos"){
+   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Quem representa a marca</span>'+tg("novo")+'</div>';
+   h+='<div class="tiny muted" style="margin-top:3px">Cada embaixador tem um link próprio. A venda atribuída a ele é o que justifica a comissão — e o que impede a relação de virar permuta sem retorno.</div>';
+   h+='<div class="lista" style="margin-top:10px">';
+   ativ.forEach(function(e){
+    h+='<div class="item" style="cursor:default"><div class="av">'+ini(e.nome)+'</div>';
+    h+='<div class="itemtxt"><div class="row" style="gap:6px"><span class="b small">'+e.nome+'</span><span class="badge ok">ativo</span></div>';
+    h+='<div class="tiny muted">'+e.h+' · '+e.cidade+' · '+(SL[e.estilo]||e.estilo)+'</div>';
+    h+='<div class="tiny muted">desde '+e.desde+' · '+e.alcance.toLocaleString("pt-BR")+' seguidores aqui</div></div>';
+    h+='<div class="itemfim"><div class="b small">'+e.vendas+'</div><span class="tiny muted">vendas</span></div></div>';
+   });
+   h+='</div></div>';
+   return h+'</div></main>';
+  }
+
+  h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Convites</span>'+tg("novo")+'</div>';
+  h+='<div class="tiny muted" style="margin-top:3px">O convite diz o que a marca oferece e o que espera. Recusa também fica registrada: insistir com quem já disse não é a forma mais rápida de queimar a marca dentro da plataforma.</div>';
+  h+='<div class="lista" style="margin-top:10px">';
+  EMBAIXADORES.filter(function(x){return x.estado!=="ativo"}).forEach(function(e){
+   h+='<div class="item" style="cursor:default"><div class="av">'+ini(e.nome)+'</div>';
+   h+='<div class="itemtxt"><div class="row" style="gap:6px"><span class="b small">'+e.nome+'</span>';
+   h+='<span class="badge '+(e.estado==="recusou"?"bad":"warn")+'">'+e.estado+'</span></div>';
+   h+='<div class="tiny muted">'+e.h+' · '+e.cidade+' · '+(SL[e.estilo]||e.estilo)+'</div>';
+   h+='<div class="tiny muted">'+e.desde+' · '+e.alcance.toLocaleString("pt-BR")+' seguidores aqui</div></div>';
+   h+='<div class="itemfim">'+(e.estado==="recusou"
+     ? '<span class="tiny muted">não insistir</span>'
+     : '<button class="btn sm" onclick="alert(\'lembrarConvite(brand_id, artist_id)\')">Lembrar</button>')+'</div></div>';
+  });
+  h+='</div>';
+  h+='<button class="btn primary" style="margin-top:12px" onclick="S.sub=S.sub||{};S.sub.fr=\'pedir\';go(\'forn-recomendacoes\')">Convidar quem já usa a marca</button>';
+  h+='<div class="tiny muted" style="margin-top:7px">O botão leva para as recomendações de propósito: é lá que estão os tatuadores que já compraram.</div>';
+  h+='</div>';
+ }
+
+ /* ── LOJA ────────────────────────────────────────────────────── */
+ if(sub==="forn-loja"){
+  var pend=FORN_PEDIDOS.filter(function(x){return x.estado==="a enviar"}).length;
+  h+=abasInternas("fl",[["produtos","Produtos"],["pedidos","Pedidos",pend||""]]);
+
+  if(subAba("fl","produtos")==="pedidos"){
+   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Pedidos</span>'+tg("novo")+'</div>';
+   h+='<div class="tiny muted" style="margin-top:3px">A coluna <b>origem</b> é a que importa: "pós-sessão" é a venda que a plataforma criou, e é sobre ela que faz sentido cobrar comissão.</div>';
+   h+='<table class="t" style="margin-top:10px"><tr><th>Quem</th><th>Item</th><th>Origem</th><th style="text-align:right">Valor</th><th style="text-align:right">Estado</th></tr>';
+   FORN_PEDIDOS.forEach(function(o){
+    h+='<tr><td class="b small">'+o.quem+'</td><td class="small">'+o.item+'</td>';
+    h+='<td><span class="badge '+(o.origem==="pós-sessão"?"acc":"")+'">'+o.origem+'</span></td>';
+    h+='<td style="text-align:right" class="b small">'+brl(o.valor)+'</td>';
+    h+='<td style="text-align:right"><span class="badge '+(o.estado==="entregue"?"ok":o.estado==="enviado"?"acc":"warn")+'">'+o.estado+'</span></td></tr>';
+   });
+   h+='</table></div>';
+   return h+'</div></main>';
+  }
+
+  h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Vitrine</span>'+tg("novo")+'</div>';
+  h+='<div class="tiny muted" style="margin-top:3px">O que aparece para o cliente logo depois da sessão, quando ele acabou de sair do estúdio e não sabe o que comprar.</div>';
+  h+='<div class="lista" style="margin-top:10px">';
+  FORN_PRODUTOS.forEach(function(x){
+   var recs=RECOMENDACOES.filter(function(r){return r.produto===x.n});
+   h+='<div class="item" style="cursor:default"><div class="itemfoto">'+x.e+'</div>';
+   h+='<div class="itemtxt"><div class="row" style="gap:6px"><span class="b small">'+x.n+'</span>';
+   h+=(recs.length?'<span class="badge acc" title="Recomendado por tatuador">★ '+recs.length+'</span>':'')+'</div>';
+   h+='<div class="tiny muted">'+x.cat+' · '+x.vendas+' vendidos</div>';
+   h+=(x.estoque?'<div class="tiny muted">'+x.estoque+' em estoque</div>'
+                :'<div class="tiny" style="color:var(--x-warning)">sem estoque — fora da vitrine</div>')+'</div>';
+   h+='<div class="itemfim"><div class="b small">'+brl(x.preco)+'</div><span class="tiny muted">editar ›</span></div></div>';
+  });
+  h+='</div></div>';
+ }
+
+ /* ── PERFIL DA MARCA ─────────────────────────────────────────── */
+ if(sub==="forn-perfil"){
+  h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Perfil público</span>'+tg("novo")+'</div>';
+  h+='<div class="grid" style="gap:11px;margin-top:11px">';
+  h+='<div><label class="lb">Nome da marca</label><input class="fld" value="Nordeste Ink Care" /></div>';
+  h+='<div class="grid" style="grid-template-columns:2fr 1fr"><div><label class="lb">Cidade</label><input class="fld" value="Recife" /></div><div><label class="lb">UF</label><input class="fld" value="PE" /></div></div>';
+  h+='<div><label class="lb">Site</label><input class="fld" value="nordesteinkcare.com.br" /></div>';
+  h+='<div><label class="lb">O que vocês fazem</label><textarea class="fld" style="height:76px;resize:vertical">Cuidado pós-tatuagem formulado com dermatologista. Sem perfume, sem petrolato.</textarea></div>';
+  h+='</div>';
+  h+='<div class="sep"></div>';
+  h+='<div class="b small">Também é tatuador?</div>';
+  h+='<div class="tiny muted" style="margin-top:3px">Muita marca de material nasce dentro de um estúdio. Se for o seu caso, o papel de tatuador entra na mesma conta — sem cadastro novo e sem perder o histórico.</div>';
+  h+='<button class="btn" style="margin-top:10px" onclick="becomeArtist()">Acrescentar perfil de tatuador</button>';
+  h+='</div>';
+ }
+
+ return h+'</div></main>';
+}
+
 /* ============ STUDIO ============ */
 function vStudio(sub){
  if(!isArt())return '<main><div class="wrap"><div class="card pad" style="max-width:500px;margin:36px auto;text-align:center"><div style="font-size:25px">🔒</div><div class="b" style="margin-top:7px">Ambiente exclusivo de tatuadores</div><p class="small muted" style="margin-top:5px">Esta conta não tem o papel <code>artist</code>. Na proposta nova, o acesso é bloqueado aqui em vez de empurrar a pessoa para o onboarding.</p><button class="btn primary" style="margin-top:12px" onclick="becomeArtist()">Tornar-se tatuador</button><button class="btn blk" style="margin-top:7px" onclick="go(\'me\')">Voltar para minha área</button></div></div></main>';
@@ -3141,6 +3756,83 @@ function vStudio(sub){
      sabe olhar tatuagem. Só então valor e mensagem, numa tela em que
      não há mais nada para fazer. */
   h+=recebidos();
+ }
+
+ /* ── CHECK-IN ────────────────────────────────────────────────
+    Duas sub-abas: o que está acontecendo agora, e o que os check-ins
+    passados revelaram. A segunda só existe por causa da primeira —
+    duração honesta por estilo é impossível de coletar por formulário,
+    porque ninguém preenche depois de seis horas tatuando. */
+ if(sub==="studio-checkin"){
+  h+=abasInternas("ck",[["agora","Agora"],["desempenho","Desempenho"]]);
+
+  if(subAba("ck","agora")==="desempenho"){
+   var porEstilo=desempenhoPorEstilo();
+   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Quanto tempo leva, por estilo</span>'+tg("novo")+'</div>';
+   h+='<div class="tiny muted" style="margin-top:3px">Medido pelo relógio do check-in, não pela sua lembrança. É o número que faz o orçamento parar de ser chute.</div>';
+   h+='<table class="t" style="margin-top:10px"><tr><th>Estilo</th><th style="text-align:right">Sessões</th><th style="text-align:right">Média</th><th style="text-align:right">Mais longa</th></tr>';
+   porEstilo.forEach(function(e){
+    h+='<tr><td class="b small">'+e.rotulo+'</td><td style="text-align:right" class="small">'+e.n+'</td>';
+    h+='<td style="text-align:right" class="b small">'+horasBonitas(e.media)+'</td>';
+    h+='<td style="text-align:right" class="small muted">'+horasBonitas(e.max)+'</td></tr>';
+   });
+   h+='</table></div>';
+   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Onde você tatuou</span>'+tg("novo")+'</div>';
+   h+='<div class="tiny muted" style="margin-top:3px">Cada check-in registra cidade e estúdio. Guest spot e convenção entram sozinhos, sem você anotar nada.</div>';
+   h+='<div class="lista" style="margin-top:9px">';
+   lugaresDoCheckin().forEach(function(x){
+    h+='<div class="item" style="cursor:default"><div class="itemfoto">📍</div>';
+    h+='<div class="itemtxt"><div class="b small">'+x.lugar+'</div><div class="tiny muted">'+x.cidade+' · '+x.pais+'</div></div>';
+    h+='<div class="itemfim"><div class="b small">'+x.n+'</div><span class="tiny muted">sessão(ões)</span></div></div>';
+   });
+   h+='</div></div>';
+   return h+'</div></main>';
+  }
+
+  var ck=S.checkin;
+  if(!ck.aberto){
+   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Abrir o check-in de uma sessão</span>'+tg("novo")+'</div>';
+   h+='<div class="tiny muted" style="margin-top:3px">Abra quando a pessoa sentar. Ela escaneia, e a sessão fica registrada para os dois — o passaporte dela e a sua reputação.</div>';
+   h+='<div class="lista" style="margin-top:10px">';
+   BOOK.forEach(function(b,i){
+    h+='<button class="item" onclick="abrirCheckin('+i+')"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div>';
+    h+='<div class="itemtxt"><div class="b small">'+b.c+'</div><div class="tiny muted">'+b.area+' · '+b.h+'h previstas</div></div>';
+    h+='<div class="itemfim"><span class="tiny muted">abrir check-in ›</span></div></button>';
+   });
+   h+='</div></div>';
+   return h+'</div></main>';
+  }
+
+  h+='<div class="card pad" style="margin-top:14px;max-width:520px;text-align:center">';
+  h+='<div class="row" style="justify-content:center;gap:7px"><span class="b">'+ck.sessao.c+'</span>';
+  h+=ck.confirmado?'<span class="badge ok">✓ confirmou às '+(ck.quando||"")+'</span>':'<span class="badge warn">esperando escanear</span>';
+  h+='</div>';
+  h+='<div class="tiny muted">'+ck.sessao.area+' · Studio Marina · São Paulo</div>';
+
+  if(!ck.confirmado){
+   h+='<div class="qrcx">'+qrFalso(ck.codigo,180)+'</div>';
+   h+='<div class="tiny muted">ou dite o código</div>';
+   h+='<div class="codigo">'+ck.codigo+'</div>';
+   h+='<div class="tiny muted" style="margin-top:9px">Mostre a tela para a pessoa. Câmera ruim acontece — por isso o código serve para ser ditado.</div>';
+   h+='<div class="sep"></div>';
+   h+='<div class="tiny muted">Enquanto ela não confirmar, nada é registrado. O check-in exige os dois.</div>';
+   h+='<button class="btn blk" style="margin-top:11px" onclick="fecharCheckin()">Cancelar</button>';
+  } else if(!ck.inicio){
+   h+='<div style="font-size:34px;margin-top:14px">✅</div>';
+   h+='<div class="b" style="margin-top:5px">Vinculado</div>';
+   h+='<div class="small muted" style="margin-top:3px">Agora o relógio. Ele é o que transforma esta sessão em dado de desempenho — quanto tempo este estilo leva com você, de verdade.</div>';
+   h+='<button class="btn primary blk" style="margin-top:13px" onclick="iniciarSessaoCheckin()">Iniciar a sessão</button>';
+  } else if(!ck.fim){
+   h+='<div class="relogio">em andamento</div>';
+   h+='<div class="small muted">Começou às '+agoraHm()+'. Pode fechar a tela: o relógio continua.</div>';
+   h+='<button class="btn primary blk" style="margin-top:13px" onclick="encerrarSessaoCheckin()">Encerrar a sessão</button>';
+  } else {
+   h+='<div class="relogio">'+horasBonitas(duracaoCheckin())+'</div>';
+   h+='<div class="small muted">Registrado nos dois lados: no passaporte de '+ck.sessao.c+' e no seu histórico.</div>';
+   h+='<div class="avisook" style="margin-top:12px;text-align:left">A duração entra em <b>Desempenho</b>. Com algumas sessões, a média por estilo passa a valer mais que a sua estimativa.</div>';
+   h+='<button class="btn blk" style="margin-top:11px" onclick="fecharCheckin()">Concluir</button>';
+  }
+  h+='</div>';
  }
 
  if(sub==="studio-schedule"){
@@ -3377,6 +4069,29 @@ function vStudio(sub){
 
  if(sub==="studio-profile")h+=studioProfile();
  return h+'</div></main>';
+}
+/* As médias saem das sessões com check-in, e só delas. Misturar sessão
+   medida com sessão lembrada estragaria justamente o número que faz o
+   check-in valer a pena. */
+function desempenhoPorEstilo(){
+ var m={};
+ PASS.filter(function(t){return t.verificado}).forEach(function(t){
+  var k=t.estilo;
+  if(!m[k])m[k]={rotulo:SL[k]||k,n:0,soma:0,max:0};
+  m[k].n++; m[k].soma+=t.horas; if(t.horas>m[k].max)m[k].max=t.horas;
+ });
+ return Object.keys(m).map(function(k){
+  return {rotulo:m[k].rotulo,n:m[k].n,media:m[k].soma/m[k].n,max:m[k].max};
+ }).sort(function(a,b){return b.media-a.media});
+}
+function lugaresDoCheckin(){
+ var m={};
+ PASS.filter(function(t){return t.verificado}).forEach(function(t){
+  var k=t.estudio;
+  if(!m[k])m[k]={lugar:k,cidade:t.cidade,pais:t.pais,n:0};
+  m[k].n++;
+ });
+ return Object.keys(m).map(function(k){return m[k]}).sort(function(a,b){return b.n-a.n});
 }
 function sqRow(q,full){
  var t=corDoStatus(q.status);
@@ -4597,8 +5312,10 @@ function render(){
  // protegida caía num ReferenceError e via tela em branco.
  else if(r==="gate"){ if(!S.cad.viaGoogle)entrarComGoogle(); S.route="cadastro"; h=vCadastro(); }
  else if(r==="auth"||r==="cadastro"||r==="signup")h=vCadastro();
+ else if(r==="checkin")h=isLog()?vCheckin():vCadastro();
  else if(r.indexOf("me")===0)h=isLog()?vMe(r):vCadastro();
  else if(r.indexOf("studio")===0)h=isLog()?vStudio(r):vCadastro();
+ else if(r.indexOf("forn")===0)h=isLog()?vForn(r):vCadastro();
  comFoco(function(){document.getElementById("app").innerHTML=icons(h)});
  document.getElementById("sessionSel").value=S.session;
  if(r==="modelo"&&S.abaModelo==="modelo")calcUE();
@@ -4727,7 +5444,12 @@ function renderConvite(){
 document.getElementById("sessionSel").addEventListener("change",function(e){
  S.session=e.target.value;
  if(S.session==="artist"&&!S.roleSource)S.roleSource="signup_trigger";
- if(!isLog()&&(S.route.indexOf("me")===0||S.route.indexOf("studio")===0))S.route="home";
+ if(!isLog()&&(S.route.indexOf("me")===0||S.route.indexOf("studio")===0||S.route.indexOf("forn")===0))S.route="home";
+ // Trocar de papel com a rota de outro papel na tela deixaria o visitante
+ // olhando para um cadeado sem entender por quê.
+ if(!isForn()&&S.route.indexOf("forn")===0)S.route="home";
+ if(!isArt()&&S.route.indexOf("studio")===0)S.route="home";
+ if(isForn()&&S.route.indexOf("me")===0)S.route="forn";
  render();
 });
 /* markup estático da barra superior também passa pelo pós-processador */

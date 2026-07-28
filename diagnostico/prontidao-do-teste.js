@@ -143,7 +143,9 @@ console.log("╚═════════════════════�
 secao("1. TODAS AS TELAS, NOS TRÊS PERFIS");
 {
   const rotas = ["home", "artist", "plataforma", "cadastro", "gate", "modelo", "conexao",
-    "me", "me-quotes", "me-saved", "me-orders", "me-events",
+    "me", "me-passaporte", "me-formacao", "me-quotes", "me-saved", "me-orders", "me-events",
+    "checkin", "studio-checkin",
+    "forn", "forn-recomendacoes", "forn-embaixadores", "forn-loja", "forn-perfil",
     "studio", "studio-quotes", "studio-schedule", "studio-caixa",
     "studio-historico", "studio-events", "studio-reviews", "studio-profile"];
   const gavetas = ["hub", "assist", "chat", "notif", "cart", "agenda"];

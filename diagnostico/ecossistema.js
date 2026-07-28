@@ -65,7 +65,21 @@ chk('e que arte não é só tatuagem',/único destino do traço/.test(t));
 chk('depois pergunta o que significa para você',/o que isso significa/.test(t));
 chk('cliente: proposta reescrita',/O lugar de quem gosta de tatuagem/.test(t));
 chk('cliente: preço vem de quem faz',/Preço de quem vai fazer/.test(t));
+chk('cliente: confiança vem antes do preço',
+    t.indexOf('Saber com quem você vai tatuar')>=0 &&
+    t.indexOf('Saber com quem você vai tatuar')<t.indexOf('Preço de quem vai fazer'),
+    'a proposta abre falando de preço, não de confiança');
+chk('cliente: o passaporte é privado na promessa',/Privado por padrão/.test(t));
 chk('sem IA em lugar nenhum',!/\bIA\b/.test(t));
+S.perfilLanding='fornecedor';g.e("render()");
+var tfo=tela();
+/* A ordem das vantagens é o argumento da marca: recomendação sustenta
+   embaixador, que sustenta a venda. Vender primeiro seria propaganda. */
+chk('fornecedor: a cadeia começa na recomendação',
+    tfo.indexOf('Recomendação de quem usa')>=0 &&
+    tfo.indexOf('Recomendação de quem usa')<tfo.indexOf('Embaixadores, não anúncios'),
+    'a proposta abre por alcance, não por confiança');
+chk('fornecedor: a venda é no pós-sessão',/Venda no pós-sessão/.test(tfo));
 S.perfilLanding='tatuador';g.e("render()");
 var tt=tela();
 chk('tatuador: tudo num lugar só',/Sua vida profissional num lugar só/.test(tt));
