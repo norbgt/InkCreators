@@ -60,7 +60,7 @@ Em <https://supabase.com/dashboard/project/hdfigxygektppvlogaoj/auth/url-configu
 | **Redirect URLs** | `https://norbgt.github.io/InkCreators/**` |
 
 Acrescente também `http://localhost:8765/**` para funcionar quando você
-testa pelo `abrir-prototipo.command`.
+testa pelo aplicativo **Abrir Ink Creators**.
 
 O código já manda o endereço de retorno em cada cadastro
 (`emailRedirectTo`), mas o Supabase só aceita endereços que estejam

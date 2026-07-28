@@ -215,6 +215,7 @@ html[data-dark] .seg.on{
 /* Barra de localização + mapa pequeno + lista compacta.
    Padrão de app de mobilidade: contexto no topo, decisão na lista. */
 .avisoerro{margin-top:12px;padding:9px 12px;border-radius:9px;background:var(--x-warning-bg);color:var(--x-warning);font-size:12.5px}
+.avisook{padding:9px 12px;border-radius:9px;background:var(--x-success-bg);color:var(--x-success);font-size:12.5px}
 .btnlocal{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);background:none}
 .btnlocal:hover{background:var(--muted);color:var(--foreground)}
 .btnlocal.on{color:var(--accent)}
@@ -401,27 +402,34 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 .pendente:hover{border-color:var(--x-warning) !important;opacity:.85}
 .pendente .ico,.pendente svg{opacity:.9}
 
-/* Painel da visão geral. Número primeiro, rótulo depois: quem abre já
-   está procurando a grandeza, e o rótulo só confirma o que ela é. */
-.grandes{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-@media(min-width:700px){.grandes{grid-template-columns:repeat(4,1fr)}}
-.grande{display:flex;flex-direction:column;align-items:flex-start;gap:2px;
-  padding:14px 15px 15px;border:1px solid var(--border);border-radius:14px;
+/* Painel da visão geral. Rótulo primeiro, número logo abaixo: o rótulo
+   é curto e diz do que se trata, e o número é o que a pessoa varre.
+
+   Cartão pequeno de propósito. São dez, e dez cartões grandes viram
+   três rolagens no celular — que é o oposto de um resumo. Aqui os dez
+   cabem em duas telas no iPhone e numa só no iPad. */
+.grandes{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media(min-width:560px){.grandes{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:700px){.grandes{grid-template-columns:repeat(4,1fr);gap:9px}}
+@media(min-width:1100px){.grandes{grid-template-columns:repeat(5,1fr)}}
+.grande{display:flex;flex-direction:column;align-items:flex-start;gap:0;
+  padding:10px 11px 11px;border:1px solid var(--border);border-radius:11px;
   background:var(--card);cursor:pointer;text-align:left;
   transition:border-color .15s ease,transform .12s ease}
 .grande:hover{border-color:var(--muted-foreground)}
 .grande:active{transform:scale(.985)}
-.grande .gic{color:var(--muted-foreground);font-size:15px;line-height:1}
-.grande .gic svg{width:15px;height:15px}
-.grande .gval{font-size:29px;font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-top:7px}
-.grande .grot{font-size:12.5px;font-weight:600;line-height:1.25;margin-top:3px}
-.grande .gnota{font-size:11.5px;color:var(--muted-foreground);line-height:1.3;margin-top:1px}
+.grande .gtopo{display:flex;align-items:center;gap:5px;min-width:0;width:100%}
+.grande .gic{color:var(--muted-foreground);font-size:12.5px;line-height:1;flex-shrink:0}
+.grande .gic svg{width:13px;height:13px;display:block}
+.grande .grot{font-size:11.5px;font-weight:600;line-height:1.2;min-width:0}
+.grande .gval{font-size:22px;font-weight:700;letter-spacing:-.03em;line-height:1.15;margin-top:5px}
+.grande .gnota{font-size:10.5px;color:var(--muted-foreground);line-height:1.25;margin-top:1px}
 /* Só quem tem pendência muda de cor. Se tudo destaca, nada destaca. */
 .grande.alerta{border-color:var(--accent)}
 .grande.alerta .gval,.grande.alerta .gic{color:var(--accent)}
 @media(max-width:400px){
-  .grande{padding:12px 12px 13px}
-  .grande .gval{font-size:25px}
+  .grande{padding:9px 10px 10px}
+  .grande .gval{font-size:20px}
 }
 
 /* Contador dentro da sub-aba: diz quanto tem do outro lado sem obrigar
@@ -995,12 +1003,17 @@ var CQ=[
  {id:"q5",area:"Braço fechado",st:["oriental"],studio:"Studio Felipe",resp:1,min:280000,max:450000,status:"recusado",seed:9,cx:4,when:"há 1 mês"},
  {id:"q6",area:"Pulso",st:["lettering"],studio:"Sem propostas",resp:0,min:18000,max:30000,status:"expirado",seed:13,cx:2,when:"há 2 meses"}
 ];
+/* Pedidos recebidos. x/y são a posição no mapa e km a distância até o
+   estúdio: onde a pessoa está muda a conversa — quem está a 2 km fecha
+   numa tarde, quem está a 12 quer saber se vale a viagem antes do
+   preço. refs são as fotos que o cliente mandou; ele escreveu note
+   olhando para elas, e é por isso que as duas coisas aparecem juntas. */
 var SQ=[
- {id:"s1",c:"Helena Duarte",area:"Antebraço interno",st:["fineline"],min:45000,max:72000,when:"há 2 h",status:"novo",cx:2,seed:3,hrs:"3–4h",note:"Quero algo delicado, sem sombreado pesado.",city:"São Paulo"},
- {id:"s2",c:"Rodrigo Palma",area:"Costela",st:["blackwork"],min:98000,max:170000,when:"há 5 h",status:"novo",cx:3,seed:6,hrs:"5–7h",note:"Ornamental, cobrindo a lateral toda.",city:"São Paulo"},
- {id:"s3",c:"Tainá Alves",area:"Ombro",st:["oriental"],min:150000,max:240000,when:"ontem",status:"em análise",cx:4,seed:9,hrs:"8–10h",note:"Projeto de manga, começando pelo ombro.",city:"Guarulhos"},
- {id:"s4",c:"Marcos Vidal",area:"Punho",st:["minimalista"],min:22000,max:38000,when:"ontem",status:"em análise",cx:1,seed:12,hrs:"1–2h",note:"Símbolo pequeno, traço fino.",city:"São Paulo"},
- {id:"s5",c:"Paula Nunes",area:"Coxa",st:["realismo"],min:180000,max:320000,when:"há 2 dias",status:"respondido",cx:4,seed:15,hrs:"10–12h",note:"Retrato em preto e cinza.",city:"Osasco"}
+ {id:"s1",c:"Helena Duarte",area:"Antebraço interno",st:["fineline"],min:45000,max:72000,when:"há 2 h",status:"novo",cx:2,seed:3,hrs:"3–4h",note:"Quero algo delicado, sem sombreado pesado. As duas primeiras são mais o traço que eu gosto; a última mandei só pelo tamanho.",city:"São Paulo",x:44,y:37,km:3.1,refs:4},
+ {id:"s2",c:"Rodrigo Palma",area:"Costela",st:["blackwork"],min:98000,max:170000,when:"há 5 h",status:"novo",cx:3,seed:6,hrs:"5–7h",note:"Ornamental, cobrindo a lateral toda. Aceito sugestão de composição, o que não quero é nada figurativo.",city:"São Paulo",x:59,y:30,km:4.6,refs:5},
+ {id:"s3",c:"Tainá Alves",area:"Ombro",st:["oriental"],min:150000,max:240000,when:"ontem",status:"em análise",cx:4,seed:9,hrs:"8–10h",note:"Projeto de manga, começando pelo ombro. Topo fechar em várias sessões, sem pressa.",city:"Guarulhos",x:72,y:21,km:12.4,refs:6},
+ {id:"s4",c:"Marcos Vidal",area:"Punho",st:["minimalista"],min:22000,max:38000,when:"ontem",status:"em análise",cx:1,seed:12,hrs:"1–2h",note:"Símbolo pequeno, traço fino. É a minha primeira, então queria entender como funciona a sessão.",city:"São Paulo",x:36,y:62,km:2.2,refs:3},
+ {id:"s5",c:"Paula Nunes",area:"Coxa",st:["realismo"],min:180000,max:320000,when:"há 2 dias",status:"respondido",cx:4,seed:15,hrs:"10–12h",note:"Retrato em preto e cinza, a foto de referência é a terceira. As outras são só de textura de pele que eu curti.",city:"Osasco",x:23,y:45,km:9.8,refs:4}
 ];
 /* O outro lado do orçamento: o que ele respondeu e o que aconteceu
    depois. Sem isto, o tatuador manda a proposta e o assunto some — que
@@ -1070,7 +1083,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  qStatus:"todos",hub:"menu",aiStep:0,aiRefs:2,
  aiEstilos:[],aiFora:[],aiParte:"",aiCidade:"",aiFaixa:"",aiObs:"",
  chatOpen:null,chatFilter:"all",chatQ:"",notifFilter:"all",notifs:NOTIFS.map(function(n){return{...n}}),
- sqSel:"s1",onbStep:1,onbName:"",onbStyles:[],onbPort:0,pfTab:"info",menu:false,autoAssist:false,
+ sqSel:"s1",orcPasso:"lista",orcEnviado:null,onbStep:1,onbName:"",onbStyles:[],onbPort:0,pfTab:"info",menu:false,autoAssist:false,
  sqSelAg:null,agArtist:null,agDia:null,agHora:null,agFeito:false,destaqueAtivo:false,
  voltarPara:null,voltarArtista:null,histAba:"pessoas",sub:{},
  agendaGoogle:false,googleConectando:false,
@@ -1122,7 +1135,10 @@ var CHAVE_ESTADO="ink.estado.v2";
 var GUARDA=["session","route","artist","tab","modo","seguindo","curtidas","cart",
  "cad","perfilLanding","abaPerfil","shopAud","shopCat","shopQ","evAba","q",
  "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","histAba","sub","agendaGoogle","emailConfirmado","emailPendente","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura","ehFornecedor",
- "notifFilter","pfTab","ue","f","feedLote","caro","cep"];
+ "notifFilter","pfTab","ue","f","feedLote","caro","cep","sqSel","orcPasso"];
+// orcEnviado fica de fora de propósito: é a confirmação de uma ação que
+// acabou de acontecer. Sobreviver à recarga faria a tela comemorar de
+// novo um envio de ontem.
 function salvarEstado(){
  try{var o={};GUARDA.forEach(function(k){if(S[k]!==undefined)o[k]=S[k]});
   // Senha em disco não. Ela sobrevive à recarga só enquanto a aba
@@ -1707,10 +1723,19 @@ function secEvents(){
  return h;
 }
 
-function mapinha(pontos,alt){
- var h='<div class="mapa" style="height:'+(alt||170)+'px">';
+/* Altura única para todo mapa da plataforma. Quando eventos tinha 170
+   e cursos 210, trocar de aba mexia o chão sob a lista — e a pessoa
+   perdia a referência de onde estava olhando. */
+var ALT_MAPA=190;
+/* O mesmo mapa serve eventos, cursos e pedidos de orçamento. O que
+   muda entre eles é só quem está selecionado e o que o pino faz — por
+   isso os dois entram como parâmetro em vez de virarem três mapas. */
+function mapinha(pontos,alt,sel,acao){
+ sel = sel!==undefined ? sel : S.evSel;
+ acao = acao || "S.evSel='$id';render()";
+ var h='<div class="mapa" style="height:'+(alt||ALT_MAPA)+'px">';
  pontos.slice(0,8).forEach(function(e,k){
-  h+='<div class="pin '+(S.evSel===e.id?"on":"")+'" style="left:'+e.x+'%;top:'+e.y+'%" onclick="S.evSel=\''+e.id+'\';render()"><b>'+(k+1)+'</b></div>';
+  h+='<div class="pin '+(sel===e.id?"on":"")+'" style="left:'+e.x+'%;top:'+e.y+'%" onclick="'+acao.replace("$id",e.id)+'"><b>'+(k+1)+'</b></div>';
  });
  h+='<div class="pin voce" style="left:50%;top:50%"><b>◉</b></div>';
  h+='<div class="mapaselo">'+(S.localReal?"sua posição":"mapa simulado")+'</div>';
@@ -1739,7 +1764,7 @@ function listaEventos(){
  if(S.evSort==="name")l.sort(function(a,b){return a.n.localeCompare(b.n)});
 
  var h=avisoLocal();
- h+=mapinha(l,170);
+ h+=mapinha(l);
  if(!l.length)return h+'<div class="card pad muted" style="margin-top:14px">Nenhum evento com esses filtros.</div>';
 
  var ate=Math.min(l.length,S.feedLote*6);
@@ -1775,12 +1800,12 @@ function listaCursos(){
  if(S.coSort==="spots")c.sort(function(a,b){return b.spots-a.spots});
  if(S.coSort==="name")c.sort(function(a,b){return a.n.localeCompare(b.n)});
 
- // Mapa em destaque: mais alto que no de eventos. Só os presenciais e
- // híbridos têm lugar — os online aparecem na lista sem pino.
+ // Só os presenciais e híbridos têm lugar no mapa; os online aparecem
+ // na lista, sem pino.
  var comLugar=c.filter(function(x){return x.t!=="Online"})
    .map(function(x,i){return {id:x.id,x:20+(i*17)%64,y:24+(i*23)%52}});
  var h=avisoLocal();
- h+=mapinha(comLugar,210);
+ h+=mapinha(comLugar);
  h+='<div class="tiny muted" style="margin-top:7px">'+comLugar.length+' curso(s) presencial ou híbrido no mapa · online aparecem só na lista</div>';
 
  if(!c.length)return h+'<div class="card pad muted" style="margin-top:14px">Nenhum curso com esses filtros.</div>';
@@ -2620,13 +2645,19 @@ var ME_NAV=[["me","Visão geral","▦"],["me-quotes","Meus orçamentos","📥"],
    enfeite, e enfeite em painel de gestão é ruído. */
 function cartaoGrande(x){
  var ic=x[0], rot=x[1], val=x[2], nota=x[3], rota=x[4], chave=x[5], sub=x[6], alerta=x[7];
+ /* Orçamentos tem passos dentro dele. Sem voltar para a lista, quem
+    clicasse no número cairia na proposta que deixou pela metade —
+    resposta errada para "quantos pedidos novos eu tenho?". */
+ var zerar = chave==="orc" ? "S.orcPasso='lista';" : "";
  var acao=chave
-   ? 'S.sub=S.sub||{};S.sub.'+chave+'=\''+sub+'\';go(\''+rota+'\')'
+   ? zerar+'S.sub=S.sub||{};S.sub.'+chave+'=\''+sub+'\';go(\''+rota+'\')'
    : 'go(\''+rota+'\')';
  var h='<button class="grande'+(alerta?" alerta":"")+'" onclick="'+acao+'">';
- h+='<span class="gic">'+ic+'</span>';
+ /* Ícone e rótulo dividem a primeira linha. Empilhados, cada cartão
+    ganhava uma linha inteira só de ícone — dez cartões, dez linhas
+    desperdiçadas, e no iPad isso é uma rolagem a mais. */
+ h+='<span class="gtopo"><span class="gic">'+ic+'</span><span class="grot">'+rot+'</span></span>';
  h+='<span class="gval">'+val+'</span>';
- h+='<span class="grot">'+rot+'</span>';
  h+='<span class="gnota">'+nota+'</span>';
  return h+'</button>';
 }
@@ -2639,7 +2670,8 @@ function abasInternas(chave, opcoes, padrao){
  var h='<div class="segmento">';
  opcoes.forEach(function(o){
   var marca=o[2]?'<span class="selo">'+o[2]+'</span>':'';
-  h+='<button class="seg '+(atual===o[0]?"on":"")+'" onclick="S.sub=S.sub||{};S.sub[\''+chave+'\']=\''+o[0]+'\';render()">'+o[1]+marca+'</button>';
+  var zerar = chave==="orc" ? "S.orcPasso='lista';" : "";
+  h+='<button class="seg '+(atual===o[0]?"on":"")+'" onclick="'+zerar+'S.sub=S.sub||{};S.sub[\''+chave+'\']=\''+o[0]+'\';render()">'+o[1]+marca+'</button>';
  });
  return h+'</div>';
 }
@@ -3009,27 +3041,27 @@ function vStudio(sub){
      que informa, porque quem abre a gestão de manhã quer saber o que
      está parado esperando. */
   var pendentes=novosQ+semResp;
-  h+='<div class="row" style="margin-top:16px"><span class="b" style="font-size:16px">Precisa de você</span>';
+  h+='<div class="row" style="margin-top:15px"><span class="b" style="font-size:15px">Precisa de você</span>';
   h+='<span class="sp tiny muted">'+(pendentes?pendentes+" item(ns)":"nada parado")+'</span></div>';
-  h+='<div class="grandes" style="margin-top:9px">';
+  h+='<div class="grandes" style="margin-top:7px">';
   [["📥","Pedidos novos",novosQ,"sem resposta sua","studio-quotes","orc","recebidos",novosQ>0],
    ["🕘","Propostas sem retorno",esperando,"cliente não respondeu","studio-quotes","orc","enviados",false],
    ["★","Avaliações a responder",semResp,"esperando você","studio-reviews","av","responder",semResp>0]
   ].forEach(function(x){h+=cartaoGrande(x)});
   h+='</div>';
 
-  h+='<div class="row" style="margin-top:24px"><span class="b" style="font-size:16px">Como vai o mês</span>';
+  h+='<div class="row" style="margin-top:19px"><span class="b" style="font-size:15px">Como vai o mês</span>';
   h+='<span class="sp tiny muted">julho</span></div>';
-  h+='<div class="grandes" style="margin-top:9px">';
+  h+='<div class="grandes" style="margin-top:7px">';
   [["👛","Sobrou",brl(cx.sobrou),"entrou "+brl(cx.entrou),"studio-caixa","cx","resumo",false],
    ["🗓","Sessões marcadas",BOOK.length,"próximos 14 dias","studio-schedule","ag","mes",false],
    ["✅","Propostas que fecharam",agendados,"de "+SQ_ENVIADOS.length+" enviadas","studio-quotes","orc","enviados",false]
   ].forEach(function(x){h+=cartaoGrande(x)});
   h+='</div>';
 
-  h+='<div class="row" style="margin-top:24px"><span class="b" style="font-size:16px">O que você construiu</span>';
+  h+='<div class="row" style="margin-top:19px"><span class="b" style="font-size:15px">O que você construiu</span>';
   h+='<span class="sp tiny muted">desde set/2024</span></div>';
-  h+='<div class="grandes" style="margin-top:9px">';
+  h+='<div class="grandes" style="margin-top:7px">';
   [["🕘","Pessoas tatuadas",HIST_PESSOAS.length,voltaram+" voltaram","studio-historico","hist","pessoas",false],
    ["🏪","Estúdios por onde passei",HIST_ESTUDIOS.length,"casa, guest e convenção","studio-historico","hist","estudios",false],
    ["🖼","Obras à venda",obras,"na sua galeria","studio-profile",null,null,false],
@@ -3037,18 +3069,11 @@ function vStudio(sub){
   ].forEach(function(x){h+=cartaoGrande(x)});
   h+='</div>';
 
-  h+='<div class="grid cols2" style="margin-top:22px;align-items:start">';
-  h+='<div class="card pad"><div class="row"><span class="b">Pedidos recentes</span>'+tg("real")+
-     '<a class="sp small" style="color:var(--accent);cursor:pointer" onclick="go(\'studio-quotes\')">Ver todos →</a></div><div style="margin-top:4px">';
-  SQ.slice(0,4).forEach(function(q){h+=sqRow(q)});
-  h+='</div></div>';
-  h+='<div class="card pad"><div class="row"><span class="b">Próximas sessões</span>'+tg("mock")+
-     '<a class="sp small" style="color:var(--accent);cursor:pointer" onclick="go(\'studio-schedule\')">Ver agenda →</a></div><div style="margin-top:4px">';
-  BOOK.forEach(function(b){
-   h+='<div class="lrow"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div>';
-   h+='<div style="min-width:0"><div class="b small">'+b.c+'</div><div class="small muted">'+b.area+' · '+b.h+'h</div></div>';
-   h+='<div class="sp b small">'+brl(b.cents)+'</div></div>'});
-  h+='</div></div></div>';
+  /* Dez números e mais nada. As listas de "pedidos recentes" e
+     "próximas sessões" que ficavam aqui embaixo saíram: cada uma já
+     tem um número apontando para ela, e repetir o conteúdo da aba
+     dentro do resumo é o que fazia esta tela crescer sem parar. */
+  h+='<div class="tiny muted" style="margin-top:18px">Toque em qualquer número para ver o detalhe na aba correspondente.</div>';
  }
 
  if(sub==="studio-quotes"){
@@ -3083,27 +3108,19 @@ function vStudio(sub){
    return h+'</div></main>';
   }
 
-  var sel=SQ.filter(function(q){return q.id===S.sqSel})[0]||SQ[0];
-  h+='<div class="grid cols16" style="align-items:start;margin-top:14px">';
-  h+='<div class="card pad"><div class="row"><span class="b">Pedidos recebidos</span>'+tg("real")+'</div><div style="margin-top:4px">';
-  SQ.forEach(function(q){h+=sqRow(q,true)});
-  h+='</div></div>';
-  h+='<div class="card pad" style="position:sticky;top:76px"><div class="row"><span class="b">'+sel.c+'</span><span class="sp badge '+(sel.status==="novo"?"acc":sel.status==="respondido"?"ok":"warn")+'">'+sel.status+'</span></div>';
-  h+='<div class="small muted">'+sel.area+' · '+sel.city+' · '+sel.when+'</div>';
-  h+='<div class="tiny muted" style="margin-top:11px">Imagens de referência</div>';
-  h+='<div class="row" style="gap:6px;margin-top:5px">';
-  for(var k=0;k<3;k++)h+='<div class="thumbsq" style="background-image:'+tex(sel.seed+k)+'"></div>';
-  h+='</div>';
-  h+='<div class="sep"></div><div class="tiny muted">Estilos identificados</div>';
-  h+='<div class="row wrapf" style="gap:5px;margin-top:5px">'+sel.st.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'<span class="badge">'+CPLX[sel.cx]+'</span></div>';
-  h+='<div class="b" style="font-size:17px;margin-top:7px">'+brl(sel.min)+' – '+brl(sel.max)+'</div>';
-  h+='<div class="tiny muted">'+sel.hrs+' estimadas</div>';
-  h+='<div class="small" style="margin-top:7px;font-style:italic;color:var(--muted-foreground)">"'+sel.note+'"</div>';
-  h+='<div class="sep"></div>';
-  h+='<label class="lb">Sua proposta</label><input class="fld" value="R$ '+(sel.min/100*1.05).toFixed(0)+',00" />';
-  h+='<label class="lb" style="margin-top:9px">Mensagem</label><textarea class="fld" style="height:74px;resize:vertical">Consigo fechar em uma sessão. Tenho agenda a partir de 12/08.</textarea>';
-  h+='<button class="btn primary blk" style="margin-top:9px" onclick="alert(\'respondToQuote(quote_id, offer_cents, message)\')">Enviar proposta</button>';
-  h+='<button class="btn blk" style="margin-top:6px" onclick="alert(\'declineMatch(quote_id, artist_id)\')">Recusar pedido</button></div></div>';
+  /* ── RECEBIDOS: mapa, lista, pedido, proposta ────────────────
+     Antes esta tela era lista à esquerda e formulário à direita, tudo
+     ao mesmo tempo. O campo de valor ficava visível antes de o
+     tatuador ter olhado uma única referência — e precificar antes de
+     ver o trabalho é exatamente o erro que a tela deveria evitar.
+
+     Agora são três momentos. Onde estão os pedidos (mapa + lista, o
+     mesmo padrão de eventos e cursos, porque a distância pesa na
+     decisão). Depois o pedido em si, com as fotos em carrossel e o que
+     o cliente escreveu — a mesma leitura do feed, que é onde ele já
+     sabe olhar tatuagem. Só então valor e mensagem, numa tela em que
+     não há mais nada para fazer. */
+  h+=recebidos();
  }
 
  if(sub==="studio-schedule"){
@@ -3342,13 +3359,159 @@ function vStudio(sub){
  return h+'</div></main>';
 }
 function sqRow(q,full){
- var t=q.status==="novo"?"acc":q.status==="respondido"?"ok":"warn";
+ var t=corDoStatus(q.status);
  var on=full&&S.sqSel===q.id;
  var h='<div class="lrow" style="'+(full?"cursor:pointer;":"")+(on?"background:var(--x-accent-bg);border-radius:8px;padding-left:7px;padding-right:7px":"")+'" '+(full?'onclick="S.sqSel=\''+q.id+'\';render()"':'')+'>';
  h+='<div class="av">'+ini(q.c)+'</div><div style="min-width:0"><div class="b small">'+q.c+'</div>';
  h+='<div class="small muted">'+q.area+' · '+q.st.map(function(s){return SL[s]}).join(", ")+' · '+q.when+'</div></div>';
  h+='<div class="sp" style="text-align:right"><div class="b small">'+brl(q.min)+'–'+brl(q.max)+'</div><span class="badge '+t+'">'+q.status+'</span></div>';
  return h+'</div>';
+}
+function corDoStatus(s){
+ return s==="novo"?"acc":s==="respondido"?"ok":"warn";
+}
+function estilosDe(q){
+ return q.st.map(function(s){return SL[s]}).join(", ");
+}
+function pedidoSel(){
+ return SQ.filter(function(q){return q.id===S.sqSel})[0]||SQ[0];
+}
+function abrirPedido(id){
+ S.sqSel=id; S.orcPasso="pedido"; S.orcEnviado=null; render();
+}
+
+/* ── ORÇAMENTOS RECEBIDOS ───────────────────────────────────────────
+   Três momentos, um de cada vez.
+
+   1. Onde estão. Mapa e lista, o mesmo par de eventos e cursos. Não é
+      enfeite: o tatuador decide diferente por quem está a 2 km e por
+      quem está a 12, e essa informação chegava aqui como uma linha de
+      texto que ninguém lia.
+   2. O pedido. Lido como um card do feed — fotos em carrossel e o que
+      a pessoa escreveu — porque é assim que ele já olha tatuagem o dia
+      inteiro. Aqui não existe campo de valor: precificar antes de ver
+      as referências é o erro que esta tela deveria impedir.
+   3. A proposta. Valor e mensagem, e mais nada na tela. */
+function recebidos(){
+ var passo=S.orcPasso||"lista";
+ if(passo==="proposta")return telaProposta(pedidoSel());
+ if(passo==="pedido")  return telaPedido(pedidoSel());
+
+ var h="";
+ if(S.orcEnviado){
+  var env=SQ.filter(function(q){return q.id===S.orcEnviado})[0];
+  h+='<div class="avisook" style="margin-top:13px">Proposta enviada'+(env?' para '+env.c:'')+
+     '. Ela passa a aparecer em <b>Enviados</b>, com a resposta do cliente quando vier.</div>';
+ }
+ h+=mapinha(SQ,ALT_MAPA,S.sqSel,"abrirPedido('$id')");
+ h+='<div class="tiny muted" style="margin-top:7px">'+SQ.length+' pedido(s) · o pino mostra de onde a pessoa está pedindo</div>';
+ h+='<div class="lista">';
+ SQ.forEach(function(q,k){
+  h+='<button class="item'+(S.sqSel===q.id?" on":"")+'" onclick="abrirPedido(\''+q.id+'\')">';
+  /* O número é o mesmo do pino. Iniciais aqui não ligariam uma coisa
+     na outra, e ligar é a razão de o mapa existir. */
+  h+='<div class="av" style="font-size:12.5px">'+(k+1)+'</div>';
+  h+='<div class="itemtxt"><div class="row" style="gap:6px"><span class="b small">'+q.c+'</span>';
+  h+='<span class="badge '+corDoStatus(q.status)+'">'+q.status+'</span></div>';
+  h+='<div class="tiny muted">'+q.area+' · '+estilosDe(q)+'</div>';
+  h+='<div class="tiny muted">'+q.city+' · a '+q.km+' km · '+q.when+'</div></div>';
+  h+='<div class="itemfim"><div class="b small">'+brl(q.min)+'–'+brl(q.max)+'</div>';
+  h+='<span class="tiny muted">ver pedido ›</span></div>';
+  h+='</button>';
+ });
+ h+='</div>';
+ return h;
+}
+
+function telaPedido(q){
+ var i=Math.min(S.caro["orc:"+q.id]||0,q.refs-1);
+ var h='<button class="btn sm" style="margin-top:13px" onclick="S.orcPasso=\'lista\';render()">‹ Todos os pedidos</button>';
+ h+='<article class="post" style="margin-top:11px;max-width:560px">';
+ h+='<div class="postinfo"><div class="row" style="gap:9px">';
+ h+='<div class="av" style="width:34px;height:34px">'+ini(q.c)+'</div>';
+ h+='<div style="min-width:0;flex:1"><div class="row" style="gap:5px"><span class="b small">'+q.c+'</span>';
+ h+='<span class="badge '+corDoStatus(q.status)+'">'+q.status+'</span></div>';
+ h+='<div class="tiny muted">'+q.city+' · a '+q.km+' km · '+q.when+'</div></div></div>';
+ h+='<div class="row wrapf" style="gap:5px;margin-top:9px"><span class="badge">'+q.area+'</span>';
+ h+=q.st.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("");
+ h+='<span class="badge">'+CPLX[q.cx]+'</span></div>';
+ h+='<div class="row" style="margin-top:8px"><span class="b" style="font-size:15px">'+brl(q.min)+' – '+brl(q.max)+'</span>';
+ h+='<span class="tiny muted sp">'+q.hrs+' estimadas</span></div>';
+ h+='<div class="tiny muted" style="margin-top:2px">faixa que o cliente informou — é expectativa, não teto</div>';
+ h+='</div>';
+
+ h+='<div class="postimg">';
+ for(var k=0;k<q.refs;k++)h+='<div class="sl '+(k===i?"on":"")+'" style="background-image:'+tex(q.seed+k)+'"></div>';
+ h+='<span class="tagtl">referência '+(i+1)+' de '+q.refs+'</span>';
+ if(i>0)h+='<button class="nav l" aria-label="Referência anterior" onclick="caro(\'orc:'+q.id+'\',-1,'+q.refs+')">‹</button>';
+ if(i<q.refs-1)h+='<button class="nav r" aria-label="Próxima referência" onclick="caro(\'orc:'+q.id+'\',1,'+q.refs+')">›</button>';
+ h+='<div class="pips">';
+ for(var j=0;j<q.refs;j++)h+='<i class="'+(j===i?"on":"")+'"></i>';
+ h+='</div></div>';
+
+ h+='<div class="postinfo" style="border-top:1px solid var(--border)">';
+ h+='<div class="tiny muted">O que o cliente escreveu</div>';
+ h+='<div class="small" style="margin-top:4px;font-style:italic;color:var(--foreground)">"'+q.note+'"</div>';
+ h+='</div></article>';
+
+ h+='<div class="row" style="gap:8px;margin-top:11px;max-width:560px">';
+ h+='<button class="btn primary" style="flex:1" onclick="S.orcPasso=\'proposta\';render()">Fazer proposta</button>';
+ h+='<button class="btn" onclick="alert(\'declineMatch(quote_id, artist_id)\')">Recusar</button></div>';
+ return h;
+}
+
+/* Sugestão, não imposição: 5% acima do piso que o cliente informou. É
+   um ponto de partida para editar, e o texto embaixo diz onde o valor
+   digitado cai em relação à expectativa dele — que é a informação que
+   decide se a proposta precisa ou não de explicação na mensagem. */
+function telaProposta(q){
+ var sug=Math.round(q.min*1.05/100)*100;
+ var h='<button class="btn sm" style="margin-top:13px" onclick="S.orcPasso=\'pedido\';render()">‹ Voltar para o pedido</button>';
+ h+='<div class="card pad" style="margin-top:11px;max-width:560px">';
+ h+='<div class="row" style="gap:10px;align-items:flex-start">';
+ h+='<div class="thumbsq" style="background-image:'+tex(q.seed)+';flex-shrink:0"></div>';
+ h+='<div style="min-width:0;flex:1"><div class="b small">'+q.c+'</div>';
+ h+='<div class="tiny muted">'+q.area+' · '+estilosDe(q)+' · '+q.hrs+'</div>';
+ h+='<div class="tiny muted">'+q.city+' · a '+q.km+' km · esperava '+brl(q.min)+'–'+brl(q.max)+'</div></div></div>';
+ h+='<div class="sep"></div>';
+ h+='<label class="lb" for="propValor">Seu valor</label>';
+ h+='<input class="fld" id="propValor" inputmode="numeric" value="'+brl(sug)+'" oninput="atualizarProposta()" />';
+ h+='<div class="tiny" id="dicaProposta" style="margin-top:5px">'+dicaProposta(q,sug)+'</div>';
+ h+='<label class="lb" style="margin-top:12px" for="propMsg">Mensagem para o cliente</label>';
+ h+='<textarea class="fld" id="propMsg" style="height:98px;resize:vertical">Consigo fechar em uma sessão de '+q.hrs+'. Tenho agenda a partir de 12/08 — me diz qual dia funciona para você.</textarea>';
+ h+='<div class="tiny muted" style="margin-top:5px">O cliente recebe o valor, a mensagem e o seu perfil. As referências que ele mandou continuam anexadas à conversa.</div>';
+ h+='<button class="btn primary blk" style="margin-top:13px" onclick="enviarProposta()">Enviar proposta</button>';
+ h+='<button class="btn blk" style="margin-top:6px" onclick="S.orcPasso=\'pedido\';render()">Voltar sem enviar</button>';
+ h+='</div>';
+ return h;
+}
+
+function centavosDigitados(txt){
+ var d=String(txt||"").replace(/[^0-9]/g,"");
+ return d ? parseInt(d,10)*100 : 0;
+}
+function dicaProposta(q,cents){
+ if(!cents)return '<span class="muted">Escreva quanto você vai cobrar.</span>';
+ if(cents<q.min)return '<span class="muted">Abaixo do que o cliente já esperava pagar. Se foi de propósito, tudo bem — só confira.</span>';
+ if(cents<=q.max)return '<span style="color:var(--x-success)">Dentro da faixa que o cliente informou.</span>';
+ var acima=Math.round((cents-q.max)/q.max*100);
+ return '<span style="color:var(--x-warning)">'+acima+'% acima do teto que ele informou. Vale explicar o porquê na mensagem.</span>';
+}
+/* Só a dica é repintada. Chamar render() aqui destruiria o campo em
+   foco e o cursor voltaria para o começo a cada tecla. */
+function atualizarProposta(){
+ var el=document.getElementById("propValor"), d=document.getElementById("dicaProposta");
+ if(!el||!d)return;
+ d.innerHTML=icons(dicaProposta(pedidoSel(),centavosDigitados(el.value)));
+}
+function enviarProposta(){
+ var q=pedidoSel();
+ var el=document.getElementById("propValor");
+ q.status="respondido";
+ q.prop=el?centavosDigitados(el.value):q.min;
+ S.orcEnviado=q.id;
+ S.orcPasso="lista";
+ render();
 }
 /* No produto real isto abriria o consentimento do Google e voltaria
    com um token. Aqui mostra o tempo de espera, que é o que a pessoa

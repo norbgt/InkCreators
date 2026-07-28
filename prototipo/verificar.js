@@ -402,7 +402,79 @@
       }
     }
 
-    /* ── 8. CONSOLE LIMPO ─────────────────────────────────────── */
+    /* ── 8. A GESTÃO DO ESTÚDIO NESTA TELA ────────────────────────
+       As duas coisas aqui só se sabem no navegador de verdade: quantas
+       colunas o painel realmente formou nesta largura, e se o cursor
+       sobrevive ao campo de valor da proposta. Um DOM simulado responde
+       "sim" às duas mesmo quando o CSS não foi aplicado. */
+    secao("Painel do estúdio nesta tela (" + window.innerWidth + "px)");
+    S.session = "artist"; S.modo = "demo"; S.route = "studio"; render();
+    var cartoes = document.querySelectorAll(".grande");
+    ok("são dez números", cartoes.length === 10, cartoes.length + " cartões");
+    if (cartoes.length) {
+      var g1 = cartoes[0].getBoundingClientRect();
+      // Uma linha do painel: quantos cartões dividem o mesmo topo.
+      var primeiraLinha = 0;
+      for (var c = 0; c < cartoes.length; c++)
+        if (Math.abs(cartoes[c].getBoundingClientRect().top - g1.top) < 4) primeiraLinha++;
+      ok("o CSS do painel foi aplicado", getComputedStyle(cartoes[0].parentElement).display === "grid",
+         "display: " + getComputedStyle(cartoes[0].parentElement).display);
+      ok("pelo menos duas colunas nesta largura", primeiraLinha >= 2, primeiraLinha + " coluna(s)");
+      ok("cartão compacto", g1.height <= 118, Math.round(g1.height) + "px de altura");
+      ok("o rótulo e o ícone dividem a linha de cima",
+         !!cartoes[0].querySelector(".gtopo .gic") && !!cartoes[0].querySelector(".gtopo .grot"));
+    }
+    ok("não repete listas de outras abas",
+       document.getElementById("app").innerHTML.indexOf("Pedidos recentes") < 0);
+
+    secao("Orçamentos recebidos: mapa, pedido, proposta");
+    S.route = "studio-quotes"; S.sub = S.sub || {}; S.sub.orc = "recebidos";
+    S.orcPasso = "lista"; S.orcEnviado = null; render();
+    var mapa = document.querySelector(".mapa");
+    ok("o mapa aparece", !!mapa);
+    ok("o CSS do mapa foi aplicado", mapa && mapa.getBoundingClientRect().height > 100,
+       mapa ? Math.round(mapa.getBoundingClientRect().height) + "px" : "sem mapa");
+    var pinos = document.querySelectorAll(".mapa .pin:not(.voce)");
+    var itens = document.querySelectorAll(".lista .item");
+    ok("um pino para cada pedido da lista", pinos.length === itens.length,
+       pinos.length + " pinos, " + itens.length + " itens");
+    ok("nenhum campo de valor ainda", !document.getElementById("propValor"));
+
+    if (itens.length) {
+      itens[0].click();
+      ok("clicar no pedido abre o pedido", !!document.querySelector(".postimg"),
+         "não abriu o card de referências");
+      var pips = document.querySelectorAll(".postimg .pips i");
+      ok("as referências vêm em carrossel", pips.length >= 3, pips.length + " foto(s)");
+      var proximo = document.querySelector(".postimg .nav.r");
+      if (proximo) {
+        proximo.click();
+        var ligada = document.querySelectorAll(".postimg .pips i.on");
+        ok("avançar a foto muda a foto",
+           ligada.length === 1 && document.querySelectorAll(".postimg .pips i")[1].className === "on",
+           "o carrossel não andou");
+      }
+      ok("o comentário do cliente aparece",
+         document.getElementById("app").innerHTML.indexOf("O que o cliente escreveu") >= 0);
+      ok("e o valor continua fora desta tela", !document.getElementById("propValor"),
+         "o formulário apareceu antes das referências");
+
+      S.orcPasso = "proposta"; render();
+      var campo = document.getElementById("propValor");
+      ok("a proposta tem valor e mensagem", !!campo && !!document.getElementById("propMsg"));
+      if (campo) {
+        // O mesmo defeito do cadastro, no campo novo: digitar não pode
+        // repintar a tela, senão o cursor volta para o começo.
+        digitar("propValor", "R$ 1200", 7);
+        ok("digitar no valor não tira o foco", focoAgora() === "propValor", "foco em: " + focoAgora());
+        ok("o cursor fica onde estava", cursorEm("propValor") === 7, "cursor em: " + cursorEm("propValor"));
+        var dica = document.getElementById("dicaProposta");
+        ok("a dica reage ao valor digitado", !!dica && dica.textContent.trim().length > 0,
+           "dica vazia");
+      }
+    }
+
+    /* ── 9. CONSOLE LIMPO ─────────────────────────────────────── */
     secao("Console");
     ok("nenhum erro de JavaScript durante a verificação", errosDeConsole.length === 0,
        errosDeConsole.slice(0, 2).join(" | "));

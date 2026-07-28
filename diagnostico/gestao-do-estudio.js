@@ -46,12 +46,49 @@ chk('as seis usam a mesma função',(html.match(/abasInternas\(/g)||[]).length>=
     (html.match(/abasInternas\(/g)||[]).length+' usos');
 chk('e o mesmo componente visual',/\.segmento\{/.test(css));
 
-console.log('── ORÇAMENTOS: RECEBIDOS E ENVIADOS ──');
+console.log('── ORÇAMENTOS RECEBIDOS: MAPA, PEDIDO, PROPOSTA ──');
+/* Três passos, um de cada vez. O que a verificação persegue aqui é a
+   ordem: se o campo de valor aparecer junto com as referências, a tela
+   voltou a convidar o tatuador a precificar antes de olhar. */
+S.orcPasso='lista';
 var tr=ir('studio-quotes','orc','recebidos');
-chk('recebidos: lista de pedidos',/Pedidos recebidos/.test(tr));
-chk('recebidos: dá para responder',/Enviar proposta/.test(tr));
-chk('recebidos: e recusar',/Recusar pedido/.test(tr));
+chk('passo 1: mapa dos pedidos',/class="mapa"/.test(tr));
+chk('passo 1: lista embaixo do mapa',/class="lista"/.test(tr)&&/ver pedido/.test(tr));
+chk('passo 1: o número da lista é o do pino',/class="pin /.test(tr)&&/class="av" style="font-size:12\.5px">1</.test(tr));
+chk('passo 1: distância aparece',/km/.test(tr));
+chk('passo 1: sem campo de valor',!/Enviar proposta/.test(tr)&&!/id="propValor"/.test(tr));
 chk('o selo mostra quantos são novos',/class="selo"/.test(tr));
+
+g.e("abrirPedido('s2')");var tp=tela();
+chk('passo 2: abre o pedido clicado',/Rodrigo Palma/.test(tp));
+chk('passo 2: referências em carrossel',/class="postimg"/.test(tp)&&/class="pips"/.test(tp)&&/class="nav r"/.test(tp));
+chk('passo 2: diz qual referência é',/referência 1 de 5/.test(tp));
+chk('passo 2: o comentário do cliente',/O que o cliente escreveu/.test(tp)&&/Ornamental, cobrindo/.test(tp));
+chk('passo 2: ainda sem campo de valor',!/id="propValor"/.test(tp),'formulário apareceu cedo demais');
+chk('passo 2: leva à proposta',/Fazer proposta/.test(tp));
+chk('passo 2: e dá para recusar',/Recusar/.test(tp));
+chk('passo 2: dá para voltar',/Todos os pedidos/.test(tp));
+
+g.e("S.orcPasso='proposta';render()");var tq=tela();
+chk('passo 3: valor e mensagem',/id="propValor"/.test(tq)&&/id="propMsg"/.test(tq));
+chk('passo 3: sugere um valor de partida',/value="R\$ /.test(tq));
+chk('passo 3: diz onde o valor cai',/id="dicaProposta"/.test(tq));
+chk('passo 3: lembra de quem é o pedido',/Rodrigo Palma/.test(tq));
+chk('passo 3: envia',/enviarProposta\(\)/.test(tq));
+chk('passo 3: e dá para voltar sem enviar',/Voltar sem enviar/.test(tq));
+/* O defeito do cursor sumindo nasceu exatamente assim: um oninput que
+   repinta a tela inteira e destrói o campo em foco. */
+chk('passo 3: digitar não repinta a tela',/oninput="atualizarProposta\(\)"/.test(tq)&&!/id="propValor"[^>]*oninput="[^"]*render\(\)/.test(tq));
+
+g.e("enviarProposta()");var tf=tela();
+chk('enviar volta para a lista e confirma',/class="avisook"/.test(tf)&&/Proposta enviada/.test(tf));
+chk('e o pedido não fica mais como novo',/Rodrigo Palma[\s\S]{0,200}respondido/.test(tf));
+
+/* O mapa é o mesmo componente em eventos, cursos e orçamentos. Altura
+   diferente entre eles fazia o chão se mexer ao trocar de aba. */
+chk('altura de mapa única',(html.match(/mapinha\([^)]*,\s*\d+\)/g)||[]).length===0,
+    'ainda existe mapinha com altura própria');
+chk('e a altura está num lugar só',/var ALT_MAPA=\d+;/.test(html));
 var te=ir('studio-quotes','orc','enviados');
 chk('enviados: o que ele respondeu',/O que você respondeu/.test(te));
 chk('enviados: mostra a resposta do cliente',/Aceitou e marcou/.test(te));
@@ -100,9 +137,22 @@ chk('todo cartão leva a algum lugar',(tv.match(/class="grande[^"]*" onclick="[^
     'algum cartão sem destino');
 chk('e leva à sub-aba certa',/S\.sub\.orc='enviados';go\('studio-quotes'\)/.test(tv.replace(/&#39;/g,"'")));
 chk('só o que tem pendência destaca',(tv.match(/grande alerta/g)||[]).length<=2);
-chk('mostra pedidos e sessões em detalhe',/Pedidos recentes/.test(tv)&&/Próximas sessões/.test(tv));
+/* Dez números e nada mais. As listas de "pedidos recentes" e "próximas
+   sessões" saíram: cada uma já tem um número apontando para ela, e
+   repetir o conteúdo da aba dentro do resumo é o que fazia esta tela
+   crescer sem parar. */
+chk('não repete o conteúdo das abas',!/Pedidos recentes/.test(tv)&&!/Próximas sessões/.test(tv),
+    'a visão geral voltou a copiar lista de outra aba');
 chk('css do painel existe',/\.grandes\{/.test(css)&&/\.grande\.alerta\{/.test(css));
-chk('duas colunas no celular, quatro no maior',/\.grandes\{[^}]*repeat\(2,1fr\)/.test(css)&&/@media\(min-width:700px\)\{\.grandes\{grid-template-columns:repeat\(4,1fr\)/.test(css));
+chk('duas colunas no celular, mais nas telas maiores',
+    /\.grandes\{[^}]*repeat\(2,1fr\)/.test(css)&&
+    /@media\(min-width:560px\)\{\.grandes\{grid-template-columns:repeat\(3,1fr\)/.test(css)&&
+    /@media\(min-width:700px\)\{\.grandes\{grid-template-columns:repeat\(4,1fr\)/.test(css));
+/* Cartão pequeno é o pedido: dez cartões grandes viravam três rolagens
+   no celular, que é o oposto de um resumo. */
+chk('cartão compacto: ícone e rótulo na mesma linha',/class="gtopo"/.test(tv)&&/\.grande \.gtopo\{[^}]*display:flex/.test(css));
+var mv=css.match(/\.grande \.gval\{font-size:(\d+)px/);
+chk('e o número não domina a tela',mv&&+mv[1]<=24,mv?mv[1]+'px':'sem regra');
 
 console.log('── CAIXA ──');
 var tc=ir('studio-caixa','cx','resumo');
