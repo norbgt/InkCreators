@@ -324,6 +324,14 @@ html[data-dark] .seg.on{
 .btnseguir:hover{border-color:var(--muted-foreground)}
 .btnseguir.on{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
 .btnseguir .ico{width:13px;height:13px}
+/* Faixa de medidas: selos e números encostados um no outro, separados
+   do resto por espaço. Agrupar por natureza é o que permite ler o card
+   em três olhadas em vez de cinco. */
+.medidas{margin-top:9px;padding-top:9px;border-top:1px solid var(--border)}
+.acoescard{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;
+  border-top:1px solid var(--border)}
+.acoescard .sp{flex:1}
+
 .postimg{position:relative;aspect-ratio:4/3;background:var(--muted)}
 .postimg .sl{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity .25s}
 .postimg .sl.on{opacity:1}
@@ -923,7 +931,13 @@ var MODELOS_ORCAMENTO=[
 ];
 var CPLX=["","Simples","Médio","Complexo","Master"];
 var NAMES=["Marina Vieira","Caio Lobo","Ana Petrova","Renan Sá","Luiza Hime","Diego Castro","Bruna Okabe","Felipe Tanaka","Yasmin Cardoso","Henrique Vaz","Larissa Mendes","Igor Falcão"];
-var CITIES=[["São Paulo","SP"],["Rio de Janeiro","RJ"],["Belo Horizonte","MG"],["Curitiba","PR"],["Porto Alegre","RS"],["Recife","PE"],["Salvador","BA"],["Florianópolis","SC"]];
+/* Cidade com coordenada. Sem isto, o cálculo de distância recebia um
+   artista sem lat/lng e devolvia NaN — que era o "NaN km de você" que
+   aparecia em todo card. */
+var CITIES=[["São Paulo","SP",-23.5505,-46.6333],["Rio de Janeiro","RJ",-22.9068,-43.1729],
+ ["Belo Horizonte","MG",-19.9167,-43.9345],["Curitiba","PR",-25.4284,-49.2733],
+ ["Porto Alegre","RS",-30.0346,-51.2177],["Recife","PE",-8.0476,-34.8770],
+ ["Salvador","BA",-12.9777,-38.5016],["Florianópolis","SC",-27.5954,-48.5480]];
 var BIOS=["Traço fino e composições botânicas. Atendo com hora marcada.","Blackwork pesado, geometria e ornamental. 8 anos de estúdio.","Realismo em preto e cinza, foco em retratos.","Old school com paleta reduzida e contorno firme.","Oriental tradicional, projetos de manga fechada."];
 
 function tex(seed){
@@ -939,7 +953,11 @@ var ARTISTS=NAMES.map(function(n,i){
  var c=CITIES[i%CITIES.length],st=[STYLES[i%15].s,STYLES[(i*3+2)%15].s];
  var cx=Math.max(STYLES[i%15].c,STYLES[(i*3+2)%15].c);
  var min=9000+cx*3500+(i%4)*2500,max=min+8000+cx*3000;
- return {id:"a"+i,name:n,studio:"Studio "+n.split(" ")[0],city:c[0],state:c[1],styles:st,cx:cx,
+ /* Deslocamento pequeno e determinístico: dois artistas da mesma cidade
+    não podem ficar à mesma distância exata, senão a ordenação por
+    proximidade empata sempre e a lista parece aleatória. */
+ return {id:"a"+i,name:n,studio:"Studio "+n.split(" ")[0],city:c[0],state:c[1],
+  lat:c[2]+((i%7)-3)*0.011, lng:c[3]+((i%5)-2)*0.013, styles:st,cx:cx,
   bio:BIOS[i%5],years:2+(i%10),rating:+(4.2+((i*7)%8)/10).toFixed(1),reviews:12+(i*11)%180,
   min:min,max:max,verified:i%4===0,insta:i%3===0,seed:i,months:3+(i*5)%42,empty:i===10,
   agenda:i%5!==3,destaque:i%6===1,galeria:i%3!==2,
@@ -1029,9 +1047,17 @@ function distanciaKm(a,b){
    Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLng/2)*Math.sin(dLng/2);
  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
 }
+/* Devolve null quando não há como saber, em vez de NaN. Quem chama
+   decide o que dizer — e "NaN km de você" era pior que não dizer nada. */
 function kmDe(e){
+ if(!e||e.lat==null||e.lng==null||!S.local||S.local.lat==null)return null;
  var d=distanciaKm(S.local,e);
+ if(!isFinite(d))return null;
  return d<10 ? d.toFixed(1) : Math.round(d);
+}
+function distanciaTexto(e){
+ var d=kmDe(e);
+ return d==null ? "" : d+" km de você";
 }
 
 var COURSES=[
@@ -1965,32 +1991,57 @@ function publicacao(a){
 
  var h='<article class="post">';
 
- // Cabeçalho e detalhes juntos: quem é, quanto cobra e as ações. Assim a
- // decisão de clicar acontece antes da foto, e o card fica mais curto.
+ /* ── CABEÇALHO DO CARD ────────────────────────────────────────
+    Quatro faixas, cada uma com uma natureza só de informação. Antes
+    eram cinco linhas com tipos misturados — botão ao lado de nome,
+    métrica solta entre selos e preço — e o olho tinha de reclassificar
+    tudo a cada linha.
+
+      1. quem é      nome, estúdio, cidade e distância
+      2. o que faz   os estilos
+      3. o que valeu reputação e preço, que são as duas medidas
+      4. o que fazer os quatro botões, juntos
+
+    Distância subiu para a linha da cidade porque é dado de lugar, e
+    estava sozinha no meio das métricas. O selo "Destaque" saiu de perto
+    do nome: ele já aparece na faixa de reputação, e repetido virava
+    duas afirmações da mesma coisa em dois lugares diferentes. */
  h+='<div class="postinfo">';
+
+ // 1. quem é
+ var dist=distanciaTexto(a);
  h+='<div class="row" style="gap:9px">';
  h+='<div class="av" style="width:34px;height:34px">'+ini(a.name)+'</div>';
- h+='<div style="min-width:0;flex:1"><div class="row" style="gap:5px"><span class="b small">'+a.name+(a.verified?' <span style="color:var(--accent)">✔</span>':'')+'</span>'+
-   (a.destaque?'<span class="badge acc" title="Posição contratada. A plataforma cobra por destaque no catálogo.">Destaque</span>':'')+'</div>';
- h+='<div class="tiny muted">'+(a.studio?a.studio+' · ':'')+a.city+'/'+a.state+'</div></div>';
+ h+='<div style="min-width:0;flex:1">';
+ h+='<div class="b small">'+a.name+(a.verified?' <span style="color:var(--accent)">✔</span>':'')+'</div>';
+ h+='<div class="tiny muted">'+(a.studio?a.studio+' · ':'')+a.city+'/'+a.state+(dist?' · '+dist:'')+'</div>';
+ h+='</div></div>';
+
+ // 2. o que faz
+ h+='<div class="row wrapf" style="gap:5px;margin-top:9px">';
+ h+=a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'</div>';
+
+ /* 3. o que valeu — reputação e preço na mesma faixa, porque são as
+    duas medidas do card. Até três selos: o quarto não acrescentaria
+    confiança, dividiria atenção. O resto mora no perfil, com a regra
+    à vista. */
+ h+='<div class="medidas">';
+ h+='<div class="selos">'+selosNoFeed(a).map(function(x){return selo(x,true)}).join("")+'</div>';
+ h+='<div class="row" style="gap:9px;margin-top:6px">';
+ h+='<span class="tiny muted">★ '+a.rating+' ('+a.reviews+')</span>';
+ h+='<span class="tiny muted">·</span>';
+ h+=cifroes(a)+'<span class="tiny muted">por hora</span>';
+ h+='</div></div>';
+
+ // 4. o que fazer — os quatro botões numa faixa só
+ h+='<div class="acoescard">';
  h+='<button class="btn sm" onclick="go(\'artist\',\''+a.id+'\')">Perfil</button>';
  h+='<button class="btnseguir '+(segue?"on":"")+'" title="'+(segue?"Deixar de seguir":"Seguir este tatuador")+'" onclick="alternarSeguir(\''+a.id+'\')">'+
     (segue?'✓<span>Seguindo</span>':'👤<span>Seguir</span>')+'</button>';
- h+='</div>';
-
- h+='<div class="row wrapf" style="gap:5px;margin-top:9px">';
- h+=a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("");
- h+='<span class="tiny muted sp">★ '+a.rating+' ('+a.reviews+')</span></div>';
- /* Reputação antes do orçamento, e não depois. Até três selos, dos
-    que valem na descoberta — o quarto não acrescentaria confiança,
-    dividiria atenção. O resto mora no perfil, com a regra à vista. */
- h+='<div class="selos" style="margin-top:6px">'+selosNoFeed(a).map(function(x){return selo(x,true)}).join("")+'</div>';
- h+='<div class="tiny muted" style="margin-top:4px">'+kmDe(a)+' km de você</div>';
-
- h+='<div class="row" style="margin-top:7px">'+cifroes(a)+'<span class="tiny muted">por hora</span>';
- h+='<div class="row sp" style="gap:6px">';
+ h+='<span class="sp"></span>';
  h+='<button class="btnicone'+(contaPendente()?" pendente":"")+'" title="Pedir orçamento" aria-label="Pedir orçamento" onclick="'+(contaPendente()?"explicarTrava(\'pedir orçamento\')":"quoteFor('"+a.id+"')")+'">👛</button>';
- h+='<button class="btnicone" title="Ver agenda" aria-label="Ver agenda" onclick="verAgenda(\''+a.id+'\')">🗓</button></div></div>';
+ h+='<button class="btnicone" title="Ver agenda" aria-label="Ver agenda" onclick="verAgenda(\''+a.id+'\')">🗓</button>';
+ h+='</div>';
 
  if(nCurtidas||segue){
   h+='<div class="tiny" style="margin-top:7px;color:var(--accent)">';

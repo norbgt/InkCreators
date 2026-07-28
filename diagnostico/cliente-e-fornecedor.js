@@ -435,5 +435,41 @@ chk("reivindicar abre pela lista do que já existe", /class="lista"/.test(trei) 
 chk("criar do zero vem depois", trei.indexOf("reivindicar ›") < trei.indexOf("não está na lista"));
 chk("e pede os três documentos", /CNPJ, endereço e licença sanitária/.test(trei));
 
+
+/* ── 16. O CABEÇALHO DO CARD ─────────────────────────────────────
+   Quatro faixas, cada uma com uma natureza de informação. A ordem é o
+   que permite ler o card em três olhadas: quem é, o que faz, o que
+   valeu, o que fazer. */
+secao("16. CABEÇALHO DO CARD");
+S.session = "anon";
+var tcard = ir("home").split('class="post"')[1] || "";
+["quem é", "o que faz", "o que valeu", "o que fazer"];
+chk("distância aparece junto da cidade, não solta",
+    /\/[A-Z]{2} · [\d,.]+ km de você/.test(tcard),
+    "a distância voltou a ser uma linha órfã");
+chk("sem NaN em lugar nenhum", !/NaN/.test(tcard), "cálculo de distância sem coordenada");
+chk("os selos vêm antes dos números",
+    tcard.indexOf('class="selos"') < tcard.indexOf("por hora"));
+chk("reputação e preço na mesma faixa", /class="medidas"/.test(tcard));
+chk("os quatro botões numa faixa só", /class="acoescard"/.test(tcard));
+chk("e nenhum botão fora dela",
+    (tcard.split('class="acoescard"')[0].match(/<button/g) || []).length === 0,
+    "sobrou botão antes da faixa de ações");
+/* Conta só o que a pessoa lê. O título do selo repete a palavra dentro
+   do atributo, e isso não é duplicação na tela. */
+var visivel = tcard.replace(/<[^>]*>/g, " ");
+chk("Destaque aparece uma vez só",
+    (visivel.match(/Destaque/g) || []).length <= 1,
+    "o selo Destaque está duplicado no cabeçalho");
+chk("css das duas faixas novas existe", /\.medidas\{/.test(css) && /\.acoescard\{/.test(css));
+/* Cidade sem coordenada volta a produzir NaN. É o defeito exato que
+   apareceu no feed, e ele nasce nos dados, não na tela. */
+chk("toda cidade tem coordenada",
+    g.e("CITIES.every(function(c){return typeof c[2]==='number' && typeof c[3]==='number'})"));
+chk("e todo artista também",
+    g.e("ARTISTS.every(function(a){return isFinite(a.lat)&&isFinite(a.lng)})"));
+chk("sem coordenada, a distância some em vez de virar NaN",
+    g.e("kmDe({})") === null && g.e("distanciaTexto({})") === "");
+
 console.log("\n══ " + f + " falha(s) ══");
 process.exit(f ? 1 : 0);
