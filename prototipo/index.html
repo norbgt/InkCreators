@@ -220,6 +220,34 @@ html[data-dark] .seg.on{
 /* Marcos do passaporte. Cartão pequeno, sem barra de progresso e sem
    estado "bloqueado": um marco ou aconteceu, ou não está aqui. Mostrar
    o que falta transformaria decisão permanente em tarefa. */
+/* Selos. As três categorias têm aparência diferente de propósito: quem
+   bate o olho precisa distinguir o que foi conquistado do que foi pago
+   sem ler a legenda. Contratado é o único com traço tracejado — a borda
+   diz "isto é publicidade" antes da palavra dizer. */
+.selos{display:flex;flex-wrap:wrap;gap:5px}
+.selinho{display:inline-flex;align-items:center;gap:4px;border-radius:999px;
+  padding:3px 9px;font-size:11.5px;font-weight:600;white-space:nowrap;line-height:1.5;
+  border:1px solid transparent;cursor:default}
+.selinho .si{font-size:11px;line-height:1}
+.selinho .si svg{width:12px;height:12px;display:block}
+.selinho[data-c="fato"]{background:var(--x-success-bg);color:var(--x-success)}
+.selinho[data-c="pares"]{background:var(--x-accent-bg);color:var(--accent)}
+.selinho[data-c="contratado"]{background:transparent;color:var(--muted-foreground);border:1px dashed var(--border)}
+
+/* No perfil, cada selo vem com a regra à vista. Selo sem regra visível
+   é fé, não confiança. */
+.regras{display:grid;gap:8px;margin-top:9px}
+.regra{display:flex;gap:10px;align-items:flex-start;padding:10px 11px;border:1px solid var(--border);
+  border-radius:11px;background:var(--card)}
+.regra .ri{font-size:15px;line-height:1.3;flex-shrink:0}
+.regra .ri svg{width:15px;height:15px}
+.estrela{width:38px;height:38px;border-radius:9px;border:1px solid var(--border);background:var(--card);
+  font-size:18px;line-height:1;color:var(--muted-foreground)}
+.estrela.on{color:var(--x-warning);border-color:var(--x-warning)}
+.estrela .ico{width:19px;height:19px}
+
+.regracat{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;opacity:.55}
+
 .marcos{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
 .marco{display:flex;gap:9px;align-items:flex-start;padding:10px 11px;border:1px solid var(--border);
   border-radius:11px;background:var(--card)}
@@ -911,6 +939,15 @@ var ARTISTS=NAMES.map(function(n,i){
   bio:BIOS[i%5],years:2+(i%10),rating:+(4.2+((i*7)%8)/10).toFixed(1),reviews:12+(i*11)%180,
   min:min,max:max,verified:i%4===0,insta:i%3===0,seed:i,months:3+(i*5)%42,empty:i===10,
   agenda:i%5!==3,destaque:i%6===1,galeria:i%3!==2,
+  /* Insumos dos selos. Ficam aqui, e não espalhados pelas telas, para
+     feed e perfil nunca divergirem sobre o mesmo perfil. */
+  referendos:(i*3)%7,                 // quantos tatuadores referendaram
+  embaixador:i%6===2?"Nordeste Ink Care":null,
+  orientaPos:78+(i*7)%23,             // % de clientes que confirmaram orientação no checkout
+  higiene:88+(i*5)%13,                // % que confirmou estúdio limpo
+  calibrouDor:70+(i*11)%31,           // % que disse que a dor foi como o tatuador preparou
+  avaliacoesCheckout:8+(i*13)%70,     // quantos checkouts avaliados
+  enterprise:i%9===4,
   port:[0,1,2,3,4,5,6,7,8].map(function(k){return i*9+k})};
 });
 /* A galeria de cada artista. Tatuagem não é o único destino do traço:
@@ -1219,7 +1256,10 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  /* Check-in aberto agora. Um por vez, de propósito: o QR na tela é de
     uma sessão específica, e duas sessões abertas ao mesmo tempo é a
     receita para o cliente errado carimbar o passaporte. */
- checkin:{aberto:false,codigo:null,sessao:null,confirmado:false,inicio:null,fim:null,erro:null},
+ checkin:{aberto:false,codigo:null,sessao:null,confirmado:false,inicio:null,fim:null,erro:null,
+  saida:null,        // "qr" | "distancia" | "tempo" — como a sessão foi fechada
+  longe:false},      // o cliente já se afastou do estúdio
+ aval:{sentiu:null,higiene:null,orientado:null,dor:null,resultado:null,texto:"",estrelas:0,enviada:false},
  passPub:[], passSel:null, checkinCod:"", onbStep:1,onbName:"",onbStyles:[],onbPort:0,pfTab:"info",menu:false,autoAssist:false,
  sqSelAg:null,agArtist:null,agDia:null,agHora:null,agFeito:false,destaqueAtivo:false,
  voltarPara:null,voltarArtista:null,histAba:"pessoas",sub:{},
@@ -1256,6 +1296,115 @@ function escapar(x){return String(x==null?"":x).replace(/[&<>"']/g,function(c){
  return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})}
 function isArt(){return S.session==="artist"}
 function isForn(){return S.session==="forn"}
+
+/* ═══ SELOS ════════════════════════════════════════════════════════
+   Um catálogo só, e uma função só que calcula os selos de um perfil.
+   Feed e perfil leem daqui — dois cálculos separados divergiriam, e um
+   selo que aparece no feed e some no perfil destrói a confiança que ele
+   existia para construir.
+
+   As três categorias importam mais que os selos em si:
+
+   · FATO      — sai de coisa que aconteceu e foi confirmada por outra
+                 pessoa. Não se compra nem se pede.
+   · PARES     — outro profissional pôs o nome dele junto. Se compra com
+                 relação, não com dinheiro.
+   · CONTRATADO— foi pago. Aparece sempre dito como pago, na mesma
+                 tipografia dos outros, sem eufemismo.
+
+   Misturar as três sem dizer qual é qual é o jeito mais rápido de
+   transformar selo em decoração. E há um risco maior: inflação. Vinte
+   selos equivalem a nenhum — por isso 'feed' marca os poucos que
+   aparecem na descoberta, e o resto vive no perfil, onde quem quer
+   conferir vai atrás. */
+var SELOS=[
+ {id:"verificadas",cat:"fato",ic:"✅",nome:"Sessões verificadas",
+  regra:"Cada sessão confirmada por check-in do cliente e do tatuador, no mesmo lugar e na mesma hora.",
+  porq:"Elogio se compra; duas pessoas presentes, não.",feed:true,compravel:false},
+ {id:"recomendado",cat:"fato",ic:"⭐",nome:"Recomendado",
+  regra:"A partir de 20 checkouts avaliados, com higiene e orientação pós acima de 90% e sem alerta aberto.",
+  porq:"Higiene e orientação são porta, não média: 4,9 estrelas com 30% de gente sem orientação continua sendo risco.",feed:true,compravel:false},
+ {id:"orienta",cat:"fato",ic:"🩹",nome:"Orienta o pós",
+  regra:"Acima de 90% dos clientes confirmaram, no checkout, que receberam orientação de cuidado.",
+  porq:"É o único selo sobre saúde. Fica separado de satisfação de propósito.",feed:false,compravel:false},
+ {id:"prepara",cat:"fato",ic:"💬",nome:"Prepara para a dor",
+  regra:"Acima de 85% disseram que a dor foi como o tatuador tinha preparado.",
+  porq:"Mede preparo, não dor. Punir por doer premiaria quem promete que não dói.",feed:false,compravel:false},
+ {id:"tempo",cat:"fato",ic:"🕘",nome:"Tempo de casa",
+  regra:"Anos de perfil ativo na plataforma, com sessão registrada no período.",
+  porq:"Conta o tempo em atividade, não o tempo desde o cadastro — perfil parado não envelhece bem.",feed:false,compravel:false},
+ {id:"avaliado",cat:"fato",ic:"★",nome:"Bem avaliado",
+  regra:"Média a partir de 4,7 com pelo menos 30 avaliações escritas por clientes.",
+  porq:"Nota alta com cinco avaliações não diz nada. O volume mínimo é o que separa reputação de sorte.",feed:true,compravel:false},
+ {id:"referendado",cat:"pares",ic:"👥",nome:"Referendado por tatuadores",
+  regra:"Outros tatuadores em atividade puseram o nome deles junto do seu. Quem referenda aparece.",
+  porq:"É a reputação que circula na cena e nunca chegava ao cliente.",feed:true,compravel:false},
+ {id:"embaixador",cat:"pares",ic:"🤝",nome:"Embaixador de marca",
+  regra:"Uma marca de material o escolheu para representá-la. O nome da marca aparece junto.",
+  porq:"Diz que uma empresa do ramo aposta o nome dela nesse trabalho.",feed:false,compravel:false},
+ {id:"destaque",cat:"contratado",ic:"📈",nome:"Destaque",
+  regra:"Posição contratada no feed de descoberta, por período.",
+  porq:"É publicidade, e vem dito assim. Esconder isso contamina todos os outros selos.",feed:true,compravel:true},
+ {id:"enterprise",cat:"contratado",ic:"🏪",nome:"Estúdio Enterprise",
+  regra:"Estúdio com contrato de operação: equipe, agenda compartilhada e relatórios.",
+  porq:"Diz que existe estrutura por trás, não que o trabalho é melhor.",feed:false,compravel:true}
+];
+var SELO_POR_ID={}; SELOS.forEach(function(x){SELO_POR_ID[x.id]=x});
+
+/* Ordem de exibição: fato, depois pares, depois contratado. Um selo pago
+   nunca aparece antes de um conquistado. */
+var ORDEM_CAT={fato:0,pares:1,contratado:2};
+
+function selosDe(a){
+ var r=[];
+ var ver=sessoesVerificadas(a);
+ if(ver>0)r.push({id:"verificadas",valor:ver,texto:ver+" sessões verificadas"});
+ if(recomendado(a))r.push({id:"recomendado",valor:null,texto:"Recomendado"});
+ if(a.orientaPos>=90)r.push({id:"orienta",valor:a.orientaPos,texto:"Orienta o pós"});
+ if(a.calibrouDor>=85)r.push({id:"prepara",valor:a.calibrouDor,texto:"Prepara para a dor"});
+ if(a.years>=3)r.push({id:"tempo",valor:a.years,texto:a.years+" anos de casa"});
+ if(a.rating>=4.7&&a.reviews>=30)r.push({id:"avaliado",valor:a.rating,texto:a.rating+" em "+a.reviews+" avaliações"});
+ if(a.referendos>0)r.push({id:"referendado",valor:a.referendos,texto:"Referendado por "+a.referendos});
+ if(a.embaixador)r.push({id:"embaixador",valor:a.embaixador,texto:"Embaixador "+a.embaixador});
+ if(a.destaque)r.push({id:"destaque",valor:null,texto:"Destaque"});
+ if(a.enterprise)r.push({id:"enterprise",valor:null,texto:"Estúdio Enterprise"});
+ r.forEach(function(x){var d=SELO_POR_ID[x.id];x.cat=d.cat;x.ic=d.ic;x.nome=d.nome;x.feed=d.feed});
+ return r.sort(function(x,y){return ORDEM_CAT[x.cat]-ORDEM_CAT[y.cat]});
+}
+
+/* Recomendado é o único selo com porta. Higiene e orientação sobre o
+   pós são saúde: um estúdio adorado onde 3 em cada 10 pessoas saem sem
+   saber cuidar da ferida não é recomendável, por melhor que seja o
+   traço. Média esconderia exatamente isso. */
+function recomendado(a){
+ return a.avaliacoesCheckout>=20 && a.higiene>=90 && a.orientaPos>=90 && a.rating>=4.5;
+}
+function porqueNaoRecomendado(a){
+ if(a.avaliacoesCheckout<20)return "Faltam checkouts avaliados para o número significar alguma coisa ("+a.avaliacoesCheckout+" de 20).";
+ if(a.higiene<90)return "Higiene do estúdio abaixo do mínimo em "+(100-a.higiene)+"% dos checkouts.";
+ if(a.orientaPos<90)return "Clientes saíram sem orientação de cuidado em "+(100-a.orientaPos)+"% dos checkouts.";
+ if(a.rating<4.5)return "Avaliação média abaixo de 4,5.";
+ return "";
+}
+
+/* Um selinho. 'compacto' é o do feed: ícone e número, sem explicação —
+   a explicação vive no perfil, onde há espaço para ela. */
+function selo(x,compacto){
+ var d=SELO_POR_ID[x.id];
+ var t=d.nome+" — "+d.regra;
+ /* Classe estática, categoria em atributo. Montar o nome da classe em
+    tempo de execução, concatenando a categoria no fim, deixava a
+    auditoria de CSS do diagnóstico cega: ela lê os nomes de classe do
+    código-fonte, e ali só existia um prefixo. */
+ return '<span class="selinho" data-c="'+x.cat+'" title="'+escapar(t)+'">'+
+        '<span class="si">'+x.ic+'</span>'+(compacto?x.texto:x.nome)+'</span>';
+}
+function selosNoFeed(a){
+ var l=selosDe(a).filter(function(x){return x.feed});
+ /* No máximo três. O quarto selo não acrescenta confiança, divide
+    atenção — e a partir daí cada selo vale menos que o anterior. */
+ return l.slice(0,3);
+}
 
 /* ═══ CHECK-IN POR QR ══════════════════════════════════════════════
    O tatuador abre o check-in na hora em que a pessoa senta. A tela
@@ -1333,8 +1482,42 @@ function confirmarCheckin(){
  render();
 }
 function iniciarSessaoCheckin(){ S.checkin.inicio=Date.now(); render() }
+/* ═══ CHECKOUT ═════════════════════════════════════════════════════
+   Fecha pelo mesmo QR. Mas ninguém lembra de fechar nada depois de seis
+   horas de agulha — então a distância é a rede: quando o celular do
+   cliente se afasta do estúdio, o produto pergunta se terminou.
+
+   Duas coisas que essa rede não pode fazer:
+
+   · Fechar sozinha, calada. A pessoa precisa confirmar; caso contrário
+     o produto estaria escrevendo no histórico dela sem ela saber.
+   · Contar como duração medida. Sessão fechada por distância ou por
+     tempo entra como ESTIMADA, e fica dito assim. Se dado estimado se
+     misturasse ao medido, o número que faz o check-in valer a pena —
+     quanto tempo aquele estilo leva de verdade — viraria ruído em
+     poucas semanas.
+
+   A distância também custa uma permissão de localização pesada. Ela é
+   rede de segurança, não o caminho principal: quem fecha pelo QR nunca
+   precisa conceder nada. */
+function afastouDoEstudio(){
+ S.checkin.longe=true;
+ render();
+}
+function encerrarPorDistancia(){
+ S.checkin.saida="distancia";
+ encerrarSessaoCheckin();
+}
+function duracaoEhMedida(){ return S.checkin.saida==="qr" }
+function rotuloDaSaida(){
+ return S.checkin.saida==="qr" ? "medida pelo relógio da sessão"
+      : S.checkin.saida==="distancia" ? "estimada — fechada quando você se afastou do estúdio"
+      : "estimada — fechada automaticamente no fim do dia";
+}
+
 function encerrarSessaoCheckin(){
  S.checkin.fim=Date.now();
+ if(!S.checkin.saida)S.checkin.saida="qr";
  /* A sessão encerrada vira linha no passaporte do cliente, privada
     como todas. Guardá-la pública por padrão seria decidir por ele
     justamente no momento em que ele está menos disponível para
@@ -1342,7 +1525,8 @@ function encerrarSessaoCheckin(){
  var b=S.checkin.sessao||BOOK[0];
  PASS.unshift({id:"pa"+Date.now(),quando:"hoje",ordem:PASS.length+1,artista:"Marina Vieira",arh:"@marinavtattoo",
   destaque:false,estudio:"Studio Marina",cidade:"São Paulo",uf:"SP",pais:"Brasil",continente:"América do Sul",
-  estilo:"fineline",parte:b.area,horas:duracaoCheckin(),seed:31,verificado:true,publico:false});
+  estilo:"fineline",parte:b.area,horas:duracaoCheckin(),seed:31,verificado:true,publico:false,
+  medida:duracaoEhMedida()});
  render();
 }
 function duracaoCheckin(){
@@ -1425,7 +1609,7 @@ var CHAVE_ESTADO="ink.estado.v2";
 var GUARDA=["session","route","artist","tab","modo","seguindo","curtidas","cart",
  "cad","perfilLanding","abaPerfil","shopAud","shopCat","shopQ","evAba","q",
  "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","histAba","sub","agendaGoogle","emailConfirmado","emailPendente","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura","ehFornecedor",
- "notifFilter","pfTab","ue","f","feedLote","caro","cep","sqSel","orcPasso","passPub","checkin"];
+ "notifFilter","pfTab","ue","f","feedLote","caro","cep","sqSel","orcPasso","passPub","checkin","aval"];
 // orcEnviado fica de fora de propósito: é a confirmação de uma ação que
 // acabou de acontecer. Sobreviver à recarga faria a tela comemorar de
 // novo um envio de ontem.
@@ -1705,13 +1889,11 @@ function publicacao(a){
  h+='<div class="row wrapf" style="gap:5px;margin-top:9px">';
  h+=a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("");
  h+='<span class="tiny muted sp">★ '+a.rating+' ('+a.reviews+')</span></div>';
- /* Reputação antes do orçamento, e não depois. Avaliação diz o que
-    acharam; sessão verificada diz que aconteceu — duas pessoas
-    confirmaram uma à outra, no mesmo lugar, na hora. É o número que
-    não dá para comprar, e por isso ele fica ao lado da estrela. */
- h+='<div class="tiny muted" style="margin-top:4px">'+
-    '<span title="Sessões confirmadas por check-in das duas partes">✓ '+sessoesVerificadas(a)+' sessões verificadas</span>'+
-    ' · '+kmDe(a)+' km de você</div>';
+ /* Reputação antes do orçamento, e não depois. Até três selos, dos
+    que valem na descoberta — o quarto não acrescentaria confiança,
+    dividiria atenção. O resto mora no perfil, com a regra à vista. */
+ h+='<div class="selos" style="margin-top:6px">'+selosNoFeed(a).map(function(x){return selo(x,true)}).join("")+'</div>';
+ h+='<div class="tiny muted" style="margin-top:4px">'+kmDe(a)+' km de você</div>';
 
  h+='<div class="row" style="margin-top:7px">'+cifroes(a)+'<span class="tiny muted">por hora</span>';
  h+='<div class="row sp" style="gap:6px">';
@@ -2143,6 +2325,7 @@ function vArtist(){
  if(cursosDele.length)abas.push(["cursos","Cursos"]);
  if(eventosDele.length)abas.push(["eventos","Eventos"]);
  if(a.reviews>0)abas.push(["avaliacoes","Avaliações"]);
+ abas.push(["reputacao","Reputação"]);
  var aba = abas.map(function(x){return x[0]}).indexOf(S.abaPerfil)>=0 ? S.abaPerfil : "portfolio";
 
  var h='<main><div class="wrap"><div class="perfilcol">';
@@ -2157,6 +2340,8 @@ function vArtist(){
  h+='<div class="small muted">'+a.studio+' · '+a.city+'/'+a.state+'</div>';
  h+='<div class="tiny muted" style="margin-top:2px">'+stars(a.rating)+' '+a.rating+' ('+a.reviews+') · '+a.years+' anos</div>';
  h+='</div></div>';
+
+ h+='<div class="selos" style="margin-top:9px">'+selosDe(a).map(function(x){return selo(x,true)}).join("")+'</div>';
 
  h+='<div class="row wrapf" style="gap:5px;margin-top:11px">'+
     a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'</div>';
@@ -2255,6 +2440,74 @@ function vArtist(){
    h+='<div style="padding:9px 0'+(i<arr.length-1?';border-bottom:1px solid var(--border)':'')+'"><div class="row"><span class="b small">'+r.c+'</span><span class="tiny sp">'+stars(r.r)+'</span></div>';
    h+='<div class="tiny muted" style="margin-top:3px">'+r.t+'</div></div>'});
   h+='<button class="btn sm blk" style="margin-top:10px">Ver todas</button></div>';
+ }
+
+ /* ── REPUTAÇÃO: os selos com a regra de cada um à vista ───────────
+    Um selo sem regra visível é fé, não confiança. Aqui cada um diz o
+    que foi preciso para ganhá-lo — inclusive os pagos, que aparecem na
+    mesma lista, na mesma tipografia, ditos como pagos.
+
+    Esconder o que é publicidade seria o caminho mais curto para
+    contaminar todos os outros. */
+ if(aba==="reputacao"){
+  var meus=selosDe(a);
+  var porCat={fato:[],pares:[],contratado:[]};
+  meus.forEach(function(x){porCat[x.cat].push(x)});
+  var titulos={fato:["Verificado por fato","Sai de coisa que aconteceu e outra pessoa confirmou. Não se compra nem se pede."],
+   pares:["Concedido por pares","Outro profissional pôs o nome dele junto. Se ganha com relação, não com dinheiro."],
+   contratado:["Contratado","Foi pago. Diz que a marca investiu em aparecer, não que o trabalho é melhor."]};
+
+  h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b small">Como esta reputação se formou</span>'+tg("novo")+'</div>';
+  h+='<div class="tiny muted" style="margin-top:3px">Nenhum número aqui é declarado pelo tatuador.</div>';
+  ["fato","pares","contratado"].forEach(function(c){
+   if(!porCat[c].length)return;
+   h+='<div class="regracat" style="margin-top:15px">'+titulos[c][0]+'</div>';
+   h+='<div class="tiny muted" style="margin-top:2px">'+titulos[c][1]+'</div>';
+   h+='<div class="regras">';
+   porCat[c].forEach(function(x){
+    var d=SELO_POR_ID[x.id];
+    h+='<div class="regra"><span class="ri">'+x.ic+'</span><div style="min-width:0">';
+    h+='<div class="row" style="gap:6px"><span class="b small">'+x.texto+'</span>'+
+       (d.compravel?'<span class="badge">pago</span>':'')+'</div>';
+    h+='<div class="tiny muted" style="margin-top:2px">'+d.regra+'</div>';
+    h+='<div class="tiny muted" style="margin-top:2px;opacity:.8">'+d.porq+'</div>';
+    h+='</div></div>';
+   });
+   h+='</div>';
+  });
+
+  /* Dizer o que falta é diferente aqui do que era no passaporte do
+     cliente: ali seria cobrar tatuagem de alguém, aqui é dizer a um
+     profissional o que o mercado espera dele. */
+  var faltando=SELOS.filter(function(d){return !meus.filter(function(x){return x.id===d.id}).length});
+  if(faltando.length){
+   h+='<div class="sep"></div><div class="regracat">Ainda não tem</div>';
+   h+='<div class="tiny muted" style="margin-top:2px">Aparece aqui para você saber o que o selo exige — não para o cliente contar o que falta.</div>';
+   h+='<div class="regras">';
+   faltando.forEach(function(d){
+    h+='<div class="regra" style="opacity:.62"><span class="ri">'+d.ic+'</span><div style="min-width:0">';
+    h+='<div class="b small">'+d.nome+'</div>';
+    h+='<div class="tiny muted" style="margin-top:2px">'+d.regra+'</div>';
+    if(d.id==="recomendado")h+='<div class="tiny" style="margin-top:3px;color:var(--x-warning)">'+porqueNaoRecomendado(a)+'</div>';
+    h+='</div></div>';
+   });
+   h+='</div>';
+  }
+  h+='</div>';
+
+  h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b small">O que o checkout apurou</span>'+tg("novo")+'</div>';
+  h+='<div class="tiny muted" style="margin-top:3px">'+a.avaliacoesCheckout+' sessões avaliadas no fim, pelo cliente, com a sessão ainda fresca.</div>';
+  [["Estúdio limpo e organizado",a.higiene,90],
+   ["Saiu orientado sobre os cuidados",a.orientaPos,90],
+   ["A dor foi como o tatuador preparou",a.calibrouDor,85]].forEach(function(x){
+   var passou=x[1]>=x[2];
+   h+='<div style="margin-top:11px"><div class="row"><span class="small">'+x[0]+'</span>';
+   h+='<span class="sp b small" style="color:var(--'+(passou?"x-success":"x-warning")+')">'+x[1]+'%</span></div>';
+   h+='<div class="bar" style="margin-top:4px"><i style="width:'+x[1]+'%'+(passou?'':';background:var(--x-warning)')+'"></i></div>';
+   h+='<div class="tiny muted" style="margin-top:2px">mínimo para o selo: '+x[2]+'%</div></div>';
+  });
+  h+='<div class="tiny muted" style="margin-top:13px">Higiene e orientação são porta, não média: um perfil muito bem avaliado onde parte das pessoas sai sem saber cuidar da ferida continua sendo risco, e nenhuma estrela compensa isso.</div>';
+  h+='</div>';
  }
 
  return h+'</div></div></main>';
@@ -3199,20 +3452,97 @@ function vCheckin(){
  var h='<main><div class="wrap" style="max-width:520px">';
  h+='<button class="btn sm" style="margin-top:16px" onclick="go(\'me-passaporte\')">‹ Passaporte</button>';
 
- if(c.confirmado){
+ /* ── 4. AVALIADA ─────────────────────────────────────────────── */
+ if(S.aval.enviada){
   h+='<div class="card pad" style="margin-top:12px;text-align:center">';
   h+='<div style="font-size:34px">✅</div>';
-  h+='<div class="b" style="margin-top:6px;font-size:17px">Check-in feito às '+(c.quando||agoraHm())+'</div>';
-  h+='<div class="small muted" style="margin-top:4px">Esta sessão entra no seu passaporte como <b>verificada</b>: você e o tatuador confirmaram um ao outro, aqui, agora.</div>';
-  h+='<div class="sep"></div>';
-  h+='<div class="small">'+(c.sessao?c.sessao.c:"")+' · '+(c.sessao?c.sessao.area:"")+'</div>';
-  h+='<div class="tiny muted">Studio Marina · São Paulo</div>';
-  h+='<div class="avisook" style="margin-top:12px;text-align:left">Continua privada. Ninguém vê esta sessão até você abrir, e você abre uma por uma no passaporte.</div>';
+  h+='<div class="b" style="margin-top:6px;font-size:17px">Obrigada</div>';
+  h+='<div class="small muted" style="margin-top:4px">O que você respondeu não vira só estrela. Higiene e orientação sobre os cuidados decidem se este perfil pode ostentar o selo <b>Recomendado</b> — e nenhuma nota alta compensa uma pessoa saindo sem saber cuidar da ferida.</div>';
+  h+='<div class="avisook" style="margin-top:12px;text-align:left">A sessão está no seu passaporte, privada. Você abre se e quando quiser.</div>';
   h+='<button class="btn primary blk" style="margin-top:12px" onclick="go(\'me-passaporte\')">Ver no passaporte</button>';
   h+='</div></div></main>';
   return h;
  }
 
+ /* ── 3. SESSÃO ENCERRADA: A AVALIAÇÃO ────────────────────────────
+    Aqui, e não uma semana depois por e-mail. A pessoa acabou de sair,
+    lembra do cheiro da sala e de como foi tratada — e é justamente
+    isso que some primeiro. Perguntas de toque, nada de digitar. */
+ if(c.fim){
+  h+='<div class="card pad" style="margin-top:12px">';
+  h+='<div class="b" style="font-size:17px">Como foi?</div>';
+  h+='<div class="small muted" style="margin-top:4px">Cinco toques. '+horasBonitas(duracaoCheckin())+' de sessão, '+rotuloDaSaida()+'.</div>';
+
+  h+=grupoAval("sentiu","Como você se sentiu durante a sessão?",
+    [["acolhido","Acolhida"],["neutro","Indiferente"],["desconfortavel","Desconfortável"]]);
+  h+=grupoAval("higiene","O estúdio estava limpo e organizado?",
+    [["sim","Sim"],["nao","Não"]]);
+  h+=grupoAval("orientado","Você saiu sabendo como cuidar?",
+    [["sim","Sim"],["nao","Não"]]);
+  h+='<div class="tiny muted" style="margin-top:-4px">Estas duas não entram em média. Se a resposta for não, isso pesa sozinho.</div>';
+  h+=grupoAval("dor","A dor foi o que te prepararam para sentir?",
+    [["menos","Menos"],["igual","Como falaram"],["mais","Mais do que eu esperava"]]);
+  h+='<div class="tiny muted" style="margin-top:-4px">Ninguém é penalizado por doer. O que se mede é se te prepararam — punir a dor premiaria quem promete que não dói.</div>';
+  h+=grupoAval("resultado","O resultado é o que vocês combinaram?",
+    [["sim","Sim"],["parte","Em parte"],["nao","Não"]]);
+
+  h+='<div class="sep"></div>';
+  h+='<label class="lb">Avaliação pública</label>';
+  h+='<div class="row" style="gap:5px;margin-top:4px">';
+  for(var e=1;e<=5;e++)h+='<button class="estrela '+(S.aval.estrelas>=e?"on":"")+'" onclick="S.aval.estrelas='+e+';render()">★</button>';
+  h+='</div>';
+  h+='<textarea class="fld" id="avalTexto" style="height:76px;resize:vertical;margin-top:8px" placeholder="O que outra pessoa precisaria saber antes de marcar com esse tatuador? (opcional)">'+escapar(S.aval.texto||"")+'</textarea>';
+  h+='<div class="tiny muted" style="margin-top:4px">A estrela e o texto são públicos, com o seu nome. As cinco perguntas acima são anônimas e viram só percentual.</div>';
+  h+='<button class="btn primary blk" style="margin-top:12px" '+(avalCompleta()?"":"disabled")+' onclick="enviarAvaliacao()">Enviar</button>';
+  h+='<button class="btn blk" style="margin-top:6px" onclick="pularAvaliacao()">Agora não</button>';
+  h+='</div></div></main>';
+  return h;
+ }
+
+ /* ── 2. SESSÃO EM ANDAMENTO: ENQUANTO VOCÊ TATUA ─────────────────
+    Uma sessão longa é a única vez em que alguém fica horas parado com
+    o celular na mão, dentro do assunto. É uma audiência cativa — e é
+    exatamente por isso que aqui não entra venda.
+
+    Produto de cuidado aparece no checkout, quando a pessoa está de pé
+    e prestes a precisar. Empurrar pomada para quem está com a agulha
+    na pele é usar o desconforto dela como argumento comercial. */
+ if(c.confirmado){
+  h+='<div class="card pad" style="margin-top:12px">';
+  h+='<div class="row"><span class="b">Sessão em andamento</span><span class="badge ok sp">✓ check-in às '+(c.quando||"")+'</span></div>';
+  h+='<div class="tiny muted" style="margin-top:3px">'+(c.sessao?c.sessao.area:"")+' · Studio Marina · São Paulo</div>';
+  h+='<div class="avisook" style="margin-top:10px">Check-in feito. Esta sessão já está no seu passaporte, e <b>continua privada</b> — ninguém vê até você abrir.</div>';
+  if(c.longe){
+   h+='<div class="avisoerro" style="margin-top:11px"><b>Você se afastou do estúdio.</b> A sessão terminou? Se sim, fecho aqui mesmo — mas o tempo entra como estimado, não como medido.</div>';
+   h+='<div class="row" style="gap:8px;margin-top:9px"><button class="btn primary" style="flex:1" onclick="encerrarPorDistancia()">Terminou, pode fechar</button>';
+   h+='<button class="btn" onclick="S.checkin.longe=false;render()">Ainda estou lá</button></div>';
+  }else{
+   h+='<button class="btn blk" style="margin-top:11px" onclick="escanearCheckout()">📷 Encerrar pelo QR do tatuador</button>';
+   h+='<div class="tiny muted" style="margin-top:5px">Esqueceu de fechar? Quando você se afastar do estúdio eu pergunto — mas aí o tempo conta como estimado.</div>';
+  }
+  h+='</div>';
+
+  h+='<div class="row" style="margin-top:20px"><span class="b" style="font-size:15px">Enquanto você tatua</span></div>';
+  h+='<div class="tiny muted" style="margin-top:2px">Nada para comprar aqui. Você está com uma agulha na pele — não é hora de te vender coisa.</div>';
+  h+='<div class="lista" style="margin-top:10px">';
+  [["🖼","A galeria de quem está te tatuando","print, quadro e original à venda","go('artist','a0');S.abaPerfil='galeria'"],
+   ["👥","Tatuadores do mesmo estúdio","quem mais atende aqui","go('home')"],
+   ["🎟","Convenções e flash days perto","nos próximos meses","go('plataforma');S.tab='events';S.evAba='perto'"],
+   ["📋","Cursos, se você quiser aprender","de quem tatua de verdade","go('plataforma');S.tab='events';S.evAba='cursos'"],
+   ["🌐","Seu passaporte","o que você já fez, e onde","go('me-passaporte')"]
+  ].forEach(function(x){
+   h+='<button class="item" onclick="'+x[3]+'"><div class="itemfoto">'+x[0]+'</div>';
+   h+='<div class="itemtxt"><div class="b small">'+x[1]+'</div><div class="tiny muted">'+x[2]+'</div></div>';
+   h+='<div class="itemfim"><span class="tiny muted">›</span></div></button>';
+  });
+  h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:9px">Quando a sessão terminar, peço a sua avaliação — com tudo ainda fresco.</div>';
+  h+='<button class="btn sm" style="margin-top:11px" onclick="afastouDoEstudio()">simular: me afastei do estúdio</button>';
+  h+='</div></main>';
+  return h;
+ }
+
+ /* ── 1. ENTRADA ──────────────────────────────────────────────── */
  h+='<div class="card pad" style="margin-top:12px">';
  h+='<div class="b" style="font-size:17px">Check-in da sessão</div>';
  h+='<div class="small muted" style="margin-top:4px">Na hora de sentar, o tatuador abre um check-in e mostra o código. Aponte a câmera ou digite as seis letras.</div>';
@@ -3232,6 +3562,36 @@ function vCheckin(){
  if(!c.aberto)h+='<div class="tiny muted" style="margin-top:10px">Nenhum check-in aberto no momento. Quem abre é o tatuador, na tela dele — em <b>Cliente + tatuador → Check-in</b> você consegue ver os dois lados.</div>';
  h+='</div></div></main>';
  return h;
+}
+
+function grupoAval(campo,pergunta,opcoes){
+ var h='<div style="margin-top:14px"><div class="b small">'+pergunta+'</div>';
+ h+='<div class="row wrapf" style="gap:6px;margin-top:6px">';
+ opcoes.forEach(function(o){
+  h+='<button class="chip '+(S.aval[campo]===o[0]?"on":"")+'" onclick="S.aval.'+campo+'=\''+o[0]+'\';render()">'+o[1]+'</button>';
+ });
+ return h+'</div></div>';
+}
+function avalCompleta(){
+ return !!(S.aval.sentiu&&S.aval.higiene&&S.aval.orientado&&S.aval.dor&&S.aval.resultado&&S.aval.estrelas);
+}
+function enviarAvaliacao(){
+ var t=document.getElementById("avalTexto");
+ if(t)S.aval.texto=t.value;
+ S.aval.enviada=true;
+ render();
+}
+/* Pular é legítimo e não custa nada à pessoa. Prender o passaporte
+   atrás da avaliação transformaria consentimento em pedágio. */
+function pularAvaliacao(){
+ S.aval.enviada=false;
+ fecharCheckin();
+ go("me-passaporte");
+}
+function escanearCheckout(){
+ if(!S.checkin.inicio){S.checkin.erro="O tatuador ainda não iniciou a sessão.";render();return}
+ S.checkin.saida="qr";
+ encerrarSessaoCheckin();
 }
 
 function cqRow(q,full){
@@ -3825,11 +4185,16 @@ function vStudio(sub){
   } else if(!ck.fim){
    h+='<div class="relogio">em andamento</div>';
    h+='<div class="small muted">Começou às '+agoraHm()+'. Pode fechar a tela: o relógio continua.</div>';
-   h+='<button class="btn primary blk" style="margin-top:13px" onclick="encerrarSessaoCheckin()">Encerrar a sessão</button>';
+   h+='<button class="btn primary blk" style="margin-top:13px" onclick="S.checkin.saida=\'qr\';encerrarSessaoCheckin()">Encerrar a sessão</button>';
   } else {
    h+='<div class="relogio">'+horasBonitas(duracaoCheckin())+'</div>';
-   h+='<div class="small muted">Registrado nos dois lados: no passaporte de '+ck.sessao.c+' e no seu histórico.</div>';
-   h+='<div class="avisook" style="margin-top:12px;text-align:left">A duração entra em <b>Desempenho</b>. Com algumas sessões, a média por estilo passa a valer mais que a sua estimativa.</div>';
+   h+='<div class="small muted">'+rotuloDaSaida()+'</div>';
+   h+='<div class="tiny muted" style="margin-top:5px">Registrado nos dois lados: no passaporte de '+ck.sessao.c+' e no seu histórico.</div>';
+   if(duracaoEhMedida())
+    h+='<div class="avisook" style="margin-top:12px;text-align:left">A duração entra em <b>Desempenho</b>. Com algumas sessões, a média por estilo passa a valer mais que a sua estimativa.</div>';
+   else
+    h+='<div class="avisoerro" style="margin-top:12px;text-align:left">Esta não entra em <b>Desempenho</b>: o fechamento foi por distância, e o tempo é estimativa. Misturar estimado com medido estragaria a média que você usa para orçar.</div>';
+   h+='<div class="tiny muted" style="margin-top:10px">'+ck.sessao.c+' recebe agora as perguntas do checkout. Higiene e orientação sobre os cuidados são o que decide o seu selo <b>Recomendado</b>.</div>';
    h+='<button class="btn blk" style="margin-top:11px" onclick="fecharCheckin()">Concluir</button>';
   }
   h+='</div>';
@@ -4075,7 +4440,10 @@ function vStudio(sub){
    check-in valer a pena. */
 function desempenhoPorEstilo(){
  var m={};
- PASS.filter(function(t){return t.verificado}).forEach(function(t){
+ /* Só duração medida. Sessão fechada por distância ou por tempo é
+    estimativa, e estimativa misturada à média destrói justamente o
+    número que justifica o check-in. */
+ PASS.filter(function(t){return t.verificado && t.medida!==false}).forEach(function(t){
   var k=t.estilo;
   if(!m[k])m[k]={rotulo:SL[k]||k,n:0,soma:0,max:0};
   m[k].n++; m[k].soma+=t.horas; if(t.horas>m[k].max)m[k].max=t.horas;

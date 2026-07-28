@@ -147,8 +147,9 @@ S.checkinCod = S.checkin.codigo;
 g.e("confirmarCheckin()");
 chk("código certo confirma", S.checkin.confirmado === true);
 var tok = ir("checkin");
-chk("o cliente vê a confirmação", /Check-in feito/.test(tok));
-chk("e continua privado", /Continua privada/.test(tok),
+chk("o cliente cai direto na sessão em andamento", /Sessão em andamento/.test(tok));
+chk("a confirmação aparece", /Check-in feito/.test(tok));
+chk("e continua privado", /continua privada/i.test(tok),
     "o check-in acabou de expor a sessão sem perguntar");
 
 S.session = "artist";
@@ -185,9 +186,8 @@ chk("e a distância", /km de você/.test(th));
 chk("a reputação vem antes do botão de orçar",
     th.indexOf("sessões verificadas") < th.indexOf("quoteFor("),
     "o botão de orçamento aparece antes da reputação");
-chk("no mesmo bloco da avaliação",
-    Math.abs(th.indexOf("sessões verificadas") - th.indexOf("Pedir orçamento")) < 700,
-    "reputação e ação ficaram longe uma da outra");
+chk("os selos aparecem como selos, não como texto solto",
+    /class="selos"/.test(th) && /class="selinho"/.test(th));
 
 /* ── 7. FORNECEDOR: A CADEIA NA ORDEM CERTA ──────────────────────── */
 secao("7. FORNECEDOR");
@@ -237,6 +237,118 @@ S.session = "client"; S.route = "forn"; g.e("render()");
 chk("cliente não entra na área da marca", !/Nordeste Ink Care/.test(tela()) || /🔒/.test(tela()));
 S.session = "forn"; S.route = "studio"; g.e("render()");
 chk("fornecedor não entra na gestão do estúdio", /🔒/.test(tela()) || !/Seu estúdio/.test(tela()));
+
+
+/* ── 10. SELOS ────────────────────────────────────────────────────
+   Duas coisas em teste. A primeira é técnica: feed e perfil precisam ler
+   do mesmo cálculo, senão um selo aparece na descoberta e some quando a
+   pessoa vai conferir — que é o pior momento possível para sumir.
+
+   A segunda é o argumento inteiro do sistema: o que foi pago tem de
+   estar dito como pago. Um selo comprado que se disfarça de conquistado
+   contamina todos os outros, inclusive os honestos. */
+secao("10. SELOS");
+S.session = "anon";
+var tfe = ir("home");
+chk("o feed mostra selos", /class="selos"/.test(tfe) && /class="selinho"/.test(tfe));
+chk("no máximo três por card",
+    (function () {
+      var cards = tfe.split('class="post"');
+      return cards.every(function (c) { return (c.match(/class="selinho"/g) || []).length <= 3 });
+    })(), "algum card passou de três selos — a partir daí cada selo vale menos");
+chk("a categoria vai no atributo, não no nome da classe", /data-c="(fato|pares|contratado)"/.test(tfe),
+    "sem isso a auditoria de CSS fica cega");
+
+var art = g.e("ARTISTS.filter(function(x){return x.destaque})[0]");
+S.artist = art.id; S.abaPerfil = "reputacao";
+var trep = ir("artist");
+chk("o perfil tem aba de reputação", /Como esta reputação se formou/.test(trep));
+chk("separa fato, pares e contratado",
+    /Verificado por fato/.test(trep) && /Concedido por pares/.test(trep) && /Contratado/.test(trep));
+chk("cada selo mostra a regra", (trep.match(/class="regra"/g) || []).length >= 3);
+chk("o que é pago vem dito como pago", />pago</.test(trep),
+    "selo comprado disfarçado de conquistado contamina todos os outros");
+chk("nenhum número é declarado pelo tatuador", /Nenhum número aqui é declarado/.test(trep));
+
+/* Feed e perfil leem da mesma função. Se um dia alguém duplicar o
+   cálculo, esta verificação é a que percebe. */
+var noFeed = g.e("selosNoFeed(ARTISTS[1]).map(function(x){return x.id}).join(',')");
+var noPerfil = g.e("selosDe(ARTISTS[1]).filter(function(x){return x.feed}).map(function(x){return x.id}).slice(0,3).join(',')");
+chk("feed e perfil não divergem", noFeed === noPerfil, noFeed + " ≠ " + noPerfil);
+chk("selo pago nunca vem antes de conquistado",
+    g.e("selosDe(ARTISTS[6]).map(function(x){return ORDEM_CAT[x.cat]}).every(function(v,i,arr){return i===0||arr[i-1]<=v})"),
+    "a ordem deixou um selo contratado subir na frente");
+
+/* ── 11. RECOMENDADO É PORTA, NÃO MÉDIA ─────────────────────────── */
+secao("11. RECOMENDADO");
+chk("estrela alta não basta sem higiene",
+    g.e("recomendado({rating:5,reviews:400,avaliacoesCheckout:200,higiene:70,orientaPos:99})") === false,
+    "um perfil sujo virou recomendado por causa da nota");
+chk("nem sem orientação sobre o pós",
+    g.e("recomendado({rating:5,reviews:400,avaliacoesCheckout:200,higiene:99,orientaPos:60})") === false,
+    "gente saindo sem saber cuidar da ferida, e o selo saiu assim mesmo");
+chk("nem com volume pequeno",
+    g.e("recomendado({rating:5,reviews:400,avaliacoesCheckout:3,higiene:99,orientaPos:99})") === false,
+    "três avaliações fizeram selo");
+chk("com tudo em ordem, sai",
+    g.e("recomendado({rating:4.8,reviews:400,avaliacoesCheckout:40,higiene:96,orientaPos:95})") === true);
+chk("e quando não sai, diz por quê",
+    /checkouts avaliados/.test(g.e("porqueNaoRecomendado({rating:5,reviews:9,avaliacoesCheckout:3,higiene:99,orientaPos:99})")));
+
+/* ── 12. CHECKOUT ────────────────────────────────────────────────
+   A regra que protege o dado: fechamento por distância é estimativa, e
+   estimativa não pode entrar na média de duração — que é justamente o
+   número que faz o check-in valer a pena para o tatuador. */
+secao("12. CHECKOUT: QR, E DISTÂNCIA COMO REDE");
+S.session = "artist";
+g.e("fecharCheckin()");
+g.e("abrirCheckin(1)");
+S.session = "client";
+S.checkinCod = S.checkin.codigo;
+g.e("confirmarCheckin()");
+var tand = ir("checkin");
+chk("durante a sessão existe o que navegar", /Enquanto você tatua/.test(tand));
+chk("e nada para comprar ali", /Nada para comprar aqui/.test(tand),
+    "vender para quem está com a agulha na pele usa o desconforto como argumento");
+chk("dá para encerrar pelo QR", /escanearCheckout\(\)/.test(tand));
+
+g.e("S.checkin.inicio = Date.now() - 2*3600000");
+g.e("afastouDoEstudio()");
+var tlonge = tela();
+chk("afastar-se pergunta, não fecha sozinho", /A sessão terminou\?/.test(tlonge),
+    "fechar calado é escrever no histórico da pessoa sem ela saber");
+chk("e avisa que o tempo vira estimativa", /estimado, não como medido/.test(tlonge));
+chk("dá para dizer que ainda está lá", /Ainda estou lá/.test(tlonge));
+
+var antesD = g.e("PASS.length");
+g.e("encerrarPorDistancia()");
+chk("fechou", g.e("PASS.length") === antesD + 1);
+chk("e a sessão fica marcada como estimada", g.e("PASS[0].medida") === false);
+var soMedidas = g.e("desempenhoPorEstilo().reduce(function(t,x){return t+x.n},0)");
+var medidasNoPass = g.e("PASS.filter(function(t){return t.verificado && t.medida!==false}).length");
+chk("estimativa não entra na média de duração", soMedidas === medidasNoPass,
+    "duração estimada poluiu o número que o tatuador usa para orçar");
+
+/* ── 13. A AVALIAÇÃO DO CHECKOUT ─────────────────────────────────── */
+secao("13. AVALIAÇÃO NO FIM DA SESSÃO");
+var tav = ir("checkin");
+chk("pergunta como se sentiu", /Como você se sentiu/.test(tav));
+chk("pergunta do estúdio", /limpo e organizado/.test(tav));
+chk("pergunta se saiu orientado", /sabendo como cuidar/.test(tav));
+chk("pergunta da dor", /A dor foi o que te prepararam/.test(tav));
+chk("e do resultado", /o que vocês combinaram/.test(tav));
+chk("diz que higiene e orientação não entram em média", /não entram em média/.test(tav));
+chk("e que ninguém é punido por doer", /Ninguém é penalizado por doer/.test(tav));
+chk("separa o que é público do que é anônimo", /são anônimas e viram só percentual/.test(tav));
+chk("não envia incompleta", /disabled/.test(tav), "dava para enviar sem responder");
+["sentiu='acolhido'", "higiene='sim'", "orientado='sim'", "dor='igual'", "resultado='sim'", "estrelas=5"]
+  .forEach(function (c) { g.e("S.aval." + c) });
+g.e("render()");
+chk("completa, libera o envio", !/disabled/.test(tela()));
+chk("dá para pular", /pularAvaliacao\(\)/.test(tela()),
+    "prender o passaporte atrás da avaliação transforma consentimento em pedágio");
+g.e("enviarAvaliacao()");
+chk("e o agradecimento explica para que serviu", /decidem se este perfil pode ostentar/.test(tela()));
 
 console.log("\n══ " + f + " falha(s) ══");
 process.exit(f ? 1 : 0);

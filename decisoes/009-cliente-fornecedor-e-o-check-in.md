@@ -154,3 +154,53 @@ privado? Não. Ficou de fora até existir um caso de uso que justifique.
 **Marketplace de fornecedor para tatuador (B2B).** Existe na proposta
 antiga e continua fazendo sentido, mas esta rodada é sobre a venda ao
 cliente final — que é a que a plataforma cria e a que ninguém mais tem.
+
+---
+
+## Adendo — checkout, avaliação e o sistema de selos
+
+**Checkout pelo mesmo QR, e a distância como rede.** Ninguém lembra de
+fechar nada depois de seis horas de agulha. Quando o celular do cliente
+se afasta do estúdio, o produto **pergunta** se terminou — não fecha
+sozinho. Fechar calado seria escrever no histórico da pessoa sem ela
+saber.
+
+Uma regra que protege o dado mais valioso: **sessão fechada por
+distância ou por tempo entra como duração estimada, nunca medida**, e
+não conta na média por estilo. Se estimativa se misturasse ao medido, o
+número que faz o check-in valer a pena para o tatuador viraria ruído em
+poucas semanas. A tela diz qual é qual.
+
+**A avaliação acontece no checkout, não uma semana depois por e-mail.**
+A pessoa acabou de sair, lembra do cheiro da sala e de como foi tratada
+— e é justamente isso que some primeiro. Cinco perguntas de toque, mais
+estrela e texto opcionais.
+
+Três decisões dentro dela:
+
+1. **Higiene e orientação sobre o pós são porta, não média.** São saúde,
+   não satisfação. Um perfil adorado onde parte das pessoas sai sem
+   saber cuidar da ferida não recebe o selo Recomendado, e nenhuma
+   estrela compensa isso.
+2. **Dor não pune ninguém.** O que se mede é se o tatuador *preparou* a
+   pessoa. Penalizar a dor premiaria quem promete que não dói.
+3. **As cinco perguntas são anônimas e viram percentual; estrela e texto
+   são públicos e assinados.** Sem essa separação, ninguém responde com
+   honestidade sobre higiene do lugar onde acabou de ser atendido.
+
+Pular é permitido e não custa nada. Prender o passaporte atrás da
+avaliação transformaria consentimento em pedágio.
+
+**Enquanto você tatua.** Uma sessão longa é a única vez em que alguém
+fica horas parado com o celular na mão, dentro do assunto. É audiência
+cativa — e por isso ali **não entra venda**. Produto de cuidado aparece
+no checkout, quando a pessoa está de pé e prestes a precisar. Empurrar
+pomada para quem está com a agulha na pele é usar o desconforto como
+argumento comercial.
+
+**Dez selos, três categorias**, com a lista completa em `SELOS.md`. A
+categoria responde a pergunta que o cliente faz sem formular: isto foi
+conquistado ou comprado? Feed e perfil leem do mesmo cálculo — um selo
+que aparece na descoberta e some quando a pessoa vai conferir é o pior
+momento possível para sumir. No máximo três no feed: o quarto não
+acrescenta confiança, divide atenção.
