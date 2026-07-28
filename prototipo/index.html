@@ -327,7 +327,19 @@ html[data-dark] .seg.on{
 /* Faixa de medidas: selos e números encostados um no outro, separados
    do resto por espaço. Agrupar por natureza é o que permite ler o card
    em três olhadas em vez de cinco. */
-.medidas{margin-top:9px;padding-top:9px;border-top:1px solid var(--border)}
+.medidas{display:flex;align-items:center;gap:9px;margin-top:9px;padding-top:9px;
+  border-top:1px solid var(--border)}
+
+/* Selos no canto superior direito do card: só ícone, alinhados, no
+   mesmo ponto em todo card da coluna. */
+.selosic{display:flex;gap:4px;flex-shrink:0;background:none;padding:0;cursor:pointer}
+.selinho.soic{padding:0;width:24px;height:24px;justify-content:center;border-radius:50%}
+.selinho.soic .si{font-size:12px}
+.selinho.soic .si svg{width:13px;height:13px}
+.selosic:hover .selinho.soic{outline:1px solid var(--muted-foreground);outline-offset:1px}
+@media(pointer:coarse){
+  .selinho.soic{width:28px;height:28px}
+}
 .acoescard{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;
   border-top:1px solid var(--border)}
 .acoescard .sp{flex:1}
@@ -1504,6 +1516,25 @@ function selo(x,compacto){
  return '<span class="selinho" data-c="'+x.cat+'" title="'+escapar(t)+'">'+
         '<span class="si">'+x.ic+'</span>'+(compacto?x.texto:x.nome)+'</span>';
 }
+
+/* O mesmo selo sem palavra nenhuma, para o canto do card no feed.
+
+   Quem varre um feed não lê rótulo — reconhece forma e cor, e só para
+   quando alguma coisa interessa. O número ("25 sessões verificadas")
+   ocupava uma linha inteira para uma informação que ninguém compara
+   card a card; ela importa depois, quando a pessoa já escolheu um
+   perfil para olhar. Aqui fica o sinal; o perfil guarda a frase.
+
+   aria-label não é opcional: ícone sem nome acessível é botão mudo para
+   quem usa leitor de tela, e isso seria trocar legibilidade por
+   exclusão. */
+function seloIcone(x){
+ var d=SELO_POR_ID[x.id];
+ var t=x.texto+" — "+d.regra;
+ return '<span class="selinho soic" data-c="'+x.cat+'" role="img" '+
+        'title="'+escapar(t)+'" aria-label="'+escapar(x.texto)+'">'+
+        '<span class="si">'+x.ic+'</span></span>';
+}
 /* Os selos do lugar. Ficam no lugar — nunca somados aos números do
    tatuador. Um profissional excelente num estúdio ruim não pode herdar
    a nota do lugar, e um estúdio impecável não empresta reputação a quem
@@ -2008,30 +2039,47 @@ function publicacao(a){
     duas afirmações da mesma coisa em dois lugares diferentes. */
  h+='<div class="postinfo">';
 
- // 1. quem é
+ /* 1. quem é — com os selos ancorados no canto superior direito.
+
+    Ali eles ficam no mesmo lugar em todo card da coluna, e o olho
+    aprende a varrer uma faixa vertical em vez de caçar chip no meio do
+    texto. Só ícone: clicar abre o perfil, que é onde a frase inteira
+    mora. */
  var dist=distanciaTexto(a);
- h+='<div class="row" style="gap:9px">';
+ var sf=selosNoFeed(a);
+ var pagos=sf.filter(function(x){return x.cat==="contratado"});
+ var ganhos=sf.filter(function(x){return x.cat!=="contratado"});
+
+ h+='<div class="row" style="gap:9px;align-items:flex-start">';
  h+='<div class="av" style="width:34px;height:34px">'+ini(a.name)+'</div>';
  h+='<div style="min-width:0;flex:1">';
- h+='<div class="b small">'+a.name+(a.verified?' <span style="color:var(--accent)">✔</span>':'')+'</div>';
+ h+='<div class="row" style="gap:5px"><span class="b small">'+a.name+(a.verified?' <span style="color:var(--accent)">✔</span>':'')+'</span>';
+ /* Selo pago continua com a palavra. Divulgação de publicidade que só
+    aparece ao passar o mouse não é divulgação — e no celular não existe
+    passar o mouse. */
+ h+=pagos.map(function(x){return selo(x,false)}).join("");
+ h+='</div>';
  h+='<div class="tiny muted">'+(a.studio?a.studio+' · ':'')+a.city+'/'+a.state+(dist?' · '+dist:'')+'</div>';
- h+='</div></div>';
+ h+='</div>';
+ if(ganhos.length){
+  h+='<button class="selosic" title="Ver como esta reputação se formou" aria-label="Reputação de '+escapar(a.name)+'" onclick="S.abaPerfil=\'reputacao\';go(\'artist\',\''+a.id+'\')">';
+  h+=ganhos.map(seloIcone).join("");
+  h+='</button>';
+ }
+ h+='</div>';
 
  // 2. o que faz
  h+='<div class="row wrapf" style="gap:5px;margin-top:9px">';
  h+=a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'</div>';
 
- /* 3. o que valeu — reputação e preço na mesma faixa, porque são as
-    duas medidas do card. Até três selos: o quarto não acrescentaria
-    confiança, dividiria atenção. O resto mora no perfil, com a regra
-    à vista. */
+ /* 3. o que valeu — nota e preço, as duas medidas que se comparam
+    entre cards. Os selos saíram daqui para o canto de cima: eles são
+    sinal, não medida, e disputavam a mesma faixa com dois números. */
  h+='<div class="medidas">';
- h+='<div class="selos">'+selosNoFeed(a).map(function(x){return selo(x,true)}).join("")+'</div>';
- h+='<div class="row" style="gap:9px;margin-top:6px">';
  h+='<span class="tiny muted">★ '+a.rating+' ('+a.reviews+')</span>';
  h+='<span class="tiny muted">·</span>';
  h+=cifroes(a)+'<span class="tiny muted">por hora</span>';
- h+='</div></div>';
+ h+='</div>';
 
  // 4. o que fazer — os quatro botões numa faixa só
  h+='<div class="acoescard">';

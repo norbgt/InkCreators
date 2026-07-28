@@ -187,7 +187,7 @@ chk("a reputação vem antes do botão de orçar",
     th.indexOf("sessões verificadas") < th.indexOf("quoteFor("),
     "o botão de orçamento aparece antes da reputação");
 chk("os selos aparecem como selos, não como texto solto",
-    /class="selos"/.test(th) && /class="selinho"/.test(th));
+    /class="selosic"/.test(th) && /class="selinho soic"/.test(th));
 
 /* ── 7. FORNECEDOR: A CADEIA NA ORDEM CERTA ──────────────────────── */
 secao("7. FORNECEDOR");
@@ -250,7 +250,7 @@ chk("fornecedor não entra na gestão do estúdio", /🔒/.test(tela()) || !/Seu
 secao("10. SELOS");
 S.session = "anon";
 var tfe = ir("home");
-chk("o feed mostra selos", /class="selos"/.test(tfe) && /class="selinho"/.test(tfe));
+chk("o feed mostra selos", /class="selosic"/.test(tfe) && /class="selinho soic"/.test(tfe));
 chk("no máximo três por card",
     (function () {
       var cards = tfe.split('class="post"');
@@ -448,12 +448,33 @@ chk("distância aparece junto da cidade, não solta",
     /\/[A-Z]{2} · [\d,.]+ km de você/.test(tcard),
     "a distância voltou a ser uma linha órfã");
 chk("sem NaN em lugar nenhum", !/NaN/.test(tcard), "cálculo de distância sem coordenada");
-chk("os selos vêm antes dos números",
-    tcard.indexOf('class="selos"') < tcard.indexOf("por hora"));
+/* ── Selos no canto: sinal no feed, frase no perfil ─────────────
+   O número some da descoberta e reaparece quando a pessoa escolhe um
+   perfil. O que não pode sumir é o nome acessível: ícone sem rótulo
+   para leitor de tela troca legibilidade por exclusão. */
+chk("os selos ficam no topo, antes dos estilos",
+    tcard.indexOf('class="selosic"') < tcard.indexOf("Lettering") ||
+    tcard.indexOf('class="selosic"') < tcard.indexOf('class="badge"'));
+chk("no feed, o selo não tem palavra",
+    !/class="selinho soic"[^>]*>\s*<span class="si">[^<]*<\/span>\s*[A-Za-zÀ-ú0-9]/.test(tcard),
+    "sobrou rótulo no selo do feed");
+chk("mas tem nome acessível", /class="selinho soic"[^>]*aria-label="[^"]+"/.test(tcard),
+    "ícone mudo para leitor de tela");
+chk("e leva ao perfil quando clicado", /class="selosic"[^>]*onclick="[^"]*reputacao/.test(tcard));
+chk("no perfil, a palavra volta",
+    (function () {
+      S.artist = "a0"; S.abaPerfil = "reputacao";
+      var t = ir("artist");
+      return /sessões verificadas/.test(t) && /Referendado por/.test(t);
+    })(), "o perfil também perdeu o rótulo");
+chk("css do selo em modo ícone existe", /\.selinho\.soic\{/.test(css) && /\.selosic\{/.test(css));
 chk("reputação e preço na mesma faixa", /class="medidas"/.test(tcard));
 chk("os quatro botões numa faixa só", /class="acoescard"/.test(tcard));
-chk("e nenhum botão fora dela",
-    (tcard.split('class="acoescard"')[0].match(/<button/g) || []).length === 0,
+/* O único botão fora da faixa de ações é o grupo de selos, que leva ao
+   perfil. Qualquer outro voltou a espalhar ação pelo card. */
+chk("nenhum botão de ação fora da faixa",
+    (tcard.split('class="acoescard"')[0].match(/<button/g) || []).length ===
+    (tcard.split('class="acoescard"')[0].match(/class="selosic"/g) || []).length,
     "sobrou botão antes da faixa de ações");
 /* Conta só o que a pessoa lê. O título do selo repete a palavra dentro
    do atributo, e isso não é duplicação na tela. */

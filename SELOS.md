@@ -127,6 +127,18 @@ sem direito de resposta vira acusação. O raciocínio completo está em
 
 ## Duas regras que valem para o sistema inteiro
 
+**No feed, o selo é só ícone.** Ele fica ancorado no canto superior
+direito do card, no mesmo ponto em todo card da coluna — o olho aprende
+a varrer uma faixa vertical em vez de caçar chip no meio do texto. A
+frase inteira ("25 sessões verificadas") aparece quando a pessoa abre o
+perfil, que é onde ela já decidiu olhar com atenção.
+
+Duas exceções, e as duas são sobre honestidade. **Selo pago mantém a
+palavra** mesmo no feed: divulgação de publicidade que só aparece ao
+passar o mouse não é divulgação, e no celular não existe passar o mouse.
+E **todo ícone carrega nome acessível**, porque ícone mudo para leitor
+de tela seria trocar legibilidade por exclusão.
+
 **No máximo três selos no feed.** O quarto não acrescenta confiança,
 divide atenção — e a partir daí cada selo passa a valer menos que o
 anterior. Vinte selos equivalem a nenhum. Por isso só seis dos dez
