@@ -1,6 +1,6 @@
 # Todos os selos, até agora
 
-Dez selos, em três categorias. A categoria importa mais que o selo: ela
+Quatorze selos: dez de pessoa e quatro de lugar, em três categorias. A categoria importa mais que o selo: ela
 responde a pergunta que o cliente faz sem formular — **isto foi
 conquistado ou foi comprado?**
 
@@ -85,6 +85,46 @@ curto para contaminar todos os selos honestos.
 
 ---
 
+## Selos de lugar (estúdio)
+
+Ficam no mesmo catálogo de propósito — as categorias valem para os dois,
+e o cliente não deveria ter que aprender duas gramáticas de selo. O que
+muda é só o sujeito.
+
+**A regra que sustenta os quatro: selo de lugar fica no lugar.** No
+perfil do tatuador o estúdio aparece num bloco próprio, e nunca soma aos
+números da pessoa. Nos dois sentidos — um profissional excelente não
+herda a nota de um estúdio ruim, e um estúdio impecável não empresta
+reputação a quem trabalha mal dentro dele.
+
+### 🧼 Higiene verificada
+- **Como se ganha:** acima de 90% dos clientes confirmaram estúdio limpo, em pelo menos 30 checkouts.
+- **Por que existe:** é a única coisa que o cliente não consegue julgar antes de entrar, e a que mais importa para a saúde dele.
+- **Onde aparece:** feed e página do estúdio.
+
+### 🏛 Estúdio verificado
+- **Como se ganha:** CNPJ, endereço e licença sanitária conferidos com o registro oficial.
+- **Por que existe:** afirmar algo sobre um lugar físico pede barra mais alta que afirmar sobre o trabalho de uma pessoa. É o que a vigilância sanitária exige, e o que nenhum perfil de rede social prova.
+- **Onde aparece:** feed e página do estúdio.
+
+### 👥 Casa de guest
+- **Como se ganha:** 10 ou mais tatuadores visitantes, confirmados por check-in feito ali.
+- **Por que existe:** sai de graça do check-in, e é o que um tatuador de fora precisa saber antes de propor uma temporada.
+- **Onde aparece:** página do estúdio.
+
+### 🏪 Enterprise
+- **Como se ganha:** contrato de operação do estúdio.
+- **O que significa:** que existe estrutura por trás. Não que o trabalho é melhor.
+- **Onde aparece:** página do estúdio, marcado como contratado.
+
+**Estúdio que nunca se cadastrou não recebe nota publicada.** O nome e o
+número de sessões aparecem, porque esse dado é dos tatuadores e dos
+clientes. A nota, não: o lugar não tem canal para responder, e número
+sem direito de resposta vira acusação. O raciocínio completo está em
+`decisoes/010`, e a troca é uma constante única no código.
+
+---
+
 ## Duas regras que valem para o sistema inteiro
 
 **No máximo três selos no feed.** O quarto não acrescenta confiança,
@@ -118,13 +158,6 @@ marketplace, e o mais caro de operar: exige guardar documento de
 identidade, o que muda a natureza do banco de dados e o risco jurídico
 do projeto inteiro. Só vale a pena depois que houver volume que
 justifique.
-
-**Selo de estúdio (o lugar, não a pessoa).** Hoje a reputação é toda de
-pessoa. Um estúdio pode ter higiene ruim com um tatuador excelente
-dentro — e o cliente não tem como saber. As respostas de higiene do
-checkout já estão sendo coletadas por sessão, então o dado existe; falta
-decidir se a plataforma quer avaliar lugares, com tudo o que isso
-implica.
 
 **Selo negativo ou alerta público.** Não existe, e é uma decisão. Um
 alerta público sobre um profissional é uma acusação, e uma plataforma

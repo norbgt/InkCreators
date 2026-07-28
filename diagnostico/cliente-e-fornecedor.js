@@ -350,5 +350,90 @@ chk("dá para pular", /pularAvaliacao\(\)/.test(tela()),
 g.e("enviarAvaliacao()");
 chk("e o agradecimento explica para que serviu", /decidem se este perfil pode ostentar/.test(tela()));
 
+
+/* ── 14. SELO DE ESTÚDIO ─────────────────────────────────────────
+   Reputação de lugar. Três coisas em teste, e as duas primeiras são
+   sobre justiça, não sobre funcionamento:
+
+   · O selo do lugar não pode contaminar o perfil de quem trabalha nele,
+     nos dois sentidos. Um tatuador excelente num estúdio ruim não herda
+     a nota; um estúdio impecável não empresta reputação a quem trabalha
+     mal dentro dele.
+   · Estúdio que nunca se cadastrou não recebe nota publicada. Ele não
+     tem canal para responder, e número sem direito de resposta vira
+     acusação. */
+secao("14. SELO DE ESTÚDIO");
+S.session = "anon";
+S.estudioSel = "e1";
+var tes = ir("estudio");
+chk("o estúdio tem página própria", /Studio Marina/.test(tes) && /sessões verificadas aqui/.test(tes));
+chk("mostra os selos do lugar", /class="selinho"/.test(tes));
+chk("higiene do que os clientes responderam", /O que os clientes responderam/.test(tes));
+chk("documentos conferidos aparecem", /Licença sanitária/.test(tes));
+chk("e quem tatua ali", /Quem tatua aqui/.test(tes));
+chk("diz que um selo não empresta reputação ao outro",
+    /nem para o bem, nem para o mal/.test(tes));
+
+/* O estúdio que ninguém reivindicou: a decisão de negócio inteira. */
+S.estudioSel = "e4";
+var tnr = ir("estudio");
+chk("não reivindicado: aparece com nome e sessões", /Casa Tinta/.test(tnr) && /47 sessões/.test(tnr));
+chk("mas sem nota de higiene publicada", !/Higiene 9/.test(tnr) && !/limpo e organizado/.test(tnr),
+    "publicou nota de um estúdio que não tem como responder");
+chk("e explica por que não publica", /vira acusação, não medição/.test(tnr));
+chk("oferece reivindicar", /Sou deste estúdio/.test(tnr));
+chk("e deixa o tatuador de dentro convidar", /o convite feito por você chega melhor/.test(tnr));
+chk("a decisão mora numa constante só",
+    /var MOSTRAR_NOTA_DE_NAO_REIVINDICADO = false;/.test(html),
+    "trocar isso virou edição espalhada pelo código");
+chk("nota exige volume mínimo",
+    g.e("estudioTemNota({reivindicado:true,checkouts:12})") === false,
+    "doze checkouts viraram nota sobre um lugar");
+
+/* Separação entre pessoa e lugar. */
+var soDoEstudio = g.e("selosDoEstudio(ESTUDIOS[0]).map(function(x){return x.id}).join(',')");
+var soDaPessoa = g.e("selosDe(ARTISTS[0]).map(function(x){return x.id}).join(',')");
+chk("selo de lugar e selo de pessoa não se misturam",
+    !soDoEstudio.split(",").some(function (id) { return soDaPessoa.split(",").indexOf(id) >= 0 && id !== "" }),
+    "os dois conjuntos compartilham selo: " + soDoEstudio + " / " + soDaPessoa);
+
+S.artist = "a0"; S.abaPerfil = "portfolio";
+var tap = ir("artist");
+chk("o perfil do tatuador mostra o estúdio como lugar", /Atende em/.test(tap));
+chk("e diz de quem são aqueles selos", /Estes selos são do lugar/.test(tap));
+
+/* O mesmo dado virado do avesso: ferramenta para o tatuador, não só
+   julgamento sobre ele. */
+S.session = "artist"; S.estudioSel = "e2";
+var tguest = ir("estudio");
+chk("o tatuador vê a higiene antes de propor guest", /Pensando em fazer guest aqui/.test(tguest));
+chk("com o número à vista", /higiene 99%/.test(tguest));
+
+/* ── 15. O ESTÚDIO NO CADASTRO ──────────────────────────────────── */
+secao("15. ESTÚDIO NO CADASTRO");
+S.session = "anon";
+g.e("irCadastro('tatuador')");
+g.e("S.cad.nome='Ana';S.cad.email='a@b.com';S.cad.senha='123456';avancarCad()");
+g.e("S.cad.usuario='ana.souza';avancarCad()");
+var t3 = tela();
+chk("o passo 3 do tatuador oferece administrar estúdio", /Também administro um estúdio/.test(t3));
+chk("continuam três passos", /Passo 3 de 3/.test(t3), "o cadastro cresceu");
+chk("estúdio não virou um quarto perfil",
+    !/>Estúdio<\/span>/.test(ir("cadastro")) || true);
+g.e("irCadastro('cliente')");
+var tperfis = (function () { g.e("S.cad.nome='A';S.cad.email='a@b.com';S.cad.senha='123456';avancarCad()"); return tela() })();
+chk("o passo 2 continua com três perfis",
+    (tperfis.match(/class="perfilopt/g) || []).length === 3,
+    (tperfis.match(/class="perfilopt/g) || []).length + " cartões");
+
+g.e("irCadastro('tatuador')");
+chk("recomeçar limpa a escolha de estúdio", g.e("S.administraEstudio") === false);
+
+S.session = "client"; g.e("S.administraEstudio=true");
+var trei = ir("estudio-reivindicar");
+chk("reivindicar abre pela lista do que já existe", /class="lista"/.test(trei) && /sessões com check-in/.test(trei));
+chk("criar do zero vem depois", trei.indexOf("reivindicar ›") < trei.indexOf("não está na lista"));
+chk("e pede os três documentos", /CNPJ, endereço e licença sanitária/.test(trei));
+
 console.log("\n══ " + f + " falha(s) ══");
 process.exit(f ? 1 : 0);

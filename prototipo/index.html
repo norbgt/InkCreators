@@ -246,6 +246,10 @@ html[data-dark] .seg.on{
 .estrela.on{color:var(--x-warning);border-color:var(--x-warning)}
 .estrela .ico{width:19px;height:19px}
 
+.cxestudio{display:block;width:100%;text-align:left;margin-top:11px;padding:10px 12px;border-radius:11px;
+  border:1px solid var(--border);background:var(--muted);cursor:pointer}
+.cxestudio:hover{border-color:var(--muted-foreground)}
+
 .regracat{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;opacity:.55}
 
 .marcos{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
@@ -1252,7 +1256,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  qStatus:"todos",hub:"menu",aiStep:0,aiRefs:2,
  aiEstilos:[],aiFora:[],aiParte:"",aiCidade:"",aiFaixa:"",aiObs:"",
  chatOpen:null,chatFilter:"all",chatQ:"",notifFilter:"all",notifs:NOTIFS.map(function(n){return{...n}}),
- sqSel:"s1",orcPasso:"lista",orcEnviado:null,
+ sqSel:"s1",orcPasso:"lista",orcEnviado:null,estudioSel:"e1",administraEstudio:false,
  /* Check-in aberto agora. Um por vez, de propósito: o QR na tela é de
     uma sessão específica, e duas sessões abertas ao mesmo tempo é a
     receita para o cliente errado carimbar o passaporte. */
@@ -1296,6 +1300,68 @@ function escapar(x){return String(x==null?"":x).replace(/[&<>"']/g,function(c){
  return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})}
 function isArt(){return S.session==="artist"}
 function isForn(){return S.session==="forn"}
+
+/* ═══ ESTÚDIOS ═════════════════════════════════════════════════════
+   Até aqui estúdio era texto livre em sete lugares — "Studio Marina"
+   digitado por duas pessoas eram dois estúdios. Aqui ele vira lugar com
+   identidade, e isso muda três coisas:
+
+   1. Reputação de lugar é diferente de reputação de pessoa. Um estúdio
+      pode ter higiene ruim com um tatuador excelente dentro, e o cliente
+      não tinha como saber.
+   2. Vínculo não é papel. Residente, guest da semana, ex-residente: tem
+      estado e datas. Papel de conta não expressa isso.
+   3. A porta de entrada não é um formulário, é uma reivindicação. O
+      check-in já grava o nome do estúdio em toda sessão, então os
+      lugares existem nos dados antes de alguém se cadastrar.
+
+   ── A DECISÃO QUE AINDA NÃO FOI TOMADA ───────────────────────────
+   Estúdio que aparece nas sessões mas nunca se cadastrou: mostra a nota
+   de higiene?
+
+   O padrão aqui é NÃO. O nome e o número de sessões aparecem; a nota,
+   não. Trocar isto é uma decisão de negócio com consequência jurídica,
+   não um ajuste de interface — por isso mora numa constante só, com
+   este comentário do lado. Ver decisoes/010. */
+var MOSTRAR_NOTA_DE_NAO_REIVINDICADO = false;
+
+var ESTUDIOS=[
+ {id:"e1",nome:"Studio Marina",handle:"studiomarina",cidade:"São Paulo",uf:"SP",
+  endereco:"R. Aurora, 240 — Santa Cecília",cnpj:"41.882.019/0001-55",licenca:"VISA-SP 2026/8841",
+  reivindicado:true,verificado:true,enterprise:true,desde:"2019",
+  cadeiras:4,residentes:["Marina Vieira","Ana Petrova","Caio Lobo"],
+  guests:11,sessoes:214,checkouts:96,higiene:97,orientaPos:94,acolhimento:95},
+ {id:"e2",nome:"Kreuzberg Ink",handle:"kreuzbergink",cidade:"Berlim",uf:"",
+  endereco:"Oranienstraße 41",cnpj:"DE 812 447 901",licenca:"Gesundheitsamt 2026-114",
+  reivindicado:true,verificado:true,enterprise:false,desde:"2011",
+  cadeiras:6,residentes:["Klaus Berger"],
+  guests:38,sessoes:602,checkouts:210,higiene:99,orientaPos:97,acolhimento:92},
+ {id:"e3",nome:"Studio Felipe",handle:"studiofelipe",cidade:"São Paulo",uf:"SP",
+  endereco:"Al. Barão de Limeira, 90",cnpj:"33.201.774/0001-08",licenca:null,
+  reivindicado:true,verificado:false,enterprise:false,desde:"2022",
+  cadeiras:2,residentes:["Felipe Tanaka"],
+  guests:3,sessoes:88,checkouts:31,higiene:84,orientaPos:88,acolhimento:90},
+ /* O caso que motivou a constante lá em cima: aparece em sessões porque
+    tatuadores fizeram check-in aqui, mas ninguém do estúdio jamais
+    entrou na plataforma. */
+ {id:"e4",nome:"Casa Tinta",handle:null,cidade:"Lisboa",uf:"",
+  endereco:null,cnpj:null,licenca:null,
+  reivindicado:false,verificado:false,enterprise:false,desde:null,
+  cadeiras:null,residentes:["Rita Salgado"],
+  guests:0,sessoes:47,checkouts:19,higiene:91,orientaPos:86,acolhimento:93}
+];
+var ESTUDIO_POR_NOME={}; ESTUDIOS.forEach(function(e){ESTUDIO_POR_NOME[e.nome]=e});
+function estudioDe(nome){ return ESTUDIO_POR_NOME[nome]||null }
+function estudioAtual(){ return ESTUDIOS.filter(function(e){return e.id===S.estudioSel})[0]||ESTUDIOS[0] }
+
+/* A nota só existe depois que alguém do lugar aceitou estar aqui — e
+   com volume que a torne uma constatação, não um punhado de opiniões.
+   Trinta checkouts não é estatística fina; é o mínimo para o número
+   parar de ser sobre três clientes específicos. */
+function estudioTemNota(e){
+ if(!e.reivindicado && !MOSTRAR_NOTA_DE_NAO_REIVINDICADO)return false;
+ return e.checkouts>=30;
+}
 
 /* ═══ SELOS ════════════════════════════════════════════════════════
    Um catálogo só, e uma função só que calcula os selos de um perfil.
@@ -1345,7 +1411,20 @@ var SELOS=[
  {id:"destaque",cat:"contratado",ic:"📈",nome:"Destaque",
   regra:"Posição contratada no feed de descoberta, por período.",
   porq:"É publicidade, e vem dito assim. Esconder isso contamina todos os outros selos.",feed:true,compravel:true},
- {id:"enterprise",cat:"contratado",ic:"🏪",nome:"Estúdio Enterprise",
+ /* ── selos de lugar ────────────────────────────────────────────
+    Ficam no mesmo catálogo de propósito: as categorias valem para os
+    dois, e o cliente não deveria ter que aprender duas gramáticas de
+    selo. O que muda é só o sujeito. */
+ {id:"higiene",cat:"fato",ic:"🧼",nome:"Higiene verificada",alvo:"estudio",
+  regra:"Acima de 90% dos clientes confirmaram estúdio limpo, em pelo menos 30 checkouts.",
+  porq:"É a única coisa que o cliente não consegue julgar antes de entrar, e a que mais importa para a saúde dele.",feed:true,compravel:false},
+ {id:"estverificado",cat:"fato",ic:"🏛",nome:"Estúdio verificado",alvo:"estudio",
+  regra:"CNPJ, endereço e licença sanitária conferidos com o registro oficial.",
+  porq:"Afirmar algo sobre um lugar físico pede barra mais alta do que afirmar sobre o trabalho de uma pessoa.",feed:true,compravel:false},
+ {id:"casadeguest",cat:"fato",ic:"👥",nome:"Casa de guest",alvo:"estudio",
+  regra:"Recebeu 10 ou mais tatuadores visitantes, confirmados por check-in feito ali.",
+  porq:"Sai de graça do check-in, e é o que um tatuador de fora precisa saber antes de propor uma temporada.",feed:false,compravel:false},
+ {id:"enterprise",cat:"contratado",ic:"🏪",nome:"Estúdio Enterprise",alvo:"estudio",
   regra:"Estúdio com contrato de operação: equipe, agenda compartilhada e relatórios.",
   porq:"Diz que existe estrutura por trás, não que o trabalho é melhor.",feed:false,compravel:true}
 ];
@@ -1398,6 +1477,19 @@ function selo(x,compacto){
     código-fonte, e ali só existia um prefixo. */
  return '<span class="selinho" data-c="'+x.cat+'" title="'+escapar(t)+'">'+
         '<span class="si">'+x.ic+'</span>'+(compacto?x.texto:x.nome)+'</span>';
+}
+/* Os selos do lugar. Ficam no lugar — nunca somados aos números do
+   tatuador. Um profissional excelente num estúdio ruim não pode herdar
+   a nota do lugar, e um estúdio impecável não empresta reputação a quem
+   trabalha mal dentro dele. */
+function selosDoEstudio(e){
+ var r=[];
+ if(estudioTemNota(e)&&e.higiene>=90)r.push({id:"higiene",texto:"Higiene "+e.higiene+"%"});
+ if(e.verificado)r.push({id:"estverificado",texto:"Estúdio verificado"});
+ if(e.guests>=10)r.push({id:"casadeguest",texto:e.guests+" guests recebidos"});
+ if(e.enterprise)r.push({id:"enterprise",texto:"Enterprise"});
+ r.forEach(function(x){var d=SELO_POR_ID[x.id];x.cat=d.cat;x.ic=d.ic;x.nome=d.nome;x.feed=d.feed});
+ return r.sort(function(x,y){return ORDEM_CAT[x.cat]-ORDEM_CAT[y.cat]});
 }
 function selosNoFeed(a){
  var l=selosDe(a).filter(function(x){return x.feed});
@@ -1609,7 +1701,7 @@ var CHAVE_ESTADO="ink.estado.v2";
 var GUARDA=["session","route","artist","tab","modo","seguindo","curtidas","cart",
  "cad","perfilLanding","abaPerfil","shopAud","shopCat","shopQ","evAba","q",
  "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","histAba","sub","agendaGoogle","emailConfirmado","emailPendente","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura","ehFornecedor",
- "notifFilter","pfTab","ue","f","feedLote","caro","cep","sqSel","orcPasso","passPub","checkin","aval"];
+ "notifFilter","pfTab","ue","f","feedLote","caro","cep","sqSel","orcPasso","passPub","checkin","aval","estudioSel","administraEstudio"];
 // orcEnviado fica de fora de propósito: é a confirmação de uma ação que
 // acabou de acontecer. Sobreviver à recarga faria a tela comemorar de
 // novo um envio de ontem.
@@ -2346,6 +2438,24 @@ function vArtist(){
  h+='<div class="row wrapf" style="gap:5px;margin-top:11px">'+
     a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'</div>';
 
+ /* O lugar, separado da pessoa. Os selos do estúdio ficam num bloco
+    próprio, com o nome do estúdio em cima — nunca misturados aos selos
+    de quem tatua. Um profissional excelente não herda a nota de um
+    estúdio ruim, e um estúdio impecável não empresta reputação a quem
+    trabalha mal dentro dele. */
+ var est=estudioDe(a.studio);
+ if(est){
+  var selosE=selosDoEstudio(est);
+  h+='<button class="cxestudio" onclick="S.estudioSel=\''+est.id+'\';go(\'estudio\')">';
+  h+='<div class="row" style="gap:8px"><span class="tiny muted">Atende em</span>';
+  h+='<span class="b small">'+est.nome+'</span>';
+  h+=est.reivindicado?'':'<span class="badge">não reivindicado</span>';
+  h+='<span class="sp tiny muted">ver o estúdio ›</span></div>';
+  if(selosE.length)h+='<div class="selos" style="margin-top:6px">'+selosE.map(function(x){return selo(x,true)}).join("")+'</div>';
+  h+='<div class="tiny muted" style="margin-top:5px">Estes selos são do lugar, não de '+a.name.split(" ")[0]+'.</div>';
+  h+='</button>';
+ }
+
 
  // Quatro destinos distintos, sem sobreposição: orçar abre o pedido com
  // este artista; agenda consulta horário livre; conversar é o chat; seguir
@@ -2755,7 +2865,7 @@ function irCadastro(perfil,voltar){
     propósito. Foi um teste do roteiro que encontrou: o segundo cadastro
     de tatuador já nascia com estilo escolhido. */
  S.onbStyles=[];S.onbEstudio="";S.onbCidade="";S.onbUf="";S.onbInsta="";
- S.fazCobertura=false;
+ S.fazCobertura=false;S.administraEstudio=false;
  S.cli={estilos:[],cidade:"",uf:""};
  S.forn={nome:"",cnpj:"",site:"",cidade:"",cats:[],qtd:"",tambemTatuador:false};
  // Volta para onde a pessoa estava — menos quando ela estava na página
@@ -2954,7 +3064,21 @@ function vCadastro(){
      como se fosse mais um traço — e mandava para ela pedidos de
      arrependimento que ela talvez não queira. Separado, vira uma
      pergunta de sim ou não. */
-  h+='<label class="marcador'+(S.fazCobertura?" on":"")+'" style="margin-top:13px">';
+  /* Estúdio não é um quarto perfil. Perfil responde "quem é você aqui",
+     e cliente, tatuador e fornecedor são pessoas — lugar não cabe na
+     mesma pergunta. Além disso, quase todo dono de estúdio também
+     tatua: um quarto cartão criaria duas portas para o mesmo caso e
+     duplicaria cadastro, que é justamente o que evitamos no fornecedor.
+
+     Aqui é o mesmo padrão de "também sou tatuador" do fornecedor: uma
+     caixa dentro do passo que já existe. Três passos continuam três. */
+  h+='<label class="marcador'+(S.administraEstudio?" on":"")+'" style="margin-top:13px">';
+  h+='<input type="checkbox" '+(S.administraEstudio?"checked":"")+' onchange="S.administraEstudio=this.checked;render()" />';
+  h+='<span><span class="b small">Também administro um estúdio</span>';
+  h+='<span class="tiny muted" style="display:block;margin-top:2px">Depois de criar a conta você reivindica o estúdio — se ele já aparece nas sessões, o histórico vem junto. Não é cadastro novo, é a mesma conta administrando um lugar.</span></span>';
+  h+='</label>';
+
+  h+='<label class="marcador'+(S.fazCobertura?" on":"")+'" style="margin-top:9px">';
   h+='<input type="checkbox" '+(S.fazCobertura?"checked":"")+' onchange="S.fazCobertura=this.checked;render()" />';
   h+='<span><span class="b small">Também faço coberturas</span>';
   h+='<span class="tiny muted" style="display:block;margin-top:2px">Cobrir ou corrigir tatuagem de que a pessoa se arrependeu. Os pedidos desse tipo só chegam a quem marca aqui.</span></span>';
@@ -3820,6 +3944,149 @@ async function concluirOnboardingReal(){
 function togStyle(s){var i=S.onbStyles.indexOf(s);if(i>=0)S.onbStyles.splice(i,1);else if(S.onbStyles.length<6)S.onbStyles.push(s);render()}
 function renderOnbBtn(){var b=document.getElementById("onbNext");if(b)b.disabled=S.onbName.trim().length<2}
 
+/* ============ PERFIL DO ESTÚDIO ============
+   Uma página de lugar, não de pessoa. Ela responde três perguntas que
+   ninguém conseguia responder antes de entrar no estúdio: está limpo,
+   é legal, e quem trabalha aqui.
+
+   A terceira pergunta é a que costuma faltar nas plataformas: o cliente
+   escolhe o tatuador e descobre o lugar só quando chega. */
+function vEstudio(){
+ var e=estudioAtual();
+ var selos=selosDoEstudio(e);
+ var h='<main><div class="wrap" style="max-width:640px">';
+ h+='<button class="btn sm" style="margin-top:16px" onclick="go(\'home\')">← Voltar</button>';
+
+ h+='<div class="card pad" style="margin-top:12px">';
+ h+='<div class="row" style="gap:11px;align-items:flex-start">';
+ h+='<div class="av" style="width:52px;height:52px;font-size:16px;flex-shrink:0">'+ini(e.nome)+'</div>';
+ h+='<div style="min-width:0;flex:1"><div class="b" style="font-size:17px">'+e.nome+'</div>';
+ h+='<div class="small muted">'+(e.handle?'@'+e.handle+' · ':'')+e.cidade+(e.uf?'/'+e.uf:'')+'</div>';
+ h+='<div class="tiny muted" style="margin-top:2px">'+e.sessoes+' sessões verificadas aqui'+(e.desde?' · desde '+e.desde:'')+'</div>';
+ h+='</div></div>';
+
+ if(selos.length)h+='<div class="selos" style="margin-top:10px">'+selos.map(function(x){return selo(x,true)}).join("")+'</div>';
+
+ /* ── O estúdio que ninguém reivindicou ─────────────────────────
+    Aqui está a decisão de negócio inteira, num bloco. O lugar aparece
+    porque tatuadores fizeram check-in nele — esse dado é dos
+    tatuadores e dos clientes. A nota de higiene, não: ela é uma
+    afirmação sobre um estabelecimento que nunca aceitou estar aqui e
+    não tem canal para responder.
+
+    Publicar sem o direito de resposta é o que transforma medição em
+    acusação. */
+ if(!e.reivindicado){
+  h+='<div class="banner" style="margin-top:13px"><div>';
+  h+='<div class="b small">Este estúdio ainda não está na plataforma</div>';
+  h+='<div class="tiny muted" style="margin-top:3px">Ele aparece aqui porque '+e.sessoes+' sessões tiveram check-in neste endereço, feitos por tatuadores e clientes. Ninguém do estúdio se cadastrou ainda.</div>';
+  h+='<div class="tiny muted" style="margin-top:5px"><b>Por isso não mostramos nota de higiene.</b> '+e.checkouts+' clientes já responderam sobre este lugar, mas o estúdio não tem como ver nem responder — e número sem direito de resposta vira acusação, não medição.</div>';
+  h+='</div></div>';
+  h+='<div class="row" style="gap:8px;margin-top:11px">';
+  h+='<button class="btn primary" style="flex:1" onclick="go(\'estudio-reivindicar\')">Sou deste estúdio</button>';
+  h+='<button class="btn" onclick="alert(\'convidarEstudio(studio_name, city)\')">Convidar o estúdio</button></div>';
+  h+='<div class="tiny muted" style="margin-top:6px">Se você tatua aqui, o convite feito por você chega melhor que o nosso.</div>';
+  h+='</div>';
+ } else {
+  h+='</div>';
+
+  h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b small">O que os clientes responderam</span>'+tg("novo")+'</div>';
+  if(estudioTemNota(e)){
+   h+='<div class="tiny muted" style="margin-top:3px">'+e.checkouts+' checkouts avaliados, no fim da sessão, aqui dentro.</div>';
+   [["Estúdio limpo e organizado",e.higiene,90],
+    ["Saiu sabendo cuidar",e.orientaPos,90],
+    ["Se sentiu acolhido",e.acolhimento,0]].forEach(function(x){
+    var passou=x[1]>=x[2];
+    h+='<div style="margin-top:11px"><div class="row"><span class="small">'+x[0]+'</span>';
+    h+='<span class="sp b small" style="color:var(--'+(passou?"x-success":"x-warning")+')">'+x[1]+'%</span></div>';
+    h+='<div class="bar" style="margin-top:4px"><i style="width:'+x[1]+'%'+(passou?'':';background:var(--x-warning)')+'"></i></div>';
+    if(x[2])h+='<div class="tiny muted" style="margin-top:2px">mínimo para o selo: '+x[2]+'%</div>';
+    h+='</div>';
+   });
+   if(e.higiene<90)h+='<div class="avisoerro" style="margin-top:12px">Sem o selo de higiene: '+(100-e.higiene)+'% dos clientes não confirmaram o estúdio limpo. Isso fica no estúdio e não entra no perfil de quem tatua aqui.</div>';
+  } else {
+   h+='<div class="tiny muted" style="margin-top:3px">'+e.checkouts+' checkouts avaliados. A nota aparece a partir de 30 — abaixo disso o número é sobre alguns clientes específicos, não sobre o lugar.</div>';
+  }
+  h+='</div>';
+
+  if(e.verificado){
+   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b small">Documentos conferidos</span>'+tg("novo")+'</div>';
+   h+='<table class="t" style="margin-top:8px">';
+   h+='<tr><td class="muted small">CNPJ</td><td style="text-align:right" class="small">'+e.cnpj+'</td></tr>';
+   h+='<tr><td class="muted small">Endereço</td><td style="text-align:right" class="small">'+e.endereco+'</td></tr>';
+   h+='<tr><td class="muted small">Licença sanitária</td><td style="text-align:right" class="small">'+e.licenca+'</td></tr>';
+   h+='</table>';
+   h+='<div class="tiny muted" style="margin-top:9px">Conferidos com o registro oficial. É o que a vigilância sanitária exige de um estúdio, e o que nenhum perfil de rede social prova.</div></div>';
+  } else {
+   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b small">Documentos</span>'+tg("novo")+'</div>';
+   h+='<div class="tiny muted" style="margin-top:3px">Este estúdio ainda não enviou licença sanitária, então não tem o selo <b>Estúdio verificado</b>. A ausência do selo não afirma nada contra ele — só quer dizer que a plataforma não conferiu.</div></div>';
+  }
+
+  h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b small">Quem tatua aqui</span>'+tg("novo")+'</div>';
+  h+='<div class="lista" style="margin-top:9px">';
+  e.residentes.forEach(function(n,i){
+   var art=ARTISTS.filter(function(x){return x.name===n})[0]||ARTISTS[i%ARTISTS.length];
+   h+='<button class="item" onclick="go(\'artist\',\''+art.id+'\')"><div class="av">'+ini(n)+'</div>';
+   h+='<div class="itemtxt"><div class="b small">'+n+'</div>';
+   h+='<div class="selos" style="margin-top:3px">'+selosNoFeed(art).map(function(x){return selo(x,true)}).join("")+'</div></div>';
+   h+='<div class="itemfim"><span class="tiny muted">ver perfil ›</span></div></button>';
+  });
+  h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:9px">Os selos acima são de cada pessoa. Os do estúdio são do lugar. Um não empresta reputação ao outro — nem para o bem, nem para o mal.</div></div>';
+
+  /* ── Para tatuadores ──────────────────────────────────────────
+     O mesmo dado, virado do avesso: quem vai passar uma temporada
+     aqui precisa saber se o lugar é limpo tanto quanto o cliente. Isso
+     transforma o selo em ferramenta para o tatuador, e não só em
+     julgamento sobre ele. */
+  if(isArt()){
+   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b small">Pensando em fazer guest aqui?</span>'+tg("novo")+'</div>';
+   h+='<div class="tiny muted" style="margin-top:3px">'+(e.cadeiras?e.cadeiras+' cadeiras · ':'')+e.guests+' tatuadores visitantes já passaram por aqui'+(estudioTemNota(e)?' · higiene '+e.higiene+'%':'')+'.</div>';
+   h+='<div class="tiny muted" style="margin-top:5px">Você vê a higiene do lugar antes de aceitar a temporada — que é a mesma informação que o cliente vê antes de marcar com você.</div>';
+   h+='<button class="btn" style="margin-top:11px" onclick="alert(\'proporGuest(studio_id, artist_id, periodo)\')">Propor uma temporada</button></div>';
+  }
+ }
+
+ return h+'</div></main>';
+}
+
+/* ── REIVINDICAR ────────────────────────────────────────────────────
+   Criar é o caminho raro; reivindicar é o comum. Os lugares já existem
+   nos dados porque o check-in escreve o nome do estúdio em toda sessão
+   — então a tela abre pela lista do que já existe, e só depois oferece
+   criar do zero. Um formulário em branco jogaria fora essa vantagem. */
+function vReivindicar(){
+ var h='<main><div class="wrap" style="max-width:560px">';
+ h+='<button class="btn sm" style="margin-top:16px" onclick="go(\'studio\')">‹ Voltar</button>';
+ h+='<div class="card pad" style="margin-top:12px">';
+ h+='<div class="b" style="font-size:17px">Seu estúdio na plataforma</div>';
+ h+='<div class="small muted" style="margin-top:4px">Estes lugares já aparecem nas sessões porque tatuadores fizeram check-in neles. Se um for seu, reivindique — é mais rápido que cadastrar do zero, e o histórico já vem junto.</div>';
+
+ if(contaPendente()){
+  h+='<div class="avisoerro" style="margin-top:12px">Confirme seu e-mail antes. Reivindicar um estúdio é afirmar propriedade sobre um lugar real, e isso não pode partir de uma conta não confirmada.</div>';
+  h+='</div></div></main>';
+  return h;
+ }
+
+ h+='<div class="lista" style="margin-top:12px">';
+ ESTUDIOS.filter(function(e){return !e.reivindicado}).concat(
+  [{id:"x1",nome:"Black Sheep Tattoo",cidade:"São Paulo",uf:"SP",sessoes:22,reivindicado:false},
+   {id:"x2",nome:"Ateliê Nove",cidade:"Curitiba",uf:"PR",sessoes:9,reivindicado:false}]
+ ).forEach(function(e){
+  h+='<button class="item" onclick="S.estudioSel=\''+e.id+'\';alert(\'reivindicarEstudio(studio_id) — pede CNPJ, endereço e licença\')">';
+  h+='<div class="itemfoto">🏪</div>';
+  h+='<div class="itemtxt"><div class="b small">'+e.nome+'</div>';
+  h+='<div class="tiny muted">'+e.cidade+(e.uf?'/'+e.uf:'')+' · '+e.sessoes+' sessões com check-in</div></div>';
+  h+='<div class="itemfim"><span class="tiny muted">reivindicar ›</span></div></button>';
+ });
+ h+='</div>';
+ h+='<div class="tiny muted" style="margin-top:9px">Reivindicar pede CNPJ, endereço e licença sanitária. Sem os três não há selo de estúdio verificado — e sem reivindicação não há nota de higiene visível.</div>';
+ h+='<div class="ou" style="margin:15px 0"><span>ou</span></div>';
+ h+='<button class="btn blk" onclick="alert(\'criarEstudio(nome, cnpj, endereco, licenca)\')">Cadastrar um estúdio que não está na lista</button>';
+ h+='</div></div></main>';
+ return h;
+}
+
 /* ============ FORNECEDOR ============
    Quatro frentes que formam uma cadeia, e a ordem importa:
 
@@ -4054,6 +4321,13 @@ function vStudio(sub){
   ].forEach(function(x){h+=cartaoGrande(x)});
   h+='</div>';
 
+  /* Quem marcou "também administro um estúdio" no cadastro cai aqui
+     sem nada para fazer, a não ser que a gestão diga onde continuar. */
+  if(S.administraEstudio){
+   h+='<button class="convitecx" style="width:100%;text-align:left;margin-top:17px" onclick="go(\'estudio-reivindicar\')">';
+   h+='<div class="b small">Falta reivindicar o seu estúdio</div>';
+   h+='<div class="tiny muted">Você marcou que administra um estúdio. Se ele já aparece nas sessões, o histórico vem junto — e a nota de higiene só fica visível depois disso.</div></button>';
+  }
   h+='<div class="row" style="margin-top:19px"><span class="b" style="font-size:15px">O que você construiu</span>';
   h+='<span class="sp tiny muted">desde set/2024</span></div>';
   h+='<div class="grandes" style="margin-top:7px">';
@@ -5681,6 +5955,8 @@ function render(){
  else if(r==="gate"){ if(!S.cad.viaGoogle)entrarComGoogle(); S.route="cadastro"; h=vCadastro(); }
  else if(r==="auth"||r==="cadastro"||r==="signup")h=vCadastro();
  else if(r==="checkin")h=isLog()?vCheckin():vCadastro();
+ else if(r==="estudio")h=vEstudio();
+ else if(r==="estudio-reivindicar")h=isLog()?vReivindicar():vCadastro();
  else if(r.indexOf("me")===0)h=isLog()?vMe(r):vCadastro();
  else if(r.indexOf("studio")===0)h=isLog()?vStudio(r):vCadastro();
  else if(r.indexOf("forn")===0)h=isLog()?vForn(r):vCadastro();
