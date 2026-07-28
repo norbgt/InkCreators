@@ -19,6 +19,13 @@ ACAO="${1:-abrir}"
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 PASTA="$RAIZ/prototipo"
 ESTADO="/tmp/ink-creators-prototipo.estado"
+REGISTRO="/tmp/ink-creators.log"
+
+# Rodando pelo aplicativo não existe janela para ler. Se algum dia nada
+# acontecer ao clicar, é aqui que dá para ver o que o script fez:
+#   cat /tmp/ink-creators.log
+exec 2>>"$REGISTRO"
+echo "── $(date '+%d/%m %H:%M:%S')  ação: $ACAO" >>"$REGISTRO"
 
 avisar() {           # aparece como notificação quando não há Terminal
   osascript -e "display notification \"$2\" with title \"Ink Creators\" subtitle \"$1\"" >/dev/null 2>&1
@@ -96,7 +103,10 @@ case "$ACAO" in
     URL="http://localhost:$PORTA/?v=$(date +%s)"
     [ "$ACAO" = "verificar" ] && URL="$URL&verificar=1"
 
-    open "$URL"
+    echo "   abrindo: $URL" >>"$REGISTRO"
+    if ! open "$URL"; then
+      falhar "Não consegui abrir o navegador. Cole este endereço à mão: $URL"
+    fi
     if [ "$ACAO" = "verificar" ]; then
       avisar "Verificação aberta" "O painel diz o que passou e o que não passou."
     else

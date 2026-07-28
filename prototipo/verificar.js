@@ -48,7 +48,11 @@
   function ok(nome, cond, detalhe) {
     resultados.push({ nome: nome, passou: !!cond, detalhe: detalhe || "" });
   }
-  function secao(t) { resultados.push({ secao: t }); }
+  /* Guarda o nome da última seção. Quando alguma coisa explode no meio
+     do roteiro, é ele que diz onde parou — sem isso, uma exceção numa
+     linha qualquer fazia a verificação inteira sumir sem dizer nada. */
+  var secaoAtual = "início";
+  function secao(t) { secaoAtual = t; resultados.push({ secao: t }); }
 
   var $ = function (sel) { return document.querySelector(sel); };
 
@@ -102,8 +106,47 @@
     return document.getElementById("app").innerHTML;
   }
 
+  /* ── O painel aparece sempre ─────────────────────────────────────
+     O roteiro é uma sequência longa, e uma exceção em qualquer linha
+     abortava o resto — inclusive a parte que desenha o painel. O
+     sintoma era o pior possível: clicar em Verificar e não acontecer
+     nada, sem erro visível, sem pista.
+
+     Agora a exceção vira o primeiro resultado da lista, com o nome da
+     seção onde parou. Uma verificação que falha em silêncio é pior que
+     nenhuma, porque ensina a confiar no silêncio. */
+  function rodarComRede() {
+    try {
+      rodar();
+    } catch (e) {
+      resultados.unshift({
+        nome: "a verificação parou em “" + secaoAtual + "”",
+        passou: false,
+        detalhe: (e && e.message ? e.message : String(e))
+      });
+      resultados.unshift({ secao: "Interrompida" });
+      try { desenharPainel(); }
+      catch (e2) {
+        alert("Ink Creators — a verificação parou em “" + secaoAtual + "”:\n\n" +
+              (e && e.message ? e.message : e) +
+              "\n\nE o painel também não conseguiu aparecer: " + e2.message);
+      }
+    }
+  }
+
   function rodar() {
     var estadoAnterior = JSON.stringify({ route: S.route, session: S.session });
+
+    /* Antes de qualquer coisa, o que dá para afirmar sem depender de
+       nada: se o protótipo montou. Se esta seção falhar, o problema não
+       é a verificação — é o protótipo, e o resto seria ruído. */
+    secao("O protótipo carregou");
+    ok("o corpo da página existe", !!document.getElementById("app"));
+    ok("o estado global existe", typeof S !== "undefined" && !!S);
+    ok("a função de desenhar existe", typeof render === "function");
+    ok("o CSS foi aplicado",
+       getComputedStyle(document.documentElement).getPropertyValue("--card").trim().length > 0,
+       "a variável --card veio vazia");
 
     /* ── 1. O CURSOR NÃO SOME ─────────────────────────────────── */
     secao("O cursor não some ao digitar");
@@ -537,7 +580,28 @@
     document.body.appendChild(d);
   }
 
-  // Espera o protótipo terminar de montar antes de mexer nele.
-  if (document.readyState === "complete") setTimeout(rodar, 60);
-  else window.addEventListener("load", function () { setTimeout(rodar, 60); });
+  /* Espera o protótipo terminar de montar antes de mexer nele.
+
+     A rede de segurança de última instância: se nem o 'load' chegar —
+     um script que não carregou, por exemplo — nada aconteceria e a
+     tela ficaria muda. Passados três segundos, o painel aparece de
+     qualquer jeito, dizendo o que faltou. */
+  var rodou = false;
+  function comecar() {
+    if (rodou) return;
+    rodou = true;
+    rodarComRede();
+  }
+  if (document.readyState === "complete") setTimeout(comecar, 60);
+  else window.addEventListener("load", function () { setTimeout(comecar, 60); });
+  setTimeout(function () {
+    if (rodou) return;
+    rodou = true;
+    resultados.push({ secao: "A página não terminou de carregar" });
+    ok("o protótipo montou em até 3 segundos", false,
+       "readyState: " + document.readyState +
+       " · app: " + (document.getElementById("app") ? "existe" : "não existe") +
+       " · S: " + (typeof S) + " · render: " + (typeof render));
+    try { desenharPainel(); } catch (e) { alert("Ink Creators: a página não carregou. " + e.message); }
+  }, 3000);
 })();

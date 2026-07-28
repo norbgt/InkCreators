@@ -57,6 +57,20 @@ tempo, então você nunca vê a versão anterior.
 
 ---
 
+## Se um dia clicar e não acontecer nada
+
+Sem janela de Terminal também não há mensagem de erro para ler. Por
+isso o script anota tudo o que fez em `/tmp/ink-creators.log`. Abra o
+atalho de emergência em `bin/atalhos-terminal/` e rode:
+
+```
+cat /tmp/ink-creators.log
+```
+
+A última linha diz até onde ele chegou.
+
+---
+
 ## E para enviar ao ar
 
 **`ENVIAR-E-TESTAR.command`** continua sendo `.command` de propósito:
