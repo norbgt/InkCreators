@@ -113,7 +113,7 @@ Algo como:
 
 ## Antes de mandar: conferir no navegador
 
-Dois cliques em **`Verificar Ink Creators`**.
+Dois cliques em **`Verificar prototipo.html`**.
 
 Um painel aparece por cima dizendo o que passou e o que não passou. Ele
 usa campos de verdade, no seu navegador — é o único jeito de conferir

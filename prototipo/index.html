@@ -717,9 +717,29 @@ body:has(.convitebarra) main{padding-bottom:96px}
 
 <div id="app"></div>
 <div id="conviteHost"></div>
-<script src="dados.js"></script>
-<script src="teste.js"></script>
-<script src="verificar.js"></script>
+<script>
+/* Os três arquivos ao lado, com um carimbo de tempo colado no nome.
+
+   Sem o carimbo, o navegador reaproveita a cópia que ele já tem: o
+   index.html mudava e os três continuavam na versão anterior — e a tela
+   ficava com metade do ajuste. Era essa a origem de "não atualizou
+   nada", e ela sobrevive a qualquer servidor, porque é do navegador.
+
+   document.write, e não createElement, porque estes três precisam
+   executar em ordem e antes do 'load'. É o único jeito de manter isso
+   sem reescrever a inicialização. */
+(function(){
+ /* Aberto do Finder (file:), o carimbo fica de fora: alguns navegadores
+    tratam a interrogação como parte do nome do arquivo e não acham
+    nada. Nesse caso ele também não faz falta — lendo do disco, cada
+    abertura já é a versão de agora. O carimbo existe para o endereço
+    publicado, onde o cache é de verdade. */
+ var v = location.protocol==="file:" ? "" : "?v="+Date.now();
+ ["dados.js","teste.js","verificar.js"].forEach(function(f){
+  document.write('<scr'+'ipt src="'+f+v+'"><\/scr'+'ipt>');
+ });
+})();
+</script>
 <footer class="note"><div class="wrap">Protótipo navegável recriado a partir do código exportado do Lovable. Dados fictícios.</div></footer>
 <div id="drawerHost"></div>
 
@@ -4420,8 +4440,8 @@ function vConexao(){
    h+='<div class="row"><span class="badge bad">falhou</span><span class="sp tiny muted">na etapa: '+c.etapa+'</span></div>';
    h+='<div class="small" style="margin-top:8px;color:var(--x-danger)">'+c.detalhe+'</div>';
    if(location.protocol==="file:"){
-    h+='<div class="banner" style="margin-top:11px"><div><div class="b small">Provável causa: aberto direto do Finder.</div>';
-    h+='<div class="tiny muted">O navegador bloqueia conexões quando a página vem de um arquivo. Feche esta aba e use <b>abrir-prototipo.command</b>, que serve a página por HTTP local.</div></div></div>';
+    h+='<div class="banner" style="margin-top:11px"><div><div class="b small">Não é defeito: é o protótipo aberto como arquivo.</div>';
+    h+='<div class="tiny muted">O navegador bloqueia rede quando a página vem de um arquivo do seu computador, e isso não tem contorno local. Tudo o mais funciona com os dados fictícios — que é o modo de ajustar as telas. Para ver o banco de verdade, abra <b>norbgt.github.io/InkCreators</b>.</div></div></div>';
    }
   }
  }else{

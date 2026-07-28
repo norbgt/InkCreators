@@ -101,7 +101,7 @@ echo "════════════════════════�
 echo
 echo "  OS TRÊS ACESSOS"
 echo
-echo "    local    →  http://localhost:8765/         (app Abrir Ink Creators) "
+echo "    local    →  Abrir prototipo.html          (dois cliques na pasta)"
 echo "    online   →  $SITE/"
 echo "    teste    →  $SITE/?teste=1"
 echo

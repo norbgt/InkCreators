@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<title>Abrindo o Ink Creators…</title>
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  ABRIR O PROTÓTIPO
+
+  Dois cliques neste arquivo. Ele abre no navegador e manda direto para
+  o protótipo, com um carimbo de tempo no endereço para o navegador não
+  entregar a versão anterior.
+
+  Não existe servidor, não existe Terminal, não existe aplicativo e não
+  existe permissão a conceder. É um arquivo HTML abrindo outro arquivo
+  HTML — não há o que dar errado, e não há nada para parar depois.
+
+  O QUE NÃO FUNCIONA ASSIM
+  Só a conexão com o banco: o navegador bloqueia rede quando a página
+  vem de um arquivo do seu computador. O protótipo inteiro funciona com
+  os dados fictícios, que é o modo em que a gente ajusta as telas. Para
+  ver o banco de verdade, use o endereço publicado.
+  ═══════════════════════════════════════════════════════════════════
+-->
+<style>
+ html{color-scheme:light dark}
+ body{font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      display:flex;align-items:center;justify-content:center;height:100vh;margin:0;
+      text-align:center;opacity:.65}
+</style>
+<body>
+<div>
+  <p>Abrindo o protótipo…</p>
+  <p><a id="manual" href="prototipo/index.html">clique aqui se não abrir sozinho</a></p>
+</div>
+<script>
+  var destino = "prototipo/index.html?v=" + Date.now();
+  document.getElementById("manual").href = destino;
+  location.replace(destino);
+</script>
+</body>
+</html>

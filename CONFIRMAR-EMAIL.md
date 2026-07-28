@@ -59,7 +59,9 @@ Em <https://supabase.com/dashboard/project/hdfigxygektppvlogaoj/auth/url-configu
 | **Site URL** | `https://norbgt.github.io/InkCreators/` |
 | **Redirect URLs** | `https://norbgt.github.io/InkCreators/**` |
 
-Acrescente também `http://localhost:8765/**` para funcionar quando você
+Não é preciso acrescentar endereço local: aberto do Finder, o protótipo
+não fala com o banco. A confirmação de e-mail se testa no endereço
+publicado. O texto abaixo vale para quando você
 testa pelo aplicativo **Abrir Ink Creators**.
 
 O código já manda o endereço de retorno em cada cadastro

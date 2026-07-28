@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<title>Verificando o Ink Creators…</title>
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  VERIFICAR O PROTÓTIPO
+
+  Igual ao "Abrir prototipo.html", mais o ?verificar=1 — que faz um
+  painel aparecer por cima dizendo o que passou e o que não passou.
+
+  A verificação usa campos de verdade, no seu navegador. É o único
+  jeito de conferir coisas que só existem no navegador, como o cursor
+  sumir ao digitar. Os testes que rodam pelo terminal usam um DOM
+  simulado e não pegam isso.
+  ═══════════════════════════════════════════════════════════════════
+-->
+<style>
+ html{color-scheme:light dark}
+ body{font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      display:flex;align-items:center;justify-content:center;height:100vh;margin:0;
+      text-align:center;opacity:.65}
+</style>
+<body>
+<div>
+  <p>Abrindo com a verificação…</p>
+  <p><a id="manual" href="prototipo/index.html?verificar=1">clique aqui se não abrir sozinho</a></p>
+</div>
+<script>
+  var destino = "prototipo/index.html?verificar=1&v=" + Date.now();
+  document.getElementById("manual").href = destino;
+  location.replace(destino);
+</script>
+</body>
+</html>
