@@ -122,12 +122,12 @@ chk('explica por que isso importa',/cada estúdio tem o próprio caderno/i.test(
 chk('permite registrar passagem',/Registrar passagem/.test(te));
 
 console.log('── 6. A VISÃO GERAL APONTA PARA AS DUAS ──');
-S.route='studio';S.sub={vg:'mes'};g.e("render()");
+S.route='studio';S.sub={};g.e("render()");
 var tv=tela();
-chk('caixa no resumo do mês',/Caixa de julho/.test(tv)&&/studio-caixa/.test(tv));
-chk('histórico no resumo do mês',/Últimas pessoas/.test(tv)&&/studio-historico/.test(tv));
+chk('o painel leva ao caixa',/Sobrou/.test(tv)&&/studio-caixa/.test(tv));
+chk('o painel leva ao histórico',/Pessoas tatuadas/.test(tv)&&/studio-historico/.test(tv));
+chk('e à galeria',/Obras à venda/.test(tv));
 chk('sem "Receita do mês" solta',!/Receita do mês/.test(tv));
-S.sub={};
 
 console.log('── 7. NADA QUEBROU ──');
 ['home','artist','plataforma','cadastro','modelo','conexao','me','studio','studio-caixa','studio-historico','studio-profile','studio-quotes'].forEach(function(r){

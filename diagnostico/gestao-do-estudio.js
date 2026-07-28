@@ -32,14 +32,18 @@ function ir(rota,chave,valor){S.route=rota;if(chave){S.sub=S.sub||{};S.sub[chave
 function segs(t){var m=t.match(/class="segmento">([\s\S]*?)<\/div>/);return m?(m[1].match(/class="seg /g)||[]).length:0}
 
 console.log('── UM MECANISMO SÓ, EM SEIS TELAS ──');
-[['studio','vg','Visão geral'],['studio-quotes','orc','Orçamentos'],['studio-schedule','ag','Agenda'],
+[['studio-quotes','orc','Orçamentos'],['studio-schedule','ag','Agenda'],
  ['studio-caixa','cx','Caixa'],['studio-historico','hist','Histórico'],['studio-events','ev','Eventos'],
  ['studio-reviews','av','Avaliações']].forEach(function(c){
  var t=ir(c[0]);
  chk(c[2]+': tem sub-abas',/class="segmento"/.test(t),'nenhuma');
  chk(c[2]+': exatamente duas',segs(t)===2,segs(t)+' opções');
 });
-chk('todas usam a mesma função',(html.match(/abasInternas\(/g)||[]).length>=8);
+// A visão geral é a exceção, e de propósito: dividir um resumo obriga a
+// pessoa a escolher entre duas metades antes de saber o que procura.
+chk('Visão geral NÃO tem sub-abas',!/class="segmento"/.test(ir('studio')));
+chk('as seis usam a mesma função',(html.match(/abasInternas\(/g)||[]).length>=7,
+    (html.match(/abasInternas\(/g)||[]).length+' usos');
 chk('e o mesmo componente visual',/\.segmento\{/.test(css));
 
 console.log('── ORÇAMENTOS: RECEBIDOS E ENVIADOS ──');
@@ -79,16 +83,26 @@ chk('o mês avisa que está sincronizado',/Sincronizada com o Google/.test(tm));
 S.agendaGoogle=false;
 chk('sem conexão, sem aviso',!/Sincronizada com o Google/.test(ir('studio-schedule','ag','mes')));
 
-console.log('── VISÃO GERAL: AGORA E O MÊS ──');
-var td=ir('studio','vg','dia');
-chk('agora: só o que pede resposta',/Pedidos novos/.test(td)&&/Propostas sem retorno/.test(td));
-chk('agora: orçamentos e agendamentos',/Orçamentos recentes/.test(td)&&/Próximos agendamentos/.test(td));
-chk('agora: não mostra caixa nem visitas',!/Caixa de julho/.test(td)&&!/Visitas ao perfil/.test(td));
-var tmes=ir('studio','vg','mes');
-chk('o mês: caixa',/Caixa de julho/.test(tmes));
-chk('o mês: pessoas',/Últimas pessoas/.test(tmes));
-chk('o mês: visitas',/Visitas ao perfil/.test(tmes));
-chk('o mês: não repete os pedidos',!/Orçamentos recentes/.test(tmes));
+console.log('── VISÃO GERAL: UM PAINEL SÓ ──');
+var tv=ir('studio');
+chk('é um painel de números grandes',/class="grandes"/.test(tv)&&/class="grande/.test(tv));
+var cartoes=(tv.match(/class="grande[ "]/g)||[]).length;
+chk('dez números',cartoes===10,cartoes+' cartões');
+chk('agrupa por urgência',/Precisa de você/.test(tv)&&/Como vai o mês/.test(tv)&&/O que você construiu/.test(tv));
+[['pedidos novos',/Pedidos novos/],['propostas sem retorno',/Propostas sem retorno/],
+ ['avaliações a responder',/Avaliações a responder/],['sobrou',/>Sobrou</],
+ ['sessões marcadas',/Sessões marcadas/],['propostas que fecharam',/Propostas que fecharam/],
+ ['pessoas tatuadas',/Pessoas tatuadas/],['estúdios',/Estúdios por onde passei/],
+ ['obras à venda',/Obras à venda/],['avaliação',/>Avaliação</]].forEach(function(c){
+ chk('resume '+c[0],c[1].test(tv));
+});
+chk('todo cartão leva a algum lugar',(tv.match(/class="grande[^"]*" onclick="[^"]*go\(/g)||[]).length===cartoes,
+    'algum cartão sem destino');
+chk('e leva à sub-aba certa',/S\.sub\.orc='enviados';go\('studio-quotes'\)/.test(tv.replace(/&#39;/g,"'")));
+chk('só o que tem pendência destaca',(tv.match(/grande alerta/g)||[]).length<=2);
+chk('mostra pedidos e sessões em detalhe',/Pedidos recentes/.test(tv)&&/Próximas sessões/.test(tv));
+chk('css do painel existe',/\.grandes\{/.test(css)&&/\.grande\.alerta\{/.test(css));
+chk('duas colunas no celular, quatro no maior',/\.grandes\{[^}]*repeat\(2,1fr\)/.test(css)&&/@media\(min-width:700px\)\{\.grandes\{grid-template-columns:repeat\(4,1fr\)/.test(css));
 
 console.log('── CAIXA ──');
 var tc=ir('studio-caixa','cx','resumo');

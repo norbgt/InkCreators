@@ -1,0 +1,5 @@
+#!/bin/bash
+# O Finder executa isto sem abrir Terminal. Daqui até a pasta do
+# projeto são três níveis: Contents/MacOS/run → .app → raiz.
+AQUI="$(cd "$(dirname "$0")/../../.." && pwd)"
+exec "$AQUI/bin/prototipo.sh" parar

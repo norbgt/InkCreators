@@ -401,6 +401,29 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 .pendente:hover{border-color:var(--x-warning) !important;opacity:.85}
 .pendente .ico,.pendente svg{opacity:.9}
 
+/* Painel da visão geral. Número primeiro, rótulo depois: quem abre já
+   está procurando a grandeza, e o rótulo só confirma o que ela é. */
+.grandes{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:700px){.grandes{grid-template-columns:repeat(4,1fr)}}
+.grande{display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+  padding:14px 15px 15px;border:1px solid var(--border);border-radius:14px;
+  background:var(--card);cursor:pointer;text-align:left;
+  transition:border-color .15s ease,transform .12s ease}
+.grande:hover{border-color:var(--muted-foreground)}
+.grande:active{transform:scale(.985)}
+.grande .gic{color:var(--muted-foreground);font-size:15px;line-height:1}
+.grande .gic svg{width:15px;height:15px}
+.grande .gval{font-size:29px;font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-top:7px}
+.grande .grot{font-size:12.5px;font-weight:600;line-height:1.25;margin-top:3px}
+.grande .gnota{font-size:11.5px;color:var(--muted-foreground);line-height:1.3;margin-top:1px}
+/* Só quem tem pendência muda de cor. Se tudo destaca, nada destaca. */
+.grande.alerta{border-color:var(--accent)}
+.grande.alerta .gval,.grande.alerta .gic{color:var(--accent)}
+@media(max-width:400px){
+  .grande{padding:12px 12px 13px}
+  .grande .gval{font-size:25px}
+}
+
 /* Contador dentro da sub-aba: diz quanto tem do outro lado sem obrigar
    a pessoa a ir ver. */
 .seg .selo{display:inline-flex;align-items:center;justify-content:center;
@@ -2592,6 +2615,22 @@ var ME_NAV=[["me","Visão geral","▦"],["me-quotes","Meus orçamentos","📥"],
 
    O padrão de cada par é o mesmo: à esquerda o que exige ação agora, à
    direita o que é consulta. */
+/* Um número grande, o que ele quer dizer, e para onde ir ver o detalhe.
+   Todo cartão leva a algum lugar: número que não leva a lugar nenhum é
+   enfeite, e enfeite em painel de gestão é ruído. */
+function cartaoGrande(x){
+ var ic=x[0], rot=x[1], val=x[2], nota=x[3], rota=x[4], chave=x[5], sub=x[6], alerta=x[7];
+ var acao=chave
+   ? 'S.sub=S.sub||{};S.sub.'+chave+'=\''+sub+'\';go(\''+rota+'\')'
+   : 'go(\''+rota+'\')';
+ var h='<button class="grande'+(alerta?" alerta":"")+'" onclick="'+acao+'">';
+ h+='<span class="gic">'+ic+'</span>';
+ h+='<span class="gval">'+val+'</span>';
+ h+='<span class="grot">'+rot+'</span>';
+ h+='<span class="gnota">'+nota+'</span>';
+ return h+'</button>';
+}
+
 function subAba(chave, padrao){
  return (S.sub&&S.sub[chave])||padrao;
 }
@@ -2949,53 +2988,66 @@ function vStudio(sub){
  if(sub==="studio-onboarding")return vOnb();
  var h=envHead("studio","Seu estúdio",ST_NAV,sub)+'<main><div class="wrap">';
 
+ /* ── VISÃO GERAL ───────────────────────────────────────────────
+    Um painel só, sem sub-abas. Cada número é a manchete de uma aba, e
+    clicar leva ao detalhe — a tela responde "como estou?" em cinco
+    segundos e depois sai da frente.
+
+    Sub-abas aqui seriam um erro: dividir o resumo obrigaria a pessoa a
+    escolher entre duas metades antes de saber o que ela procura. É o
+    oposto de resumir. */
  if(sub==="studio"){
   var cx=somaCaixa();
   var novosQ=SQ.filter(function(q){return q.status==="novo"}).length;
-  h+=abasInternas("vg",[["dia","Agora",novosQ||""],["mes","O mês"]]);
+  var esperando=SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length;
+  var agendados=SQ_ENVIADOS.filter(function(q){return q.situacao==="agendado"}).length;
+  var obras=obrasDoArtista(ARTISTS[0]).length;
+  var semResp=REVS.filter(function(r){return !r.resp}).length;
+  var voltaram=HIST_PESSOAS.filter(function(p){return p.sessoes>1}).length;
 
-  /* ── O MÊS ────────────────────────────────────────────────────
-     Consulta, não ação: caixa, pessoas e visitas. Separado do que
-     pede resposta hoje, porque misturar os dois é o que fazia esta
-     tela ter três telas de rolagem no celular. */
-  if(subAba("vg","dia")==="mes"){
-   h+='<div class="stats" style="margin-top:14px">';
-   [["👛","Sobrou em julho",brl(cx.sobrou),"entrou "+brl(cx.entrou)],
-    ["🕘","Pessoas tatuadas",String(HIST_PESSOAS.length),HIST_PESSOAS.filter(function(p){return p.sessoes>1}).length+" voltaram"],
-    ["📈","Visitas ao perfil","932","nesta semana"],
-    ["★","Avaliação","4.8","124 avaliações"]].forEach(function(x){
-    h+='<div class="stat"><div class="lbl">'+x[0]+' '+x[1]+'</div><div class="val">'+x[2]+'</div><div class="hint">'+x[3]+'</div></div>'});
-   h+='</div>';
-   h+='<div class="grid cols2" style="margin-top:15px;align-items:start">';
-   h+='<div class="card pad"><div class="row"><span class="b">Caixa de julho</span>'+tg("mock")+'</div>';
-   h+='<div class="row" style="align-items:baseline;gap:7px;margin-top:8px"><span style="font-size:22px;font-weight:700;letter-spacing:-.02em">'+brl(cx.sobrou)+'</span><span class="tiny muted">sobrou</span></div>';
-   h+='<div class="tiny muted" style="margin-top:3px">Entrou '+brl(cx.entrou)+' · saiu '+brl(cx.saiu)+'</div>';
-   h+='<button class="btn sm blk" style="margin-top:10px" onclick="go(\'studio-caixa\')">Ver o caixa</button></div>';
-   h+='<div class="card pad"><div class="row"><span class="b">Últimas pessoas</span>'+tg("mock")+'</div><div style="margin-top:4px">';
-   HIST_PESSOAS.slice(0,3).forEach(function(p){
-    h+='<div class="lrow"><div class="av">'+ini(p.nome)+'</div><div style="min-width:0"><div class="b small">'+p.nome+'</div>';
-    h+='<div class="tiny muted">'+p.sessoes+' sessão(ões) · última em '+p.ultima+'</div></div></div>';
-   });
-   h+='</div><button class="btn sm blk" style="margin-top:9px" onclick="go(\'studio-historico\')">Ver histórico</button></div>';
-   h+='</div>';
-   h+='<div class="card pad" style="margin-top:15px"><div class="row"><span class="b">Visitas ao perfil</span>'+tg("mock")+'<span class="sp small muted">932 nesta semana</span></div>';
-   h+='<div class="row" style="gap:5px;align-items:flex-end;height:80px;margin-top:11px">';
-   [42,58,35,71,64,88,52].forEach(function(v,i){h+='<div style="flex:1;text-align:center"><div style="background:var(--primary);border-radius:4px 4px 0 0;height:'+v+'%"></div><div class="tiny muted" style="margin-top:4px">'+["s","t","q","q","s","s","d"][i]+'</div></div>'});
-   h+='</div></div>';
-   return h+'</div></main>';
-  }
+  /* Precisa de você primeiro. Número que exige ação vem antes de número
+     que informa, porque quem abre a gestão de manhã quer saber o que
+     está parado esperando. */
+  var pendentes=novosQ+semResp;
+  h+='<div class="row" style="margin-top:16px"><span class="b" style="font-size:16px">Precisa de você</span>';
+  h+='<span class="sp tiny muted">'+(pendentes?pendentes+" item(ns)":"nada parado")+'</span></div>';
+  h+='<div class="grandes" style="margin-top:9px">';
+  [["📥","Pedidos novos",novosQ,"sem resposta sua","studio-quotes","orc","recebidos",novosQ>0],
+   ["🕘","Propostas sem retorno",esperando,"cliente não respondeu","studio-quotes","orc","enviados",false],
+   ["★","Avaliações a responder",semResp,"esperando você","studio-reviews","av","responder",semResp>0]
+  ].forEach(function(x){h+=cartaoGrande(x)});
+  h+='</div>';
 
-  h+='<div class="stats" style="margin-top:14px">';
-  [["📥","Pedidos novos",String(novosQ),"esperando sua resposta"],
-   ["🕘","Propostas sem retorno",String(SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length),"clientes que não responderam"],
-   ["🗓","Próximas sessões",String(BOOK.length),"nos próximos 14 dias"]].forEach(function(s){
-   h+='<div class="stat"><div class="lbl">'+s[0]+' '+s[1]+'</div><div class="val">'+s[2]+'</div><div class="hint">'+s[3]+'</div></div>'});
-  h+='</div><div class="grid cols2" style="margin-top:15px;align-items:start">';
-  h+='<div class="card pad"><div class="row"><span class="b">Orçamentos recentes</span>'+tg("real")+'<a class="sp small" style="color:var(--accent);cursor:pointer" onclick="go(\'studio-quotes\')">Ver todos →</a></div><div style="margin-top:4px">';
+  h+='<div class="row" style="margin-top:24px"><span class="b" style="font-size:16px">Como vai o mês</span>';
+  h+='<span class="sp tiny muted">julho</span></div>';
+  h+='<div class="grandes" style="margin-top:9px">';
+  [["👛","Sobrou",brl(cx.sobrou),"entrou "+brl(cx.entrou),"studio-caixa","cx","resumo",false],
+   ["🗓","Sessões marcadas",BOOK.length,"próximos 14 dias","studio-schedule","ag","mes",false],
+   ["✅","Propostas que fecharam",agendados,"de "+SQ_ENVIADOS.length+" enviadas","studio-quotes","orc","enviados",false]
+  ].forEach(function(x){h+=cartaoGrande(x)});
+  h+='</div>';
+
+  h+='<div class="row" style="margin-top:24px"><span class="b" style="font-size:16px">O que você construiu</span>';
+  h+='<span class="sp tiny muted">desde set/2024</span></div>';
+  h+='<div class="grandes" style="margin-top:9px">';
+  [["🕘","Pessoas tatuadas",HIST_PESSOAS.length,voltaram+" voltaram","studio-historico","hist","pessoas",false],
+   ["🏪","Estúdios por onde passei",HIST_ESTUDIOS.length,"casa, guest e convenção","studio-historico","hist","estudios",false],
+   ["🖼","Obras à venda",obras,"na sua galeria","studio-profile",null,null,false],
+   ["★","Avaliação",("4.8"),"124 avaliações","studio-reviews","av","todas",false]
+  ].forEach(function(x){h+=cartaoGrande(x)});
+  h+='</div>';
+
+  h+='<div class="grid cols2" style="margin-top:22px;align-items:start">';
+  h+='<div class="card pad"><div class="row"><span class="b">Pedidos recentes</span>'+tg("real")+
+     '<a class="sp small" style="color:var(--accent);cursor:pointer" onclick="go(\'studio-quotes\')">Ver todos →</a></div><div style="margin-top:4px">';
   SQ.slice(0,4).forEach(function(q){h+=sqRow(q)});
   h+='</div></div>';
-  h+='<div class="card pad"><div class="row"><span class="b">Próximos agendamentos</span>'+tg("mock")+'</div><div style="margin-top:4px">';
-  BOOK.forEach(function(b){h+='<div class="lrow"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div><div style="min-width:0"><div class="b small">'+b.c+'</div><div class="small muted">'+b.area+' · '+b.h+'h</div></div><div class="sp b small">'+brl(b.cents)+'</div></div>'});
+  h+='<div class="card pad"><div class="row"><span class="b">Próximas sessões</span>'+tg("mock")+
+     '<a class="sp small" style="color:var(--accent);cursor:pointer" onclick="go(\'studio-schedule\')">Ver agenda →</a></div><div style="margin-top:4px">';
+  BOOK.forEach(function(b){
+   h+='<div class="lrow"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div>';
+   h+='<div style="min-width:0"><div class="b small">'+b.c+'</div><div class="small muted">'+b.area+' · '+b.h+'h</div></div>';
+   h+='<div class="sp b small">'+brl(b.cents)+'</div></div>'});
   h+='</div></div></div>';
  }
 

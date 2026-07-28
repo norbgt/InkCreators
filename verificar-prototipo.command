@@ -1,60 +1,44 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════════
-# Abre o protótipo já rodando a verificação.
+# Atalho pelo Terminal. A lógica está em bin/prototipo.sh, a mesma que
+# o aplicativo "Verificar Ink Creators.app" usa.
 #
-# Um painel aparece por cima dizendo o que passou e o que não passou,
-# usando campos de verdade no seu navegador. É o jeito de conferir, em
-# segundos, se os ajustes chegaram até aí.
+# SE VOCÊ ESTÁ VENDO JANELAS DE TERMINAL SE ACUMULANDO, use o
+# aplicativo em vez deste arquivo: o Finder o executa sem abrir
+# Terminal nenhum, e não há janela para sobrar.
 #
-# Depois é só clicar em "Fechar e navegar".
+# Por que a janela às vezes não fecha: quem fecha é um comando que
+# pede ao Terminal para se fechar, e o macOS exige permissão para um
+# programa controlar outro. Se essa permissão nunca foi concedida —
+# ou foi negada — o pedido falha em silêncio. O aplicativo não depende
+# disso porque nunca abre janela.
 # ═══════════════════════════════════════════════════════════════════
 
 RAIZ="$(cd "$(dirname "$0")" && pwd)"
-PASTA="$RAIZ/prototipo"
-ESTADO="/tmp/ink-creators-prototipo.estado"
-PORTA=8765
+"$RAIZ/bin/prototipo.sh" verificar
 
-cd "$PASTA" || { echo "Não encontrei a pasta prototipo."; read -p "Enter para fechar..."; exit 1; }
-
-echo "═══════════════════════════════════════════"
-echo "  Ink Creators — verificação"
-echo "═══════════════════════════════════════════"
-echo
-
-for p in 8765 8766 8767 8768 8769; do
-  for pid in $(lsof -ti tcp:$p -sTCP:LISTEN 2>/dev/null); do
-    cmd=$(ps -p "$pid" -o command= 2>/dev/null)
-    case "$cmd" in
-      *python*http.server*|*python*servidor-local.py*) kill "$pid" 2>/dev/null ;;
-    esac
-  done
-done
-rm -f "$ESTADO"
-sleep 0.6
-
-while lsof -i :$PORTA >/dev/null 2>&1; do PORTA=$((PORTA + 1)); done
-nohup python3 "$PASTA/servidor-local.py" "$PORTA" "$PASTA" >/dev/null 2>&1 &
-echo "$! $PORTA" > "$ESTADO"
-
-for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do
-  curl -s -o /dev/null "http://127.0.0.1:$PORTA/index.html" && break
-  sleep 0.3
-done
-
-BYTES_DISCO=$(wc -c < "$PASTA/index.html" | tr -d ' ')
-BYTES_SERVIDOS=$(curl -s "http://127.0.0.1:$PORTA/index.html" | wc -c | tr -d ' ')
-if [ "$BYTES_DISCO" != "$BYTES_SERVIDOS" ]; then
-  echo "  ✗ O servidor não está entregando o arquivo desta pasta."
-  echo "    no disco: $BYTES_DISCO · servido: $BYTES_SERVIDOS"
-  read -p "Enter para fechar..."
-  exit 1
+# Fecha só esta janela, encontrada pelo terminal (tty) em que ela roda.
+# Procurar pelo título falhava quando o Terminal renomeava a janela ao
+# terminar o processo.
+TT=$(tty 2>/dev/null)
+if [ -n "$TT" ]; then
+  osascript >/dev/null 2>&1 <<APPLESCRIPT &
+tell application "Terminal"
+  repeat with w in windows
+    try
+      repeat with t in tabs of w
+        if tty of t is "$TT" then close w saving no
+      end repeat
+    end try
+  end repeat
+end tell
+APPLESCRIPT
+  FECHOU=$?
+  if [ "$FECHOU" -ne 0 ]; then
+    echo
+    echo "  Não consegui fechar esta janela sozinho."
+    echo "  Use o aplicativo em vez deste arquivo, ou libere em"
+    echo "  Ajustes > Privacidade e Segurança > Automação > Terminal."
+  fi
 fi
-
-URL="http://localhost:$PORTA/?v=$(date +%s)&verificar=1"
-echo "  ✓ Abrindo a verificação."
-echo "    $URL"
-echo
-open "$URL"
-
-osascript -e 'tell application "Terminal" to close (every window whose name contains "verificar-prototipo")' >/dev/null 2>&1 &
 exit 0
