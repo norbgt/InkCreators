@@ -57,4 +57,17 @@ jobs:
             exit 1
           fi
 
-          echo "Banco acordado em $(date -u '+%d/%m/%Y %H:%M UTC')."
+          # Conferido em 16/08/2026: a política "Styles are viewable by
+          # everyone" deixa o papel anônimo ler esta tabela, então a
+          # resposta tem de vir com conteúdo. Uma lista vazia com HTTP
+          # 200 significaria que alguma política mudou — o banco estaria
+          # acordado, mas o catálogo teria parado de ser público, e o
+          # feed de descoberta ficaria vazio para quem não fez login.
+          # Sem esta checagem, o alarme só tocaria quando um usuário
+          # reclamasse.
+          if grep -q '^\[\]$' /tmp/resposta.json; then
+            echo "::error::O banco respondeu, mas o catálogo de estilos veio vazio. A leitura pública de tattoo_styles pode ter sido removida — confira as políticas de RLS."
+            exit 1
+          fi
+
+          echo "Banco acordado em $(date -u '+%d/%m/%Y %H:%M UTC'), e o catálogo continua público."

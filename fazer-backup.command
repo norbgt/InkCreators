@@ -81,6 +81,8 @@ if command -v pg_dump >/dev/null 2>&1; then
   echo "           'postgresql://postgres.hdfigxygektppvlogaoj:SUA_SENHA@aws-0-ca-central-1.pooler.supabase.com:5432/postgres' \\"
   echo "           > '$DESTINO/dados-$DATA.sql'"
   echo
+  echo "       A região é ca-central-1 — confirmado no painel."
+  echo
   echo "       A string de conexão está em: Supabase → Project Settings → Database."
 else
   echo "       pg_dump não está instalado neste Mac."

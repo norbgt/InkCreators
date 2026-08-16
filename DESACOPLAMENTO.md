@@ -174,13 +174,55 @@ propósito: a decisão 002 (log de decisões com buraco deixa de ser log),
 o esquema. A versão `v0-2026-08-16` está em `backups/`, com tag `v0` no
 git.
 
+### Fechado em 16/08, com o banco ativo
+
+Você retomou o projeto e deu para concluir o que estava bloqueado.
+
+**Estado confirmado:** `ACTIVE_HEALTHY`, Postgres 17.6, ca-central-1.
+
+**O ping foi verificado, não presumido.** Confirmei no banco que a
+política `Styles are viewable by everyone` deixa o papel anônimo ler
+`tattoo_styles` — ou seja, a chamada do workflow retorna conteúdo de
+verdade. Aproveitei para endurecer a checagem: além de exigir HTTP 200,
+ela falha se a resposta vier vazia. Uma lista vazia com 200 significaria
+banco acordado mas catálogo deixando de ser público — e o feed de
+descoberta ficaria em branco para quem não fez login. Sem essa
+verificação, o alarme só tocaria quando alguém reclamasse.
+
+**O backup agora tem os dados.** `backups/v0-2026-08-16/` guarda quatro
+arquivos:
+
+| Arquivo | O que é |
+|---|---|
+| `InkCreators-v0-2026-08-16.zip` | o projeto inteiro, 98 arquivos, 1,6 MB |
+| `esquema-consolidado.sql` | as 17 migrações num arquivo só |
+| `dados-2026-08-16.sql` | o conteúdo do banco, pronto para reinserir |
+| `seguranca-2026-08-16.md` | o retrato de RLS, funções e buckets |
+
+**O que o banco tinha:** 13 tabelas, todas com RLS ligado, 43 políticas,
+9 funções `SECURITY DEFINER` em `private`, 3 buckets, 1 conta. Só quatro
+tabelas com conteúdo — 17 estilos, 13 nomes reservados, 1 perfil e 3
+papéis. Nove tabelas vazias, inclusive as duas de telemetria.
+
+Vale olhar esse retrato de frente: **é um banco bem construído e sem
+uso.** A segurança está madura — funções de autorização fora do alcance
+da API, e-mail não confirmado sem poder criar conteúdo, telemetria que
+qualquer um escreve e só admin lê. E não há uma única sessão de teste.
+
+O `seguranca-2026-08-16.md` é a peça que eu mais recomendo guardar: ele
+foi tirado do banco em funcionamento, não das migrações, então descreve
+o que **está** no ar e não o que se pretendeu.
+
 ### O que ficou dependendo de você
 
-- **Retomar o projeto no Supabase.** Confirmei durante esta auditoria:
-  a consulta expirou por tempo. Está mesmo pausado. Enquanto não
-  retomar, o ping vai falhar todo dia — e é bom que falhe, porque assim
-  você fica sabendo.
-- **Baixar os dados do banco**, depois de retomar. Hoje são uma conta e
-  nenhum dado real, então a urgência é baixa.
+
+- **Tirar o `.zip` deste computador.** É o único item que continua
+  aberto e o único que importa de verdade. Backup no mesmo disco do
+  original não é backup.
+- **As contas de `auth.users` não estão no dump.** São do Supabase Auth
+  e só saem pelo backup lógico do painel. Hoje é uma conta — a sua — mas
+  vale saber antes de precisar restaurar.
+- **Enviar os commits pendentes**, para o endereço online refletir o que
+  existe.
 - **Tirar o `.zip` deste computador.** Backup no mesmo disco do original
   não é backup.
