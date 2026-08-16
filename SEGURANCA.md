@@ -156,19 +156,44 @@ Rodei o verificador de segurança do Supabase e conferi o corpo de cada
 função apontada. **Nenhum dos apontamentos é um buraco aberto** — mas
 três merecem ação, e dois deles levam dois minutos.
 
-## Passo 1 · Ligar a proteção contra senha vazada
-**5 minutos · no painel · faça hoje**
+## Passo 1 · Endurecer a senha
+**✅ PARCIALMENTE FEITO em 16/08/2026**
 
-Hoje está desligada. Com ela ligada, o Supabase compara toda senha nova
-com a base do Have I Been Pwned e recusa senhas que já vazaram em outros
-serviços.
+### O que foi feito, de graça
+
+No painel, em **Authentication → Sign In / Providers → Email**:
+
+- mínimo subiu de 6 para **8 caracteres**
+- passou a exigir **letra e número**
+
+O protótipo foi ajustado no mesmo dia para espelhar a regra. Ela agora
+vive numa constante única, `REGRA_SENHA`, e um diagnóstico trava a
+coerência.
+
+### O que ficou pendente, e por quê
+
+**A proteção contra senha vazada só existe no plano Pro.** Ela compara
+toda senha nova com a base do Have I Been Pwned e recusa as que já
+vazaram em outros serviços.
 
 Importa mais aqui do que em muitos produtos: a plataforma vai guardar
 histórico de onde a pessoa tatuou e em que parte do corpo. Conta
 invadida por senha reciclada exporia isso.
 
-> **Supabase → Authentication → Policies → Password Security →**
-> ativar *Leaked password protection*
+Entra na lista de motivos para migrar para o Pro **antes do piloto** —
+junto com banco que não pausa sozinho e ambiente separado para testar
+migração. São três motivos apontando para o mesmo lugar.
+
+> Fonte: <https://supabase.com/docs/guides/auth/password-security>
+> *"Leaked password protection is available on the Pro Plan and above."*
+
+### Cuidado ao mexer no painel de novo
+
+Se você mudar o mínimo ou os caracteres exigidos, **mude também
+`REGRA_SENHA` no protótipo**. Se a tela ficar mais frouxa que o painel,
+a pessoa lê "✓ Senha válida", clica em criar conta, e o servidor recusa
+no fim — erro que aparece depois de tudo preenchido, sem dizer o que
+fazer.
 
 ## Passo 2 · Tirar `esquecer_participante` da API pública
 **✅ FEITO em 16/08/2026 · migração 25**
@@ -282,16 +307,18 @@ mais comum de alguém receber uma fatura inesperada.
 
 | | Ação | Tempo | Quando |
 |---|---|---|---|
-| 1 | Proteção contra senha vazada | 5 min | hoje |
+| 1 | Senha: mínimo 8 + letra e número | — | **✅ feito** |
 | 2 | `revoke execute` em `esquecer_participante` | — | **✅ feito** |
 | 3 | Deixar os outros dois avisos como estão | — | decisão registrada |
 | 4 | Backup das contas de login | 10 min | antes do piloto |
 | 5 | SMTP próprio | 30 min | antes de convidar alguém |
 | 6 | Ambiente separado | horas | quando o backend crescer |
 | 7 | Restringir a chave do Maps | — | quando existir chave |
+| 8 | **Plano Pro** — destrava senha vazada, banco que não pausa e ambiente separado | — | antes do piloto |
 
-O passo 2 está feito. **O passo 1 é o único que ainda aparece no
-verificador**, e é de painel — cinco minutos seus. Os demais são
+Os passos 1 e 2 estão feitos no que era possível hoje. **O que ainda
+aparece no verificador é a proteção contra senha vazada, e ela exige o
+plano Pro** — não é esquecimento, é limitação de plano. Os demais são
 preparação para ter gente dentro.
 
 ---

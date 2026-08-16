@@ -35,7 +35,7 @@ var S=g.S, tela=function(){return nos['app'].innerHTML};
 function passo(){var m=tela().match(/Passo \d de 3/);return m?m[0]:'fora do cadastro';}
 
 // helpers, iguais aos do verificar.js
-function aoPasso2Email(){g.e("irCadastro(null)");S.cad.nome='Ana Souza';S.cad.email='ana@exemplo.com';S.cad.senha='123456';g.e("render()");g.e("avancarCad()");return tela()}
+function aoPasso2Email(){g.e("irCadastro(null)");S.cad.nome='Ana Souza';S.cad.email='ana@exemplo.com';S.cad.senha='senha1234';g.e("render()");g.e("avancarCad()");return tela()}
 function aoPasso2Google(){g.e("irCadastro(null)");g.e("entrarComGoogle()");return tela()}
 function aoPasso3(perfil,u){aoPasso2Email();S.cad.usuario=u||'ana.souza';S.cad.perfil=perfil;g.e("render()");g.e("avancarCad()");return tela()}
 
@@ -92,5 +92,40 @@ chk('6b: tem os três cartões',(tela().match(/class="perfilopt/g)||[]).length==
 g.e("irCadastro(null)");
 chk('7: rodapé existe no passo 1',/class="rodapepassos"/.test(tela()));
 chk('7: tem Voltar e Continuar',/Voltar<\/button>/.test(tela())&&/id="btnAvancarCad"/.test(tela()));
+/* ── A REGRA DE SENHA BATE COM A DO PAINEL ────────────────────────
+   O banco é quem recusa senha fraca; a tela só antecipa a recusa. Se a
+   tela for mais frouxa, a pessoa lê "✓ Senha válida", clica em criar
+   conta e o servidor recusa no fim — erro que aparece depois de tudo
+   preenchido, sem dizer o que fazer.
+
+   Foi o que quase aconteceu em 16/08/2026: o painel do Supabase subiu
+   o mínimo para 8 e a tela continuava pedindo 6.
+
+   Este roteiro não consegue ler o painel. O que ele garante é que a
+   regra vive num lugar só e que nada no código a contradiz. */
+console.log("\n── A REGRA DE SENHA ─────────────────────────────────────");
+var htmlS = require("fs").readFileSync(require("path").join(__dirname, "..", "prototipo", "index.html"), "utf8");
+
+chk("a regra mora numa constante só", /var REGRA_SENHA = \{/.test(htmlS));
+chk("o mínimo do painel é 8", /min:\s*8/.test(htmlS),
+    "se você mudou o painel, mude REGRA_SENHA junto");
+chk("nada mais no código cita 6 caracteres de senha",
+    !/senha[^\n]{0,40}length\s*>=\s*6/.test(htmlS) && !/mínimo 6 caracteres/.test(htmlS),
+    "sobrou uma regra de 6 em algum lugar");
+chk("o texto do campo é montado da constante", /textoRegraSenha\(\)/.test(htmlS),
+    "escrever 'mínimo 8' à mão cria um terceiro lugar para esquecer");
+
+var senhaValida = g.e("senhaValida");
+var faltaNaSenha = g.e("faltaNaSenha");
+chk("recusa 7 caracteres", senhaValida("abc1234") === false, "aceitou com 7");
+chk("aceita 8 com letra e número", senhaValida("abcd1234") === true);
+chk("recusa só letras", senhaValida("abcdefgh") === false, "aceitou sem número");
+chk("recusa só números", senhaValida("12345678") === false, "aceitou sem letra");
+/* Dizer o que falta, e não "senha fraca": num campo mascarado, adivinhar
+   é ainda pior que num campo comum. */
+chk("diz o que falta, item por item", faltaNaSenha("abc").length === 2,
+    "esperava faltar tamanho e número");
+chk("e a lista fica vazia quando aceita", faltaNaSenha("abcd1234").length === 0);
+
 console.log('══ '+f+' falha(s) ══');
 process.exit(f?1:0);

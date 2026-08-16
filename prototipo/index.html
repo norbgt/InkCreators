@@ -2980,10 +2980,65 @@ function passoCad(){
  var r=roteiroCadastro();
  return r[Math.min(S.cad.passo,r.length-1)];
 }
+/* ═══ REGRA DE SENHA ════════════════════════════════════════════════
+   Espelho do que está configurado no painel do Supabase, em
+   Authentication → Sign In / Providers → Email.
+
+   ELA VIVE AQUI, NUMA CONSTANTE SÓ, POR UM MOTIVO
+   O banco é quem recusa a senha fraca — a tela só antecipa a recusa. Se
+   os dois discordarem, o pior caso não é a tela ser rígida demais: é
+   ela ser frouxa demais. A pessoa digita, lê "✓ Senha válida", clica em
+   criar conta, e o servidor recusa no fim. Erro que aparece depois de
+   tudo preenchido, sem dizer o que fazer.
+
+   Estava assim até 16/08/2026: a tela pedia 6 e o painel também. O
+   painel subiu para 8 e a tela ficou para trás por alguns minutos —
+   este bloco existe para que da próxima vez a correção seja uma linha.
+
+   SE VOCÊ MUDAR O PAINEL, MUDE AQUI
+   O Supabase oferece três níveis de "required characters":
+     · letras e números                       → precisaLetra + precisaNumero
+     · minúscula, maiúscula e números         → + precisaMaiuscula
+     · minúscula, maiúscula, números, símbolo → + precisaSimbolo
+   Ligue o que estiver marcado lá. O diagnóstico confere a coerência
+   interna, mas não consegue ler o painel por você. */
+var REGRA_SENHA = {
+ min: 8,
+ precisaLetra: true,
+ precisaNumero: true,
+ precisaMaiuscula: false,
+ precisaSimbolo: false
+};
+
+/* Devolve a lista do que ainda falta, em ordem de leitura. Lista vazia
+   quer dizer senha aceita. Devolver o que falta — e não um sim/não —
+   é o que permite a dica ser específica em vez de dizer "senha fraca". */
+function faltaNaSenha(v){
+ v = v || "";
+ var falta = [];
+ if (v.length < REGRA_SENHA.min) falta.push((REGRA_SENHA.min - v.length) + " caractere" + (REGRA_SENHA.min - v.length > 1 ? "s" : ""));
+ if (REGRA_SENHA.precisaLetra    && !/[a-zA-Z]/.test(v)) falta.push("uma letra");
+ if (REGRA_SENHA.precisaNumero   && !/[0-9]/.test(v))    falta.push("um número");
+ if (REGRA_SENHA.precisaMaiuscula&& !/[A-Z]/.test(v))    falta.push("uma maiúscula");
+ if (REGRA_SENHA.precisaSimbolo  && !/[^a-zA-Z0-9]/.test(v)) falta.push("um símbolo");
+ return falta;
+}
+function senhaValida(v){ return faltaNaSenha(v).length === 0 }
+
+/* O texto do campo, montado da mesma constante. Escrever "mínimo 8" à
+   mão criaria um terceiro lugar para esquecer de atualizar. */
+function textoRegraSenha(){
+ var p = ["mínimo " + REGRA_SENHA.min + " caracteres"];
+ if (REGRA_SENHA.precisaLetra && REGRA_SENHA.precisaNumero) p.push("com letra e número");
+ if (REGRA_SENHA.precisaMaiuscula) p.push("e maiúscula");
+ if (REGRA_SENHA.precisaSimbolo) p.push("e símbolo");
+ return p.join(", ");
+}
+
 function podeAvancar(){
  var id=passoCad().id, c=S.cad;
  if(id==="conta")   return c.nome.trim().length>1 && /.+@.+\..+/.test(c.email) &&
-                           (c.viaGoogle || (c.senha||"").length>=6);
+                           (c.viaGoogle || senhaValida(c.senha));
  if(id==="perfil")  return !!c.perfil && usuarioValido(c.usuario) && usuarioLivre(c.usuario);
  if(id==="tatuador")return S.onbStyles.length>0;
  if(id==="fornecedor") return (S.forn.nome||"").trim().length>1;
@@ -3070,7 +3125,7 @@ function vCadastro(){
   h+='<div class="grid" style="gap:10px">';
   h+='<div><label class="lb">Seu nome</label><input class="fld" id="cadNome" value="'+escapar(c.nome)+'" oninput="S.cad.nome=this.value;atualizarCad()" placeholder="Como quer ser chamado" /></div>';
   h+='<div><label class="lb">E-mail</label><input class="fld" id="cadEmail" type="email" value="'+escapar(c.email)+'" oninput="S.cad.email=this.value;atualizarCad()" placeholder="nome@email.com" /></div>';
-  h+='<div><label class="lb">Senha</label><input class="fld" id="cadSenha" type="password" value="'+escapar(c.senha)+'" oninput="S.cad.senha=this.value;atualizarCad()" placeholder="mínimo 6 caracteres" /></div>';
+  h+='<div><label class="lb">Senha</label><input class="fld" id="cadSenha" type="password" value="'+escapar(c.senha)+'" oninput="S.cad.senha=this.value;atualizarCad()" placeholder="'+textoRegraSenha()+'" /></div>';
   h+='</div>';
   h+='<div id="dicaSenha" class="tiny" style="margin-top:6px">'+dicaSenha()+'</div>';
 
@@ -3257,8 +3312,13 @@ function contaEstilos(){
 function dicaSenha(){
  var v=S.cad.senha||"";
  if(!v)return "";
- if(v.length>=6)return '<span style="color:var(--x-success)">✓ Senha válida</span>';
- return '<span class="muted">Faltam '+(6-v.length)+' caractere(s) para a senha</span>';
+ var falta=faltaNaSenha(v);
+ if(!falta.length)return '<span style="color:var(--x-success)">✓ Senha válida</span>';
+ /* Diz exatamente o que falta. "Senha fraca" manda a pessoa adivinhar,
+    e adivinhar num campo mascarado é pior ainda. */
+ var t = falta.length===1 ? falta[0]
+       : falta.slice(0,-1).join(", ") + " e " + falta[falta.length-1];
+ return '<span class="muted">Falta '+t+'</span>';
 }
 function dicaUsuario(){
  var u=S.cad.usuario||"", sug=sugerirUsuario(S.cad.nome);

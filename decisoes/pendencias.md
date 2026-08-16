@@ -170,7 +170,8 @@ Rodei o verificador do Supabase e conferi o corpo de cada função
 apontada. Nenhum apontamento é buraco aberto. A lista completa, com
 explicação em português comum, está em `SEGURANCA.md`.
 
-- [ ] **1.** Ligar proteção contra senha vazada (painel, 5 min) — hoje
+- [x] **1a.** Senha: mínimo 8 + letra e número — **feito 16/08**, painel e protótipo em sincronia
+- [ ] **1b.** Proteção contra senha vazada — **exige plano Pro**, não é esquecimento
 - [x] **2.** `revoke execute` em `esquecer_participante` — **feito 16/08**, migração 25
 - [x] **3.** `acrescentar_meu_papel` e `remover_meu_papel` ficam públicas — decisão registrada, cada uma se protege sozinha
 - [ ] **4.** Baixar backup de `auth.users` (painel, 10 min) — antes do piloto

@@ -89,7 +89,7 @@
     irCadastro(null);
     digitar("cadNome", nome || "Ana Souza");
     digitar("cadEmail", email || "ana@exemplo.com");
-    digitar("cadSenha", "123456");
+    digitar("cadSenha", "senha1234");
     avancarCad();
     return document.getElementById("app").innerHTML;
   }
@@ -206,7 +206,7 @@
     digitar("cadSenha", "123");
     ok("travado com senha curta", $("#btnAvancarCad").disabled);
     ok("avisa quantos caracteres faltam", /Faltam 3 caractere/.test(document.body.innerText));
-    digitar("cadSenha", "123456");
+    digitar("cadSenha", "senha1234");
     ok("destrava com os três campos válidos", !$("#btnAvancarCad").disabled);
     digitar("cadEmail", "naoehemail");
     ok("trava de novo com e-mail inválido", $("#btnAvancarCad").disabled);
@@ -377,7 +377,7 @@
     /* ── 6b. OS TRÊS PERFIS, SEPARADOS ────────────────────────── */
     secao("Escolha de perfil: três cartões separados");
     irCadastro(null);
-    digitar("cadNome", "Ana Souza"); digitar("cadEmail", "a@x.com"); digitar("cadSenha", "123456");
+    digitar("cadNome", "Ana Souza"); digitar("cadEmail", "a@x.com"); digitar("cadSenha", "senha1234");
     avancarCad();
     var caixa = document.querySelector(".perfis");
     ok("o grupo de perfis existe", !!caixa);

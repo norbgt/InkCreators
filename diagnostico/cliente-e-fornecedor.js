@@ -413,7 +413,7 @@ chk("com o número à vista", /higiene 99%/.test(tguest));
 secao("15. ESTÚDIO NO CADASTRO");
 S.session = "anon";
 g.e("irCadastro('tatuador')");
-g.e("S.cad.nome='Ana';S.cad.email='a@b.com';S.cad.senha='123456';avancarCad()");
+g.e("S.cad.nome='Ana';S.cad.email='a@b.com';S.cad.senha='senha1234';avancarCad()");
 g.e("S.cad.usuario='ana.souza';avancarCad()");
 var t3 = tela();
 chk("o passo 3 do tatuador oferece administrar estúdio", /Também administro um estúdio/.test(t3));
@@ -421,7 +421,7 @@ chk("continuam três passos", /Passo 3 de 3/.test(t3), "o cadastro cresceu");
 chk("estúdio não virou um quarto perfil",
     !/>Estúdio<\/span>/.test(ir("cadastro")) || true);
 g.e("irCadastro('cliente')");
-var tperfis = (function () { g.e("S.cad.nome='A';S.cad.email='a@b.com';S.cad.senha='123456';avancarCad()"); return tela() })();
+var tperfis = (function () { g.e("S.cad.nome='A';S.cad.email='a@b.com';S.cad.senha='senha1234';avancarCad()"); return tela() })();
 chk("o passo 2 continua com três perfis",
     (tperfis.match(/class="perfilopt/g) || []).length === 3,
     (tperfis.match(/class="perfilopt/g) || []).length + " cartões");
