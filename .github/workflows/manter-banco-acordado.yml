@@ -1,0 +1,60 @@
+# ═══════════════════════════════════════════════════════════════════
+# MANTER O BANCO ACORDADO
+#
+# O Supabase pausa projetos do plano gratuito depois de uma semana de
+# baixa atividade. Foi o que aconteceu: o projeto pausou sozinho e o
+# modo "banco real" parou de funcionar sem ninguém perceber.
+#
+# Este fluxo faz uma consulta de verdade uma vez por dia. Roda na
+# infraestrutura do GitHub, de graça, sem depender do seu computador
+# estar ligado nem de nenhuma conta além do próprio repositório.
+#
+# POR QUE UMA CONSULTA E NÃO SÓ UM PING NA URL
+# Tocar no endereço do projeto pode não acordar o banco. O que conta
+# como atividade é chegar até o Postgres — por isso a chamada lê uma
+# tabela de verdade, o catálogo de estilos, que tem leitura pública.
+#
+# ISTO É REMENDO, NÃO SOLUÇÃO
+# A garantia de não pausar é o plano Pro. Enquanto o projeto é um
+# protótipo sem gente usando, o remendo serve. Antes do piloto com
+# tatuadores de verdade, troque pelo plano pago: um teste que morre
+# porque o banco dormiu custa muito mais que a mensalidade.
+# ═══════════════════════════════════════════════════════════════════
+
+name: Manter o banco acordado
+
+on:
+  schedule:
+    # 09:00 UTC = 06:00 em Brasília. Cedo, e longe do horário de pico
+    # do GitHub, onde as filas de agendamento costumam atrasar.
+    - cron: "0 9 * * *"
+  workflow_dispatch:        # permite rodar à mão, pelo site do GitHub
+
+jobs:
+  acordar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consultar o catálogo de estilos
+        run: |
+          URL="https://hdfigxygektppvlogaoj.supabase.co/rest/v1/tattoo_styles?select=slug&limit=1"
+          CHAVE="sb_publishable_Hs85aivJIJCba-l4UER1Gw_PI57PJxa"
+
+          # A chave publicável é pública de propósito: ela sozinha não
+          # abre nada, quem protege os dados são as políticas de RLS.
+          # Por isso ela pode ficar aqui, à vista, sem virar segredo.
+
+          CODIGO=$(curl -s -o /tmp/resposta.json -w "%{http_code}" \
+            -H "apikey: $CHAVE" \
+            -H "Authorization: Bearer $CHAVE" \
+            --max-time 30 \
+            "$URL")
+
+          echo "HTTP $CODIGO"
+          echo "resposta: $(head -c 300 /tmp/resposta.json)"
+
+          if [ "$CODIGO" != "200" ]; then
+            echo "::error::O banco não respondeu 200. Provavelmente está pausado — entre no painel do Supabase e retome o projeto."
+            exit 1
+          fi
+
+          echo "Banco acordado em $(date -u '+%d/%m/%Y %H:%M UTC')."
