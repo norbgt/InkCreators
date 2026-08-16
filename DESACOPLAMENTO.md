@@ -1,6 +1,6 @@
 # Diagnóstico de desacoplamento do Lovable
 
-28 de julho de 2026 · auditoria feita no repositório e na conta Supabase,
+16 de agosto de 2026 · auditoria feita no repositório e na conta Supabase,
 não de memória
 
 ## Veredito
@@ -152,3 +152,35 @@ Os itens 1 e 2 são de operação, não de desacoplamento — mas ficam nesta
 lista porque a pergunta que você fez, no fundo, é "posso escalar sem
 depender de ninguém?", e a resposta honesta inclui **"sim, e o que te
 ameaça agora é não ter backup, não é o Lovable".**
+
+
+---
+
+## Resolvido em 16/08/2026
+
+**1. Ping diário.** `.github/workflows/manter-banco-acordado.yml` faz uma
+consulta ao catálogo de estilos todo dia às 6h de Brasília, na
+infraestrutura do GitHub. Não depende do seu computador. É remendo: a
+garantia contra pausa é o plano Pro, e antes do piloto vale trocar — um
+teste que morre porque o banco dormiu custa mais que a mensalidade.
+
+**2. Lovable separado.** A análise de saída foi para `lovable.backup/`,
+com um `LEIA.md` que registra a auditoria e a pendência de dez minutos
+(conferir se o projeto antigo ainda existe). Ficaram fora da pasta, de
+propósito: a decisão 002 (log de decisões com buraco deixa de ser log),
+`banco/` (documentação viva do banco atual) e `dominio/` (ativo seu).
+
+**3. Backup v0.** `fazer-backup.command` empacota o projeto e consolida
+o esquema. A versão `v0-2026-08-16` está em `backups/`, com tag `v0` no
+git.
+
+### O que ficou dependendo de você
+
+- **Retomar o projeto no Supabase.** Confirmei durante esta auditoria:
+  a consulta expirou por tempo. Está mesmo pausado. Enquanto não
+  retomar, o ping vai falhar todo dia — e é bom que falhe, porque assim
+  você fica sabendo.
+- **Baixar os dados do banco**, depois de retomar. Hoje são uma conta e
+  nenhum dado real, então a urgência é baixa.
+- **Tirar o `.zip` deste computador.** Backup no mesmo disco do original
+  não é backup.
