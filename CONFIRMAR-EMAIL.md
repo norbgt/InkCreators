@@ -26,7 +26,9 @@ sem entender por quê. Cinco horas para dez pessoas entrarem.
 cria conta no Supabase — ele grava em `teste_sessoes`, que não manda
 e-mail nenhum. O teste está livre desse limite.
 
-**Quando precisar abrir cadastro de verdade:** SMTP próprio.
+**Quando precisar abrir cadastro de verdade:** SMTP próprio. O passo a
+passo completo, com os textos dos e-mails em português já escritos e as
+URLs de redirecionamento certas, está em **`SMTP-PRONTO-PARA-COLAR.md`**.
 [Resend](https://resend.com) e [Brevo](https://brevo.com) têm plano
 gratuito suficiente para começar (3.000 e 9.000 e-mails/mês). Configura
 em Authentication → Emails → SMTP Settings.

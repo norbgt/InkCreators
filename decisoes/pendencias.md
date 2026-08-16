@@ -171,9 +171,9 @@ apontada. Nenhum apontamento é buraco aberto. A lista completa, com
 explicação em português comum, está em `SEGURANCA.md`.
 
 - [ ] **1.** Ligar proteção contra senha vazada (painel, 5 min) — hoje
-- [ ] **2.** `revoke execute` em `esquecer_participante` (SQL, 5 min) — hoje
+- [x] **2.** `revoke execute` em `esquecer_participante` — **feito 16/08**, migração 25
 - [x] **3.** `acrescentar_meu_papel` e `remover_meu_papel` ficam públicas — decisão registrada, cada uma se protege sozinha
 - [ ] **4.** Baixar backup de `auth.users` (painel, 10 min) — antes do piloto
-- [ ] **5.** SMTP próprio (30 min) — antes de convidar alguém
+- [ ] **5.** SMTP próprio (30 min) — antes de convidar alguém · passo a passo pronto em `SMTP-PRONTO-PARA-COLAR.md`
 - [ ] **6.** Ambiente separado do de produção — quando o backend crescer
 - [ ] **7.** Restringir a chave do Maps — quando existir chave

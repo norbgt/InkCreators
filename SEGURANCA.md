@@ -171,7 +171,7 @@ invadida por senha reciclada exporia isso.
 > ativar *Leaked password protection*
 
 ## Passo 2 · Tirar `esquecer_participante` da API pública
-**5 minutos · no SQL Editor**
+**✅ FEITO em 16/08/2026 · migração 25**
 
 Esta é a única correção de arquitetura da lista.
 
@@ -185,21 +185,19 @@ consegue chamá-la. A guarda segura — mas é a única camada. Se um dia
 alguém editar a função e esquecer da guarda, não há segunda barreira.
 
 Como ela é chamada por você, à mão, no SQL Editor, ela não precisa estar
-publicada:
+publicada. Foi o que se fez:
 
 ```sql
--- Tira a função da API sem mudar o que ela faz.
 revoke execute on function public.esquecer_participante(text)
   from anon, authenticated;
-
--- Confirma: deve voltar sem linhas de anon/authenticated
-select grantee, privilege_type
-from information_schema.role_routine_grants
-where routine_name = 'esquecer_participante';
 ```
 
-Você continua usando normalmente pelo SQL Editor, que roda com
-privilégio de dono.
+Conferido depois: sobraram só `postgres` e `service_role`. O verificador
+foi de quatro avisos para três. Nada mudou no comportamento — você
+continua usando pelo SQL Editor, que roda com privilégio de dono.
+
+Reversível com `grant execute ... to authenticated`. Registro completo
+em `banco/correcoes/25_esquecer_participante_fora_da_api.md`.
 
 ## Passo 3 · Deixar as outras duas como estão
 **0 minutos · decisão registrada**
@@ -285,15 +283,16 @@ mais comum de alguém receber uma fatura inesperada.
 | | Ação | Tempo | Quando |
 |---|---|---|---|
 | 1 | Proteção contra senha vazada | 5 min | hoje |
-| 2 | `revoke execute` em `esquecer_participante` | 5 min | hoje |
+| 2 | `revoke execute` em `esquecer_participante` | — | **✅ feito** |
 | 3 | Deixar os outros dois avisos como estão | — | decisão registrada |
 | 4 | Backup das contas de login | 10 min | antes do piloto |
 | 5 | SMTP próprio | 30 min | antes de convidar alguém |
 | 6 | Ambiente separado | horas | quando o backend crescer |
 | 7 | Restringir a chave do Maps | — | quando existir chave |
 
-Os passos 1 e 2 fecham tudo o que o verificador aponta hoje. Os demais
-são preparação para ter gente dentro.
+O passo 2 está feito. **O passo 1 é o único que ainda aparece no
+verificador**, e é de painel — cinco minutos seus. Os demais são
+preparação para ter gente dentro.
 
 ---
 
