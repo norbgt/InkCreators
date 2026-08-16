@@ -126,14 +126,17 @@ fi
 echo "→ Enviando para o GitHub..."
 echo
 
+SAIDA_PUSH="/tmp/ink-push.txt"
 if git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
-  git push
+  git push 2>&1 | tee "$SAIDA_PUSH"
 else
   echo "  (primeiro envio — vinculando a branch ao remoto)"
-  git push -u origin "$BRANCH"
+  git push -u origin "$BRANCH" 2>&1 | tee "$SAIDA_PUSH"
 fi
 
-CODIGO=$?
+# ${PIPESTATUS[0]} pega o código do git, não o do tee. Sem isso, o
+# script acharia que deu certo sempre — tee sempre sai com zero.
+CODIGO=${PIPESTATUS[0]}
 echo
 if [ $CODIGO -eq 0 ]; then
   echo "═══════════════════════════════════════════"
@@ -154,8 +157,54 @@ if [ $CODIGO -eq 0 ]; then
 else
   echo "✗ O envio falhou."
   echo
+
+  # ── Caso conhecido: token sem permissão de workflow ──────────────
+  # O GitHub recusa que um token crie ou altere arquivos dentro de
+  # .github/workflows sem o escopo 'workflow'. É proteção deles: quem
+  # controla um workflow controla o que roda na infraestrutura do
+  # GitHub. Aconteceu em 16/08/2026 ao subir o ping diário do banco.
+  if grep -q "workflow.*scope\|refusing to allow" "$SAIDA_PUSH" 2>/dev/null; then
+    echo "  ══════════════════════════════════════════════════════"
+    echo "   MOTIVO IDENTIFICADO: falta o escopo 'workflow' no token"
+    echo "  ══════════════════════════════════════════════════════"
+    echo
+    echo "  O projeto tem um arquivo que roda na infraestrutura do"
+    echo "  GitHub — o ping diário que impede o banco de pausar:"
+    echo "    .github/workflows/manter-banco-acordado.yml"
+    echo
+    echo "  O GitHub não deixa um token criar ou alterar esse tipo de"
+    echo "  arquivo sem permissão explícita. É proteção deles, e faz"
+    echo "  sentido: quem controla um workflow controla o que roda."
+    echo
+    echo "  COMO RESOLVER (2 minutos)"
+    echo
+    echo "  Se o seu token é CLÁSSICO (começa com ghp_):"
+    echo "    1. github.com/settings/tokens"
+    echo "    2. Clique no token que você usa aqui"
+    echo "    3. Marque a caixa 'workflow'"
+    echo "    4. Update token"
+    echo "    5. Rode este script de novo — a senha continua a mesma"
+    echo
+    echo "  Se é FINE-GRAINED (começa com github_pat_):"
+    echo "    1. github.com/settings/personal-access-tokens"
+    echo "    2. Abra o token → Repository permissions"
+    echo "    3. Ponha 'Workflows' em Read and write"
+    echo "    4. Salve e rode este script de novo"
+    echo
+    echo "  Não precisa gerar token novo nem trocar a senha guardada."
+    echo
+    echo "  ══════════════════════════════════════════════════════"
+    echo
+    read -p "Enter para fechar..."
+    exit 1
+  fi
+
   echo "  Copie a mensagem acima e mostre à Claude — ela identifica"
   echo "  o motivo. As causas mais comuns:"
+  echo
+  echo "  • Disse 'workflow scope': o token não tem permissão para"
+  echo "    mexer em .github/workflows. Veja acima — o script já"
+  echo "    explica quando reconhece."
   echo
   echo "  • Pediu senha e recusou: o GitHub não aceita senha comum."
   echo "    Gere um token em github.com/settings/tokens (marque 'repo')"
