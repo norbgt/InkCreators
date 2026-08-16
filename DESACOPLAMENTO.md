@@ -158,18 +158,11 @@ ameaça agora é não ter backup, não é o Lovable".**
 
 ## Resolvido em 16/08/2026
 
-**1. Ping diário.** Uma tarefa agendada consulta o catálogo de estilos
-todo dia, em servidor, sem depender do seu computador.
-
-Começou como GitHub Actions e mudou de lugar no mesmo dia: o GitHub
-recusa que um token mexa em arquivos de workflow sem permissão
-específica, e isso travou o envio de vinte commits que não tinham nada a
-ver com o assunto. Ampliar o token seria trocar permissão permanente por
-remendo temporário. Ver `decisoes/011`.
-
-Continua sendo remendo: a garantia contra pausa é o plano Pro, e antes
-do piloto vale trocar — um teste que morre porque o banco dormiu custa
-mais que a mensalidade.
+**1. Ping diário.** `.github/workflows/manter-banco-acordado.yml` faz uma
+consulta ao catálogo de estilos todo dia às 6h de Brasília, na
+infraestrutura do GitHub. Não depende do seu computador. É remendo: a
+garantia contra pausa é o plano Pro, e antes do piloto vale trocar — um
+teste que morre porque o banco dormiu custa mais que a mensalidade.
 
 **2. Lovable separado.** A análise de saída foi para `lovable.backup/`,
 com um `LEIA.md` que registra a auditoria e a pendência de dez minutos

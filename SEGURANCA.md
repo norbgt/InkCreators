@@ -316,11 +316,6 @@ mais comum de alguém receber uma fatura inesperada.
 | 7 | Restringir a chave do Maps | — | quando existir chave |
 | 8 | **Plano Pro** — destrava senha vazada, banco que não pausa e ambiente separado | — | antes do piloto |
 
-O item 8 ganhou peso em 16/08: o ping que mantinha o banco acordado
-precisou sair do GitHub por causa de permissão de token (`decisoes/011`).
-Hoje ele roda como tarefa agendada, o que amarra o banco à assinatura do
-Claude. Aceitável sem gente dentro; não aceitável no piloto.
-
 Os passos 1 e 2 estão feitos no que era possível hoje. **O que ainda
 aparece no verificador é a proteção contra senha vazada, e ela exige o
 plano Pro** — não é esquecimento, é limitação de plano. Os demais são
