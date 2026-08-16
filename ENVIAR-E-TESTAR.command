@@ -34,37 +34,47 @@ echo "  Enviado. Agora esperando o GitHub Pages republicar."
 echo "  (leva de 1 a 3 minutos na primeira vez)"
 echo
 
-# Marcas do que precisa estar no ar. Uma por ajuste recente: se
-# qualquer uma faltar, o Pages ainda não republicou.
-MARCAS=("cadUsuario" "cadSenha" "dicaUsuario" "Também faço coberturas"
-        "COBRANCAS" "Também sou tatuador" "contaPendente" "avisopendente"
-        "explicarTrava" "rodapepassos" "perfilopt" "convitebarra"
-        "prepararSessaoDeTeste" "Entrar ou criar conta")
+# ── 2. Esperar o Pages republicar ──────────────────────────────────
+#
+# A conferência é uma só: o arquivo publicado tem de ter exatamente o
+# mesmo tamanho do arquivo no disco.
+#
+# POR QUE TROQUEI A LISTA DE MARCAS POR ISTO
+# Antes havia uma lista escrita à mão de trechos que "precisavam estar
+# no ar" — nomes de função, textos de botão. Em 16/08/2026 ela mentiu:
+# todas as marcas eram de rodadas antigas, então estavam presentes na
+# versão velha, e o script disse "✓ o site já tem o cadastro novo"
+# enquanto o Pages ainda servia um arquivo de 265 KB contra 410 KB no
+# disco. Quem pegou a mentira foi a comparação de tamanho, no fim.
+#
+# Lista escrita à mão envelhece por construção: cada ajuste novo
+# deveria acrescentar uma marca, e ninguém lembra. Tamanho não
+# envelhece — muda sozinho a cada alteração, e não tem como ficar
+# desatualizado.
+BD=$(wc -c < prototipo/index.html | tr -d " ")
 PRONTO=0
 for tentativa in $(seq 1 40); do
-  CORPO=$(curl -s -H 'Cache-Control: no-cache' "$SITE/prototipo/index.html?cb=$RANDOM")
-  FALTA=0
-  for m in "${MARCAS[@]}"; do
-    echo "$CORPO" | grep -qF "$m" || FALTA=$((FALTA+1))
-  done
-  if [ "$FALTA" -eq 0 ]; then PRONTO=1; break; fi
-  printf "\r  tentativa %2d de 40 — %d marca(s) ainda faltando   " "$tentativa" "$FALTA"
+  BP=$(curl -s -H 'Cache-Control: no-cache' "$SITE/prototipo/index.html?cb=$RANDOM" | wc -c | tr -d " ")
+  if [ "$BD" = "$BP" ]; then PRONTO=1; break; fi
+  printf "\r  tentativa %2d de 40 — publicado %s bytes, disco %s      " "$tentativa" "$BP" "$BD"
   sleep 15
 done
 echo
 
 if [ "$PRONTO" -ne 1 ]; then
   echo
-  echo "  ⏳ O Pages ainda não republicou depois de 10 minutos."
+  echo "  ⏳ Depois de 10 minutos o Pages ainda serve outra versão."
+  echo "     No ar: $BP bytes · No disco: $BD bytes"
+  echo
   echo "     Confira em: https://github.com/norbgt/InkCreators/actions"
-  echo "     Se estiver tudo verde lá, espere mais um pouco e rode de novo."
+  echo "     Se estiver tudo verde lá, espere mais e rode de novo."
   read -p "Enter para fechar..."
   exit 1
 fi
 
 # ── 3. Confere o essencial no que está publicado ───────────────────
 echo
-echo "  ✓ O site publicado já tem o cadastro novo."
+echo "  ✓ O site publicado é byte a byte igual ao seu disco ($BD bytes)."
 echo
 
 conferir() {
@@ -79,15 +89,6 @@ conferir "prototipo/index.html" 200
 conferir "prototipo/dados.js" 200
 conferir "prototipo/teste.js" 200
 conferir "prototipo/verificar.js" 200
-
-# O publicado tem que ser byte a byte o que está no disco.
-BD=$(wc -c < prototipo/index.html | tr -d " ")
-BP=$(curl -s "$SITE/prototipo/index.html?cb=$RANDOM" | wc -c | tr -d " ")
-if [ "$BD" = "$BP" ]; then
-  echo "    ok   publicado é idêntico ao local ($BD bytes)"
-else
-  echo "    XX   publicado tem $BP bytes, local tem $BD — republicação a meio caminho"
-fi
 
 echo
 echo "═══════════════════════════════════════════════════════"
@@ -105,8 +106,11 @@ echo "    local    →  Abrir prototipo.html          (dois cliques na pasta)"
 echo "    online   →  $SITE/"
 echo "    teste    →  $SITE/?teste=1"
 echo
-echo "  Falta só uma coisa para o painel funcionar: criar sua"
-echo "  conta em $SITE/#/conexao"
-echo "  e me dizer o e-mail, para eu dar o papel de admin."
+echo "  PAINEL DO TESTE"
+echo "    Conta admin: theinkcreatorsapp@gmail.com"
+echo "    Papéis: admin, artist, client · e-mail confirmado"
+echo
+echo "    Entre em $SITE/#/conexao com essa conta e o painel"
+echo "    do teste abre em: modelo de negócio > Painel do teste."
 echo
 read -p "Enter para fechar..."

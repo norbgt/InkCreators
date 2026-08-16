@@ -38,18 +38,23 @@ A raiz redireciona sozinha para o protótipo, levando junto o `?teste=1`.
 
 ---
 
-## 3. Criar sua conta de admin
+## 3. Sua conta de admin — já existe
 
 O painel mostra nome e e-mail de quem participou. Por isso ele exige
 login, e não a chave pública.
 
-1. Abra o protótipo publicado
-2. Menu superior → **conexão com o banco** → crie uma conta com o seu
-   e-mail
-3. Me avise qual e-mail usou. Eu dou o papel `admin` a ele.
+**Já está pronto desde 27/07/2026:**
 
-Enquanto isso não acontecer, o painel diz que a conta não é admin — que
-é exatamente o comportamento certo, e não um erro.
+| | |
+|---|---|
+| Conta | `theinkcreatorsapp@gmail.com` |
+| Papéis | `admin`, `artist`, `client` |
+| E-mail | confirmado |
+
+Basta entrar em **conexão com o banco** com essa conta. Se o protótipo
+mostrar aviso de pendência de e-mail, é estado antigo guardado no
+navegador, não o banco — recarregue com o endereço carimbado que o
+`Abrir prototipo.html` gera.
 
 ---
 

@@ -94,5 +94,31 @@ chk("COMO-ABRIR fala dos dois arquivos",
 chk("e não manda mais clicar em aplicativo ou .command",
     !/Ink Creators\.app/.test(doc) && !/abrir-prototipo\.command/.test(doc));
 
+/* ── O QUE O SCRIPT DE PUBLICAR DIZ ──────────────────────────────
+   Duas coisas envelheceram nele e mentiram no dia 16/08/2026.
+
+   A primeira foi uma lista escrita à mão de trechos que "precisavam
+   estar no ar". Todas as marcas eram de rodadas antigas, então estavam
+   presentes na versão velha — e o script disse "✓ o site já tem o
+   cadastro novo" enquanto o Pages ainda servia um arquivo de 265 KB
+   contra 410 KB no disco.
+
+   A segunda foi a mensagem final, que continuava pedindo para criar a
+   conta de admin e avisar o e-mail. O papel já estava concedido desde
+   27/07, e ela leu o pedido três vezes.
+
+   As duas falhas têm a mesma origem: texto e listas escritas à mão
+   dentro de um script que ninguém revisa. */
+console.log("\n── O SCRIPT DE PUBLICAR NÃO ENVELHECE ───────────────────");
+var pub = existe("ENVIAR-E-TESTAR.command") ? ler("ENVIAR-E-TESTAR.command") : "";
+chk("compara tamanho, não lista de trechos",
+    /BD=\$\(wc -c < prototipo\/index\.html/.test(pub) && /\[ "\$BD" = "\$BP" \]/.test(pub),
+    "sem comparação de bytes na espera");
+chk("não mantém lista de marcas à mão", !/MARCAS=\(/.test(pub),
+    "voltou a lista escrita à mão, que envelhece por construção");
+chk("não pede mais a conta de admin", !/dar o papel|me avise qual e-mail|me dizer o e-mail/i.test(pub),
+    "o script voltou a pedir algo que já foi feito");
+chk("diz qual é a conta de admin", /theinkcreatorsapp@gmail\.com/.test(pub));
+
 console.log("\n══ " + f + " falha(s) ══");
 process.exit(f ? 1 : 0);

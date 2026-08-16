@@ -12,7 +12,7 @@ Sem esses dois passos o teste não sai do lugar. Passo a passo em
 
 - [ ] Settings → Pages → Branch **main**, pasta **/ (root)**
 - [ ] Criar sua conta pelo protótipo (menu → conexão com o banco)
-- [ ] Me dizer qual e-mail usou, para eu dar o papel `admin`
+- [x] ~~Me dizer qual e-mail usou, para eu dar o papel `admin`~~ — **feito 27/07/2026**: `theinkcreatorsapp@gmail.com` com `admin`, `artist`, `client` e e-mail confirmado
 
 Enquanto o papel não existir, o painel diz que a conta não é admin —
 comportamento certo, não erro.
