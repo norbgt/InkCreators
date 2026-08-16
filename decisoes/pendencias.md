@@ -147,3 +147,16 @@ Não sou advogada e isto não é orientação jurídica — é sinalização de 
 - Cobertura de teste quase nula: 1 arquivo para 40+ políticas de RLS
 - Ambiente único: toda mudança de schema acontece direto onde os usuários estariam
 - `TopBar.tsx` e `me.tsx` escrevem o azul petróleo direto no JSX, com valor que nem bate com o token — e por isso ignoram o tema escuro
+
+
+---
+
+## Atualização — 28/07/2026, auditoria de desacoplamento
+
+Auditoria feita no repositório e na conta Supabase (ver `DESACOPLAMENTO.md`):
+
+- **Nenhuma dependência técnica do Lovable no que roda hoje.** Zero menções no código, sem build, sem npm.
+- **O banco está na organização `norbgt`, sua.** O risco de titularidade levantado na decisão 002 não se materializou.
+- **O projeto `xfiilquqnqgfjzmlasyx` não aparece na sua conta** — ou foi apagado, ou é de outra organização. Confirmar no Lovable e encerrar o assunto.
+- **O projeto Supabase está PAUSADO (INACTIVE).** Retomar antes de qualquer teste com gente.
+- **Continua sem backup.** É o maior risco aberto do projeto, maior que qualquer resquício de Lovable.
