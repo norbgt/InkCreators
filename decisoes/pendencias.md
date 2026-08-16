@@ -160,3 +160,20 @@ Auditoria feita no repositório e na conta Supabase (ver `DESACOPLAMENTO.md`):
 - **O projeto `xfiilquqnqgfjzmlasyx` não aparece na sua conta** — ou foi apagado, ou é de outra organização. Confirmar no Lovable e encerrar o assunto.
 - **O projeto Supabase está PAUSADO (INACTIVE).** Retomar antes de qualquer teste com gente.
 - **Continua sem backup.** É o maior risco aberto do projeto, maior que qualquer resquício de Lovable.
+
+
+---
+
+## Passo a passo de segurança — 16/08/2026
+
+Rodei o verificador do Supabase e conferi o corpo de cada função
+apontada. Nenhum apontamento é buraco aberto. A lista completa, com
+explicação em português comum, está em `SEGURANCA.md`.
+
+- [ ] **1.** Ligar proteção contra senha vazada (painel, 5 min) — hoje
+- [ ] **2.** `revoke execute` em `esquecer_participante` (SQL, 5 min) — hoje
+- [x] **3.** `acrescentar_meu_papel` e `remover_meu_papel` ficam públicas — decisão registrada, cada uma se protege sozinha
+- [ ] **4.** Baixar backup de `auth.users` (painel, 10 min) — antes do piloto
+- [ ] **5.** SMTP próprio (30 min) — antes de convidar alguém
+- [ ] **6.** Ambiente separado do de produção — quando o backend crescer
+- [ ] **7.** Restringir a chave do Maps — quando existir chave
