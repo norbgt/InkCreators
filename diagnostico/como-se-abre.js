@@ -120,5 +120,26 @@ chk("não pede mais a conta de admin", !/dar o papel|me avise qual e-mail|me diz
     "o script voltou a pedir algo que já foi feito");
 chk("diz qual é a conta de admin", /theinkcreatorsapp@gmail\.com/.test(pub));
 
+/* ── O PAINEL DE ESTADO ──────────────────────────────────────────
+   A lista de pendências vivia em quatro documentos e nas mensagens.
+   Documento envelhece; medição, não. O ONDE-ESTOU.command pergunta ao
+   git, ao disco e ao banco — e por isso nunca fica desatualizado.
+
+   O que este teste protege é justamente essa propriedade: se alguém
+   escrever a lista à mão dentro dele, ele volta a envelhecer. */
+console.log("\n── O PAINEL DE ESTADO NÃO ENVELHECE ─────────────────────");
+chk("ONDE-ESTOU.command existe", existe("ONDE-ESTOU.command"));
+if (existe("ONDE-ESTOU.command")) {
+  var oe = ler("ONDE-ESTOU.command");
+  chk("mede commits pendentes no git", /git log --oneline origin\/main\.\.HEAD/.test(oe));
+  chk("mede se o banco responde", /supabase\.co\/rest\/v1\/tattoo_styles/.test(oe));
+  chk("mede se o backup existe", /backups\/\*\/InkCreators-\*\.zip/.test(oe));
+  chk("roda os diagnósticos de verdade", /for d in diagnostico\/\*\.js/.test(oe));
+  chk("aponta o próximo passo", /\?teste=1/.test(oe));
+  chk("explica o que NÃO é urgente e por quê",
+      /não cria conta nenhuma/.test(oe) && /Vence antes do piloto/.test(oe),
+      "sem isso a pessoa sente que está devendo o que não deve");
+}
+
 console.log("\n══ " + f + " falha(s) ══");
 process.exit(f ? 1 : 0);

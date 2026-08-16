@@ -1,5 +1,12 @@
 # Começe aqui
 
+> **Perdida? Dois cliques em `ONDE-ESTOU.command`.**
+>
+> Ele mede o estado real — commits pendentes, banco acordado, backup,
+> diagnósticos — e diz qual é o próximo passo. Nada ali é escrito à mão,
+> então não envelhece como esta documentação envelhece.
+
+
 Três passos para o projeto sair do papel. Cada um leva poucos minutos.
 
 ---
