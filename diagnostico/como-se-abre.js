@@ -141,5 +141,31 @@ if (existe("ONDE-ESTOU.command")) {
       "sem isso a pessoa sente que está devendo o que não deve");
 }
 
+/* ── O ÚLTIMO PASSO TEM PORTA ────────────────────────────────────
+   Todo o resto do projeto existe para chegar aqui: pôr o protótipo na
+   mão de gente. Se esse passo depender de lembrar de um link, de achar
+   uma mensagem em conversa antiga e de contar convidados de cabeça,
+   ele não acontece. */
+console.log("\n── O TESTE TEM PORTA DE ENTRADA ─────────────────────────");
+chk("RODAR-O-TESTE.command existe", existe("RODAR-O-TESTE.command"));
+chk("a lista de convidados existe", existe("teste/convidados.md"));
+if (existe("RODAR-O-TESTE.command")) {
+  var rt = ler("RODAR-O-TESTE.command");
+  chk("confere se o link está no ar antes de convidar", /norbgt\.github\.io.*index\.html/.test(rt));
+  chk("entrega a mensagem pronta para os dois públicos",
+      /para tatuador/.test(rt) && /para cliente/.test(rt));
+  chk("copia para a área de transferência", /pbcopy/.test(rt));
+  chk("conta quantos faltam", /grep -c '\^- \\\[x\\\]'/.test(rt));
+  /* A mensagem não pode explicar o produto: o que se quer descobrir é o
+     que a pessoa entende sozinha, e explicar antes apaga isso. */
+  chk("não explica o produto na mensagem", /Não explique o produto/.test(rt));
+  chk("diz o critério para seguir", /60%/.test(rt) && /sem indução/.test(rt));
+  chk("e que a conversa vale mais que o gráfico",
+      /Cinco conversas de 15 minutos/.test(rt));
+  chk("não promete ler o painel sem login",
+      /só admin lê a tabela de sessões/.test(rt),
+      "sem essa nota, a limitação parece defeito em vez de política");
+}
+
 console.log("\n══ " + f + " falha(s) ══");
 process.exit(f ? 1 : 0);

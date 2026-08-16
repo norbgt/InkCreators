@@ -52,3 +52,6 @@ npm-debug.log*
 
 # backups: o .zip é grande e se regenera. O git já é o histórico.
 backups/**/*.zip
+
+# A cópia externa é registro pessoal, não versionável.
+backups/.copia-externa

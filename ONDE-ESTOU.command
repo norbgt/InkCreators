@@ -72,9 +72,17 @@ if [ -n "$ZIP" ]; then
   QUANDO=$(date -r "$ZIP" '+%d/%m' 2>/dev/null)
   TAM=$(du -h "$ZIP" | cut -f1)
   ok "versão de $QUANDO ($TAM) em $(dirname "$ZIP")"
-  falta "confirme que existe uma cópia FORA deste computador"
-  nota "backup no mesmo disco do original não é backup"
-  nota "→ Drive, e-mail para você mesma, qualquer lugar"
+  # Só ela sabe se a cópia saiu daqui. O arquivo abaixo é a memória
+  # disso — um backup no mesmo disco do original não é backup, e sem
+  # registro a pergunta voltaria toda vez.
+  if [ -f "backups/.copia-externa" ]; then
+    ok "cópia fora deste computador: $(cat backups/.copia-externa)"
+  else
+    falta "confirme que existe uma cópia FORA deste computador"
+    nota "backup no mesmo disco do original não é backup"
+    nota "depois de copiar, registre com:"
+    nota "  echo 'HD externo · $(date +%d/%m/%Y)' > backups/.copia-externa"
+  fi
 else
   alerta "nenhum backup encontrado"
   nota "→ dois cliques em fazer-backup.command"
@@ -112,20 +120,20 @@ else
   echo "   O PRÓXIMO PASSO"
   echo "  ═══════════════════════════════════════════════════════"
   echo
+  CONV=0
+  [ -f teste/convidados.md ] && CONV=$(grep -c '^- \[x\]' teste/convidados.md 2>/dev/null || echo 0)
   echo "   Rodar o teste do protótipo com 15 a 25 pessoas."
   echo
-  echo "   ${CINZA}Metade tatuadores, metade quem já tatuou. Duas semanas,"
-  echo "   custo zero, nenhuma linha de código nova.${FIM}"
+  if [ "$CONV" = "0" ]; then
+    echo "   ${CINZA}Ninguém convidado ainda. Metade tatuadores, metade quem"
+    echo "   já tatuou. Duas semanas, custo zero, zero código novo.${FIM}"
+  else
+    echo "   ${CINZA}$CONV convidada(s). Faltam $(( 15 - CONV > 0 ? 15 - CONV : 0 )) para o mínimo de 15.${FIM}"
+  fi
   echo
-  echo "   Link para mandar:"
-  echo "     https://norbgt.github.io/InkCreators/?teste=1"
-  echo
-  echo "   ${CINZA}O que você compra: saber se o check-in faz sentido para"
-  echo "   tatuador, antes de gastar dois meses construindo o banco"
-  echo "   dele. O que arrisca: duas semanas.${FIM}"
-  echo
-  echo "   ${CINZA}Critério para seguir: 60% dos tatuadores dizerem, sem"
-  echo "   indução, que usariam o check-in.${FIM}"
+  echo "   ${VERDE}→ dois cliques em RODAR-O-TESTE.command${FIM}"
+  echo "   ${CINZA}  ele confere o link, entrega a mensagem pronta e conta${FIM}"
+  echo "   ${CINZA}  quantos faltam${FIM}"
 fi
 
 echo
