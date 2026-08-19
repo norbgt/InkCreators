@@ -59,7 +59,7 @@ chk('a faixa não tapa o conteúdo',/body:has\(\.convitebarra\) main\{padding-bo
 
 console.log('── NAVEGA LIVRE ANTES DE DECIDIR ──');
 g.e("go('artist','a0')");
-chk('abre perfil de tatuador',/Sobre o tatuador/.test(g.tela()));
+chk('abre perfil de tatuador',/class="perfilnome"/.test(g.tela()));
 chk('convite continua ali',/convitebarra/.test(g.convite()));
 g.e("go('plataforma')");
 chk('abre Conhecer',/Como a plataforma se sustenta/.test(g.tela()));
@@ -99,7 +99,7 @@ setTimeout(function(){
  chk('some ao recusar',r.convite()==='');
  chk('e não registra nada',r.T.ligado===false);
  r.e("go('artist','a0')");
- chk('mas continua navegando',/Sobre o tatuador/.test(r.tela()));
+ chk('mas continua navegando',/class="perfilnome"/.test(r.tela()));
  var r2=amb('?teste=1',r.disco);
  chk('não insiste na próxima visita',r2.convite()==='');
 

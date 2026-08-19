@@ -67,6 +67,10 @@ var SAIRAM_DE_PROPOSITO = [
    "'Marcos' virou 'Conquistas' a pedido dela, e a frase-guarda foi reescrita junto: 'Nenhuma conquista cobra a próxima. Elas aparecem depois do que você viveu, nunca antes.' Ficou mais explícita de propósito — conquista é uma palavra que puxa para placar, e o título sozinho viraria gamificação sem ela"],
   ["Cada sessão aqui existe dos dois lados.",
    "o aviso de reciprocidade saiu do passaporte a pedido dela. Ali a pessoa está olhando o próprio corpo, e explicar o que o tatuador vê do outro lado é assunto dele — ocupava o lugar de leitura mais nobre da tela. A mesma frase continua do lado do tatuador, onde serve: é o que explica de onde vem o número que ele mostra"],
+  ["Sobre o tatuador",
+   "era o resumo de um <details> fechado. Texto de duas linhas atrás de um clique é texto que ninguém lê — e o triângulo do <details> era o único componente do produto desenhado pelo sistema operacional. A bio passou a ficar sempre visível, sem rótulo, porque um parágrafo não precisa de título para ser lido"],
+  ["4.2 (12) · 2 anos",
+   "a linha ganhou as palavras que faltavam: '(12 avaliações)' e '2 anos de ofício'. Número entre parênteses sem substantivo obriga a pessoa a adivinhar do que ele é — e o preço saiu daqui para o botão de orçar, onde a decisão acontece"],
   ["Ver todos →",
    "o atalho morria junto com a prévia dos lançamentos, pela mesma razão: ele existia para trocar de sub-aba, e não há mais sub-aba para trocar"]
 ];

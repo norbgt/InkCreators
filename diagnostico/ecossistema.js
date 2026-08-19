@@ -160,6 +160,64 @@ console.log('── 7. O PERFIL E O ESTÚDIO NA INTERFACE #2 ──');
    reaprende a ler no meio do caminho. */
 S.session='anon';S.route='artist';S.sub={};g.e("render()");
 var tpf=tela();
+/* ── NENHUM BOTÃO SEM RÓTULO ──────────────────────────────────────
+   O cabeçalho tinha quatro caixas grandes com só um ícone dentro: um
+   ✨ preto, um calendário, um balão e um tique. Nenhuma palavra.
+
+   Ícone sozinho só funciona com vocabulário universal — fechar,
+   buscar, voltar. "Pedir orçamento" não tem ícone universal, e era
+   justamente a ação que sustenta o negócio.
+
+   title= e aria-label= resolvem para leitor de tela e não resolvem
+   para quem enxerga: no toque não existe hover, e o title nunca
+   aparece. */
+/* Duas correções que a sabotagem obrigou:
+
+   1. Janela larga — o ícone vira SVG no render e um botão de ícone só
+      passa de 400 caracteres; com 80 esses botões nem eram encontrados.
+   2. Só o MIOLO — a captura trazia os atributos junto, e depois de
+      tirar as tags sobrava o texto do onclick. Todo botão "tinha
+      letras" por causa do próprio código, e nenhum era acusado. */
+var acoesPerfil = tpf.split('<button').slice(1)
+  .filter(function (b) { return /^[^>]*class="btn/.test(b) })
+  .map(function (b) {
+    var miolo = b.slice(b.indexOf(">") + 1).split("</button>")[0];
+    return miolo.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  });
+var mudas = acoesPerfil.filter(function (t) { return !/[a-zA-ZÀ-ÿ]{3}/.test(t) });
+chk('nenhuma ação do perfil é só ícone', mudas.length === 0,
+    mudas.length + ' botão(ões) sem palavra nenhuma');
+['Pedir orçamento', 'Ver agenda', 'Conversar', 'Seguir'].forEach(function (r) {
+  chk('a ação "' + r + '" diz o que faz', tpf.indexOf(r) >= 0);
+});
+/* Uma ação principal e três secundárias: quatro botões com o mesmo
+   peso não são hierarquia, são um menu. */
+chk('uma ação principal, e só uma',
+    (tpf.match(/class="btn primary acaoprin/g) || []).length === 1);
+chk('e as outras três abaixo dela',
+    /class="acoessec"/.test(tpf) &&
+    tpf.indexOf('acaoprin') < tpf.indexOf('acoessec'));
+
+/* Os selos eram seis pastilhas em duas linhas — mais peso visual que o
+   nome de quem elas descrevem. */
+chk('no máximo três selos no cabeçalho',
+    (tpf.split('class="acoessec"')[0].match(/class="selinho/g) || []).length <= 3,
+    (tpf.split('class="acoessec"')[0].match(/class="selinho/g) || []).length + ' selos antes das ações');
+/* Comparar contra ARTISTS[0] era errado: a tela renderiza S.artist,
+   que pode ser outro. A conta se fecha sozinha — os que aparecem mais
+   os que o contador promete têm de dar o total de quem está na tela. */
+var cab=tpf.split('class="acoessec"')[0];
+var mostrados=(cab.match(/class="selinho/g)||[]).length;
+var promete=Number((cab.match(/class="maisselos"[^>]*>\+(\d+)/)||[])[1]||0);
+var totalDele=g.e("selosDe(ARTISTS.filter(function(x){return x.id===S.artist})[0]||ARTISTS[0]).length");
+chk('o contador fecha com o total de selos dele',
+    mostrados+promete===totalDele,
+    mostrados+' mostrados + '+promete+' prometidos ≠ '+totalDele+' que ele tem');
+
+/* A bio deixou de ser <details>: parágrafo de duas linhas atrás de um
+   clique é parágrafo que ninguém lê. */
+chk('a bio fica visível, sem clique', /class="perfilbio"/.test(tpf) && !/<details/.test(tpf));
+
 chk('o perfil abre sem moldura de cartão',/class="perfilcab"/.test(tpf)&&!/class="card pad" style="margin-top:12px"/.test(tpf),
     'o cabeçalho voltou para dentro de um cartão');
 chk('o nome é título, não negrito de texto',/class="perfilnome"/.test(tpf));
@@ -168,9 +226,14 @@ chk('e sai na condensada',/\.perfilnome\{font-family:var\(--f-cond\)/.test(css))
    hora" passam cinco estrelas em SVG, e contar bytes de desenho para
    achar palavra é frágil por construção. */
 var linhaNum=(tpf.split('class="perfilnum">')[1]||'').split('</div>')[0].replace(/<[^>]*>/g,' ').replace(/\s+/g,' ');
-chk('nota, anos e preço na mesma linha',
-    /\d\.\d/.test(linhaNum) && /anos/.test(linhaNum) && /por hora/.test(linhaNum),
+/* O preço saiu desta linha e foi para o botão de orçar: é ali que ele
+   pesa na decisão, e solto aqui competia com a nota sem ajudar. */
+chk('nota e anos de ofício na mesma linha',
+    /\d\.\d/.test(linhaNum) && /anos/.test(linhaNum),
     'linha: "'+linhaNum.trim()+'"');
+chk('e o preço encostado na ação de orçar',
+    /class="acaopreco"/.test(tpf) && /Pedir orçamento/.test(tpf),
+    'o preço ficou solto, longe da decisão');
 chk('número tabular nas medidas',/\.perfilnum\{[^}]*tabular-nums/.test(css));
 
 S.route='estudio';S.estudioSel=(g.e("ESTUDIOS[0].id"));g.e("render()");

@@ -63,7 +63,7 @@ setTimeout(function(){
   chk(c[0]+' com conteúdo',c[2].test(g.tela())&&g.tela().length>3000,g.tela().length+' chars');
  });
  g.e("go('artist','a0')");
- chk('perfil de tatuador abre',/Sobre o tatuador/.test(g.tela()));
+ chk('perfil de tatuador abre',/class="perfilnome"/.test(g.tela()));
  chk('com portfólio mockado',/gradeport/.test(g.tela()));
  g.e("go('plataforma')");
  chk('conhecer abre',/Como a plataforma se sustenta/.test(g.tela()));

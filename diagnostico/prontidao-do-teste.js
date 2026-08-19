@@ -250,7 +250,11 @@ let eventosDoCliente = null, sessaoDoCliente = null;
   g.escopo("go('artist','a0')");
   ok("está no perfil", g.S.route === "artist");
   ok("viu quem é, sem preço solto", /Studio/.test(g.tela()) && !/R\$/.test(g.tela()));
-  ok("abriu 'Sobre o tatuador'", /Sobre o tatuador/.test(g.tela()));
+  /* "Sobre o tatuador" era o resumo de um <details> fechado. Ele saiu:
+     texto de duas linhas atrás de um clique é texto que ninguém lê. A
+     marca de "o perfil abriu" passou a ser o nome, que não depende de
+     nenhum componente sobreviver. */
+  ok("leu a bio, agora sempre visível", /class="perfilbio"/.test(g.tela()));
 
   ok("pediu orçamento", g.clicar("Pedir orçamento") === true);
   ok("assistente abriu", g.S.drawer === "assist" || g.S.autoAssist === true);

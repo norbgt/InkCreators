@@ -1019,6 +1019,39 @@ body:has(.convitebarra) main{padding-bottom:96px}
   font-variant-numeric:tabular-nums}
 .perfilnum .muted{color:var(--muted-foreground)}
 
+/* ── AS AÇÕES DO PERFIL ───────────────────────────────────────────
+   A principal ocupa a largura toda e carrega o preço junto: é ali que
+   a decisão acontece, e o número solto na linha da nota competia com
+   ela sem ajudar ninguém.
+
+   As três secundárias dividem a linha embaixo. Todas com rótulo — o
+   defeito que esta reescrita corrigiu era exatamente quatro caixas de
+   ícone sem uma palavra. */
+.perfilacoes{margin-top:var(--e4)}
+.acaoprin{width:100%;display:flex;align-items:center;justify-content:space-between;
+  gap:var(--e3);min-height:48px;font-size:var(--t-card);font-weight:500}
+.acaoprin .acaopreco{font-family:var(--f-exp);font-size:var(--t-micro);opacity:.85;
+  white-space:nowrap;letter-spacing:.04em}
+.acoessec{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--e2);margin-top:var(--e2)}
+.acoessec .btn{width:100%;justify-content:center}
+@media(max-width:460px){
+  .acoessec{grid-template-columns:1fr 1fr}
+  .acoessec .btn:last-child{grid-column:1 / -1}
+  .acaoprin{flex-direction:column;align-items:flex-start;gap:var(--e1);padding-top:var(--e3);padding-bottom:var(--e3)}
+}
+
+/* Contador dos selos que não couberam. Leva à aba onde cada um vem com
+   a regra que o produziu — selo sem regra visível é fé, não confiança. */
+.maisselos{background:none;border:none;padding:0 var(--e1);cursor:pointer;
+  font-size:var(--t-micro);color:var(--muted-foreground);white-space:nowrap}
+.maisselos:hover{color:var(--accent)}
+
+/* A bio deixou de ser <details>. Texto de duas linhas atrás de um
+   clique é texto que ninguém lê — e o triângulo do <details> era o
+   único componente do produto desenhado pelo sistema operacional. */
+.perfilbio{margin-top:var(--e4);font-size:var(--t-body);color:var(--muted-foreground);
+  line-height:1.55;max-width:60ch}
+
 /* ── PORTFÓLIO ────────────────────────────────────────────────────
    Mesma decisão do feed: a obra define a própria altura. Uma grade de
    quadrados obriga a recortar, e recortar tatuagem é editar o trabalho
@@ -3169,30 +3202,72 @@ function vArtist(){
  var h='<main><div class="wrap"><div class="perfilcol">';
  h+='<button class="btn sm" onclick="go(\'home\')">← Voltar</button>';
 
- /* ── CABEÇALHO: quem é, quanto cobra, e o que fazer ──────────────
-    Sem caixa. Na interface #1 tudo isso vivia dentro de um .card com
-    borda, e o cartão dentro da página criava uma moldura que não
-    servia para nada: a página já é a moldura. O que separa agora é
-    espaço e um traço.
+ /* ── CABEÇALHO DO PERFIL ─────────────────────────────────────────
+    Reescrito por causa do defeito mais caro que ele tinha: os quatro
+    botões de ação eram só ícone. Um ✨ preto, um calendário, um balão
+    e um tique — quatro caixas grandes sem uma palavra.
 
-    O nome sobe para o tamanho de título e vai para a condensada — é a
-    informação de que a pessoa veio atrás. */
+    Ícone sozinho só funciona com vocabulário universal: fechar, buscar,
+    voltar. "Pedir orçamento" não tem ícone universal, e era justamente
+    a ação que sustenta o negócio.
+
+    A ordem agora segue a decisão: quem é → o que dizem → quanto custa
+    → o que fazer. E o preço encostou na ação de orçar, porque é ali
+    que ele pesa. */
  h+='<div class="perfilcab">';
+
+ /* 1. QUEM É */
  h+='<div class="row" style="gap:var(--e3);align-items:flex-start">';
  h+='<div class="av" style="width:56px;height:56px;font-size:17px;flex-shrink:0">'+ini(a.name)+'</div>';
  h+='<div style="min-width:0;flex:1">';
  h+='<h1 class="perfilnome">'+a.name+(a.verified?' <span class="vfd" title="identidade verificada">✔</span>':'')+'</h1>';
  h+='<div class="perfilloc">'+a.studio+' · '+a.city+'/'+a.state+'</div>';
- h+='<div class="perfilnum">'+stars(a.rating)+' '+a.rating+' <span class="muted">('+a.reviews+')</span> · '+a.years+' anos · '+cifroes(a)+' <span class="muted">por hora</span></div>';
+ /* Estilos junto do nome: é o que a pessoa procura, e antes ficavam
+    depois dos selos, longe de quem eles descrevem. */
+ h+='<div class="row wrapf" style="gap:var(--e1);margin-top:var(--e2)">'+
+    a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'</div>';
  h+='</div></div>';
 
- h+='<div class="selos" style="margin-top:var(--e3)">'+selosDe(a).map(function(x){return selo(x,true)}).join("")+'</div>';
+ /* 2. O QUE DIZEM — três medidas numa linha, sem competir com o nome */
+ h+='<div class="perfilnum">'+stars(a.rating)+' '+a.rating+' <span class="muted">('+a.reviews+' avaliações)</span> · '+a.years+' anos de ofício</div>';
 
- h+='<div class="row wrapf" style="gap:var(--e1);margin-top:var(--e3)">'+
-    a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'</div>';
+ /* 3. OS SELOS, contidos.
+    Eram seis pastilhas em duas linhas, com mais peso visual que o
+    nome. Aqui aparecem três e o resto entra num contador que leva à
+    aba de reputação, onde cada um vem com a regra que o produziu. */
+ var selosT=selosDe(a);
+ if(selosT.length){
+  h+='<div class="selos" style="margin-top:var(--e3)">';
+  h+=selosT.slice(0,3).map(function(x){return selo(x,true)}).join("");
+  if(selosT.length>3)
+   h+='<button class="maisselos" onclick="S.abaPerfil=\'reputacao\';render()">+'+(selosT.length-3)+' e como se ganham ›</button>';
+  h+='</div>';
+ }
 
- /* O lugar, separado da pessoa. Os selos do estúdio ficam num bloco
-    próprio, com o nome do estúdio em cima — nunca misturados aos selos
+ /* 4. O QUE FAZER — com rótulo, e o preço encostado na decisão */
+ var seg=S.seguindo.indexOf(a.id)>=0;
+ h+='<div class="perfilacoes">';
+ h+='<button class="btn primary acaoprin'+(contaPendente()?" pendente":"")+'" onclick="'+
+    (contaPendente()?"explicarTrava(\'pedir orçamento\')":"quoteFor(\'"+a.id+"\')")+'">';
+ h+='<span>✨ Pedir orçamento</span>';
+ h+='<span class="acaopreco">'+cifroes(a)+' por hora</span>';
+ h+='</button>';
+ h+='<div class="acoessec">';
+ h+='<button class="btn" onclick="verAgenda(\''+a.id+'\')">🗓 Ver agenda</button>';
+ h+='<button class="btn" onclick="'+(contaPendente()?"explicarTrava(\'conversar\')":(isLog()?"openDrawer(\'chat\')":"irCadastro(null)"))+'">💬 Conversar</button>';
+ h+='<button class="btn'+(seg?" primary":"")+'" onclick="alternarSeguir(\''+a.id+'\')">'+(seg?"✓ Seguindo":"👤 Seguir")+'</button>';
+ h+='</div></div>';
+ h+='<div class="tiny muted" style="margin-top:var(--e2)">O valor final sai do orçamento — os cifrões são a faixa que ele costuma praticar.</div>';
+
+ /* 5. SOBRE — duas linhas, sempre visíveis.
+    Era um <details> fechado com o triângulo nativo do navegador. Texto
+    de duas linhas escondido atrás de um clique é texto que ninguém lê,
+    e o triângulo era o único componente do produto desenhado pelo
+    sistema operacional. */
+ h+='<p class="perfilbio">'+a.bio+'</p>';
+
+ /* 6. O LUGAR, separado da pessoa.
+    Os selos do estúdio ficam num bloco próprio — nunca misturados aos
     de quem tatua. Um profissional excelente não herda a nota de um
     estúdio ruim, e um estúdio impecável não empresta reputação a quem
     trabalha mal dentro dele. */
@@ -3208,29 +3283,6 @@ function vArtist(){
   h+='<div class="tiny muted" style="margin-top:var(--e1)">Estes selos são do lugar, não de '+a.name.split(" ")[0]+'.</div>';
   h+='</button>';
  }
-
-
- // Quatro destinos distintos, sem sobreposição: orçar abre o pedido com
- // este artista; agenda consulta horário livre; conversar é o chat; seguir
- // é preferência de feed, não contato.
- var seg=S.seguindo.indexOf(a.id)>=0;
- h+='<div class="acoestrio">';
- // Ver agenda é leitura: continua liberado. Orçar e conversar produzem
- // e se comunicam, então dependem do e-mail confirmado.
- h+=acaoIcone("✨","Pedir orçamento",
-   contaPendente()?"explicarTrava('pedir orçamento')":"quoteFor('"+a.id+"')",
-   contaPendente()?"pendente":"principal");
- h+=acaoIcone("🗓","Ver agenda","verAgenda('"+a.id+"')");
- h+=acaoIcone("💬","Conversar",
-   contaPendente()?"explicarTrava('conversar')":(isLog()?"openDrawer('chat')":"irCadastro(null)"),
-   contaPendente()?"pendente":"");
- h+=acaoIcone(seg?"✓":"👤",seg?"Seguindo — aparece mais no seu feed":"Seguir — aparece mais no seu feed","alternarSeguir('"+a.id+"')",seg?"ativa":"");
- h+='</div>';
-
- // Só a descrição. Preço por tamanho saiu: número fixo por tamanho é a
- // mesma promessa que os cifrões evitam — o valor sai do orçamento.
- h+='<details style="margin-top:var(--section-gap)"><summary class="tiny muted" style="cursor:pointer">Sobre o tatuador</summary>';
- h+='<p class="small" style="margin-top:var(--e2)">'+a.bio+'</p></details>';
  h+='</div>';
 
  /* ── TOGGLE: portfólio, instagram, eventos ─────────────────────── */
