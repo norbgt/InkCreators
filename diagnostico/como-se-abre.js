@@ -56,6 +56,36 @@ if (existe("Verificar prototipo.html")) {
   chk("carrega com carimbo de tempo", /Date\.now\(\)/.test(ver));
 }
 
+/* ── COMPARAR AS DUAS ───────────────────────────────────────────
+   O congelamento da interface #1 só vale alguma coisa se ela abrir. O
+   zip prova que o código existe; abrir prova que a comparação é
+   possível — e é a comparação que sustenta a promessa de não perder
+   nada.
+
+   O arquivo carrega três vizinhos por caminho relativo. Se alguém
+   limpar backups/ achando que zip basta, a #1 abre em branco e ninguém
+   descobre até precisar comparar. */
+secao("COMPARAR A #1 COM A #2");
+chk("o comparador existe", existe("Comparar interface 1 e 2.html"));
+chk("a interface #1 continua congelada", existe("backups/interface-1/index-interface-1.html"));
+["dados.js", "teste.js", "verificar.js"].forEach(function (v) {
+  chk("e abre sozinha: " + v, existe("backups/interface-1/" + v),
+      "sem este vizinho a #1 abre em branco");
+});
+if (existe("Comparar interface 1 e 2.html")) {
+  var cp = ler("Comparar interface 1 e 2.html");
+  chk("aponta para as duas",
+      /prototipo\/index\.html/.test(cp) && /backups\/interface-1\/index-interface-1\.html/.test(cp));
+  /* iframe entre arquivos locais é bloqueado pelo navegador, e a
+     comparação apareceria em branco sem dizer por quê. */
+  chk("sem iframe, que o navegador bloquearia em file:", !/<iframe/.test(cp));
+  chk("os links funcionam mesmo se o script não rodar",
+      /<a class="cx" id="a2" href="prototipo\/index\.html">/.test(cp),
+      "o endereço só existe depois do script — se ele falhar, não há link");
+  chk("carimbo de tempo fora de file:", /location\.protocol==="file:"/.test(cp));
+  chk("diz o que fazer se a janela for bloqueada", /bloqueou a abertura/.test(cp));
+}
+
 /* ── A máquina que quebrava três vezes ─────────────────────────────
    Cada item aqui já existiu e já falhou. Se algum voltar, este
    diagnóstico reclama antes de você descobrir clicando. */

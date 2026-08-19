@@ -155,7 +155,8 @@ nota "não antes do teste."
 echo
 echo "  ─── ATALHOS ───────────────────────────────────────────"
 echo
-echo "    Abrir prototipo.html        ver o protótipo"
+echo "    Abrir prototipo.html        ver o protótipo (interface #2)"
+echo "    Comparar interface 1 e 2    o antes e o depois, lado a lado"
 echo "    Verificar prototipo.html    conferir no navegador"
 echo "    ENVIAR-E-TESTAR.command     publicar"
 echo "    fazer-backup.command        congelar uma versão"

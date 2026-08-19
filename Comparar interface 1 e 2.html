@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ink Creators — comparar interface 1 e 2</title>
+<!--
+  DOIS BOTÕES, NADA MAIS.
+
+  Não usa iframe de propósito. Navegador bloqueia iframe entre arquivos
+  locais, e a comparação apareceria em branco sem dizer por quê — que é
+  exatamente o tipo de máquina que já quebrou três vezes aqui.
+
+  Abre cada uma numa janela própria, encostadas lado a lado quando a
+  tela dá conta. Se o navegador bloquear a janela nova, os links
+  continuam clicáveis: nada aqui depende de o script funcionar.
+-->
+<style>
+  :root{
+    --hair:1px; --r-sm:4px; --r-pill:999px;
+    --bg:#fff; --fg:#141414; --muted:#6b6b6b; --border:#e6e6e6;
+    --accent:#215a60;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#0f0f0f;--fg:#f2f2f2;--muted:#9a9a9a;--border:#2a2a2a;--accent:#7cbcc2}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+  main{width:100%;max-width:560px}
+  .kicker{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted)}
+  h1{font-size:clamp(24px,4vw,34px);line-height:1.15;margin:8px 0 0;letter-spacing:-.01em}
+  p.lead{color:var(--muted);font-size:15px;line-height:1.5;margin:10px 0 0}
+  .par{display:grid;gap:10px;margin-top:26px}
+  @media(min-width:520px){.par{grid-template-columns:1fr 1fr}}
+  a.cx{display:block;padding:18px;border:var(--hair) solid var(--border);
+    border-radius:var(--r-sm);text-decoration:none;color:inherit;background:none;
+    transition:border-color .2s cubic-bezier(.2,.7,.2,1)}
+  a.cx:hover{border-color:var(--accent)}
+  a.cx .n{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--accent)}
+  a.cx .t{font-size:17px;font-weight:600;margin-top:6px}
+  a.cx .d{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.45}
+  button.dois{width:100%;margin-top:10px;padding:14px;cursor:pointer;
+    border:var(--hair) solid var(--accent);border-radius:var(--r-sm);
+    background:var(--accent);color:#fff;font-size:14px;font-weight:600;font-family:inherit}
+  .nota{margin-top:22px;padding-top:16px;border-top:var(--hair) solid var(--border);
+    font-size:12.5px;color:var(--muted);line-height:1.55}
+  .nota b{color:var(--fg);font-weight:600}
+</style>
+
+<main>
+  <div class="kicker">Ink Creators</div>
+  <h1>Comparar interface 1 e 2</h1>
+  <p class="lead">A #1 é o estado de 19 de agosto, congelado e intacto.
+    A #2 é a que está viva e continua mudando.</p>
+
+  <div class="par">
+    <a class="cx" id="a2" href="prototipo/index.html">
+      <div class="n">Interface 2</div>
+      <div class="t">A que está viva</div>
+      <div class="d">Feed em masonry, acento petróleo, cabeçalho sem moldura.
+        É o mesmo arquivo que <i>Abrir prototipo.html</i> abre.</div>
+    </a>
+    <a class="cx" id="a1" href="backups/interface-1/index-interface-1.html">
+      <div class="n">Interface 1</div>
+      <div class="t">O antes, congelado</div>
+      <div class="d">Grade 4:3, acento violeta, abas em pílula de vidro.
+        Só leitura — mexer aqui não muda o produto.</div>
+    </a>
+  </div>
+
+  <button class="dois" onclick="abrirAsDuas()">Abrir as duas lado a lado</button>
+
+  <div class="nota">
+    <b>Se as janelas não abrirem</b>, o navegador bloqueou a abertura
+    automática — clique nos dois cartões acima, um de cada vez.<br><br>
+    <b>Se a #2 parecer igual à #1</b>, é cache. Recarregue segurando
+    Shift, ou use <i>Abrir prototipo.html</i>, que já adiciona um carimbo
+    de tempo ao endereço.
+  </div>
+</main>
+
+<script>
+/* Carimbo de tempo no endereço: sem ele o navegador serve a versão que
+   guardou da última vez, e a mudança que você veio conferir não aparece.
+   Fora do protocolo file:, onde alguns navegadores não acham arquivo
+   com interrogação no nome. */
+(function(){
+  if(location.protocol==="file:")return;
+  var v="?v="+Date.now();
+  document.getElementById("a2").href="prototipo/index.html"+v;
+  document.getElementById("a1").href="backups/interface-1/index-interface-1.html"+v;
+})();
+
+function abrirAsDuas(){
+  var l=Math.max(screen.availWidth/2,520);
+  var a=window.open(document.getElementById("a1").href,"ink1",
+        "width="+l+",height="+screen.availHeight+",left=0,top=0");
+  var b=window.open(document.getElementById("a2").href,"ink2",
+        "width="+l+",height="+screen.availHeight+",left="+l+",top=0");
+  if(!a||!b)alert("O navegador bloqueou a abertura automática.\n\nClique nos dois cartões, um de cada vez.");
+}
+</script>
+</html>
