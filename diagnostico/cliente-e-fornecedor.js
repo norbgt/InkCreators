@@ -142,6 +142,29 @@ chk("e cada botão aponta para a sua sessão",
     indices.every(function (n, k) { return n === k }),
     "índices: [" + indices.join(", ") + "] — deveriam ser 0,1,2…");
 chk("e o botão diz o que faz", /Gerar QR/.test(tag));
+
+/* ── O BOTÃO TEM DE CABER ──────────────────────────────────────────
+   Ele existia e ela não achava. A linha da sessão é flex, e eu tinha
+   posto dois botões onde havia um: no telefone o último era empurrado
+   para fora da vista. Sumir em silêncio é o pior jeito de sumir — a
+   pessoa conclui que a função não existe.
+
+   "Detalhes", o botão que roubava a largura, nunca teve onclick: não
+   fazia nada desde que nasceu. */
+chk("a linha da sessão quebra em vez de empurrar para fora",
+    /\.lrow\{[^}]*flex-wrap:wrap/.test(css),
+    "sem quebra, o botão do fim some da vista no telefone");
+chk("e no telefone o botão ocupa a linha inteira",
+    /@media\(max-width:460px\)\{[\s\S]{0,120}\.lrow \.acaoLinha\{[^}]*width:100%/.test(css));
+chk("nenhum botão morto na linha da sessão",
+    !/>Detalhes</.test(tag),
+    "voltou um botão sem onclick roubando a largura do que funciona");
+/* Um botão por linha: dois competem pela largura e o segundo é o que
+   some. */
+var linhas=(tag.match(/class="lrow"/g)||[]).length;
+var acoes=(tag.match(/class="btn sm[^"]*acaoLinha"/g)||[]).length;
+chk("uma ação por sessão, não duas", linhas>0 && acoes<=linhas,
+    linhas+" linhas e "+acoes+" botões");
 chk("a agenda e o check-in moram na mesma aba",
     (function () {
       var sec = g.e("SECOES_DA_GESTAO['studio-schedule'].map(function(x){return x[1]}).join(',')");

@@ -635,7 +635,15 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
   color:var(--muted-foreground)}
 @media(max-width:699px){.subnav a.conf{margin-left:0;border-left:none;padding-left:13px}}
 
-.lrow{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--border)}
+/* Quebra de linha em vez de empurrar para fora. Sem isso, o botão do
+   fim da linha some da vista no telefone — e some em silêncio, que é
+   o pior jeito de sumir: a pessoa conclui que a função não existe. */
+.lrow{display:flex;align-items:center;gap:11px;padding:11px 0;flex-wrap:wrap;
+  border-bottom:var(--hair) solid var(--rule)}
+.lrow .acaoLinha{margin-left:9px;flex-shrink:0}
+@media(max-width:460px){
+  .lrow .acaoLinha{margin-left:0;width:100%;margin-top:7px}
+}
 .lrow:last-child{border-bottom:none}
 .thumb{width:44px;height:44px;border-radius:var(--r-sm);background:var(--muted);flex-shrink:0;background-size:cover;background-position:center}
 .av{width:36px;height:36px;border-radius:50%;background:var(--muted);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:var(--muted-foreground)}
@@ -3947,7 +3955,7 @@ function abasInternas(chave, opcoes, padrao){
    Ela absorveu Orçamentos e Dinheiro. O painel de números grandes no
    topo deixa de ser um resumo que aponta para outras abas e passa a
    ser o índice desta página: cada cartão rola até a sua seção. */
-var ST_NAV=[["studio","Visão geral","▦"],["studio-schedule","Agenda","🗓"],["studio-reputacao","Reputação","★"],["studio-eventos","Cursos e eventos","🎟"]];
+var ST_NAV=[["studio","Visão geral","▦"],["studio-quotes","Orçamentos","📥"],["studio-schedule","Agenda","🗓"],["studio-reputacao","Reputação","★"],["studio-eventos","Cursos e eventos","🎟"]];
 
 /* ═══ UMA FAIXA DE NAVEGAÇÃO, NÃO DUAS ════════════════════════════
    Eram cinco abas em cima e até quatro sub-abas embaixo: dezoito
@@ -3974,15 +3982,19 @@ var SECOES_DA_GESTAO={
  /* Uma chave só para a página inteira. Com chaves separadas por bloco,
     a seção de orçamentos herdaria o valor de "hoje" da seção anterior e
     o check-in sairia duas vezes. */
+ /* Orçamentos voltou a ser aba: é o único lugar da gestão com um
+    fluxo de três passos dentro — mapa, pedido, proposta — e fluxo com
+    passos não convive com página que rola, porque a pessoa perde de
+    vista em que passo está. Dinheiro fica, porque é leitura. */
  "studio":           [["vg","visao","Visão geral"],
-                      ["vg","recebidos","Orçamentos recebidos",function(){return SQ.filter(function(q){return q.status==="novo"}).length}],
-                      ["vg","enviados","Propostas enviadas",function(){return SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length}],
                       ["vg","dinheiro","Dinheiro"],
                       ["vg","lancamentos","Lançamentos",function(){return LANC.length}],
                       ["vg","pessoas","Quem eu tatuei",function(){return HIST_PESSOAS.length}]],
  /* O check-in mora na agenda porque é a mesma matéria: sessão marcada.
     Estava na visão geral, e ali obrigava a pessoa a sair da agenda —
     onde ela acabou de ver a sessão — para abrir o QR daquela sessão. */
+ "studio-quotes":    [["orc","recebidos","Recebidos",function(){return SQ.filter(function(q){return q.status==="novo"}).length}],
+                      ["orc","enviados","Enviados",function(){return SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length}]],
  "studio-schedule":  [["ag","mes","O mês"],
                       ["ag","checkin","Check-in de agora"],
                       ["ag","conexoes","Conexões"]],
@@ -4071,7 +4083,6 @@ function paginaDeGestao(rota,render1){
    branco, e tela em branco parece produto quebrado. */
 var ST_ROTA_ANTIGA={
  "studio-checkin":  ["studio",           "vg","checkin"],
- "studio-quotes":   ["studio",           "vg","recebidos"],
  "studio-caixa":    ["studio",           "vg","dinheiro"],
  "studio-historico":["studio-reputacao", "rep", "estudios"],
  "studio-events":   ["studio-eventos",   "ev",  "meus"],
@@ -5060,7 +5071,6 @@ function vStudio(sub){
  if(sub==="studio"){
   var vg=subAba("vg","visao");
   S.sub=S.sub||{};
-  if(vg==="recebidos"||vg==="enviados")S.sub.orc=vg;
   if(vg==="dinheiro")S.sub.cx="resumo";
   if(vg==="lancamentos")S.sub.cx="lancamentos";
   if(vg==="pessoas")S.sub.cx="pessoas";
@@ -5092,8 +5102,8 @@ function vStudio(sub){
   h+='<div class="row" style="margin-top:15px"><span class="b" style="font-size:15px">Precisa de você</span>';
   h+='<span class="sp tiny muted">'+(pendentes?pendentes+" item(ns)":"nada parado")+'</span></div>';
   h+='<div class="grandes" style="margin-top:7px">';
-  [["📥","Pedidos novos",novosQ,"sem resposta sua","studio","vg","recebidos",novosQ>0],
-   ["🕘","Propostas sem retorno",esperando,"cliente não respondeu","studio","vg","enviados",false],
+  [["📥","Pedidos novos",novosQ,"sem resposta sua","studio-quotes","orc","recebidos",novosQ>0],
+   ["🕘","Propostas sem retorno",esperando,"cliente não respondeu","studio-quotes","orc","enviados",false],
    ["★","Avaliações a responder",semResp,"esperando você","studio-reviews","av","responder",semResp>0]
   ].forEach(function(x){h+=cartaoGrande(x)});
   h+='</div>';
@@ -5101,9 +5111,15 @@ function vStudio(sub){
   h+='<div class="row" style="margin-top:19px"><span class="b" style="font-size:15px">Como vai o mês</span>';
   h+='<span class="sp tiny muted">julho</span></div>';
   h+='<div class="grandes" style="margin-top:7px">';
-  [["👛","Sobrou",brl(cx.sobrou),"entrou "+brl(cx.entrou),"studio","vg","dinheiro",false],
-   ["🗓","Sessões marcadas",BOOK.length,"próximos 14 dias","studio-schedule","ag","mes",false],
-   ["✅","Propostas que fecharam",agendados,"de "+SQ_ENVIADOS.length+" enviadas","studio","vg","enviados",false]
+  /* "Sobrou" saiu do painel: a seção Dinheiro está nesta mesma página,
+     uma rolagem abaixo, e diz o mesmo número com as mesmas palavras.
+     Cartão que repete o que está logo embaixo não resume nada — só faz
+     a pessoa ler duas vezes e desconfiar de qual dos dois vale.
+
+     A regra que ficou: o painel só guarda cartão que leva para FORA
+     desta página. O que mora aqui se lê rolando. */
+  [["🗓","Sessões marcadas",BOOK.length,"próximos 14 dias","studio-schedule","ag","mes",false],
+   ["✅","Propostas que fecharam",agendados,"de "+SQ_ENVIADOS.length+" enviadas","studio-quotes","orc","enviados",false]
   ].forEach(function(x){h+=cartaoGrande(x)});
   h+='</div>';
 
@@ -5131,7 +5147,7 @@ function vStudio(sub){
   h+='<div class="tiny muted" style="margin-top:18px">Toque em qualquer número para ver o detalhe na aba correspondente.</div>';
  }
 
- if((sub==="studio"&&/^(recebidos|enviados)$/.test(subAba("vg","visao")))||sub==="studio-quotes"){
+ if(sub==="studio-quotes"){
   var novos=SQ.filter(function(q){return q.status==="novo"}).length;
   var esperando=SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length;
   h+=abasInternas("orc",[["recebidos","Recebidos",novos||""],["enviados","Enviados",esperando||""]]);
@@ -5343,10 +5359,11 @@ function vStudio(sub){
       check-in, e é ela que vira desempenho por estilo. */
    h+='<div style="min-width:0"><div class="b small">'+b.c+'</div><div class="small muted">'+b.area+' · '+b.h+'h previstas</div></div>';
    h+='<div class="sp b small">'+brl(b.cents)+'</div>';
-   h+='<button class="btn sm" style="margin-left:9px">Detalhes</button>';
+   /* "Detalhes" era um botão sem onclick: não fazia nada desde que
+      nasceu, e estava roubando a largura do único botão que faz. */
    h+=aberta
-     ? '<button class="btn sm" style="margin-left:6px" onclick="irSecao(\'studio-schedule\',\'ag\',\'checkin\')">Ver o QR ›</button>'
-     : '<button class="btn sm primary" style="margin-left:6px" onclick="abrirCheckin('+i+')">Gerar QR</button>';
+     ? '<button class="btn sm acaoLinha" onclick="irSecao(\'studio-schedule\',\'ag\',\'checkin\')">Ver o QR ›</button>'
+     : '<button class="btn sm primary acaoLinha" onclick="abrirCheckin('+i+')">Gerar QR</button>';
    h+='</div>';
   });
   h+='</div></div>';

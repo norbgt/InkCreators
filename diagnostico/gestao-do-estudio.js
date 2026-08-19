@@ -37,9 +37,9 @@ console.log('── SEIS ABAS E UMA FAIXA SÓ ──');
    página que rola, com as partes em sequência — num painel de gestão
    rolar é mais barato que esconder, e comparar duas coisas exige
    vê-las juntas, o que sub-aba impede por construção. */
-chk('exatamente quatro abas na barra',g.e("ST_NAV.length")===4,g.e("ST_NAV.length")+' abas');
+chk('exatamente cinco abas na barra',g.e("ST_NAV.length")===5,g.e("ST_NAV.length")+' abas');
 chk('e são estas',
-    g.e("ST_NAV.map(function(x){return x[1]}).join('·')")==='Visão geral·Agenda·Reputação·Cursos e eventos',
+    g.e("ST_NAV.map(function(x){return x[1]}).join('·')")==='Visão geral·Orçamentos·Agenda·Reputação·Cursos e eventos',
     g.e("ST_NAV.map(function(x){return x[1]}).join(' · ')"));
 /* Tatuador e cliente chamam a primeira aba do mesmo jeito. A mesma
    pessoa troca de papel — quem tatua também é cliente — e dois nomes
@@ -55,7 +55,7 @@ chk('e continua alcançável',/class="conf /.test(ir('studio')) && ir('studio-pr
 chk('cursos e eventos é aba, não sub-aba',/studio-eventos/.test(JSON.stringify(g.e("ST_NAV"))));
 
 console.log('── NENHUMA SEGUNDA FAIXA DE ABAS ──');
-var ESPERADO={'studio':6,'studio-schedule':3,'studio-reputacao':3,'studio-eventos':2};
+var ESPERADO={'studio':4,'studio-quotes':2,'studio-schedule':3,'studio-reputacao':3,'studio-eventos':2};
 Object.keys(ESPERADO).forEach(function(rota){
  var t=ir(rota);
  var secoes=(t.match(/class="secgt"/g)||[]).length;
@@ -149,7 +149,7 @@ S.session='artist';
 console.log('── AS ROTAS ANTIGAS AINDA CHEGAM ──');
 [['studio-checkin','studio'],['studio-events','studio-eventos'],
  ['studio-reviews','studio-reputacao'],['studio-historico','studio'],
- ['studio-quotes','studio'],['studio-caixa','studio']].forEach(function(par){
+ ['studio-quotes','studio-quotes'],['studio-caixa','studio']].forEach(function(par){
  var t=ir(par[0]);
  chk(par[0]+' → '+par[1],S.route===par[1] && t.length>1500,
      'foi para '+S.route+' com '+t.length+' caracteres');
@@ -236,10 +236,43 @@ console.log('── VISÃO GERAL: UM PAINEL SÓ ──');
 var tv=ir('studio','hoje','visao');
 chk('é um painel de números grandes',/class="grandes"/.test(tv)&&/class="grande/.test(tv));
 var cartoes=(tv.match(/class="grande[ "]/g)||[]).length;
-chk('dez números',cartoes===10,cartoes+' cartões');
+/* Nove, não dez: "Sobrou" saiu porque a seção Dinheiro está nesta
+   mesma página dizendo o mesmo número. */
+chk('nove números',cartoes===9,cartoes+' cartões');
+
+/* ── A REGRA DO PAINEL ────────────────────────────────────────────
+   O painel só guarda cartão que leva para FORA desta página. O que
+   mora aqui se lê rolando.
+
+   Sem essa regra, "Sobrou R$ 3.135" ficava no cartão e a seção
+   Dinheiro repetia o mesmo número com as mesmas palavras, duzentos
+   pixels abaixo — e cartão que repete o que está logo embaixo não
+   resume nada, só faz a pessoa ler duas vezes e desconfiar de qual dos
+   dois vale. */
+var seg2=tv.indexOf('class="secgt"', tv.indexOf('class="secgt"')+5);
+var abaixo=tv.slice(seg2>0?seg2:tv.length).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ');
+var repetidos=[];
+(tv.slice(0,seg2>0?seg2:tv.length).match(/class="grot">([^<]+)<[\s\S]{0,240}?class="gval">([^<]+)</g)||[])
+ .forEach(function(bloco){
+  var m=bloco.match(/class="grot">([^<]+)<[\s\S]*class="gval">([^<]+)</);
+  if(!m)return;
+  var rot=m[1].trim(), val=m[2].trim();
+  /* O par rótulo+valor junto, não o valor solto: "2" e "5" aparecem em
+     qualquer lugar de uma página de gestão, e compará-los sozinhos
+     acusa tudo. Foi o erro da primeira versão desta verificação, que
+     apontou oito repetições onde havia zero.
+
+     O caso real era "Sobrou R$ 3.135" — rótulo e número lado a lado no
+     cartão e de novo na seção. */
+  var k=abaixo.indexOf(rot);
+  if(k>=0 && abaixo.slice(k, k+rot.length+40).indexOf(val)>=0)repetidos.push(rot+' '+val);
+ });
+chk('nenhum cartão repete número que está logo abaixo',repetidos.length===0,
+    repetidos.join('  |  '));
+
 chk('agrupa por urgência',/Precisa de você/.test(tv)&&/Como vai o mês/.test(tv)&&/O que você construiu/.test(tv));
 [['pedidos novos',/Pedidos novos/],['propostas sem retorno',/Propostas sem retorno/],
- ['avaliações a responder',/Avaliações a responder/],['sobrou',/>Sobrou</],
+ ['avaliações a responder',/Avaliações a responder/],
  ['sessões marcadas',/Sessões marcadas/],['propostas que fecharam',/Propostas que fecharam/],
  ['pessoas tatuadas',/Pessoas tatuadas/],['estúdios',/Estúdios por onde passei/],
  ['obras à venda',/Obras à venda/],['avaliação',/>Avaliação</]].forEach(function(c){
@@ -251,7 +284,7 @@ chk('todo cartão leva a algum lugar',
     (tv.match(/class="grande[^"]*" onclick="[^"]*(go\(|irSecao\()/g)||[]).length===cartoes,
     'algum cartão sem destino');
 var tvl=tv.replace(/&#39;/g,"'");
-chk('e leva à seção certa',/irSecao\('studio','vg','enviados'\)/.test(tvl),
+chk('e leva à seção certa',/irSecao\('studio-quotes','orc','enviados'\)/.test(tvl),
     'o cartão de propostas sem retorno não aponta para a seção de enviados');
 /* Cartão que aponta para uma seção inexistente rola para lugar nenhum,
    e a pessoa conclui que o número está errado.

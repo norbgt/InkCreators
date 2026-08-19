@@ -144,7 +144,9 @@ chk('permite registrar passagem',/Registrar passagem/.test(te));
 console.log('── 6. A VISÃO GERAL APONTA PARA AS DUAS ──');
 S.route='studio';S.sub={};g.e("render()");
 var tv=tela();
-chk('o painel leva à seção de dinheiro',/Sobrou/.test(tv)&&/vg&#39;,&#39;dinheiro|vg','dinheiro/.test(tv));
+/* O cartão "Sobrou" saiu do painel: a seção Dinheiro está na mesma
+   página. O que o painel promete agora é levar para FORA dela. */
+chk('a seção de dinheiro está na própria visão geral',/class="secgt">Dinheiro</.test(tv)&&/Sobrou/.test(tv));
 chk('o painel leva a quem ele tatuou',/Pessoas tatuadas/.test(tv)&&/vg&#39;,&#39;pessoas|vg','pessoas/.test(tv));
 chk('e à galeria',/Obras à venda/.test(tv));
 chk('sem "Receita do mês" solta',!/Receita do mês/.test(tv));

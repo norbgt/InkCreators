@@ -55,6 +55,8 @@ var SAIRAM_DE_PROPOSITO = [
    "deixou de ser aba e virou seção da Visão geral, junto com Pagamentos. A frase some da barra das outras telas do cliente — de Passaporte e Formação não se lê mais a palavra. É a troca que a arquitetura de três abas impõe, e o custo está registrado na decisão 015"],
   ["abrir check-in ›",
    "a lista de sessões do check-in saiu: empilhada na agenda, ela era a segunda cópia das mesmas sessões a uma rolagem de distância. O botão virou 'Gerar QR' e mora na linha da sessão em 'O mês', que é onde ela já está"],
+  ["entrou R$ 4.890",
+   "era a nota do cartão 'Sobrou' no painel. O cartão saiu porque a seção Dinheiro está nesta mesma página, uma rolagem abaixo, dizendo o mesmo número com as mesmas palavras — e cartão que repete o que está logo embaixo faz a pessoa ler duas vezes e desconfiar de qual dos dois vale"],
   ["Ver todos →",
    "o atalho morria junto com a prévia dos lançamentos, pela mesma razão: ele existia para trocar de sub-aba, e não há mais sub-aba para trocar"]
 ];
@@ -129,8 +131,10 @@ var MUDOU_DE_LUGAR = {
   "studio-checkin":   [["studio-schedule",  "ag",  "checkin"],
                        ["studio-schedule",  "ag",  "mes"],
                        ["studio-reputacao", "rep", "desempenho"]],
-  "studio-quotes":    [["studio",           "vg",  "recebidos"],
-                       ["studio",           "vg",  "enviados"]],
+  /* Orçamentos voltou a ser aba: é o único lugar da gestão com fluxo
+     de três passos, e fluxo com passos não convive com página que rola. */
+  "studio-quotes":    [["studio-quotes",    "orc", "recebidos"],
+                       ["studio-quotes",    "orc", "enviados"]],
   /* Dinheiro inteiro virou seção da visão geral: resumo, lançamentos e
      quem eu tatuei. */
   "studio-caixa":     [["studio",           "vg",  "dinheiro"],
