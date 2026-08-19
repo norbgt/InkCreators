@@ -190,21 +190,35 @@ chk('a mesma função de proporção do feed',/function proporcaoDaFoto/.test(co
    Sobre a foto ele continua, e ali se paga: o desfoque é o que garante
    que o coração e os selos sejam legíveis contra uma tatuagem preta e
    contra uma tatuagem clara com o mesmo código. */
-/* Testa a intenção, não a declaração. A primeira versão exigia a cor
-   exata do traço e falhou no dia em que a cor mudou — ficando no
-   caminho de uma correção em vez de proteger alguma coisa. O que
-   importa é que exista sublinhado e que os três controles concordem. */
-chk('as abas são sublinhado, não pílula de vidro',
-    /\.seg\.on\{[^}]*border-bottom-color/.test(css) && !/\.seg\{[^}]*border-radius:999px/.test(css));
-/* Três controles de aba no produto: .subnav, .seg e .aba. Três
-   espessuras diferentes inventam hierarquia entre perguntas iguais. */
-var espessuras = ['\\.subnav a\\{', '\\.seg\\{', '\\.aba\\{'].map(function (sel) {
-  var m = css.match(new RegExp(sel + '[^}]*border-bottom:([^;}]*)'));
-  return m ? m[1].trim() : 'ausente';
-});
-chk('os três controles de aba usam o mesmo traço',
-    espessuras.every(function (x) { return x === espessuras[0] && /var\(--hair\)/.test(x) }),
-    espessuras.join('  |  '));
+/* ── DOIS CONTROLES, DOIS TRABALHOS ───────────────────────────────
+   A distinção não é estética, é semântica:
+
+     aba     → outro destino. Você sai daqui e vai para lá.
+     toggle  → o mesmo lugar, outro recorte. Você continua aqui.
+
+   Quando os dois viraram sublinhado, a diferença sumiu da tela e um
+   controle que só recorta passou a parecer que levava embora. Este
+   roteiro impede que eles voltem a se confundir — nos dois sentidos. */
+chk('o toggle é pílula, não sublinhado',
+    /\.seg\{[^}]*border-radius:var\(--r-pill\)/.test(css) &&
+    /\.seg\.on\{[^}]*background:var\(--background\)/.test(css),
+    'o segmentado virou aba e deixou de dizer que você continua na mesma tela');
+chk('e a aba é sublinhado, não pílula',
+    /\.subnav a\{[^}]*border-bottom:var\(--hair\)/.test(css) &&
+    !/\.subnav a\{[^}]*border-radius:var\(--r-pill\)/.test(css),
+    'a navegação virou toggle e deixou de dizer que leva a outro lugar');
+chk('os dois controles de navegação continuam iguais entre si',
+    (function () {
+      var a = (css.match(/\.subnav a\{[^}]*border-bottom:([^;}]*)/) || [])[1];
+      var b = (css.match(/\.aba\{[^}]*border-bottom:([^;}]*)/) || [])[1];
+      return a && b && a.trim() === b.trim();
+    })(),
+    '.subnav e .aba respondem à mesma pergunta e precisam da mesma forma');
+/* O trilho tem de se ler como trilho: sem fundo, a peça ativa flutua
+   sozinha e o conjunto volta a parecer aba. */
+chk('o trilho do toggle tem fundo próprio',
+    /\.segmento\{[^}]*background:var\(--muted\)/.test(css));
+
 chk('sem desfoque no controle segmentado',
     !/\.segmento\{[^}]*backdrop-filter/.test(css),
     'voltou o vidro nas abas — caro em GPU e sem nada atrás para desfocar');

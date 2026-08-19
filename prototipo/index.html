@@ -292,30 +292,39 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .aba .ico{width:17px;height:17px}
 .abas-acoes{display:flex;gap:7px;flex:0 0 auto;padding-bottom:7px}
 .btn.sm.destaque{background:var(--accent);color:var(--accent-foreground);border-color:var(--accent)}
-/* Controle segmentado — recorte dentro da aba.
+/* ── CONTROLE SEGMENTADO ──────────────────────────────────────────
+   Toggle, e não aba. A distinção não é estética, é semântica:
 
-   Era um trilho de vidro: fundo translúcido, desfoque de 18px,
-   saturação em 170%, sombra interna e a peça ativa levitando. Bonito, e
-   caro em três moedas — desfoque de fundo custa GPU e trava a rolagem
-   em telefone antigo, a peça ativa dependia de quatro sombras
-   empilhadas, e nada daquilo tinha equivalente em nenhum outro lugar do
-   produto.
+     aba     → outro destino. Você sai daqui e vai para lá.
+     toggle  → o mesmo lugar, outro recorte. Você continua aqui.
 
-   Agora é o mesmo recurso do resto: um traço embaixo do ativo. A
-   informação é idêntica — qual recorte está aberto — e a gramática
-   passa a ser uma só. */
-.segmento{display:flex;gap:2px;margin-top:var(--section-gap);
-  border-bottom:var(--hair) solid var(--border);
-  overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+   Quando os dois viraram sublinhado, essa diferença sumiu da tela — e
+   um controle que só recorta passou a parecer que levava embora. Era o
+   caso de "Cliente · Galeria de arte · Tatuador": três leituras da
+   mesma página, com cara de três páginas.
+
+   O que NÃO voltou foi o vidro: desfoque de 18px custa GPU e travava a
+   rolagem em telefone antigo, sem nada atrás para desfocar. A peça
+   ativa se marca por preenchimento e um traço, que é a gramática do
+   resto do produto. */
+.segmento{display:inline-flex;gap:2px;margin-top:var(--section-gap);padding:3px;
+  background:var(--muted);border:var(--hair) solid var(--border);border-radius:var(--r-pill);
+  max-width:100%;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .segmento::-webkit-scrollbar{display:none}
-.seg{flex:0 0 auto;min-width:0;white-space:nowrap;padding:9px 13px;
+.seg{flex:0 0 auto;min-width:0;white-space:nowrap;padding:7px 15px;border-radius:var(--r-pill);
   font-family:var(--f-cond);font-size:var(--t-meta);font-weight:400;
-  color:var(--muted-foreground);background:none;border:none;
-  border-bottom:var(--hair) solid transparent;margin-bottom:calc(var(--hair) * -1);
-  transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}
+  color:var(--muted-foreground);background:none;border:var(--hair) solid transparent;
+  transition:color var(--dur) var(--ease),background var(--dur) var(--ease),
+             border-color var(--dur) var(--ease)}
 .seg:hover{color:var(--foreground)}
-.seg.on{color:var(--foreground);font-weight:500;border-bottom-color:var(--foreground)}
-@media(pointer:coarse){.seg{padding:12px 14px}}
+/* Preenchido e recortado do trilho: a peça ativa parece estar em cima,
+   e é assim que um segmentado diz "você está aqui" sem precisar de
+   sombra empilhada. */
+.seg.on{color:var(--foreground);font-weight:500;
+  background:var(--background);border-color:var(--border)}
+.seg .selo{margin-left:6px}
+@media(pointer:coarse){.seg{padding:10px 16px}}
+
 
 /* Barra de localização + mapa pequeno + lista compacta.
    Padrão de app de mobilidade: contexto no topo, decisão na lista. */
