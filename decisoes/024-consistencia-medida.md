@@ -95,3 +95,26 @@ do render, e foi.
 As duas viraram correção. Cinco sabotagens no total, cinco acusações.
 
 **11 roteiros, 0 falhas. 711 frases, nenhuma perdida.**
+
+---
+
+## O toggle estava com o espaço invertido
+
+> "o toggle nunca deve estar colado ao grupo abaixo"
+
+Ele tinha **cerca de 50px em cima e zero embaixo**: afastado do que veio
+antes, colado no que vem depois. O inverso exato do que a proximidade
+deveria dizer.
+
+Proximidade é o sinal mais barato que uma interface tem: **o que está
+perto pertence junto**. O toggle comanda o grupo que vem depois dele —
+encostado nele, some a fronteira entre controle e conteúdo; longe dele,
+ele parece rodapé do bloco anterior.
+
+Agora: `12px` acima, `16px` abaixo. Menos em cima que embaixo, sempre.
+
+A guarda não fixa os números — ela compara os dois lados e falha se o
+de cima passar o de baixo. Assim a regra continua valendo se a escala
+mudar, e é a regra que importa, não o valor.
+
+Sabotada tirando a margem inferior: acusou duas verificações.

@@ -126,6 +126,24 @@ chk("um componente de aba, usado por .subnav e .aba",
       return a && b && a.trim() === b.trim();
     })(),
     "navegação com duas formas: a pessoa reaprende a ler no meio");
+/* ── O TOGGLE NUNCA ENCOSTA NO GRUPO ABAIXO ───────────────────────
+   Proximidade é o sinal mais barato que uma interface tem: o que está
+   perto pertence junto. O toggle comanda o que vem DEPOIS dele — se
+   ficar colado nesse grupo, some a fronteira entre controle e
+   conteúdo; se ficar longe, ele parece rodapé do bloco anterior.
+
+   Estava com cerca de 50px em cima e zero embaixo, que é o inverso
+   exato do que a proximidade deveria dizer. */
+var espTop = (css.match(/\.segmento\{[^}]*margin-top:var\(--(e\d)\)/) || [])[1];
+var espBot = (css.match(/\.segmento\{[^}]*margin-bottom:var\(--(e\d)\)/) || [])[1];
+chk("o toggle respira embaixo", !!espBot, "sem margem inferior: ele encosta no grupo que comanda");
+chk("e respira menos em cima do que embaixo",
+    !!espTop && !!espBot && Number(espTop.slice(1)) < Number(espBot.slice(1)),
+    "acima: " + espTop + ", abaixo: " + espBot + " — ele pertence ao que vem depois");
+chk("a versão centrada segue a mesma regra",
+    /\.segmento\.centrado\{[^}]*margin:[^;}]*var\(--e4\)\}/.test(css),
+    "o toggle centrado das páginas públicas ficou colado no conteúdo");
+
 chk("e um de toggle, diferente da aba",
     /\.seg\{[^}]*border-radius:var\(--r-pill\)/.test(css),
     "toggle e aba com a mesma forma: some a diferença entre trocar de vista e trocar de lugar");
