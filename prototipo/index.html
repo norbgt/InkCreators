@@ -185,12 +185,12 @@ header.top{position:sticky;top:0;z-index:40;background:var(--background);border-
 html[data-dark] .logo .marca{content:url("marca/logo-branco.png")}
 .logo .txt{display:flex;flex-direction:column;line-height:1;font-size:11.5px;font-weight:900;text-transform:uppercase;letter-spacing:-.01em}
 .search{flex:1;max-width:400px;position:relative}
-.search input{width:100%;height:35px;border:1px solid var(--border);border-radius:999px;padding:0 14px 0 32px;outline:none}
+.search input{width:100%;height:35px;border:1px solid var(--border);border-radius:var(--r-pill);padding:0 14px 0 32px;outline:none}
 .search .ic{position:absolute;left:11px;top:9px;color:var(--muted-foreground);line-height:0}
 .search .ic .ico{width:16px;height:16px}
 .protobar .ico{width:13px;height:13px;vertical-align:-.15em}
 .top-actions{margin-left:auto;display:flex;align-items:center;gap:5px}
-.iconbtn{width:35px;height:35px;border-radius:9px;display:flex;align-items:center;justify-content:center;position:relative}
+.iconbtn{width:35px;height:35px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;position:relative}
 .iconbtn:hover{background:var(--muted)}
 /* Convite: pill com rótulo, em cor de acento. Tem texto porque é espaço
    de conversão — ícone sozinho não anuncia o que oferece. */
@@ -207,13 +207,13 @@ html[data-dark] .logo .marca{content:url("marca/logo-branco.png")}
 .count{position:absolute;top:2px;right:1px;
   display:flex;align-items:center;justify-content:center;
   box-sizing:border-box;min-width:17px;height:17px;padding:0 4px;
-  border-radius:999px;border:2px solid var(--background);
+  border-radius:var(--r-pill);border:2px solid var(--background);
   background:var(--primary);color:var(--primary-foreground);
   font-size:9.5px;font-weight:700;line-height:1;
   font-variant-numeric:tabular-nums;letter-spacing:0}
 .pill.accent-solid{background:var(--accent);color:var(--accent-foreground);border-color:var(--accent)}
-.menu{position:absolute;right:0;top:40px;min-width:210px;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:5px;z-index:60}
-.menu a{display:block;padding:8px 10px;border-radius:7px;font-size:13px;cursor:pointer}
+.menu{position:absolute;right:0;top:40px;min-width:210px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);box-shadow:0 8px 24px rgba(0,0,0,.14);padding:5px;z-index:60}
+.menu a{display:block;padding:8px 10px;border-radius:var(--r-sm);font-size:13px;cursor:pointer}
 .menu a:hover{background:var(--muted)}
 .menu .mlabel{padding:7px 10px;font-size:11.5px;color:var(--muted-foreground);overflow:hidden;text-overflow:ellipsis}
 .menu .msep{height:1px;background:var(--border);margin:4px 0}
@@ -276,12 +276,19 @@ p.sub{color:var(--muted-foreground);margin-top:4px;font-size:13.5px}
 label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bottom:4px}
 
 /* Abas: faixa com sublinhado, rolável. Ações ficam fora para não rolarem junto. */
-.linhaabas{display:flex;align-items:flex-end;gap:14px;margin-top:16px;border-bottom:1px solid var(--border);flex-wrap:nowrap}
+.linhaabas{display:flex;align-items:flex-end;gap:14px;margin-top:var(--section-gap);border-bottom:var(--hair) solid var(--border);flex-wrap:nowrap}
 .abas{display:flex;gap:2px;flex:1 1 0;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .abas::-webkit-scrollbar{display:none}
-.aba{display:inline-flex;align-items:center;gap:7px;padding:11px 14px;border-bottom:2px solid transparent;font-size:13.5px;font-weight:600;color:var(--muted-foreground);white-space:nowrap;flex-shrink:0;background:none}
+/* Mesmo traço de .subnav e .seg: existem três controles de aba no
+   produto, e três espessuras diferentes inventavam hierarquia entre
+   eles que não existe — as três respondem à mesma pergunta. */
+.aba{display:inline-flex;align-items:center;gap:7px;padding:11px 14px;
+  border-bottom:var(--hair) solid transparent;font-family:var(--f-cond);
+  font-size:var(--t-meta);font-weight:400;color:var(--muted-foreground);
+  white-space:nowrap;flex-shrink:0;background:none;
+  transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}
 .aba:hover{color:var(--foreground)}
-.aba.on{color:var(--foreground);border-bottom-color:var(--foreground)}
+.aba.on{color:var(--foreground);font-weight:500;border-bottom-color:var(--foreground)}
 .aba .ico{width:17px;height:17px}
 .abas-acoes{display:flex;gap:7px;flex:0 0 auto;padding-bottom:7px}
 .btn.sm.destaque{background:var(--accent);color:var(--accent-foreground);border-color:var(--accent)}
@@ -302,18 +309,18 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
   overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .segmento::-webkit-scrollbar{display:none}
 .seg{flex:0 0 auto;min-width:0;white-space:nowrap;padding:9px 13px;
-  font-family:var(--f-cond);font-size:var(--t-meta);font-weight:500;
+  font-family:var(--f-cond);font-size:var(--t-meta);font-weight:400;
   color:var(--muted-foreground);background:none;border:none;
-  border-bottom:2px solid transparent;margin-bottom:calc(var(--hair) * -1);
+  border-bottom:var(--hair) solid transparent;margin-bottom:calc(var(--hair) * -1);
   transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}
 .seg:hover{color:var(--foreground)}
-.seg.on{color:var(--foreground);border-bottom-color:var(--accent)}
+.seg.on{color:var(--foreground);font-weight:500;border-bottom-color:var(--foreground)}
 @media(pointer:coarse){.seg{padding:12px 14px}}
 
 /* Barra de localização + mapa pequeno + lista compacta.
    Padrão de app de mobilidade: contexto no topo, decisão na lista. */
-.avisoerro{margin-top:12px;padding:9px 12px;border-radius:9px;background:var(--x-warning-bg);color:var(--x-warning);font-size:12.5px}
-.avisook{padding:9px 12px;border-radius:9px;background:var(--x-success-bg);color:var(--x-success);font-size:12.5px}
+.avisoerro{margin-top:12px;padding:9px 12px;border-radius:var(--r-sm);background:var(--x-warning-bg);color:var(--x-warning);font-size:12.5px}
+.avisook{padding:9px 12px;border-radius:var(--r-sm);background:var(--x-success-bg);color:var(--x-success);font-size:12.5px}
 
 /* Marcos do passaporte. Cartão pequeno, sem barra de progresso e sem
    estado "bloqueado": um marco ou aconteceu, ou não está aqui. Mostrar
@@ -323,7 +330,7 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
    sem ler a legenda. Contratado é o único com traço tracejado — a borda
    diz "isto é publicidade" antes da palavra dizer. */
 .selos{display:flex;flex-wrap:wrap;gap:5px}
-.selinho{display:inline-flex;align-items:center;gap:4px;border-radius:999px;
+.selinho{display:inline-flex;align-items:center;gap:4px;border-radius:var(--r-pill);
   padding:3px 9px;font-size:11.5px;font-weight:600;white-space:nowrap;line-height:1.5;
   border:1px solid transparent;cursor:default}
 .selinho .si{font-size:11px;line-height:1}
@@ -345,10 +352,10 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
    é fé, não confiança. */
 .regras{display:grid;gap:8px;margin-top:9px}
 .regra{display:flex;gap:10px;align-items:flex-start;padding:10px 11px;border:1px solid var(--border);
-  border-radius:11px;background:var(--card)}
+  border-radius:var(--r-sm);background:var(--card)}
 .regra .ri{font-size:15px;line-height:1.3;flex-shrink:0}
 .regra .ri svg{width:15px;height:15px}
-.estrela{width:38px;height:38px;border-radius:9px;border:1px solid var(--border);background:var(--card);
+.estrela{width:38px;height:38px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--card);
   font-size:18px;line-height:1;color:var(--muted-foreground)}
 .estrela.on{color:var(--x-warning);border-color:var(--x-warning)}
 .estrela .ico{width:19px;height:19px}
@@ -365,34 +372,34 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 
 .marcos{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
 .marco{display:flex;gap:9px;align-items:flex-start;padding:10px 11px;border:1px solid var(--border);
-  border-radius:11px;background:var(--card)}
+  border-radius:var(--r-sm);background:var(--card)}
 .marco .mic{font-size:16px;line-height:1.2;flex-shrink:0}
 .marco .mic svg{width:16px;height:16px}
 
 /* Check-in. O QR fica em fundo branco sempre, inclusive no tema
    escuro: câmera lê contraste, e um QR invertido não lê. */
-.qrcx{display:inline-block;padding:12px;border-radius:14px;background:#fff;margin:15px auto 9px;
+.qrcx{display:inline-block;padding:12px;border-radius:var(--r-sm);background:#fff;margin:15px auto 9px;
   box-shadow:0 2px 14px rgba(0,0,0,.14)}
 .qrcx svg{display:block}
 .codigo{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:27px;font-weight:700;
   letter-spacing:.28em;padding-left:.28em;margin-top:3px}
 .relogio{font-size:34px;font-weight:700;letter-spacing:-.03em;margin:16px 0 4px}
-.btnlocal{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);background:none}
+.btnlocal{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);background:none}
 .btnlocal:hover{background:var(--muted);color:var(--foreground)}
 .btnlocal.on{color:var(--accent)}
 .btnlocal .ico{width:17px;height:17px}
 .barrabusca .campo input{padding-right:42px}
 
-.mapa{position:relative;margin-top:13px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--muted);
+.mapa{position:relative;margin-top:13px;border-radius:var(--r-sm);overflow:hidden;border:1px solid var(--border);background:var(--muted);
   background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
   background-size:30px 30px}
 .mapa .pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer}
 .mapa .pin b{display:block;width:22px;height:22px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:11px;line-height:22px;text-align:center;border:2px solid var(--card)}
 .mapa .pin.on b{background:var(--accent);transform:scale(1.2)}
 .mapa .pin.voce b{background:var(--accent);width:15px;height:15px;line-height:15px;font-size:9px}
-.mapaselo{position:absolute;bottom:7px;left:8px;font-size:10.5px;color:var(--muted-foreground);background:var(--card);border-radius:5px;padding:2px 7px;opacity:.9}
+.mapaselo{position:absolute;bottom:7px;left:8px;font-size:10.5px;color:var(--muted-foreground);background:var(--card);border-radius:var(--r-sm);padding:2px 7px;opacity:.9}
 
-.lista{margin-top:12px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
+.lista{margin-top:12px;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;background:var(--card)}
 .item{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:12px 13px;border-bottom:1px solid var(--border);background:none}
 .item:last-child{border-bottom:none}
 .item:hover{background:var(--muted)}
@@ -400,7 +407,7 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .item.compacto{padding:10px 13px}
 .itemtxt{min-width:0;flex:1}
 .itemfim{text-align:right;flex-shrink:0;display:flex;flex-direction:column;gap:2px}
-.itemfoto{width:46px;height:46px;border-radius:9px;background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.itemfoto{width:46px;height:46px;border-radius:var(--r-sm);background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
 .itemfoto .ico{width:24px;height:24px;color:var(--muted-foreground)}
 .chip{border:var(--hair) solid var(--border);background:var(--card);border-radius:var(--r-pill);
   padding:6px 12px;font-size:var(--t-meta);font-weight:400;white-space:nowrap;min-height:32px;
@@ -414,17 +421,17 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 /* Barra: busca, filtros e ordenar lado a lado */
 .barrabusca{display:flex;gap:8px;margin-top:16px}
 .barrabusca .campo{flex:1;position:relative;min-width:0}
-.barrabusca .campo input{width:100%;height:40px;border:1px solid var(--border);border-radius:10px;padding:0 12px 0 34px;background:var(--card);outline:none}
+.barrabusca .campo input{width:100%;height:40px;border:1px solid var(--border);border-radius:var(--r-sm);padding:0 12px 0 34px;background:var(--card);outline:none}
 .barrabusca .campo input:focus{border-color:var(--muted-foreground)}
 .barrabusca .lupa{position:absolute;left:11px;top:11px;color:var(--muted-foreground);line-height:0}
 .barrabusca .lupa .ico{width:16px;height:16px}
-.btnbarra{position:relative;height:40px;padding:0 14px;border:1px solid var(--border);border-radius:10px;background:var(--card);display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;white-space:nowrap}
+.btnbarra{position:relative;height:40px;padding:0 14px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--card);display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;white-space:nowrap}
 .btnbarra:hover{border-color:var(--muted-foreground)}
 .btnbarra.on{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
 .btnbarra.temfiltro{border-color:var(--accent)}
 .btnbarra .ico{width:17px;height:17px}
-.btnbarra .pontinho{background:var(--accent);color:var(--accent-foreground);border-radius:999px;min-width:16px;height:16px;font-size:10px;line-height:16px;padding:0 4px}
-.painel{margin-top:9px;padding:13px 15px;border:1px solid var(--border);border-radius:12px;background:var(--card)}
+.btnbarra .pontinho{background:var(--accent);color:var(--accent-foreground);border-radius:var(--r-pill);min-width:16px;height:16px;font-size:10px;line-height:16px;padding:0 4px}
+.painel{margin-top:9px;padding:13px 15px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--card)}
 
 /* Feed em publicações, uma por vez */
 .feedposts{max-width:440px;margin:14px auto 0}
@@ -542,9 +549,9 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .caro .pips{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:4px}
 .caro .pips i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.5)}
 .caro .pips i.on{background:#fff}
-.caro .tagtl{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;border-radius:999px;padding:2px 8px;font-size:10.5px;font-weight:600}
+.caro .tagtl{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;border-radius:var(--r-pill);padding:2px 8px;font-size:10.5px;font-weight:600}
 .qa{position:absolute;bottom:8px;right:8px;display:flex;gap:5px}
-.qa button{background:rgba(255,255,255,.94);color:#111;border-radius:8px;padding:5px 9px;font-size:11.5px;font-weight:700}
+.qa button{background:rgba(255,255,255,.94);color:#111;border-radius:var(--r-sm);padding:5px 9px;font-size:11.5px;font-weight:700}
 .tat{background-size:cover;background-position:center}
 
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:13px;margin-top:14px}
@@ -553,10 +560,16 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .pcard .im .nv{position:absolute;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center}
 
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:11px}
+/* O rótulo é etiqueta, não frase: expandida, caixa alta, pequena. O
+   número é o conteúdo, e usa a escala fluida — num painel de gestão a
+   pessoa lê de longe, encostada na mesa. Tabular porque a coluna de
+   números precisa alinhar entre cartões vizinhos. */
 .stat{background:var(--muted);border-radius:var(--r-sm);padding:14px 16px}
-.stat .lbl{font-size:11.5px;color:var(--muted-foreground)}
-.stat .val{font-size:22px;font-weight:600;margin-top:4px;letter-spacing:-.02em}
-.stat .hint{font-size:11px;color:var(--muted-foreground);margin-top:2px}
+.stat .lbl{font-family:var(--f-exp);font-size:var(--t-micro);font-weight:500;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--muted-foreground)}
+.stat .val{font-size:clamp(21px,2.4vw,28px);font-weight:600;margin-top:5px;
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat .hint{font-size:var(--t-micro);color:var(--muted-foreground);margin-top:3px}
 
 .envhead{border-bottom:1px solid var(--border);background:var(--card)}
 .kicker{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-foreground)}
@@ -573,19 +586,19 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 
 .lrow{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--border)}
 .lrow:last-child{border-bottom:none}
-.thumb{width:44px;height:44px;border-radius:9px;background:var(--muted);flex-shrink:0;background-size:cover;background-position:center}
+.thumb{width:44px;height:44px;border-radius:var(--r-sm);background:var(--muted);flex-shrink:0;background-size:cover;background-position:center}
 .av{width:36px;height:36px;border-radius:50%;background:var(--muted);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:var(--muted-foreground)}
-.datebox{width:44px;height:44px;border-radius:9px;background:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.datebox{width:44px;height:44px;border-radius:var(--r-sm);background:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
 .datebox .m{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted-foreground)}
 .datebox .d{font-size:15px;font-weight:700;line-height:1}
 
 .authwrap{max-width:400px;margin:36px auto;padding:0 18px}
-.opt{flex:1;border:1px solid var(--border);border-radius:10px;padding:11px;cursor:pointer;text-align:left}
+.opt{flex:1;border:1px solid var(--border);border-radius:var(--r-sm);padding:11px;cursor:pointer;text-align:left}
 .opt:hover{border-color:var(--muted-foreground)}
 .opt.on{border-color:var(--accent);background:var(--x-accent-bg)}
 /* Campo com prefixo fixo — o @ pertence ao endereço, não ao que a
    pessoa digita, então ele fica desenhado dentro do campo. */
-.campoprefixo{display:flex;align-items:center;border:1px solid var(--border);border-radius:10px;background:var(--card);overflow:hidden}
+.campoprefixo{display:flex;align-items:center;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--card);overflow:hidden}
 .campoprefixo>span{padding:0 2px 0 11px;color:var(--muted-foreground);font-weight:600;font-size:13.5px}
 .campoprefixo input{border:none;background:none;border-radius:0;flex:1;min-width:0}
 .campoprefixo:focus-within{border-color:var(--muted-foreground)}
@@ -600,17 +613,22 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .banner{display:flex;align-items:center;gap:11px;background:var(--x-accent-bg);border:1px solid var(--x-accent-border);border-radius:var(--radius);padding:12px 15px}
 .protobar{background:#141414;color:#fff;font-size:11.5px;padding:6px 0}
 .protobar .wrap{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-.protobar select{background:#2c2c2c;color:#fff;border:1px solid #444;border-radius:6px;height:25px;padding:0 5px;font-size:11.5px}
-.tag{background:#333;border-radius:5px;padding:1px 6px;font-size:10.5px}
+.protobar select{background:#2c2c2c;color:#fff;border:1px solid #444;border-radius:var(--r-sm);height:25px;padding:0 5px;font-size:11.5px}
+.tag{background:#333;border-radius:var(--r-sm);padding:1px 6px;font-size:10.5px}
 .tag.real{background:#1b6e3c}.tag.mock{background:#9c2b2b}.tag.new{background:#2b5c70}
 footer.note{border-top:1px solid var(--border);padding:20px 0;color:var(--muted-foreground);font-size:12px}
 table.t{width:100%;border-collapse:collapse;font-size:13px}
 table.t th{text-align:left;font-family:var(--f-exp);font-weight:500;color:var(--muted-foreground);
   font-size:var(--t-micro);letter-spacing:.06em;text-transform:uppercase;
   padding:9px 0;border-bottom:var(--hair) solid var(--border)}
-table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
-.bar{height:6px;background:var(--muted);border-radius:3px;overflow:hidden}
-.bar i{display:block;height:6px;background:var(--primary)}
+/* --rule é mais claro que --border: numa tabela de vinte linhas o
+   traço se repete vinte vezes, e vinte traços fortes viram grade. */
+table.t td{padding:10px 0;border-bottom:var(--hair) solid var(--rule);
+  font-variant-numeric:tabular-nums}
+/* Fina e arredondada nas pontas. Ela mede proporção — nunca progresso
+   de meta, que é justamente o que o passaporte não faz. */
+.bar{height:4px;background:var(--muted);border-radius:var(--r-pill);overflow:hidden}
+.bar i{display:block;height:4px;background:var(--accent);border-radius:var(--r-pill)}
 /* ── Escolha de perfil no cadastro ─────────────────────────────────
    Mesma história do rodapé: .perfis, .perfilopt, .nome e .ou eram
    usadas no HTML e nunca tinham regra nenhuma. Sem isso os três viravam
@@ -621,7 +639,7 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
    custa menos que ler três linhas. */
 .perfis{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
 .perfilopt{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
-  gap:7px;padding:14px 8px;border:1px solid var(--border);border-radius:12px;
+  gap:7px;padding:14px 8px;border:1px solid var(--border);border-radius:var(--r-sm);
   background:var(--card);cursor:pointer;text-align:center;
   transition:border-color .15s ease,box-shadow .15s ease,background .15s ease}
 .perfilopt:hover{border-color:var(--muted-foreground)}
@@ -662,10 +680,10 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 @media(min-width:700px){.grandes{grid-template-columns:repeat(4,1fr);gap:9px}}
 @media(min-width:1100px){.grandes{grid-template-columns:repeat(5,1fr)}}
 .grande{display:flex;flex-direction:column;align-items:flex-start;gap:0;
-  padding:10px 11px 11px;border:1px solid var(--border);border-radius:11px;
+  padding:11px 12px 12px;border:var(--hair) solid var(--border);border-radius:var(--r-sm);
   background:var(--card);cursor:pointer;text-align:left;
-  transition:border-color .15s ease,transform .12s ease}
-.grande:hover{border-color:var(--muted-foreground)}
+  transition:border-color var(--dur) var(--ease),transform 120ms var(--ease)}
+.grande:hover{border-color:var(--accent)}
 .grande:active{transform:scale(.985)}
 .grande .gtopo{display:flex;align-items:center;gap:5px;min-width:0;width:100%}
 .grande .gic{color:var(--muted-foreground);font-size:12.5px;line-height:1;flex-shrink:0}
@@ -684,7 +702,7 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 /* Contador dentro da sub-aba: diz quanto tem do outro lado sem obrigar
    a pessoa a ir ver. */
 .seg .selo{display:inline-flex;align-items:center;justify-content:center;
-  min-width:17px;height:17px;padding:0 5px;margin-left:6px;border-radius:999px;
+  min-width:17px;height:17px;padding:0 5px;margin-left:6px;border-radius:var(--r-pill);
   background:var(--muted-foreground);color:var(--card);
   font-size:10px;font-weight:700;line-height:1;vertical-align:1px}
 .seg.on .selo{background:var(--primary);color:var(--primary-foreground)}
@@ -694,13 +712,13 @@ table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 .gradeobras{grid-template-columns:repeat(2,1fr);gap:11px}
 @media(min-width:560px){.gradeobras{grid-template-columns:repeat(3,1fr)}}
 .obra{display:flex;flex-direction:column;text-align:left;border:1px solid var(--border);
-  border-radius:12px;overflow:hidden;background:var(--card);cursor:pointer;
+  border-radius:var(--r-sm);overflow:hidden;background:var(--card);cursor:pointer;
   transition:border-color .15s ease}
 .obra:hover{border-color:var(--muted-foreground)}
 .obrafoto{position:relative;aspect-ratio:1;background-size:cover;background-position:center}
 .obraetiq{position:absolute;top:7px;left:7px;background:var(--primary);color:var(--primary-foreground);
   font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
-  padding:3px 7px;border-radius:999px}
+  padding:3px 7px;border-radius:var(--r-pill)}
 .obrainfo{padding:9px 10px 11px}
 
 /* Convite do teste. Faixa embaixo: acompanha a rolagem sem cobrir o
@@ -721,7 +739,7 @@ body:has(.convitebarra) main{padding-bottom:96px}
   display:flex;align-items:flex-start;justify-content:center;padding:20px;
   pointer-events:none}
 .convitecx main{pointer-events:auto;background:var(--background);
-  border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,.28);
+  border-radius:var(--r-sm);box-shadow:0 24px 60px rgba(0,0,0,.28);
   max-width:560px;width:100%;padding:6px 0 18px}
 
 /* Aviso que fica até deixar de ser verdade. Amarelo e não vermelho: é
@@ -734,7 +752,7 @@ body:has(.convitebarra) main{padding-bottom:96px}
 /* Marcador de sim ou não, no formato de cartão. Área de clique inteira,
    não só o quadradinho — no celular acertar 16px é loteria. */
 .marcador{display:flex;align-items:flex-start;gap:10px;padding:12px 13px;
-  border:1px solid var(--border);border-radius:12px;background:var(--card);
+  border:1px solid var(--border);border-radius:var(--r-sm);background:var(--card);
   cursor:pointer;transition:border-color .15s ease,background .15s ease}
 .marcador:hover{border-color:var(--muted-foreground)}
 .marcador.on{border-color:var(--primary);background:var(--x-accent-bg)}
@@ -765,7 +783,7 @@ body:has(.convitebarra) main{padding-bottom:96px}
   .rodapepassos .meio{order:3;flex:1 1 100%;margin-top:4px}
 }
 .steps{display:flex;gap:5px;margin-top:12px}
-.steps i{flex:1;height:4px;border-radius:2px;background:var(--border)}
+.steps i{flex:1;height:4px;border-radius:var(--r-xs);background:var(--border)}
 .steps i.on{background:var(--primary)}
 .map{position:relative;height:230px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);
   background:var(--muted);
@@ -774,8 +792,8 @@ body:has(.convitebarra) main{padding-bottom:96px}
 .pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;text-align:center}
 .pin b{display:block;width:19px;height:19px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:10px;line-height:19px;margin:0 auto;border:2px solid var(--background)}
 .pin.on b{background:var(--accent);transform:scale(1.25)}
-.pin span{font-size:9.5px;background:var(--background);border:1px solid var(--border);border-radius:4px;padding:0 4px;white-space:nowrap}
-.bub{max-width:78%;padding:8px 11px;border-radius:13px;font-size:13px;margin-bottom:7px}
+.pin span{font-size:9.5px;background:var(--background);border:1px solid var(--border);border-radius:var(--r-sm);padding:0 4px;white-space:nowrap}
+.bub{max-width:78%;padding:8px 11px;border-radius:var(--r-sm);font-size:13px;margin-bottom:7px}
 .bub.them{background:var(--muted);border-bottom-left-radius:4px}
 .bub.me{background:var(--primary);color:var(--primary-foreground);margin-left:auto;border-bottom-right-radius:4px}
 /* Vantagens: margens da página vêm do .wrap, iguais às demais telas.
@@ -845,8 +863,8 @@ body:has(.convitebarra) main{padding-bottom:96px}
 .vantagem .small.muted{flex:1}
 .plan{border:1px solid var(--border);border-radius:var(--radius);padding:18px;background:var(--card);position:relative}
 .plan.hl{border:2px solid var(--primary)}
-.plan .rib{position:absolute;top:-10px;left:18px;background:var(--primary);color:var(--primary-foreground);border-radius:999px;padding:2px 10px;font-size:10.5px;font-weight:700}
-.thumbsq{width:56px;height:56px;border-radius:8px;background-size:cover;background-position:center;position:relative;flex-shrink:0}
+.plan .rib{position:absolute;top:-10px;left:18px;background:var(--primary);color:var(--primary-foreground);border-radius:var(--r-pill);padding:2px 10px;font-size:10.5px;font-weight:700}
+.thumbsq{width:56px;height:56px;border-radius:var(--r-sm);background-size:cover;background-position:center;position:relative;flex-shrink:0}
 .thumbsq .x{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:10px;display:flex;align-items:center;justify-content:center}
 /* ═══════════════════════════════════════════════════════════════════
    RESPONSIVIDADE — desenhada para os aparelhos que de fato acessam
@@ -2808,7 +2826,7 @@ function vArtist(){
  }
  if(aba==="instagram"){
   var ii=S.caro["ig"+a.id]||0;
-  h+='<div class="caro" style="aspect-ratio:1;border-radius:12px;overflow:hidden;margin-top:14px">';
+  h+='<div class="caro" style="aspect-ratio:1;border-radius:var(--r-sm);overflow:hidden;margin-top:14px">';
   for(var k=0;k<6;k++)h+='<div class="sl '+(k===ii?"on":"")+'" style="background-image:'+tex(a.seed*11+k)+'"></div>';
   if(ii>0)h+='<button class="nav l" onclick="caro(\'ig'+a.id+'\',-1,6)">‹</button>';
   if(ii<5)h+='<button class="nav r" onclick="caro(\'ig'+a.id+'\',1,6)">›</button>';
@@ -3807,7 +3825,7 @@ function vMe(sub){
   CQ.slice(0,3).forEach(function(q){h+=cqRow(q)});
   h+='</div></div>';
   h+='<div class="card pad"><div class="row"><span class="b">Último carimbo</span>'+tg("novo")+'</div>';
-  h+='<div class="tat" style="aspect-ratio:16/10;border-radius:10px;margin-top:9px;background-image:'+tex(PASS[0].seed)+'"></div>';
+  h+='<div class="tat" style="aspect-ratio:16/10;border-radius:var(--r-sm);margin-top:9px;background-image:'+tex(PASS[0].seed)+'"></div>';
   h+='<div class="row" style="margin-top:8px;gap:6px"><span class="b small">'+PASS[0].parte+'</span>';
   h+=PASS[0].verificado?'<span class="badge ok">✓ verificado</span>':'<span class="badge">declarado</span>';
   h+='</div><div class="small muted">'+(SL[PASS[0].estilo]||PASS[0].estilo)+' · '+PASS[0].artista+'</div>';
@@ -3912,7 +3930,7 @@ function vMe(sub){
  if(sub==="me-history"){
   h+='<div class="card pad"><div class="row"><span class="b">Histórico de tatuagens</span>'+tg("mock")+'</div>';
   h+='<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(190px,1fr));margin-top:11px">';
-  HIST.forEach(function(t){h+='<div><div class="tat" style="aspect-ratio:1;border-radius:10px;background-image:'+tex(t.seed)+'"></div><div class="b small" style="margin-top:7px">'+t.area+'</div><div class="small muted">'+t.s+' · '+t.a+'</div><div class="tiny muted">'+t.d+'</div></div>'});
+  HIST.forEach(function(t){h+='<div><div class="tat" style="aspect-ratio:1;border-radius:var(--r-sm);background-image:'+tex(t.seed)+'"></div><div class="b small" style="margin-top:7px">'+t.area+'</div><div class="small muted">'+t.s+' · '+t.a+'</div><div class="tiny muted">'+t.d+'</div></div>'});
   h+='</div></div>';
  }
  if(sub==="me-payments"){
@@ -4165,19 +4183,19 @@ function corpoOnboarding(st){
    h+='<input type="file" id="arqPort" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="subirPortfolio(this.files)" />';
    h+='<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:11px;gap:8px">';
    (S.onbFotos||[]).forEach(function(f){
-    h+='<div style="position:relative"><img src="'+f.image_url+'" style="aspect-ratio:1;width:100%;object-fit:cover;border-radius:9px;border:1px solid var(--border)" />';
+    h+='<div style="position:relative"><img src="'+f.image_url+'" style="aspect-ratio:1;width:100%;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--border)" />';
     h+='<button style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:11px;display:flex;align-items:center;justify-content:center;border:none" onclick="removerFoto(\''+f.id+'\',\''+f.image_url+'\')">✕</button></div>';
    });
    if(nf<LIMITE_UPLOAD)
-    h+='<button style="aspect-ratio:1;border:1.5px dashed var(--border);border-radius:9px;color:var(--muted-foreground);font-size:12px" onclick="document.getElementById(\'arqPort\').click()">＋<br/>Escolher</button>';
+    h+='<button style="aspect-ratio:1;border:1.5px dashed var(--border);border-radius:var(--r-sm);color:var(--muted-foreground);font-size:12px" onclick="document.getElementById(\'arqPort\').click()">＋<br/>Escolher</button>';
    h+='</div>';
    h+='<div class="tiny muted" style="margin-top:9px">'+nf+' de '+LIMITE_UPLOAD+' imagem'+(LIMITE_UPLOAD>1?"ns":"")+' · máximo 5 MB</div>';
    if(nf>=LIMITE_UPLOAD)
-    h+='<div class="tiny muted" style="margin-top:5px;padding:8px 10px;background:var(--muted);border-radius:8px">Limite de teste: 1 arquivo por conta, para exercitar o fluxo sem encher o armazenamento. Some para remover e testar de novo.</div>';
+    h+='<div class="tiny muted" style="margin-top:5px;padding:8px 10px;background:var(--muted);border-radius:var(--r-sm)">Limite de teste: 1 arquivo por conta, para exercitar o fluxo sem encher o armazenamento. Some para remover e testar de novo.</div>';
   }else{
    h+='<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:11px;gap:8px">';
-   for(var k=0;k<S.onbPort;k++)h+='<div class="tat" style="aspect-ratio:1;border-radius:9px;background-image:'+tex(k*5+3)+'"></div>';
-   h+='<button style="aspect-ratio:1;border:1.5px dashed var(--border);border-radius:9px;color:var(--muted-foreground);font-size:12px" onclick="S.onbPort=Math.min(9,S.onbPort+1);render()">＋<br/>Adicionar</button>';
+   for(var k=0;k<S.onbPort;k++)h+='<div class="tat" style="aspect-ratio:1;border-radius:var(--r-sm);background-image:'+tex(k*5+3)+'"></div>';
+   h+='<button style="aspect-ratio:1;border:1.5px dashed var(--border);border-radius:var(--r-sm);color:var(--muted-foreground);font-size:12px" onclick="S.onbPort=Math.min(9,S.onbPort+1);render()">＋<br/>Adicionar</button>';
    h+='</div><div class="tiny muted" style="margin-top:9px">'+S.onbPort+' imagem(ns) adicionadas</div>';
   }
   h+='</div>';
@@ -4228,7 +4246,7 @@ function corpoOnboarding(st){
   h+='<input type="file" id="arqModelo" accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none" onchange="subirModeloOrcamento(this.files)" />';
   h+='<button class="btn sp" onclick="document.getElementById(\'arqModelo\').click()">Enviar planilha</button></div>';
   if(S.onbModeloArquivo)
-   h+='<div class="tiny" style="margin-top:9px;padding:8px 10px;background:var(--x-success-bg);color:var(--x-success);border-radius:8px">Planilha recebida: '+S.onbModeloArquivo+' — passa a ser o seu modelo.</div>';
+   h+='<div class="tiny" style="margin-top:9px;padding:8px 10px;background:var(--x-success-bg);color:var(--x-success);border-radius:var(--r-sm)">Planilha recebida: '+S.onbModeloArquivo+' — passa a ser o seu modelo.</div>';
   h+='<div class="tiny muted" style="margin-top:11px">Dá para trocar depois, no seu perfil.</div>';
  }
  if(st===5){
@@ -4247,7 +4265,7 @@ function corpoOnboarding(st){
   h+='<tr><td class="muted">Papel da conta</td><td style="text-align:right"><span class="badge ok">cliente</span> <span class="badge ok">tatuador</span></td></tr>';
   h+='</table>';
   if(!S.onbStyles.length)
-   h+='<div class="tiny muted" style="margin-top:10px;padding:9px 11px;background:var(--muted);border-radius:8px">Sem estilo definido, seu perfil aparece no catálogo mas não entra no encaminhamento automático de orçamentos. Dá para definir depois.</div>';
+   h+='<div class="tiny muted" style="margin-top:10px;padding:9px 11px;background:var(--muted);border-radius:var(--r-sm)">Sem estilo definido, seu perfil aparece no catálogo mas não entra no encaminhamento automático de orçamentos. Dá para definir depois.</div>';
   h+='<div class="banner" style="margin-top:13px"><div><div class="b small">Publicar perfil no feed público</div><div class="tiny muted">Você pode despublicar quando quiser. Sem publicar, ninguém encontra seu perfil.</div></div></div>';
  }
 
@@ -4889,7 +4907,7 @@ function vStudio(sub){
   ["seg","ter","qua","qui","sex","sáb","dom"].forEach(function(d){h+='<div class="tiny muted b" style="text-align:center">'+d+'</div>'});
   for(var d=1;d<=28;d++){
    var b=[2,6,13,17,22].indexOf(d)>=0;
-   h+='<div style="aspect-ratio:1;border:1px solid var(--border);border-radius:8px;padding:4px;font-size:11px;'+(b?"background:var(--x-accent-bg);border-color:var(--x-accent-border)":"")+'"><div class="b">'+d+'</div>'+(b?'<div class="tiny" style="color:var(--accent)">sessão</div>':'')+'</div>';
+   h+='<div style="aspect-ratio:1;border:1px solid var(--border);border-radius:var(--r-sm);padding:4px;font-size:11px;'+(b?"background:var(--x-accent-bg);border-color:var(--x-accent-border)":"")+'"><div class="b">'+d+'</div>'+(b?'<div class="tiny" style="color:var(--accent)">sessão</div>':'')+'</div>';
   }
   h+='</div><div class="sep"></div><div class="b small">Próximas sessões</div><div style="margin-top:3px">';
   BOOK.forEach(function(b){h+='<div class="lrow"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div><div><div class="b small">'+b.c+'</div><div class="small muted">'+b.area+' · '+b.h+'h</div></div><div class="sp b small">'+brl(b.cents)+'</div><button class="btn sm" style="margin-left:9px">Detalhes</button></div>'});
@@ -4959,8 +4977,8 @@ function vStudio(sub){
   [["sessao","Sessões"],["arte","Arte"],["curso","Curso"]].forEach(function(k){
    var v=c.porCat[k[0]]||0, pc=c.entrou?Math.round(v/c.entrou*100):0;
    h+='<div style="margin-bottom:11px"><div class="row tiny"><span>'+k[1]+'</span><span class="sp b">'+brl(v)+' · '+pc+'%</span></div>';
-   h+='<div style="height:7px;background:var(--muted);border-radius:99px;margin-top:4px;overflow:hidden">';
-   h+='<div style="height:100%;width:'+pc+'%;background:var(--primary);border-radius:99px"></div></div></div>';
+   h+='<div style="height:7px;background:var(--muted);border-radius:var(--r-pill);margin-top:4px;overflow:hidden">';
+   h+='<div style="height:100%;width:'+pc+'%;background:var(--primary);border-radius:var(--r-pill)"></div></div></div>';
   });
   h+='</div></div>';
 
@@ -5099,7 +5117,7 @@ function lugaresDoCheckin(){
 function sqRow(q,full){
  var t=corDoStatus(q.status);
  var on=full&&S.sqSel===q.id;
- var h='<div class="lrow" style="'+(full?"cursor:pointer;":"")+(on?"background:var(--x-accent-bg);border-radius:8px;padding-left:7px;padding-right:7px":"")+'" '+(full?'onclick="S.sqSel=\''+q.id+'\';render()"':'')+'>';
+ var h='<div class="lrow" style="'+(full?"cursor:pointer;":"")+(on?"background:var(--x-accent-bg);border-radius:var(--r-sm);padding-left:7px;padding-right:7px":"")+'" '+(full?'onclick="S.sqSel=\''+q.id+'\';render()"':'')+'>';
  h+='<div class="av">'+ini(q.c)+'</div><div style="min-width:0"><div class="b small">'+q.c+'</div>';
  h+='<div class="small muted">'+q.area+' · '+q.st.map(function(s){return SL[s]}).join(", ")+' · '+q.when+'</div></div>';
  h+='<div class="sp" style="text-align:right"><div class="b small">'+brl(q.min)+'–'+brl(q.max)+'</div><span class="badge '+t+'">'+q.status+'</span></div>';
@@ -5272,7 +5290,7 @@ function studioProfile(){
   h+='<div class="grid cols16" style="margin-top:13px;align-items:start">';
   h+='<div class="card pad"><div class="row"><span class="b">Informações públicas</span>'+tg("real")+'</div>';
   h+='<div class="tiny muted" style="margin-top:11px">Capa</div>';
-  h+='<div class="tat" style="height:105px;border-radius:10px;background-image:'+tex(21)+';margin-top:5px;position:relative"><button class="btn sm" style="position:absolute;bottom:7px;right:7px">Trocar capa</button></div>';
+  h+='<div class="tat" style="height:105px;border-radius:var(--r-sm);background-image:'+tex(21)+';margin-top:5px;position:relative"><button class="btn sm" style="position:absolute;bottom:7px;right:7px">Trocar capa</button></div>';
   h+='<div class="row" style="margin-top:11px;gap:11px"><div class="av" style="width:58px;height:58px;font-size:17px">MV</div><div><button class="btn sm">Trocar avatar</button><div class="tiny muted" style="margin-top:3px">JPG ou PNG, até 5 MB</div></div></div>';
   h+='<div class="grid" style="gap:10px;margin-top:13px">';
   [["Nome de exibição","Marina Vieira"],["Nome do estúdio","Studio Marina"],["Cidade","São Paulo"],["UF","SP"],["Anos de experiência","7"]].forEach(function(f){
@@ -5343,7 +5361,7 @@ function studioProfile(){
   h+='<div class="tiny muted" style="margin-top:6px">Arraste para reordenar. A primeira imagem vira a capa do seu card no feed.</div>';
   h+='<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr));margin-top:11px;gap:9px">';
   for(var k=0;k<9;k++){
-   h+='<div><div class="tat" style="aspect-ratio:1;border-radius:9px;background-image:'+tex(k*4+2)+';position:relative">';
+   h+='<div><div class="tat" style="aspect-ratio:1;border-radius:var(--r-sm);background-image:'+tex(k*4+2)+';position:relative">';
    h+='<span class="badge" style="position:absolute;top:5px;left:5px;background:rgba(0,0,0,.6);color:#fff">'+(k+1)+'</span></div>';
    h+='<select class="fld" style="margin-top:5px;font-size:11.5px;padding:5px 7px"><option>'+STYLES[k%15].l+'</option><option>Outro estilo…</option></select>';
    h+='<div class="row" style="gap:4px;margin-top:4px"><button class="btn sm" style="flex:1;font-size:11px" onclick="alert(\'Marcar estilo de cada imagem do portfólio\')">🏷 Marcar estilo</button><button class="btn sm" style="font-size:11px">✕</button></div></div>';
@@ -5401,7 +5419,7 @@ function studioProfile(){
   h+='<div class="tiny muted" style="margin-top:5px">Quando ativo, o carrossel do seu card mostra seus posts em vez do portfólio interno.</div>';
   h+='<div class="tiny muted" style="margin-top:13px">Selecione até 6 posts para exibir</div>';
   h+='<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr));margin-top:7px;gap:7px">';
-  for(var k=0;k<8;k++)h+='<div class="tat" style="aspect-ratio:1;border-radius:8px;background-image:'+tex(k*7+1)+';position:relative;'+(k<6?"outline:2px solid var(--accent);outline-offset:-2px":"opacity:.5")+'">'+(k<6?'<span class="badge acc" style="position:absolute;top:4px;right:4px">✓</span>':'')+'</div>';
+  for(var k=0;k<8;k++)h+='<div class="tat" style="aspect-ratio:1;border-radius:var(--r-sm);background-image:'+tex(k*7+1)+';position:relative;'+(k<6?"outline:2px solid var(--accent);outline-offset:-2px":"opacity:.5")+'">'+(k<6?'<span class="badge acc" style="position:absolute;top:4px;right:4px">✓</span>':'')+'</div>';
   h+='</div></div>';
  }
  return h;
@@ -5516,7 +5534,7 @@ function assistBody(){
  h+='<div class="tiny muted" style="margin-top:2px">Prints, desenhos, fotos de tatuagens que te agradam.</div>';
  h+='<div class="row wrapf" style="gap:7px;margin-top:7px">';
  for(var k=0;k<S.aiRefs;k++)h+='<div class="thumbsq" style="background-image:'+tex(k*6+4)+'"><span class="x" onclick="S.aiRefs--;renderDrawer()">✕</span></div>';
- h+='<button style="width:56px;height:56px;border:1.5px dashed var(--border);border-radius:8px;color:var(--muted-foreground)" onclick="S.aiRefs=Math.min(8,S.aiRefs+1);renderDrawer()">＋</button></div>';
+ h+='<button style="width:56px;height:56px;border:1.5px dashed var(--border);border-radius:var(--r-sm);color:var(--muted-foreground)" onclick="S.aiRefs=Math.min(8,S.aiRefs+1);renderDrawer()">＋</button></div>';
 
  h+='<div class="sep"></div>';
  h+='<div class="row"><span class="b small">Estilo que você quer</span><span class="req">obrigatório</span></div>';
@@ -5612,7 +5630,7 @@ function notifBody(){
  var l=S.notifs.filter(function(n){return S.notifFilter==="all"||n.t===S.notifFilter});
  if(!l.length)h+='<div class="muted small" style="padding:14px 0">Nada por aqui.</div>';
  l.forEach(function(n){
-  h+='<div class="lrow" style="cursor:pointer;'+(n.un?"background:var(--x-accent-bg);border-radius:8px;padding-left:8px;padding-right:8px":"")+'" onclick="readOne(\''+n.id+'\')">';
+  h+='<div class="lrow" style="cursor:pointer;'+(n.un?"background:var(--x-accent-bg);border-radius:var(--r-sm);padding-left:8px;padding-right:8px":"")+'" onclick="readOne(\''+n.id+'\')">';
   h+='<div style="min-width:0"><div class="b small">'+n.ti+(n.un?' <span class="dot" style="position:static;display:inline-block"></span>':'')+'</div>';
   h+='<div class="small muted">'+n.d+'</div><div class="tiny muted" style="margin-top:2px">'+n.w+'</div></div></div>'});
  return h+'</div>';
@@ -5932,8 +5950,8 @@ function vPainelDoTeste(){
  d.funil.forEach(function(f){
   var pc=Math.round(f[1]/base*100);
   h+='<div style="margin-top:10px"><div class="row tiny"><span>'+f[0]+'</span><span class="sp b">'+f[1]+' · '+pc+'%</span></div>';
-  h+='<div style="height:7px;background:var(--muted);border-radius:99px;margin-top:4px;overflow:hidden">';
-  h+='<div style="height:100%;width:'+pc+'%;background:var(--primary);border-radius:99px"></div></div></div>';
+  h+='<div style="height:7px;background:var(--muted);border-radius:var(--r-pill);margin-top:4px;overflow:hidden">';
+  h+='<div style="height:100%;width:'+pc+'%;background:var(--primary);border-radius:var(--r-pill)"></div></div></div>';
  });
  h+='<div class="tiny muted" style="margin-top:11px">Cada degrau conta sessões distintas, não cliques. Quem passou duas vezes pela mesma tela conta uma.</div></div>';
 

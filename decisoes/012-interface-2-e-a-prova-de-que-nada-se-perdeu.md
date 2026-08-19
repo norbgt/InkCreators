@@ -123,3 +123,83 @@ tela verificada.
 
 O roteiro já cobre as duas. Qualquer frase que sumir ali vai aparecer no
 relatório com o nome da tela ao lado.
+
+---
+
+## Segunda parte: perfil, estúdio e gestão
+
+### O cartão dentro da página
+
+O perfil de quem tatua e a página do estúdio abriam com um `.card`
+bordado. Uma moldura dentro de uma página que já é moldura não separa
+nada — só empilha borda. Saiu. O que organiza agora é espaço e um
+traço, e o nome subiu para tamanho de título na condensada, porque é a
+informação que a pessoa veio buscar.
+
+Os dois passaram a usar o mesmo cabeçalho. São a mesma pergunta — quem
+é este, o essencial, e o que fazer daqui — e formas diferentes para a
+mesma pergunta obrigam a reaprender a ler no meio do caminho.
+
+### O portfólio segue o feed
+
+Mesma decisão, mesma função: `proporcaoDaFoto()`. O mesmo trabalho
+aparece com a mesma forma no feed e no perfil.
+
+### O trilho de vidro
+
+O controle segmentado era o único componente com `backdrop-filter` fora
+das fotos: desfoque de 18px, saturação 170%, quatro sombras empilhadas
+na peça ativa. Custava GPU, travava rolagem em telefone antigo, e não
+tinha nada atrás para desfocar — atrás de uma aba não passa foto.
+
+Virou sublinhado. Sobre foto o desfoque fica, porque ali se paga: é o
+que torna selo e coração legíveis contra uma tatuagem preta e contra
+uma clara com o mesmo código.
+
+### Três controles de aba, um traço
+
+Existiam `.subnav`, `.seg` e `.aba` — três respostas para a mesma
+pergunta, com três espessuras diferentes. Três espessuras inventam
+hierarquia entre coisas iguais. Agora as três usam `var(--hair)` e o
+diagnóstico compara as três entre si, não contra um valor escrito à
+mão: quando a cor mudar de novo, ele não fica no caminho.
+
+### Quinze raios viram três
+
+O verificador de entropia achou o que existia para achar:
+
+| valor | ocorrências |
+|---|---|
+| 9px | 12 |
+| 8px | 11 |
+| 10px | 8 |
+| 12px | 7 |
+| 11px, 5px | 2 cada |
+| 16, 14, 13, 7, 6, 4, 2px | 1 cada |
+
+Quinze valores, nenhum deles uma decisão — cada um foi escolhido
+sozinho, no dia em que aquele componente nasceu. Agora são três, e o
+diagnóstico falha se aparecer um quarto.
+
+### O painel de gestão
+
+Vinte telas onde a pessoa faz duas coisas: ler número e comparar linha.
+
+- Número em `tabular-nums` no painel e nas tabelas: largura que dança
+  entre repinturas parece instabilidade, e num painel de dinheiro
+  instabilidade vira desconfiança.
+- Número em escala fluida: num painel a pessoa lê de longe, encostada
+  na mesa.
+- Rótulo vira etiqueta — expandida, caixa alta, pequena.
+- Linha de tabela passa a usar `--rule`, mais claro que `--border`. Em
+  vinte linhas o traço se repete vinte vezes, e traço forte repetido
+  vinte vezes deixa de separar e vira grade.
+
+### Sabotagens desta parte
+
+1. Raio de 13px inventado → acusado, com o valor.
+2. Número de volta a tamanho fixo → acusado.
+3. Um dos três controles de aba desalinhado → acusado, mostrando os
+   três lado a lado.
+
+**10 roteiros, 0 falhas. 792 frases, nenhuma perdida.**

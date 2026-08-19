@@ -196,5 +196,50 @@ chk('alvo de toque de 44pt',/@media\(pointer:coarse\)/.test(css));
 
 console.log('── A ESCOLHA SOBREVIVE ──');
 chk('sub-abas são persistidas',/"sub","agendaGoogle"/.test(html));
+console.log('── A GESTÃO NA INTERFACE #2 ──');
+/* Vinte telas de gestão, e o que a pessoa faz nelas é ler número e
+   comparar linha. Estas verificações protegem as duas coisas. */
+
+/* Número que dança de largura entre repinturas parece instável, e num
+   painel de dinheiro isso vira desconfiança. */
+chk('o número do painel não dança de largura',
+    /\.stat \.val\{[^}]*tabular-nums/.test(css));
+chk('e nas tabelas também',/table\.t td\{[^}]*tabular-nums/.test(css));
+chk('o número do painel acompanha a tela',
+    /\.stat \.val\{font-size:clamp\(/.test(css),
+    'voltou tamanho fixo — num painel a pessoa lê de longe');
+/* Rótulo é etiqueta, não frase: expandida, caixa alta, pequena. */
+chk('o rótulo do painel é etiqueta',
+    /\.stat \.lbl\{font-family:var\(--f-exp\)/.test(css) &&
+    /\.stat \.lbl\{[^}]*text-transform:uppercase/.test(css));
+
+/* Numa tabela de vinte linhas o traço se repete vinte vezes. Traço
+   forte repetido vinte vezes deixa de separar e vira grade. */
+chk('a linha da tabela usa o traço mais claro',
+    /table\.t td\{[^}]*border-bottom:var\(--hair\) solid var\(--rule\)/.test(css));
+chk('e o cabeçalho, o mais forte',
+    /table\.t th\{[\s\S]{0,220}border-bottom:var\(--hair\) solid var\(--border\)/.test(css),
+    'sem contraste entre cabeçalho e linha a tabela vira bloco');
+
+/* A barra mede proporção. Se um dia virar progresso de meta, contradiz
+   o passaporte, que é a única decisão ética registrada do produto. */
+chk('a barra é fina e arredondada',
+    /\.bar\{height:4px[^}]*border-radius:var\(--r-pill\)/.test(css));
+chk('e usa o acento, não o primário',
+    /\.bar i\{[^}]*background:var\(--accent\)/.test(css));
+
+/* Cartões de atalho: um traço, um raio, e o acento marcando o alvo. */
+chk('o cartão de atalho tem traço fino',
+    /\.grande\{[\s\S]{0,200}border:var\(--hair\) solid var\(--border\)/.test(css));
+chk('e o raio do sistema',/\.grande\{[\s\S]{0,220}border-radius:var\(--r-sm\)/.test(css));
+chk('o alvo se marca pelo acento',/\.grande:hover\{border-color:var\(--accent\)\}/.test(css));
+
+/* Nenhum raio fora dos três declarados: é assim que a entropia entra —
+   um 11px aqui, um 9px ali, e em três rodadas existem sete raios. */
+var raiosSoltos = (css.match(/border-radius:\s*\d+px/g) || [])
+  .filter(function (r) { return !/:\s*(0|1|2|3|4|50)px/.test(r) });
+chk('nenhum raio inventado fora dos três do sistema',
+    raiosSoltos.length === 0, raiosSoltos.slice(0, 8).join(', '));
+
 console.log('══ '+f+' falha(s) ══');
 process.exit(f?1:0);

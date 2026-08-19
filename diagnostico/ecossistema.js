@@ -182,8 +182,21 @@ chk('a mesma função de proporção do feed',/function proporcaoDaFoto/.test(co
    Sobre a foto ele continua, e ali se paga: o desfoque é o que garante
    que o coração e os selos sejam legíveis contra uma tatuagem preta e
    contra uma tatuagem clara com o mesmo código. */
+/* Testa a intenção, não a declaração. A primeira versão exigia a cor
+   exata do traço e falhou no dia em que a cor mudou — ficando no
+   caminho de uma correção em vez de proteger alguma coisa. O que
+   importa é que exista sublinhado e que os três controles concordem. */
 chk('as abas são sublinhado, não pílula de vidro',
-    /\.seg\.on\{color:var\(--foreground\);border-bottom-color:var\(--accent\)\}/.test(css));
+    /\.seg\.on\{[^}]*border-bottom-color/.test(css) && !/\.seg\{[^}]*border-radius:999px/.test(css));
+/* Três controles de aba no produto: .subnav, .seg e .aba. Três
+   espessuras diferentes inventam hierarquia entre perguntas iguais. */
+var espessuras = ['\\.subnav a\\{', '\\.seg\\{', '\\.aba\\{'].map(function (sel) {
+  var m = css.match(new RegExp(sel + '[^}]*border-bottom:([^;}]*)'));
+  return m ? m[1].trim() : 'ausente';
+});
+chk('os três controles de aba usam o mesmo traço',
+    espessuras.every(function (x) { return x === espessuras[0] && /var\(--hair\)/.test(x) }),
+    espessuras.join('  |  '));
 chk('sem desfoque no controle segmentado',
     !/\.segmento\{[^}]*backdrop-filter/.test(css),
     'voltou o vidro nas abas — caro em GPU e sem nada atrás para desfocar');
