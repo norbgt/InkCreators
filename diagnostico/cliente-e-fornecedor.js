@@ -121,8 +121,64 @@ secao("4. CHECK-IN EXIGE AS DUAS PARTES");
 S.session = "artist";
 /* O check-in de agora virou sub-aba de Hoje: era a mesma lista de
    sessões que a agenda mostrava, em duas abas diferentes. */
-var tc = ir("studio", "hoje", "checkin");
-chk("o tatuador vê as sessões para abrir", /abrirCheckin\(/.test(tc));
+/* O check-in mora na agenda: é a mesma matéria que ela trata, sessão
+   marcada. E o QR nasce do agendamento, não de um botão genérico. */
+var tc = ir("studio-schedule", "ag", "checkin");
+/* ── O QR NASCE DE UM AGENDAMENTO ────────────────────────────────
+   O botão de abrir o check-in mora na linha da sessão, dentro da
+   agenda. É isso que liga o código a esta pessoa, neste dia, neste
+   estúdio — um botão genérico "abrir check-in" não liga a nada, e o
+   tatuador teria de reencontrar noutra tela quem já estava vendo. */
+var tag = ir("studio-schedule", "ag", "mes");
+/* Não basta existirem botões: cada um tem de apontar para a SUA linha.
+   Todos apontando para a mesma sessão é o defeito silencioso aqui —
+   a tela parece certa e o QR sai da pessoa errada. */
+var indices = (tag.match(/abrirCheckin\((\d+)\)/g) || [])
+  .map(function (x) { return parseInt(x.replace(/\D/g, ""), 10) });
+chk("cada sessão da agenda gera o seu QR", indices.length >= 3,
+    "o botão de gerar o QR não está na linha da sessão");
+chk("e cada botão aponta para a sua sessão",
+    indices.length === new Set(indices).size &&
+    indices.every(function (n, k) { return n === k }),
+    "índices: [" + indices.join(", ") + "] — deveriam ser 0,1,2…");
+chk("e o botão diz o que faz", /Gerar QR/.test(tag));
+chk("a agenda e o check-in moram na mesma aba",
+    (function () {
+      var sec = g.e("SECOES_DA_GESTAO['studio-schedule'].map(function(x){return x[1]}).join(',')");
+      return sec.indexOf("mes") >= 0 && sec.indexOf("checkin") >= 0;
+    })(),
+    "o check-in voltou a exigir sair da agenda para abrir o QR daquela sessão");
+
+/* Abrir uma sessão específica tem de carregar aquela sessão, não a
+   primeira da lista: código certo com pessoa errada é pior que erro,
+   é registro falso no passaporte de alguém. */
+var segunda = g.e("BOOK[1].c");
+g.e("abrirCheckin(1)");
+chk("abrir a segunda sessão carrega a segunda pessoa",
+    S.checkin.sessao && S.checkin.sessao.c === segunda,
+    "carregou " + (S.checkin.sessao ? S.checkin.sessao.c : "nada") + " em vez de " + segunda);
+chk("e leva para a seção de check-in",
+    S.route === "studio-schedule" && (S.sub || {}).ag === "checkin",
+    "foi para " + S.route + "/" + ((S.sub || {}).ag || "—"));
+/* Duas sessões abertas ao mesmo tempo dariam dois códigos válidos, e
+   o cliente poderia confirmar o da pessoa errada. */
+var cod1 = S.checkin.codigo;
+g.e("abrirCheckin(0)");
+chk("abrir outra substitui a anterior, não soma",
+    S.checkin.codigo !== cod1 && S.checkin.sessao.c === g.e("BOOK[0].c"));
+/* A linha da sessão aberta muda de botão: gerar de novo trocaria o
+   código que a pessoa já está tentando escanear. */
+var tag2 = ir("studio-schedule", "ag", "mes");
+chk("a sessão com QR aberto oferece ver, não gerar de novo",
+    /Ver o QR/.test(tag2) && (tag2.match(/Gerar QR/g) || []).length < (tag.match(/Gerar QR/g) || []).length,
+    "dá para gerar um código novo por cima do que já está na tela");
+
+/* Os testes abaixo pressupõem que não há check-in aberto. Sem fechar,
+   eles falhariam pelo estado que ESTE bloco deixou — e não pelo que
+   pretendem medir. */
+g.e("fecharCheckin()");
+var tc = ir("studio-schedule", "ag", "checkin");
+chk("o tatuador vê as sessões para abrir", /abrirCheckin\(|Gerar QR|O mês/.test(tag));
 chk("nada de valor aparece antes de abrir", !/class="codigo"/.test(tc));
 
 g.e("abrirCheckin(0)");

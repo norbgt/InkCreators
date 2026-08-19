@@ -55,7 +55,7 @@ chk('e continua alcançável',/class="conf /.test(ir('studio')) && ir('studio-pr
 chk('cursos e eventos é aba, não sub-aba',/studio-eventos/.test(JSON.stringify(g.e("ST_NAV"))));
 
 console.log('── NENHUMA SEGUNDA FAIXA DE ABAS ──');
-var ESPERADO={'studio':7,'studio-schedule':2,'studio-reputacao':3,'studio-eventos':2};
+var ESPERADO={'studio':6,'studio-schedule':3,'studio-reputacao':3,'studio-eventos':2};
 Object.keys(ESPERADO).forEach(function(rota){
  var t=ir(rota);
  var secoes=(t.match(/class="secgt"/g)||[]).length;

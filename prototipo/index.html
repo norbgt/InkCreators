@@ -1874,11 +1874,14 @@ function qrFalso(codigo,lado){
  return h+'</svg>';
 }
 
+/* O código nasce do agendamento, não de um botão genérico: cada sessão
+   marcada gera o seu, e é isso que liga o QR a esta pessoa, neste dia,
+   neste estúdio. Abrir de dentro da agenda deixa esse vínculo óbvio. */
 function abrirCheckin(i){
  var b=BOOK[i]||BOOK[0];
  S.checkin={aberto:true,codigo:novoCodigoCheckin(),sessao:b,confirmado:false,inicio:null,fim:null,erro:null};
  S.sub=S.sub||{}; S.sub.ck="agora";
- go("studio-checkin");
+ irSecao("studio-schedule","ag","checkin");
 }
 function fecharCheckin(){
  S.checkin={aberto:false,codigo:null,sessao:null,confirmado:false,inicio:null,fim:null,erro:null};
@@ -3972,13 +3975,17 @@ var SECOES_DA_GESTAO={
     a seção de orçamentos herdaria o valor de "hoje" da seção anterior e
     o check-in sairia duas vezes. */
  "studio":           [["vg","visao","Visão geral"],
-                      ["vg","checkin","Check-in de agora"],
                       ["vg","recebidos","Orçamentos recebidos",function(){return SQ.filter(function(q){return q.status==="novo"}).length}],
                       ["vg","enviados","Propostas enviadas",function(){return SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length}],
                       ["vg","dinheiro","Dinheiro"],
                       ["vg","lancamentos","Lançamentos",function(){return LANC.length}],
                       ["vg","pessoas","Quem eu tatuei",function(){return HIST_PESSOAS.length}]],
- "studio-schedule":  [["ag","mes","O mês"],["ag","conexoes","Conexões"]],
+ /* O check-in mora na agenda porque é a mesma matéria: sessão marcada.
+    Estava na visão geral, e ali obrigava a pessoa a sair da agenda —
+    onde ela acabou de ver a sessão — para abrir o QR daquela sessão. */
+ "studio-schedule":  [["ag","mes","O mês"],
+                      ["ag","checkin","Check-in de agora"],
+                      ["ag","conexoes","Conexões"]],
  "studio-reputacao": [["rep","avaliacoes","Avaliações",function(){return REVS.filter(function(r){return !r.resp}).length}],
                       ["rep","desempenho","Desempenho por estilo"],["rep","estudios","Onde eu tatuei"]],
  "studio-eventos":   [["ev","meus","Que eu criei"],["ev","participo","Que eu participo"]],
@@ -5179,7 +5186,7 @@ function vStudio(sub){
  /* O check-in de agora mora em Hoje; o desempenho por estilo mora em
     Reputação, porque é o que responde "o que eu faço bem", não "o que
     acontece agora". Os dois blocos continuam inteiros. */
- if((sub==="studio"&&subAba("vg","visao")==="checkin")||
+ if((sub==="studio-schedule"&&subAba("ag","mes")==="checkin")||
     (sub==="studio-reputacao"&&subAba("rep","avaliacoes")==="desempenho")){
   if(sub==="studio-reputacao"){
    var porEstilo=desempenhoPorEstilo();
@@ -5208,13 +5215,21 @@ function vStudio(sub){
   if(!ck.aberto){
    h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Abrir o check-in de uma sessão</span>'+tg("novo")+'</div>';
    h+='<div class="tiny muted" style="margin-top:3px">Abra quando a pessoa sentar. Ela escaneia, e a sessão fica registrada para os dois — o passaporte dela e a sua reputação.</div>';
-   h+='<div class="lista" style="margin-top:10px">';
-   BOOK.forEach(function(b,i){
-    h+='<button class="item" onclick="abrirCheckin('+i+')"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div>';
-    h+='<div class="itemtxt"><div class="b small">'+b.c+'</div><div class="tiny muted">'+b.area+' · '+b.h+'h previstas</div></div>';
-    h+='<div class="itemfim"><span class="tiny muted">abrir check-in ›</span></div></button>';
-   });
-   h+='</div></div>';
+   /* Empilhada na agenda, esta lista seria a segunda cópia das mesmas
+      sessões, a uma rolagem de distância. O botão de gerar o QR mora
+      na lista de cima, onde a sessão já está. */
+   if(!montandoSecoes){
+    h+='<div class="lista" style="margin-top:10px">';
+    BOOK.forEach(function(b,i){
+     h+='<button class="item" onclick="abrirCheckin('+i+')"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div>';
+     h+='<div class="itemtxt"><div class="b small">'+b.c+'</div><div class="tiny muted">'+b.area+' · '+b.h+'h previstas</div></div>';
+     h+='<div class="itemfim"><span class="tiny muted">abrir check-in ›</span></div></button>';
+    });
+    h+='</div>';
+   } else {
+    h+='<div class="tiny muted" style="margin-top:9px">Cada sessão em <b>O mês</b>, aqui em cima, tem o seu botão de gerar o QR. O código nasce do agendamento — é ele que liga o QR a esta pessoa, neste dia.</div>';
+   }
+   h+='</div>';
    return h+'</div></main>';
   }
 
@@ -5255,7 +5270,11 @@ function vStudio(sub){
   h+='</div>';
  }
 
- if(sub==="studio-schedule"){
+ /* A agenda tem três recortes agora, e o do meio é o check-in — que
+    tem bloco próprio, mais abaixo. Sem esta saída, a seção de check-in
+    caía no conteúdo do mês e a página mostrava o calendário duas
+    vezes, com dois "Gerar QR" para a mesma sessão. */
+ if(sub==="studio-schedule"&&subAba("ag","mes")!=="checkin"){
   h+=abasInternas("ag",[["mes","O mês"],["conexoes","Conexões"]]);
 
   /* ── Google Agenda ───────────────────────────────────────────
@@ -5312,7 +5331,24 @@ function vStudio(sub){
    h+='<div style="aspect-ratio:1;border:1px solid var(--border);border-radius:var(--r-sm);padding:4px;font-size:11px;'+(b?"background:var(--x-accent-bg);border-color:var(--x-accent-border)":"")+'"><div class="b">'+d+'</div>'+(b?'<div class="tiny" style="color:var(--accent)">sessão</div>':'')+'</div>';
   }
   h+='</div><div class="sep"></div><div class="b small">Próximas sessões</div><div style="margin-top:3px">';
-  BOOK.forEach(function(b){h+='<div class="lrow"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div><div><div class="b small">'+b.c+'</div><div class="small muted">'+b.area+' · '+b.h+'h</div></div><div class="sp b small">'+brl(b.cents)+'</div><button class="btn sm" style="margin-left:9px">Detalhes</button></div>'});
+  /* A ação principal de uma sessão marcada é abrir o check-in dela.
+     Antes o botão daqui era "Detalhes", que não fazia nada, e o
+     check-in vivia noutra aba com uma segunda lista das mesmas
+     sessões — a pessoa tinha de reencontrar ali quem já estava vendo
+     aqui. */
+  BOOK.forEach(function(b,i){
+   var aberta=S.checkin.aberto&&S.checkin.sessao&&S.checkin.sessao.c===b.c;
+   h+='<div class="lrow"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div>';
+   /* "previstas" não é enfeite: a duração de verdade sai do relógio do
+      check-in, e é ela que vira desempenho por estilo. */
+   h+='<div style="min-width:0"><div class="b small">'+b.c+'</div><div class="small muted">'+b.area+' · '+b.h+'h previstas</div></div>';
+   h+='<div class="sp b small">'+brl(b.cents)+'</div>';
+   h+='<button class="btn sm" style="margin-left:9px">Detalhes</button>';
+   h+=aberta
+     ? '<button class="btn sm" style="margin-left:6px" onclick="irSecao(\'studio-schedule\',\'ag\',\'checkin\')">Ver o QR ›</button>'
+     : '<button class="btn sm primary" style="margin-left:6px" onclick="abrirCheckin('+i+')">Gerar QR</button>';
+   h+='</div>';
+  });
   h+='</div></div>';
  }
 

@@ -53,6 +53,8 @@ var SAIRAM_DE_PROPOSITO = [
    "era uma prévia de quatro linhas com 'Ver todos' que levava à outra sub-aba. Com as seções empilhadas numa página só, a tabela completa está logo abaixo — a prévia viraria a mesma lista duas vezes, a uma rolagem de distância"],
   ["Meus orçamentos",
    "deixou de ser aba e virou seção da Visão geral, junto com Pagamentos. A frase some da barra das outras telas do cliente — de Passaporte e Formação não se lê mais a palavra. É a troca que a arquitetura de três abas impõe, e o custo está registrado na decisão 015"],
+  ["abrir check-in ›",
+   "a lista de sessões do check-in saiu: empilhada na agenda, ela era a segunda cópia das mesmas sessões a uma rolagem de distância. O botão virou 'Gerar QR' e mora na linha da sessão em 'O mês', que é onde ela já está"],
   ["Ver todos →",
    "o atalho morria junto com a prévia dos lançamentos, pela mesma razão: ele existia para trocar de sub-aba, e não há mais sub-aba para trocar"]
 ];
@@ -122,7 +124,10 @@ var SUBABAS = [
    sub-aba aberta. É a lista que torna a comparação honesta — e é
    também o registro de onde procurar o que você não achar. */
 var MUDOU_DE_LUGAR = {
-  "studio-checkin":   [["studio",           "vg",  "checkin"],
+  /* O check-in foi para a agenda: é a mesma matéria que ela trata,
+     sessão marcada. O desempenho por estilo continua em Reputação. */
+  "studio-checkin":   [["studio-schedule",  "ag",  "checkin"],
+                       ["studio-schedule",  "ag",  "mes"],
                        ["studio-reputacao", "rep", "desempenho"]],
   "studio-quotes":    [["studio",           "vg",  "recebidos"],
                        ["studio",           "vg",  "enviados"]],
