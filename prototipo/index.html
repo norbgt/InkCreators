@@ -6,80 +6,162 @@
 <title>Ink Creators — protótipo</title>
 <link rel="icon" type="image/png" href="marca/favicon.png" />
 <link rel="apple-touch-icon" href="marca/logo-preto.png" />
+
+<!-- Três famílias, cada uma com um papel — a mesma gramática do
+     portfólio da Amanda. A quarta dela (DM Sans, títulos de cartão) não
+     entrou: o peso 500 da Instrument Sans faz o mesmo trabalho, e uma
+     família a menos é uma decisão a menos.
+
+     Se as fontes não carregarem (offline, rede lenta), a pilha de
+     sistema assume e nada quebra — por isso cada token tem fallback. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Encode+Sans+Semi+Condensed:wght@400;500;600&family=Encode+Sans+Expanded:wght@400;500&display=swap" />
 <style>
 :root{
-  /* ── Tokens oficiais shadcn/ui — mesmos valores de src/styles.css do projeto ── */
-  --radius:0.75rem;
-  --background:oklch(1 0 0);
-  --foreground:oklch(0.16 0 0);
-  --card:oklch(1 0 0);
-  --card-foreground:oklch(0.16 0 0);
-  --popover:oklch(1 0 0);
-  --popover-foreground:oklch(0.16 0 0);
-  --primary:oklch(0.16 0 0);
-  --primary-foreground:oklch(0.99 0 0);
-  --secondary:oklch(0.96 0 0);
-  --secondary-foreground:oklch(0.22 0 0);
-  --muted:oklch(0.96 0 0);
-  --muted-foreground:oklch(0.5 0 0);
-  --accent:oklch(0.42 0.06 215);
-  --accent-foreground:oklch(0.99 0 0);
-  --destructive:oklch(0.55 0.18 25);
-  --destructive-foreground:oklch(0.99 0 0);
-  --border:oklch(0.92 0 0);
-  --input:oklch(0.92 0 0);
-  --ring:oklch(0.42 0.06 215);
-  --chart-1:oklch(0.16 0 0);--chart-2:oklch(0.42 0.06 215);--chart-3:oklch(0.55 0 0);
-  --chart-4:oklch(0.75 0 0);--chart-5:oklch(0.88 0 0);
-  /* ── Extensões do protótipo (prefixo -x-): estados que o shadcn não cobre ── */
-  --x-accent-bg:oklch(0.965 0.012 215);
-  --x-accent-border:oklch(0.89 0.025 215);
-  --x-success:oklch(0.45 0.12 150);--x-success-bg:oklch(0.96 0.03 150);
-  --x-warning:oklch(0.48 0.10 75);--x-warning-bg:oklch(0.96 0.04 85);
-  --x-danger:oklch(0.50 0.16 25);--x-danger-bg:oklch(0.96 0.03 25);
-  --x-tag-violet:oklch(0.45 0.14 300);--x-tag-violet-bg:oklch(0.96 0.03 300);
-  --x-tag-blue:oklch(0.45 0.13 250);--x-tag-blue-bg:oklch(0.96 0.03 250);
-  --x-tag-teal:oklch(0.45 0.09 190);--x-tag-teal-bg:oklch(0.95 0.03 190);
+  /* ═══════════════════════════════════════════════════════════════
+     INTERFACE #2
+
+     A gramática vem do portfólio da Amanda: um traço, três raios,
+     escala fluida em clamp, uma duração. E daqui:
+
+     A TELA NÃO TEM COR. A cor vem das tatuagens.
+     Um acento só — petróleo — e ele aparece pouco. Interface colorida
+     disputa atenção com o trabalho que ela existe para mostrar, e numa
+     plataforma de tatuagem isso é perder o jogo antes de começar.
+
+     Os nomes dos tokens são os mesmos da interface #1, de propósito:
+     750 linhas de CSS dependem deles. Muda o valor, não o vocabulário.
+     ═══════════════════════════════════════════════════════════════ */
+
+  /* ── Traço ──────────────────────────────────────────────────────
+     Um só, em tudo. Duas espessuras criam hierarquia falsa. */
+  --hair:1px;
+
+  /* ── Raios: três degraus e nada além ────────────────────────── */
+  --r-xs:2px;      /* cartões, mídia — quase reto */
+  --r-sm:4px;      /* campos, botões, tiles */
+  --r-pill:999px;  /* pílulas e selos */
+  --radius:var(--r-xs);
+
+  /* ── Tipografia ─────────────────────────────────────────────── */
+  --f-sans:"Instrument Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --f-cond:"Encode Sans Semi Condensed",var(--f-sans);
+  --f-exp:"Encode Sans Expanded",var(--f-sans);
+
+  /* Escala fluida — nunca tamanho fixo, nunca breakpoint tipográfico */
+  --t-h1:clamp(28px,4.2vw,42px);
+  --t-h2:clamp(21px,2.6vw,28px);
+  --t-h3:clamp(17px,1.9vw,20px);
+  --t-lead:clamp(15px,1.5vw,17px);
+  --t-card:clamp(14.5px,1.3vw,16px);
+  --t-body:14.5px;
+  --t-meta:13px;
+  --t-micro:11.5px;
+  --t-num:clamp(26px,3.6vw,40px);   /* números grandes, em condensada */
+
+  /* ── Espaço ─────────────────────────────────────────────────── */
+  --shell-max:1180px;
+  --gutter:clamp(16px,3vw,32px);
+  --block-gap:clamp(32px,5vw,64px);
+  --section-gap:clamp(20px,3vw,36px);
+  --tap:44px;
+
+  /* ── Movimento: uma duração, uma lenta, uma curva ───────────── */
+  --dur:200ms;
+  --dur-slow:380ms;
+  --ease:cubic-bezier(.2,.7,.2,1);
+
+  /* ── Cor ────────────────────────────────────────────────────── */
+  --background:#ffffff;
+  --foreground:#141414;
+  --card:#ffffff;
+  --card-foreground:#141414;
+  --popover:#ffffff;
+  --popover-foreground:#141414;
+  --primary:#141414;
+  --primary-foreground:#ffffff;
+  --secondary:#f6f6f6;
+  --secondary-foreground:#242424;
+  --muted:#f6f6f6;
+  --muted-foreground:#6b6b6b;
+  --border:#e6e6e6;
+  --rule:#ededed;
+  --input:#dcdcdc;
+
+  /* Petróleo. Confere 7,8:1 sobre branco e 7,8:1 de branco sobre ele
+     — serve de texto e de preenchimento, o que economiza um token. */
+  --accent:#215a60;
+  --accent-foreground:#ffffff;
+  --accent-bd:#c6d9db;
+  --ring:#215a60;
+  --x-accent-bg:#eef4f5;
+  --x-accent-border:#c6d9db;
+
+  --destructive:#8a3030;
+  --destructive-foreground:#ffffff;
+
+  /* Estados dessaturados de propósito. Verde e amarelo berrantes ao
+     lado de uma foto de tatuagem sequestram o olho. */
+  --x-success:#2f6b4f;--x-success-bg:#eff5f2;
+  --x-warning:#7a5a1b;--x-warning-bg:#f8f3e8;
+  --x-danger:#8a3030;--x-danger-bg:#f9eeee;
+  --x-tag-violet:#514470;--x-tag-violet-bg:#f2f0f7;
+  --x-tag-blue:#2a4a72;--x-tag-blue-bg:#eef2f8;
+  --x-tag-teal:#215a60;--x-tag-teal-bg:#eef4f5;
+
+  --chart-1:#141414;--chart-2:#215a60;--chart-3:#6b6b6b;
+  --chart-4:#b4b4b4;--chart-5:#dcdcdc;
 }
 html[data-dark]{
-  /* ── Tema escuro CORRIGIDO: mesma identidade monocromática + petróleo do claro.
-       O projeto hoje tem roxo aqui (resto do template padrão) — ver dark-theme-corrigido.css ── */
-  --background:oklch(0.14 0 0);
-  --foreground:oklch(0.97 0 0);
-  --card:oklch(0.18 0 0);
-  --card-foreground:oklch(0.97 0 0);
-  --popover:oklch(0.18 0 0);
-  --popover-foreground:oklch(0.97 0 0);
-  --primary:oklch(0.97 0 0);
-  --primary-foreground:oklch(0.14 0 0);
-  --secondary:oklch(0.24 0 0);
-  --secondary-foreground:oklch(0.95 0 0);
-  --muted:oklch(0.24 0 0);
-  --muted-foreground:oklch(0.68 0 0);
-  --accent:oklch(0.72 0.07 215);
-  --accent-foreground:oklch(0.14 0 0);
-  --destructive:oklch(0.62 0.19 25);
-  --destructive-foreground:oklch(0.99 0 0);
-  --border:oklch(0.27 0 0);
-  --input:oklch(0.27 0 0);
-  --ring:oklch(0.72 0.07 215);
-  --chart-1:oklch(0.97 0 0);--chart-2:oklch(0.72 0.07 215);--chart-3:oklch(0.68 0 0);
-  --chart-4:oklch(0.48 0 0);--chart-5:oklch(0.34 0 0);
-  --x-accent-bg:oklch(0.26 0.030 215);
-  --x-accent-border:oklch(0.35 0.045 215);
-  --x-success:oklch(0.78 0.14 150);--x-success-bg:oklch(0.25 0.05 150);
-  --x-warning:oklch(0.82 0.12 85);--x-warning-bg:oklch(0.27 0.05 85);
-  --x-danger:oklch(0.75 0.15 25);--x-danger-bg:oklch(0.27 0.06 25);
-  --x-tag-violet:oklch(0.78 0.12 300);--x-tag-violet-bg:oklch(0.26 0.05 300);
-  --x-tag-blue:oklch(0.78 0.11 250);--x-tag-blue-bg:oklch(0.25 0.05 250);
-  --x-tag-teal:oklch(0.78 0.09 190);--x-tag-teal-bg:oklch(0.24 0.04 190);
+  /* O escuro é o mesmo sistema com os cinzas invertidos. O petróleo
+     clareia o suficiente para manter contraste, e só. */
+  --background:#101010;
+  --foreground:#f2f2f2;
+  --card:#181818;
+  --card-foreground:#f2f2f2;
+  --popover:#181818;
+  --popover-foreground:#f2f2f2;
+  --primary:#f2f2f2;
+  --primary-foreground:#101010;
+  --secondary:#212121;
+  --secondary-foreground:#ececec;
+  --muted:#1e1e1e;
+  --muted-foreground:#9a9a9a;
+  --border:#2b2b2b;
+  --rule:#242424;
+  --input:#333333;
+
+  --accent:#7cbcc2;
+  --accent-foreground:#0d1f21;
+  --accent-bd:#2f5b5f;
+  --ring:#7cbcc2;
+  --x-accent-bg:#17282a;
+  --x-accent-border:#2f5b5f;
+
+  --destructive:#d68a8a;
+  --destructive-foreground:#1a0f0f;
+
+  --x-success:#8dc4a8;--x-success-bg:#16241d;
+  --x-warning:#d3b475;--x-warning-bg:#241f13;
+  --x-danger:#d68a8a;--x-danger-bg:#241414;
+  --x-tag-violet:#a99fd0;--x-tag-violet-bg:#1e1b28;
+  --x-tag-blue:#8fb0d8;--x-tag-blue-bg:#161d26;
+  --x-tag-teal:#7cbcc2;--x-tag-teal-bg:#17282a;
+
+  --chart-1:#f2f2f2;--chart-2:#7cbcc2;--chart-3:#9a9a9a;
+  --chart-4:#5a5a5a;--chart-5:#333333;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--background);color:var(--foreground);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{font-family:var(--f-sans);background:var(--background);color:var(--foreground);
+  font-size:var(--t-body);line-height:1.55;-webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility}
+/* Número nunca dança. Vale em contador, preço, percentual e relógio. */
+.num,.count,.gval,.relogio,.codigo,table td,table th{font-variant-numeric:tabular-nums}
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 input,select,textarea{font:inherit;color:inherit;background:var(--card)}
 a{color:inherit;text-decoration:none}
-.wrap{max-width:1180px;margin:0 auto;padding:0 18px}
+.wrap{max-width:var(--shell-max);margin:0 auto;padding:0 var(--gutter)}
 .hide{display:none!important}
 .ico{width:1em;height:1em;display:inline-block;vertical-align:-.14em;flex-shrink:0}
 .iconbtn .ico{width:19px;height:19px;vertical-align:0}
@@ -135,7 +217,10 @@ html[data-dark] .logo .marca{content:url("marca/logo-branco.png")}
 .menu a:hover{background:var(--muted)}
 .menu .mlabel{padding:7px 10px;font-size:11.5px;color:var(--muted-foreground);overflow:hidden;text-overflow:ellipsis}
 .menu .msep{height:1px;background:var(--border);margin:4px 0}
-.pill{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--border);border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:600;white-space:nowrap;background:var(--card)}
+.pill{display:inline-flex;align-items:center;gap:5px;border:var(--hair) solid var(--border);
+  border-radius:var(--r-pill);padding:7px 14px;font-size:var(--t-meta);font-weight:500;
+  white-space:nowrap;background:var(--card);
+  transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease)}
 .pill:hover{border-color:var(--muted-foreground)}
 .pill.solid{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
 .pill.accent{background:var(--x-accent-bg);color:var(--accent);border-color:var(--x-accent-border)}
@@ -144,9 +229,13 @@ html[data-dark] .marcagrande{content:url("marca/logo-branco.png")}
 .avatarbtn{width:33px;height:33px;border-radius:50%;background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;border:1px solid var(--border)}
 
 main{padding:24px 0 60px}
-h1.page{font-size:25px;font-weight:600;letter-spacing:-.02em}
+/* Condensada nos títulos e nos números grandes. É a única voz
+   tipográfica diferente do corpo, e existe para o olho saber, sem ler,
+   que aquilo ali é manchete ou grandeza. */
+h1.page{font-family:var(--f-cond);font-size:var(--t-h2);font-weight:600;letter-spacing:-.01em;line-height:1.15}
+.kicker{font-family:var(--f-exp);font-size:var(--t-micro);font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground)}
 p.sub{color:var(--muted-foreground);margin-top:4px;font-size:13.5px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius)}
+.card{background:var(--card);border:var(--hair) solid var(--border);border-radius:var(--r-xs)}
 .pad{padding:15px 17px}
 .grid{display:grid;gap:14px}
 .cols2{grid-template-columns:2fr 1fr}
@@ -156,7 +245,12 @@ p.sub{color:var(--muted-foreground);margin-top:4px;font-size:13.5px}
 .row{display:flex;align-items:center;gap:9px}
 .sp{margin-left:auto}
 .wrapf{flex-wrap:wrap}
-.badge{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:600;background:var(--muted);color:var(--muted-foreground)}
+/* Etiqueta neutra por padrão. As variantes coloridas continuam
+   existindo, mas o fundo de cada uma é quase branco — a cor entra pelo
+   texto. Fundo saturado ao lado de foto de tatuagem rouba o olho. */
+.badge{display:inline-block;border-radius:var(--r-pill);padding:2px 9px;
+  font-family:var(--f-exp);font-size:var(--t-micro);font-weight:500;letter-spacing:.01em;
+  background:var(--muted);color:var(--muted-foreground)}
 .badge.ok{background:var(--x-success-bg);color:var(--x-success)}
 .badge.warn{background:var(--x-warning-bg);color:var(--x-warning)}
 .badge.bad{background:var(--x-danger-bg);color:var(--x-danger)}
@@ -165,13 +259,19 @@ p.sub{color:var(--muted-foreground);margin-top:4px;font-size:13.5px}
 .badge.blu{background:var(--x-tag-blue-bg);color:var(--x-tag-blue)}
 .badge.tea{background:var(--x-tag-teal-bg);color:var(--x-tag-teal)}
 .sep{height:1px;background:var(--border);margin:13px 0}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--border);background:var(--card);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  border:var(--hair) solid var(--border);background:var(--card);border-radius:var(--r-sm);
+  padding:9px 14px;font-size:var(--t-meta);font-weight:500;min-height:38px;
+  transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease)}
 .btn:hover{border-color:var(--muted-foreground)}
 .btn.primary{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
 .btn:disabled{opacity:.42;cursor:not-allowed}
 .btn.sm{padding:6px 10px;font-size:12.5px}
 .btn.blk{width:100%}
-.fld{width:100%;text-align:left;font-weight:400;border:1px solid var(--border);border-radius:10px;padding:9px 12px;outline:none}
+.fld{width:100%;text-align:left;font-weight:400;border:var(--hair) solid var(--input);
+  border-radius:var(--r-sm);padding:10px 12px;outline:none;
+  transition:border-color var(--dur) var(--ease)}
+.fld:focus{border-color:var(--accent)}
 .fld:focus{border-color:var(--muted-foreground)}
 label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bottom:4px}
 
@@ -232,7 +332,16 @@ html[data-dark] .seg.on{
 .selinho .si svg{width:12px;height:12px;display:block}
 .selinho[data-c="fato"]{background:var(--x-success-bg);color:var(--x-success)}
 .selinho[data-c="pares"]{background:var(--x-accent-bg);color:var(--accent)}
-.selinho[data-c="contratado"]{background:transparent;color:var(--muted-foreground);border:1px dashed var(--border)}
+.selinho[data-c="contratado"]{background:transparent;color:var(--muted-foreground);border:var(--hair) dashed var(--border)}
+
+/* Selo em modo ícone: sem palavra, redondo, do tamanho de um alvo de
+   toque decente. A palavra inteira mora no perfil. */
+.selosic{display:flex;gap:4px;flex-shrink:0;background:none;padding:0;cursor:pointer;border:none}
+.selinho.soic{padding:0;width:24px;height:24px;justify-content:center;border-radius:var(--r-pill)}
+.selinho.soic .si{font-size:12px}
+.selinho.soic .si svg{width:13px;height:13px}
+.selosic:hover .selinho.soic{outline:var(--hair) solid var(--muted-foreground);outline-offset:1px}
+@media(pointer:coarse){.selinho.soic{width:28px;height:28px}}
 
 /* No perfil, cada selo vem com a regra à vista. Selo sem regra visível
    é fé, não confiança. */
@@ -291,7 +400,9 @@ html[data-dark] .seg.on{
 .itemfim{text-align:right;flex-shrink:0;display:flex;flex-direction:column;gap:2px}
 .itemfoto{width:46px;height:46px;border-radius:9px;background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
 .itemfoto .ico{width:24px;height:24px;color:var(--muted-foreground)}
-.chip{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:500;white-space:nowrap}
+.chip{border:var(--hair) solid var(--border);background:var(--card);border-radius:var(--r-pill);
+  padding:6px 12px;font-size:var(--t-meta);font-weight:400;white-space:nowrap;min-height:32px;
+  transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease)}
 .chip.on{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
 .chip.acc.on{background:var(--accent);border-color:var(--accent);color:var(--accent-foreground)}
 .fbar{margin-top:16px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card)}
@@ -315,52 +426,110 @@ html[data-dark] .seg.on{
 
 /* Feed em publicações, uma por vez */
 .feedposts{max-width:440px;margin:14px auto 0}
-.post{border:1px solid var(--border);border-radius:12px;background:var(--card);overflow:hidden;margin-bottom:14px}
-.postinfo{padding:10px 12px 11px}
-.btnseguir{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border:1px solid var(--border);border-radius:7px;background:var(--card);font-size:12px;font-weight:600;flex-shrink:0;white-space:nowrap}
-.btnicone{width:32px;height:32px;border:1px solid var(--border);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+/* ═══ FEED EM MASONRY ══════════════════════════════════════════════
+   Colunas de CSS, não grade. A grade obriga toda célula da fileira à
+   mesma altura, que é exatamente o problema: recortar tatuagem
+   vertical para caber ao lado de uma horizontal.
+
+   Column-count tem um custo conhecido — a ordem desce por coluna em
+   vez de atravessar a fileira. Num feed de descoberta isso não pesa:
+   não existe "primeiro" e "segundo", existe o conjunto. */
+.feed{column-gap:14px;margin-top:var(--section-gap);
+  column-count:2}
+@media(min-width:700px){.feed{column-count:3}}
+@media(min-width:1000px){.feed{column-count:4}}
+@media(max-width:400px){.feed{column-count:1}}
+
+.post{break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid;
+  display:block;width:100%;margin:0 0 14px;background:none;border:none}
+
+.postimg{position:relative;width:100%;overflow:hidden;background:var(--muted);
+  border-radius:var(--r-sm)}
+.postimg .sl{position:absolute;inset:0;background-size:cover;background-position:center;
+  opacity:0;transition:opacity var(--dur) var(--ease)}
+.postimg .sl.on{opacity:1}
+.postimg .vazio{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:4px;color:var(--muted-foreground);text-align:center;padding:0 12px}
+
+/* A foto inteira é o botão que leva ao perfil. Fica embaixo de tudo:
+   os controles por cima param o clique com stopPropagation. */
+.postir{position:absolute;inset:0;z-index:1;background:none;border:none;cursor:zoom-in}
+
+.postimg .nav,.postimg .coracao,.postimg .selosic,.postimg .pips,
+.postimg .tagtl,.postimg .postacoes{z-index:2}
+
+.postimg .nav{position:absolute;top:50%;transform:translateY(-50%);width:30px;height:30px;
+  border-radius:var(--r-pill);background:rgba(0,0,0,.42);color:#fff;
+  display:flex;align-items:center;justify-content:center;opacity:0;
+  transition:opacity var(--dur) var(--ease)}
+.postimg .nav.l{left:8px}.postimg .nav.r{right:8px}
+.postimg .nav .ico{width:16px;height:16px}
+.post:hover .postimg .nav{opacity:1}
+
+.postimg .pips{position:absolute;bottom:9px;left:0;right:0;display:flex;
+  justify-content:center;gap:4px;pointer-events:none}
+.postimg .pips i{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.55)}
+.postimg .pips i.on{background:#fff}
+
+.postimg .tagtl{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.55);color:#fff;
+  border-radius:var(--r-pill);padding:3px 9px;font-family:var(--f-exp);
+  font-size:var(--t-micro);font-weight:500}
+
+/* Selos no canto de cima, sobre a foto. Fundo escuro translúcido para
+   sobreviver a qualquer tatuagem embaixo — a cor do selo sozinha não
+   garante contraste contra uma foto que pode ser preta ou branca. */
+.postimg .selosic{position:absolute;top:8px;right:8px;display:flex;gap:4px;
+  padding:3px;border-radius:var(--r-pill);background:rgba(0,0,0,.5);
+  backdrop-filter:blur(6px);cursor:pointer}
+.postimg .selosic .selinho{background:none!important;color:#fff!important;
+  width:20px;height:20px;padding:0}
+.postimg .selosic .selinho .si svg{width:12px;height:12px}
+
+.coracao{position:absolute;bottom:8px;right:8px;width:34px;height:34px;
+  border-radius:var(--r-pill);background:rgba(0,0,0,.45);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;
+  backdrop-filter:blur(4px);transition:transform var(--dur) var(--ease)}
+.coracao:hover{transform:scale(1.08)}
+.coracao.on{background:#fff;color:#c0392b}
+.coracao .ico{width:17px;height:17px}
+
+/* Ações escondidas até o mouse chegar. Fora do ponteiro fino elas nem
+   entram no HTML visível — no toque, o card inteiro leva ao perfil. */
+.postacoes{position:absolute;left:8px;bottom:8px;display:flex;gap:5px;
+  opacity:0;transform:translateY(4px);
+  transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}
+.post:hover .postacoes{opacity:1;transform:none}
+@media(pointer:coarse){.postacoes{display:none}}
+.postacoes .btnicone{width:34px;height:34px;border:none;border-radius:var(--r-pill);
+  background:rgba(0,0,0,.5);color:#fff;backdrop-filter:blur(4px)}
+.postacoes .btnicone:hover{background:rgba(0,0,0,.72)}
+.postacoes .btnicone.on{background:#fff;color:var(--foreground)}
+.postacoes .btnicone .ico{width:16px;height:16px}
+
+/* O pé: duas linhas e o nome. Alinhado à esquerda, sem borda, sem
+   fundo — ele é legenda da foto, não outro cartão. */
+.postpe{display:block;width:100%;text-align:left;padding:8px 2px 0;background:none;border:none}
+.pnome{font-size:var(--t-card);font-weight:500;line-height:1.25;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ppe{font-family:var(--f-exp);font-size:var(--t-micro);color:var(--muted-foreground);
+  line-height:1.45;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ppe .cifra{font-family:var(--f-sans);font-size:12.5px;letter-spacing:.05em}
+.pph{font-family:var(--f-exp);font-size:var(--t-micro);color:var(--muted-foreground)}
+.pseg{font-family:var(--f-exp);font-size:var(--t-micro);color:var(--accent);padding:3px 2px 0}
+
+.btnseguir{display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 11px;
+  border:var(--hair) solid var(--border);border-radius:var(--r-pill);background:var(--card);
+  font-size:var(--t-meta);font-weight:400;flex-shrink:0;white-space:nowrap}
+.btnicone{width:36px;height:36px;border:var(--hair) solid var(--border);border-radius:var(--r-sm);
+  background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:border-color var(--dur) var(--ease)}
 .btnicone:hover{border-color:var(--muted-foreground)}
 .btnicone .ico{width:17px;height:17px}
 .btnseguir:hover{border-color:var(--muted-foreground)}
 .btnseguir.on{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
 .btnseguir .ico{width:13px;height:13px}
-/* Faixa de medidas: selos e números encostados um no outro, separados
-   do resto por espaço. Agrupar por natureza é o que permite ler o card
-   em três olhadas em vez de cinco. */
-.medidas{display:flex;align-items:center;gap:9px;margin-top:9px;padding-top:9px;
-  border-top:1px solid var(--border)}
+.postinfo{padding:10px 12px 11px}
 
-/* Selos no canto superior direito do card: só ícone, alinhados, no
-   mesmo ponto em todo card da coluna. */
-.selosic{display:flex;gap:4px;flex-shrink:0;background:none;padding:0;cursor:pointer}
-.selinho.soic{padding:0;width:24px;height:24px;justify-content:center;border-radius:50%}
-.selinho.soic .si{font-size:12px}
-.selinho.soic .si svg{width:13px;height:13px}
-.selosic:hover .selinho.soic{outline:1px solid var(--muted-foreground);outline-offset:1px}
-@media(pointer:coarse){
-  .selinho.soic{width:28px;height:28px}
-}
-.acoescard{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;
-  border-top:1px solid var(--border)}
-.acoescard .sp{flex:1}
-
-.postimg{position:relative;aspect-ratio:4/3;background:var(--muted)}
-.postimg .sl{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity .25s}
-.postimg .sl.on{opacity:1}
-.postimg .vazio{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--muted-foreground)}
-.postimg .nav{position:absolute;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;display:flex;align-items:center;justify-content:center}
-.postimg .nav.l{left:9px}.postimg .nav.r{right:9px}
-.postimg .nav .ico{width:17px;height:17px}
-.postimg .pips{position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:4px}
-.postimg .pips i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.5)}
-.postimg .pips i.on{background:#fff}
-.postimg .tagtl{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.6);color:#fff;border-radius:999px;padding:3px 9px;font-size:10.5px;font-weight:600;display:inline-flex;align-items:center;gap:4px}
-.coracao{position:absolute;bottom:9px;right:9px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;line-height:1;backdrop-filter:blur(3px);transition:transform .15s}
-.coracao:hover{transform:scale(1.08)}
-.coracao.on{background:#fff;color:#e2474a}
-.coracao .ico{width:20px;height:20px}
-.coracao{width:34px;height:34px;font-size:17px}
-.feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:15px;margin-top:16px}
 .acard{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--card)}
 .acard:hover{border-color:var(--muted-foreground)}
 .caro{position:relative;height:190px;background:var(--border)}
@@ -382,7 +551,7 @@ html[data-dark] .seg.on{
 .pcard .im .nv{position:absolute;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center}
 
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:11px}
-.stat{background:var(--muted);border-radius:var(--radius);padding:13px 15px}
+.stat{background:var(--muted);border-radius:var(--r-sm);padding:14px 16px}
 .stat .lbl{font-size:11.5px;color:var(--muted-foreground)}
 .stat .val{font-size:22px;font-weight:600;margin-top:4px;letter-spacing:-.02em}
 .stat .hint{font-size:11px;color:var(--muted-foreground);margin-top:2px}
@@ -390,8 +559,14 @@ html[data-dark] .seg.on{
 .envhead{border-bottom:1px solid var(--border);background:var(--card)}
 .kicker{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-foreground)}
 .subnav{display:flex;gap:2px;overflow-x:auto;margin-top:13px}
-.subnav a{display:inline-flex;align-items:center;gap:5px;padding:10px 12px;font-size:12.5px;font-weight:600;color:var(--muted-foreground);border-bottom:2px solid transparent;white-space:nowrap;cursor:pointer}
-.subnav a.on{color:var(--foreground);border-bottom-color:var(--foreground)}
+/* A aba ativa se marca por um traço de 1px, como tudo no site. Dois
+   pixels criavam uma segunda espessura, e duas espessuras criam
+   hierarquia que não existe. */
+.subnav a{display:inline-flex;align-items:center;gap:6px;padding:11px 13px;
+  font-size:var(--t-meta);font-weight:400;color:var(--muted-foreground);
+  border-bottom:var(--hair) solid transparent;white-space:nowrap;cursor:pointer;
+  transition:color var(--dur) var(--ease)}
+.subnav a.on{color:var(--foreground);font-weight:500;border-bottom-color:var(--foreground)}
 .subnav.client a.on{color:var(--accent);border-bottom-color:var(--accent)}
 
 .lrow{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--border)}
@@ -428,7 +603,9 @@ html[data-dark] .seg.on{
 .tag.real{background:#1b6e3c}.tag.mock{background:#9c2b2b}.tag.new{background:#2b5c70}
 footer.note{border-top:1px solid var(--border);padding:20px 0;color:var(--muted-foreground);font-size:12px}
 table.t{width:100%;border-collapse:collapse;font-size:13px}
-table.t th{text-align:left;font-weight:600;color:var(--muted-foreground);font-size:11.5px;padding:7px 0;border-bottom:1px solid var(--border)}
+table.t th{text-align:left;font-family:var(--f-exp);font-weight:500;color:var(--muted-foreground);
+  font-size:var(--t-micro);letter-spacing:.06em;text-transform:uppercase;
+  padding:9px 0;border-bottom:var(--hair) solid var(--border)}
 table.t td{padding:10px 0;border-bottom:1px solid var(--border)}
 .bar{height:6px;background:var(--muted);border-radius:3px;overflow:hidden}
 .bar i{display:block;height:6px;background:var(--primary)}
@@ -2011,108 +2188,97 @@ function feedList(){
    Curtir foto e seguir tatuador alimentam o que a plataforma entende
    sobre o gosto da pessoa — e é isso que faz o orçamento chegar em quem
    realmente combina, em vez de em quem só bate o filtro. */
+/* ═══ O CARD DO FEED ═══════════════════════════════════════════════
+   Interface #2: a foto é o card.
+
+   Antes eram quatro faixas de texto e uma foto em 4:3. Tatuagem não
+   cabe em 4:3 — a maioria é vertical, e recortar para caber numa
+   moldura é editar o trabalho de outra pessoa sem pedir.
+
+   Agora a foto define a altura, o texto encolheu para duas linhas no
+   pé, e os selos flutuam no canto. Cabem três a quatro vezes mais
+   trabalhos por tela.
+
+   ONDE FORAM PARAR OS BOTÕES
+   Orçar, agenda e seguir saíram da face do card e vivem no perfil —
+   que é onde já estavam também. Doze cards × quatro botões era o
+   ruído. E há um argumento de produto: o card inteiro leva ao perfil,
+   e o perfil é onde a reputação está antes do preço. A decisão de
+   pedir orçamento deveria acontecer depois de olhar, não durante.
+
+   No desktop eles reaparecem ao passar o mouse, sobre o rodapé da
+   foto. No celular não há hover — e ali um toque no card já leva ao
+   perfil, que é o gesto que a pessoa faria de qualquer forma.
+
+   Salvar continua na foto: é a única ação que pertence à imagem, e não
+   ao profissional. */
+
+/* Proporção derivada do mesmo número que gera a textura. Real, a altura
+   viria da foto; aqui ela precisa ser estável — se mudasse a cada
+   repintura, a coluna dançaria a cada clique. */
+var PROPORCOES=["3 / 4","2 / 3","1 / 1","4 / 5","3 / 5"];
+function proporcaoDaFoto(seed){ return PROPORCOES[Math.abs(seed)%PROPORCOES.length] }
+
 function publicacao(a){
  var i=S.caro[a.id]||0;
  var fotos=a.empty?[]:a.port.slice(0,6);
  var total=fotos.length;
  var segue=S.seguindo.indexOf(a.id)>=0;
- var chaveFoto=a.id+":"+i;
- var curtiu=S.curtidas.indexOf(chaveFoto)>=0;
- var nCurtidas=S.curtidas.filter(function(c){return c.indexOf(a.id+":")===0}).length;
-
- var h='<article class="post">';
-
- /* ── CABEÇALHO DO CARD ────────────────────────────────────────
-    Quatro faixas, cada uma com uma natureza só de informação. Antes
-    eram cinco linhas com tipos misturados — botão ao lado de nome,
-    métrica solta entre selos e preço — e o olho tinha de reclassificar
-    tudo a cada linha.
-
-      1. quem é      nome, estúdio, cidade e distância
-      2. o que faz   os estilos
-      3. o que valeu reputação e preço, que são as duas medidas
-      4. o que fazer os quatro botões, juntos
-
-    Distância subiu para a linha da cidade porque é dado de lugar, e
-    estava sozinha no meio das métricas. O selo "Destaque" saiu de perto
-    do nome: ele já aparece na faixa de reputação, e repetido virava
-    duas afirmações da mesma coisa em dois lugares diferentes. */
- h+='<div class="postinfo">';
-
- /* 1. quem é — com os selos ancorados no canto superior direito.
-
-    Ali eles ficam no mesmo lugar em todo card da coluna, e o olho
-    aprende a varrer uma faixa vertical em vez de caçar chip no meio do
-    texto. Só ícone: clicar abre o perfil, que é onde a frase inteira
-    mora. */
+ var curtiu=S.curtidas.indexOf(a.id+":"+i)>=0;
  var dist=distanciaTexto(a);
  var sf=selosNoFeed(a);
  var pagos=sf.filter(function(x){return x.cat==="contratado"});
  var ganhos=sf.filter(function(x){return x.cat!=="contratado"});
 
- h+='<div class="row" style="gap:9px;align-items:flex-start">';
- h+='<div class="av" style="width:34px;height:34px">'+ini(a.name)+'</div>';
- h+='<div style="min-width:0;flex:1">';
- h+='<div class="row" style="gap:5px"><span class="b small">'+a.name+(a.verified?' <span style="color:var(--accent)">✔</span>':'')+'</span>';
- /* Selo pago continua com a palavra. Divulgação de publicidade que só
-    aparece ao passar o mouse não é divulgação — e no celular não existe
-    passar o mouse. */
- h+=pagos.map(function(x){return selo(x,false)}).join("");
- h+='</div>';
- h+='<div class="tiny muted">'+(a.studio?a.studio+' · ':'')+a.city+'/'+a.state+(dist?' · '+dist:'')+'</div>';
- h+='</div>';
- if(ganhos.length){
-  h+='<button class="selosic" title="Ver como esta reputação se formou" aria-label="Reputação de '+escapar(a.name)+'" onclick="S.abaPerfil=\'reputacao\';go(\'artist\',\''+a.id+'\')">';
-  h+=ganhos.map(seloIcone).join("");
-  h+='</button>';
- }
- h+='</div>';
+ var h='<article class="post">';
 
- // 2. o que faz
- h+='<div class="row wrapf" style="gap:5px;margin-top:9px">';
- h+=a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'</div>';
-
- /* 3. o que valeu — nota e preço, as duas medidas que se comparam
-    entre cards. Os selos saíram daqui para o canto de cima: eles são
-    sinal, não medida, e disputavam a mesma faixa com dois números. */
- h+='<div class="medidas">';
- h+='<span class="tiny muted">★ '+a.rating+' ('+a.reviews+')</span>';
- h+='<span class="tiny muted">·</span>';
- h+=cifroes(a)+'<span class="tiny muted">por hora</span>';
- h+='</div>';
-
- // 4. o que fazer — os quatro botões numa faixa só
- h+='<div class="acoescard">';
- h+='<button class="btn sm" onclick="go(\'artist\',\''+a.id+'\')">Perfil</button>';
- h+='<button class="btnseguir '+(segue?"on":"")+'" title="'+(segue?"Deixar de seguir":"Seguir este tatuador")+'" onclick="alternarSeguir(\''+a.id+'\')">'+
-    (segue?'✓<span>Seguindo</span>':'👤<span>Seguir</span>')+'</button>';
- h+='<span class="sp"></span>';
- h+='<button class="btnicone'+(contaPendente()?" pendente":"")+'" title="Pedir orçamento" aria-label="Pedir orçamento" onclick="'+(contaPendente()?"explicarTrava(\'pedir orçamento\')":"quoteFor('"+a.id+"')")+'">👛</button>';
- h+='<button class="btnicone" title="Ver agenda" aria-label="Ver agenda" onclick="verAgenda(\''+a.id+'\')">🗓</button>';
- h+='</div>';
-
- if(nCurtidas||segue){
-  h+='<div class="tiny" style="margin-top:7px;color:var(--accent)">';
-  var partes=[];
-  if(segue)partes.push("seguindo");
-  if(nCurtidas)partes.push(nCurtidas+" foto"+(nCurtidas>1?"s":"")+" salva"+(nCurtidas>1?"s":""));
-  h+=partes.join(" · ")+' — deixa a recomendação mais precisa nos próximos orçamentos</div>';
- }
- h+='</div>';
-
- // Foto por último
- h+='<div class="postimg">';
+ /* ── A foto ─────────────────────────────────────────────────── */
+ h+='<div class="postimg" style="aspect-ratio:'+proporcaoDaFoto(a.seed)+'">';
  if(!total){
-  h+='<div class="vazio"><span class="small b">Portfólio em construção</span><span class="tiny">O tatuador ainda não publicou fotos</span></div>';
+  h+='<div class="vazio"><span class="b small">Portfólio em construção</span>';
+  h+='<span class="tiny">ainda sem fotos publicadas</span></div>';
  }else{
   fotos.forEach(function(p,k){h+='<div class="sl '+(k===i?"on":"")+'" style="background-image:'+tex(p)+'"></div>'});
+  /* Área invisível cobrindo a foto: o card inteiro leva ao perfil.
+     Os controles ficam por cima dela, com z-index. */
+  h+='<button class="postir" aria-label="Ver o perfil de '+escapar(a.name)+'" onclick="go(\'artist\',\''+a.id+'\')"></button>';
   if(a.insta)h+='<span class="tagtl">Instagram</span>';
-  if(i>0)h+='<button class="nav l" onclick="caro(\''+a.id+'\',-1,'+total+')">‹</button>';
-  if(i<total-1)h+='<button class="nav r" onclick="caro(\''+a.id+'\',1,'+total+')">›</button>';
-  h+='<button class="coracao '+(curtiu?"on":"")+'" title="'+(curtiu?"Salva":"Salvar esta foto")+'" onclick="alternarCurtida(\''+a.id+'\','+i+')">'+(curtiu?"♥":"♡")+'</button>';
+  if(ganhos.length){
+   h+='<button class="selosic" title="Ver como esta reputação se formou" aria-label="Reputação de '+escapar(a.name)+'" onclick="event.stopPropagation();S.abaPerfil=\'reputacao\';go(\'artist\',\''+a.id+'\')">';
+   h+=ganhos.map(seloIcone).join("")+'</button>';
+  }
+  if(i>0)h+='<button class="nav l" aria-label="Foto anterior" onclick="event.stopPropagation();caro(\''+a.id+'\',-1,'+total+')">‹</button>';
+  if(i<total-1)h+='<button class="nav r" aria-label="Próxima foto" onclick="event.stopPropagation();caro(\''+a.id+'\',1,'+total+')">›</button>';
+  h+='<button class="coracao '+(curtiu?"on":"")+'" title="'+(curtiu?"Salva":"Salvar esta foto")+'" aria-label="'+(curtiu?"Tirar dos salvos":"Salvar esta foto")+'" onclick="event.stopPropagation();alternarCurtida(\''+a.id+'\','+i+')">'+(curtiu?"♥":"♡")+'</button>';
   h+='<div class="pips">';for(var k=0;k<total;k++)h+='<i class="'+(k===i?"on":"")+'"></i>';h+='</div>';
+
+  /* Ações no hover, sobre o rodapé da foto. Só no ponteiro fino: no
+     toque elas nunca apareceriam, e um botão que não aparece é pior
+     que um botão que não existe. */
+  h+='<div class="postacoes">';
+  h+='<button class="btnicone'+(contaPendente()?" pendente":"")+'" title="Pedir orçamento" aria-label="Pedir orçamento" onclick="event.stopPropagation();'+(contaPendente()?"explicarTrava('pedir orçamento')":"quoteFor('"+a.id+"')")+'">👛</button>';
+  h+='<button class="btnicone" title="Ver agenda" aria-label="Ver agenda" onclick="event.stopPropagation();verAgenda(\''+a.id+'\')">🗓</button>';
+  h+='<button class="btnicone'+(segue?" on":"")+'" title="'+(segue?"Deixar de seguir":"Seguir")+'" aria-label="'+(segue?"Deixar de seguir":"Seguir")+'" onclick="event.stopPropagation();alternarSeguir(\''+a.id+'\')">'+(segue?"✓":"👤")+'</button>';
+  h+='</div>';
  }
- h+='</div></article>';
+ h+='</div>';
+
+ /* ── O pé: duas linhas, e só ───────────────────────────────────
+    Quem, e o que ele faz por quanto. Tudo o mais está a um toque. */
+ h+='<button class="postpe" onclick="go(\'artist\',\''+a.id+'\')">';
+ h+='<div class="row" style="gap:6px;min-width:0">';
+ h+='<span class="pnome">'+a.name+(a.verified?' <span style="color:var(--accent)">✔</span>':'')+'</span>';
+ h+=pagos.map(function(x){return selo(x,false)}).join("");
+ h+='</div>';
+ h+='<div class="ppe">'+a.styles.map(function(x){return SL[x]}).join(" · ")+'</div>';
+ h+='<div class="ppe">'+(a.studio?a.studio+' · ':'')+a.city+'/'+a.state+(dist?' · '+dist:'')+'</div>';
+ h+='<div class="ppe">'+cifroes(a)+' <span class="pph">por hora</span></div>';
+ h+='</button>';
+
+ if(segue){
+  h+='<div class="pseg">seguindo</div>';
+ }
+ h+='</article>';
  return h;
 }
 

@@ -436,61 +436,104 @@ chk("criar do zero vem depois", trei.indexOf("reivindicar ›") < trei.indexOf("
 chk("e pede os três documentos", /CNPJ, endereço e licença sanitária/.test(trei));
 
 
-/* ── 16. O CABEÇALHO DO CARD ─────────────────────────────────────
-   Quatro faixas, cada uma com uma natureza de informação. A ordem é o
-   que permite ler o card em três olhadas: quem é, o que faz, o que
-   valeu, o que fazer. */
-secao("16. CABEÇALHO DO CARD");
+/* ── 16. O CARD DO FEED, INTERFACE #2 ────────────────────────────
+   A foto é o card. O que este roteiro protege não é a aparência — é a
+   promessa que a aparência faz: nada foi perdido, só mudou de lugar.
+
+   Na interface #1 o card tinha quatro faixas de texto e uma foto em
+   4:3. Tatuagem não cabe em 4:3, e recortar para caber é editar o
+   trabalho de outra pessoa sem pedir. */
+secao("16. O CARD DO FEED (INTERFACE #2)");
 S.session = "anon";
-var tcard = ir("home").split('class="post"')[1] || "";
-["quem é", "o que faz", "o que valeu", "o que fazer"];
-chk("distância aparece junto da cidade, não solta",
-    /\/[A-Z]{2} · [\d,.]+ km de você/.test(tcard),
-    "a distância voltou a ser uma linha órfã");
-chk("sem NaN em lugar nenhum", !/NaN/.test(tcard), "cálculo de distância sem coordenada");
-/* ── Selos no canto: sinal no feed, frase no perfil ─────────────
-   O número some da descoberta e reaparece quando a pessoa escolhe um
-   perfil. O que não pode sumir é o nome acessível: ícone sem rótulo
-   para leitor de tela troca legibilidade por exclusão. */
-chk("os selos ficam no topo, antes dos estilos",
-    tcard.indexOf('class="selosic"') < tcard.indexOf("Lettering") ||
-    tcard.indexOf('class="selosic"') < tcard.indexOf('class="badge"'));
-chk("no feed, o selo não tem palavra",
-    !/class="selinho soic"[^>]*>\s*<span class="si">[^<]*<\/span>\s*[A-Za-zÀ-ú0-9]/.test(tcard),
-    "sobrou rótulo no selo do feed");
-chk("mas tem nome acessível", /class="selinho soic"[^>]*aria-label="[^"]+"/.test(tcard),
-    "ícone mudo para leitor de tela");
-chk("e leva ao perfil quando clicado", /class="selosic"[^>]*onclick="[^"]*reputacao/.test(tcard));
-chk("no perfil, a palavra volta",
-    (function () {
-      S.artist = "a0"; S.abaPerfil = "reputacao";
-      var t = ir("artist");
-      return /sessões verificadas/.test(t) && /Referendado por/.test(t);
-    })(), "o perfil também perdeu o rótulo");
-chk("css do selo em modo ícone existe", /\.selinho\.soic\{/.test(css) && /\.selosic\{/.test(css));
-chk("reputação e preço na mesma faixa", /class="medidas"/.test(tcard));
-chk("os quatro botões numa faixa só", /class="acoescard"/.test(tcard));
-/* O único botão fora da faixa de ações é o grupo de selos, que leva ao
-   perfil. Qualquer outro voltou a espalhar ação pelo card. */
-chk("nenhum botão de ação fora da faixa",
-    (tcard.split('class="acoescard"')[0].match(/<button/g) || []).length ===
-    (tcard.split('class="acoescard"')[0].match(/class="selosic"/g) || []).length,
-    "sobrou botão antes da faixa de ações");
-/* Conta só o que a pessoa lê. O título do selo repete a palavra dentro
-   do atributo, e isso não é duplicação na tela. */
+var tfeed = ir("home");
+var tcard = tfeed.split('class="post"')[1] || "";
+
+chk("o feed é masonry, não grade", /\.feed\{[^}]*column-gap/.test(css) && /column-count:2/.test(css),
+    "voltou a ser grade — e grade obriga toda célula da fileira à mesma altura");
+chk("a foto define a altura", /class="postimg" style="aspect-ratio:/.test(tcard),
+    "sem proporção própria, a foto volta a ser recortada");
+/* Se a proporção mudasse a cada repintura, a coluna dançaria a cada
+   clique — e o feed pareceria quebrado. */
+chk("e a proporção é estável entre repinturas",
+    (function () { var x = tela(); g.e("render()"); return x === tela() })(),
+    "a altura mudou sozinha");
+chk("proporções variadas, não uma só",
+    g.e("PROPORCOES.length") >= 4 &&
+    new Set(g.e("ARTISTS.slice(0,8).map(function(a){return proporcaoDaFoto(a.seed)})")).size > 1,
+    "todas as fotos saíram com a mesma proporção");
+
+/* ── Nada foi perdido, só mudou de lugar ─────────────────────── */
+chk("o card inteiro leva ao perfil", /class="postir"/.test(tcard));
+chk("salvar continua na foto", /class="coracao/.test(tcard),
+    "salvar pertence à imagem, não ao profissional");
+chk("orçar, agenda e seguir continuam existindo",
+    /quoteFor\(/.test(tcard) && /verAgenda\(/.test(tcard) && /alternarSeguir\(/.test(tcard),
+    "ação sumiu do feed em vez de mudar de lugar");
+chk("e aparecem no hover", /class="postacoes"/.test(tcard) && /\.post:hover \.postacoes/.test(css));
+/* No toque não existe hover, e botão que não aparece é pior que botão
+   que não existe. Ali o card inteiro leva ao perfil. */
+chk("escondidas no toque, onde hover não existe",
+    /@media\(pointer:coarse\)\{\.postacoes\{display:none\}\}/.test(css));
+
+/* ── O que a legenda tem de dizer ────────────────────────────── */
+var pe = tcard.split('class="postpe"')[1] || "";
+chk("nome de quem tatua", /class="pnome"/.test(tcard));
+chk("estúdio e cidade", /Studio /.test(pe) && /\/[A-Z]{2}/.test(pe),
+    "o card perdeu onde a pessoa atende");
+chk("distância junto do lugar, não solta", /\/[A-Z]{2} · [\d,.]+ km de você/.test(pe));
+chk("estilos", /Lettering|Blackwork|Fineline|Realismo|Minimalista/.test(pe));
+chk("preço por hora", /class="cifra"/.test(pe) && /por hora/.test(pe));
+chk("sem NaN em lugar nenhum", !/NaN/.test(tcard));
+
+/* ── Selos ──────────────────────────────────────────────────── */
+/* Dentro da foto, não abaixo dela: o índice do selo tem de cair entre
+   a abertura de .postimg e o começo do pé. */
+chk("selos sobre a foto, só ícone",
+    tcard.indexOf('class="selinho soic"') > tcard.indexOf('class="postimg"') &&
+    tcard.indexOf('class="selinho soic"') < tcard.indexOf('class="postpe"'),
+    "o selo saiu de cima da foto");
+chk("com nome acessível", /class="selinho soic"[^>]*aria-label="[^"]+"/.test(tcard));
+chk("css do selo em ícone existe", /\.selinho\.soic\{/.test(css) && /\.selosic\{/.test(css));
+/* Fundo escuro atrás do selo: a foto embaixo pode ser preta ou branca,
+   e a cor do selo sozinha não garante contraste contra as duas. */
+chk("com fundo próprio para sobreviver a qualquer foto",
+    /\.postimg \.selosic\{[^}]*background:rgba\(0,0,0/.test(css));
 var visivel = tcard.replace(/<[^>]*>/g, " ");
-chk("Destaque aparece uma vez só",
-    (visivel.match(/Destaque/g) || []).length <= 1,
-    "o selo Destaque está duplicado no cabeçalho");
-chk("css das duas faixas novas existe", /\.medidas\{/.test(css) && /\.acoescard\{/.test(css));
-/* Cidade sem coordenada volta a produzir NaN. É o defeito exato que
-   apareceu no feed, e ele nasce nos dados, não na tela. */
+chk("Destaque aparece uma vez só", (visivel.match(/Destaque/g) || []).length <= 1);
+
+/* ── Dados de lugar ──────────────────────────────────────────── */
 chk("toda cidade tem coordenada",
     g.e("CITIES.every(function(c){return typeof c[2]==='number' && typeof c[3]==='number'})"));
 chk("e todo artista também",
     g.e("ARTISTS.every(function(a){return isFinite(a.lat)&&isFinite(a.lng)})"));
 chk("sem coordenada, a distância some em vez de virar NaN",
     g.e("kmDe({})") === null && g.e("distanciaTexto({})") === "");
+
+/* ── 17. O SISTEMA DE DESIGN ─────────────────────────────────────
+   A gramática do portfólio da Amanda: um traço, três raios, escala
+   fluida, uma duração. O que este roteiro impede é a entropia — que
+   daqui a três rodadas existam cinco raios e quatro espessuras. */
+secao("17. O SISTEMA DE DESIGN");
+chk("um traço só", /--hair:1px/.test(css));
+chk("três raios e nada além",
+    /--r-xs:2px/.test(css) && /--r-sm:4px/.test(css) && /--r-pill:999px/.test(css));
+chk("escala fluida, sem tamanho fixo de título",
+    /--t-h1:clamp\(/.test(css) && /--t-h2:clamp\(/.test(css) && /--t-card:clamp\(/.test(css));
+chk("uma duração, uma lenta, uma curva",
+    /--dur:200ms/.test(css) && /--dur-slow:380ms/.test(css) && /--ease:cubic-bezier/.test(css));
+chk("três famílias, cada uma com um papel",
+    /--f-sans:/.test(css) && /--f-cond:/.test(css) && /--f-exp:/.test(css));
+chk("condensada nos títulos", /h1\.page\{font-family:var\(--f-cond\)/.test(css));
+/* Petróleo: 7,8:1 sobre branco e 7,8:1 de branco sobre ele. Serve de
+   texto e de preenchimento, o que economiza um token. */
+chk("um acento só, e é o petróleo", /--accent:#215a60/.test(css));
+chk("número nunca dança", /font-variant-numeric:tabular-nums/.test(css));
+chk("nenhuma fonte de sistema declarada à mão no corpo",
+    /body\{font-family:var\(--f-sans\)/.test(css),
+    "voltou a pilha de sistema escrita direto no body");
+chk("as fontes têm alternativa se a rede falhar",
+    /--f-sans:"Instrument Sans",-apple-system/.test(css),
+    "sem fallback, o protótipo offline fica sem tipografia");
 
 console.log("\n══ " + f + " falha(s) ══");
 process.exit(f ? 1 : 0);
