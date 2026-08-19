@@ -260,11 +260,15 @@ let eventosDoCliente = null, sessaoDoCliente = null;
   ok("assistente abriu", g.S.drawer === "assist" || g.S.autoAssist === true);
   g.escopo("closeDrawer()");
 
-  ok("consultou a agenda", g.clicar("Ver agenda") === true);
-  ok("gaveta de agenda abriu", g.S.drawer === "agenda", String(g.S.drawer));
-  ok("agenda mostra dia ou explica que não exibe",
-     /Dia<\/div>/.test(g.gaveta()) || /não exibir a agenda/.test(g.gaveta()));
-  g.escopo("closeDrawer()");
+  /* A agenda do tatuador deixou de ser navegável pelo cliente. Não é
+     ajuste de tela: mostrar horários livres para alguém escolher
+     transforma quem tatua em recurso a ser reservado.
+
+     O percurso do visitante mudou junto — ele não consulta agenda, ele
+     pede orçamento e acompanha o que foi marcado para ele. */
+  ok("não há agenda de tatuador para o cliente folhear",
+     g.clicar("Ver agenda") === false,
+     "o cliente voltou a poder abrir a agenda de quem tatua");
 
   ok("seguiu o tatuador", g.clicar("Seguir") === true);
   ok("passou a seguir", g.S.seguindo.indexOf("a0") >= 0);

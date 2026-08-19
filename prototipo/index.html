@@ -1032,11 +1032,10 @@ body:has(.convitebarra) main{padding-bottom:96px}
   gap:var(--e3);min-height:48px;font-size:var(--t-card);font-weight:500}
 .acaoprin .acaopreco{font-family:var(--f-exp);font-size:var(--t-micro);opacity:.85;
   white-space:nowrap;letter-spacing:.04em}
-.acoessec{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--e2);margin-top:var(--e2)}
+.acoessec{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--e2);margin-top:var(--e2)}
 .acoessec .btn{width:100%;justify-content:center}
 @media(max-width:460px){
   .acoessec{grid-template-columns:1fr 1fr}
-  .acoessec .btn:last-child{grid-column:1 / -1}
   .acaoprin{flex-direction:column;align-items:flex-start;gap:var(--e1);padding-top:var(--e3);padding-bottom:var(--e3)}
 }
 
@@ -2756,7 +2755,10 @@ function publicacao(a){
      que um botão que não existe. */
   h+='<div class="postacoes">';
   h+='<button class="btnicone'+(contaPendente()?" pendente":"")+'" title="Pedir orçamento" aria-label="Pedir orçamento" onclick="event.stopPropagation();'+(contaPendente()?"explicarTrava('pedir orçamento')":"quoteFor('"+a.id+"')")+'">👛</button>';
-  h+='<button class="btnicone" title="Ver agenda" aria-label="Ver agenda" onclick="event.stopPropagation();verAgenda(\''+a.id+'\')">🗓</button>';
+  /* "Ver agenda" saiu do card. Quem decide quando é o tatuador —
+     mostrar horário livre para o cliente escolher inverte quem manda
+     na semana de trabalho de alguém. O que o card oferece agora é
+     orçar e seguir; a data vem depois, decidida por ele. */
   h+='<button class="btnicone'+(segue?" on":"")+'" title="'+(segue?"Deixar de seguir":"Seguir")+'" aria-label="'+(segue?"Deixar de seguir":"Seguir")+'" onclick="event.stopPropagation();alternarSeguir(\''+a.id+'\')">'+(segue?"✓":"👤")+'</button>';
   h+='</div>';
  }
@@ -2839,7 +2841,6 @@ function aCard(a){
  h+='<button class="btn primary" style="padding:var(--e2) 18px" onclick="go(\'artist\',\''+a.id+'\')">Perfil</button>';
  h+='<div class="row sp" style="gap:var(--e1)">';
  h+='<button class="btn sm" title="Orçar" style="width:34px;padding:var(--e2) 0" onclick="quoteFor(\''+a.id+'\')">👛</button>';
- h+='<button class="btn sm" title="Ver agenda" style="width:34px;padding:var(--e2) 0" onclick="verAgenda(\''+a.id+'\')">🗓</button>';
  h+='</div></div></div></div>';
  return h;
 }
@@ -2888,7 +2889,29 @@ function renderFeedOnly(){
 function quoteFor(id){S.assistArtist=id;S.aiStep=0;S.autoAssist=true;go("artist",id)}
 
 /* --- agenda do tatuador --- */
+/* A agenda do tatuador não é pública, e isso não é detalhe de tela: é
+   quem manda na semana de trabalho de alguém.
+
+   Mostrar horários livres para o cliente escolher transforma o
+   tatuador em recurso a ser reservado. Aqui o cliente PEDE — pelo
+   orçamento ou pela conversa — e o tatuador decide, marca, e a sessão
+   aparece do lado do cliente já resolvida.
+
+   A gaveta continua existindo porque o pedido de horário acontece nela;
+   o que saiu foram os botões que levavam o cliente para lá a partir do
+   card e do perfil, como se a agenda fosse dele para folhear. */
 function verAgenda(id){S.agArtist=id;S.agDia=null;S.agHora=null;S.agFeito=false;openDrawer("agenda")}
+
+/* O que o cliente acompanha: o que já foi marcado PARA ele. Não é a
+   agenda de ninguém — é a lista dele. */
+function minhasSessoes(){
+ return [
+  {id:"ms1",quando:"12 de agosto, 14h",artista:"Marina Vieira",estudio:"Studio Marina",
+   cidade:"São Paulo",area:"Antebraço interno",estilo:"fineline",estado:"confirmada",horas:3},
+  {id:"ms2",quando:"29 de agosto, 10h",artista:"Rita Salgado",estudio:"Casa Tinta",
+   cidade:"Lisboa",area:"Ombro",estilo:"blackwork",estado:"aguardando confirmação",horas:4}
+ ];
+}
 function diasDaAgenda(a){
  var hoje=new Date(2026,6,26),r=[];
  for(var k=1;k<=24&&r.length<8;k++){
@@ -3253,7 +3276,6 @@ function vArtist(){
  h+='<span class="acaopreco">'+cifroes(a)+' por hora</span>';
  h+='</button>';
  h+='<div class="acoessec">';
- h+='<button class="btn" onclick="verAgenda(\''+a.id+'\')">🗓 Ver agenda</button>';
  h+='<button class="btn" onclick="'+(contaPendente()?"explicarTrava(\'conversar\')":(isLog()?"openDrawer(\'chat\')":"irCadastro(null)"))+'">💬 Conversar</button>';
  h+='<button class="btn'+(seg?" primary":"")+'" onclick="alternarSeguir(\''+a.id+'\')">'+(seg?"✓ Seguindo":"👤 Seguir")+'</button>';
  h+='</div></div>';
@@ -4297,6 +4319,7 @@ var ST_NAV=[["studio","Visão geral","▦"],["studio-quotes","Orçamentos","📥
    perto do que ele conta. */
 var SECOES_DA_GESTAO={
  "me":               [["mev","resumo","Visão geral"],
+                      ["mev","sessoes","Minhas sessões",function(){return minhasSessoes().length}],
                       ["mev","quotes","Meus orçamentos",function(){return CQ.filter(function(q){return q.status==="respondido"}).length}],
                       ["mev","payments","Pagamentos",function(){return PAYS.length}]],
  /* Uma chave só para a página inteira. Com chaves separadas por bloco,
@@ -4671,6 +4694,36 @@ function vMe(sub){
    h+='<button class="btn primary" style="margin-top:var(--e3)" onclick="becomeArtist()">Criar meu perfil de tatuador</button></div>';
   }
  }
+ /* ── MINHAS SESSÕES ──────────────────────────────────────────
+    O que foi marcado PARA ela. Não é agenda de tatuador — é a lista
+    dela, e por isso não tem horário livre, não tem escolha de data e
+    não tem nada do resto da semana de quem vai tatuar.
+
+    Quem marca é o tatuador. Aqui o cliente acompanha, prepara-se e
+    sabe quando aparecer. */
+ if(sub==="me"&&subAba("mev","resumo")==="sessoes"){
+  var ss=minhasSessoes();
+  h+='<div class="card pad"><div class="row"><span class="b">O que está marcado para você</span>'+tg("mock")+'</div>';
+  h+='<div class="tiny muted" style="margin-top:var(--e1)">Quem marca a data é quem vai tatuar. Você acompanha aqui, e recebe aviso quando algo muda.</div>';
+  if(!ss.length){
+   h+='<div class="muted small" style="padding:var(--e4) 0">Nada marcado. Depois de aceitar um orçamento, a sessão aparece aqui com data e lugar.</div>';
+  }
+  h+='<div style="margin-top:var(--e3)">';
+  ss.forEach(function(x){
+   h+='<div class="lrow"><div class="av">'+ini(x.artista)+'</div>';
+   h+='<div style="min-width:0;flex:1"><div class="row" style="gap:var(--e2)"><span class="b small">'+x.quando+'</span>';
+   h+=x.estado==="confirmada"?'<span class="badge ok">confirmada</span>':'<span class="badge warn">'+x.estado+'</span>';
+   h+='</div>';
+   h+='<div class="tiny muted">'+x.area+' · '+(SL[x.estilo]||x.estilo)+' · '+horasBonitas(x.horas)+' previstas</div>';
+   h+='<div class="tiny muted">'+x.artista+' · '+x.estudio+' · '+x.cidade+'</div></div>';
+   h+='<button class="btn sm acaoLinha" onclick="openDrawer(\'chat\')">Falar sobre</button>';
+   h+='</div>';
+  });
+  h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:var(--e3)">Precisa remarcar? Fale com quem vai te tatuar — a data é decisão dele, e mudar por aqui sem combinar quebraria o dia dele.</div>';
+  h+='</div>';
+ }
+
  if((sub==="me"&&subAba("mev","resumo")==="quotes")||sub==="me-quotes"){
   h+='<div class="card pad"><div class="row wrapf"><span class="b">Meus orçamentos</span>'+tg("real")+'<button class="btn sm sp" onclick="S.hub=\'new\';openDrawer(\'hub\')">✨ Novo orçamento</button></div>';
   h+='<div class="row wrapf" style="gap:var(--e2);margin-top:var(--e3)">';

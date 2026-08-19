@@ -134,6 +134,38 @@ chk("sem barra de progresso no passaporte", !/class="bar"/.test(tp),
    confiar nesta pessoa". Quem chegava numa não tinha motivo para
    procurar a outra — e as duas metades da resposta ficavam separadas
    justamente no momento em que alguém está decidindo. */
+/* ── QUEM MANDA NA AGENDA ────────────────────────────────────────
+   A agenda do tatuador não é pública, e isso não é detalhe de tela: é
+   quem manda na semana de trabalho de alguém.
+
+   Mostrar horários livres para o cliente escolher transforma quem
+   tatua em recurso a ser reservado — e tatuagem não é sala de reunião.
+   O cliente pede; o tatuador decide, marca, e a sessão aparece do lado
+   do cliente já resolvida. */
+secao("1b. A AGENDA É DE QUEM TATUA");
+S.session = "anon";
+var tPerfilPub = ir("artist");
+S.session = "client";
+var tFeedCli = ir("home");
+chk("o perfil não oferece a agenda de quem tatua",
+    !/Ver agenda/.test(tPerfilPub),
+    "voltou o botão que abre a semana de trabalho de outra pessoa");
+chk("o card do feed também não", !/Ver agenda/.test(tFeedCli));
+
+/* Do lado do cliente existe a lista DELE — sem horário livre, sem
+   escolha de data, sem nada do resto da semana de quem vai tatuar. */
+var tMinhas = ir("me", "mev", "sessoes");
+chk("o cliente acompanha o que foi marcado para ele",
+    /O que está marcado para você/.test(tMinhas));
+chk("e a tela diz de quem é a decisão",
+    /Quem marca a data é quem vai tatuar/.test(tMinhas),
+    "sem isso, a pessoa fica esperando um botão de marcar que não existe");
+chk("sem horário livre para escolher",
+    !/Escolher outro horário/.test(tMinhas) && !/horários livres/.test(tMinhas));
+chk("e o caminho para remarcar é falar com ele",
+    /Fale com quem vai te tatuar/.test(tMinhas));
+S.sub.mev = "resumo";
+
 secao("2a. REPUTAÇÃO É UMA ABA SÓ");
 S.session = "anon"; S.abaPerfil = "reputacao";
 var tRep = ir("artist");
@@ -699,9 +731,14 @@ chk("proporções variadas, não uma só",
 chk("o card inteiro leva ao perfil", /class="postir"/.test(tcard));
 chk("salvar continua na foto", /class="coracao/.test(tcard),
     "salvar pertence à imagem, não ao profissional");
-chk("orçar, agenda e seguir continuam existindo",
-    /quoteFor\(/.test(tcard) && /verAgenda\(/.test(tcard) && /alternarSeguir\(/.test(tcard),
+/* "Ver agenda" saiu do card de propósito: a agenda do tatuador não é
+   pública, e mostrar horário livre para o cliente escolher inverte
+   quem manda na semana de trabalho de alguém. Orçar e seguir ficam. */
+chk("orçar e seguir continuam existindo",
+    /quoteFor\(/.test(tcard) && /alternarSeguir\(/.test(tcard),
     "ação sumiu do feed em vez de mudar de lugar");
+chk("e a agenda não é oferecida no card", !/verAgenda\(/.test(tcard),
+    "o card voltou a abrir a agenda de quem tatua");
 chk("e aparecem no hover", /class="postacoes"/.test(tcard) && /\.post:hover \.postacoes/.test(css));
 /* No toque não existe hover, e botão que não aparece é pior que botão
    que não existe. Ali o card inteiro leva ao perfil. */

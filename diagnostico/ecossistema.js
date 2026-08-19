@@ -187,14 +187,16 @@ var acoesPerfil = tpf.split('<button').slice(1)
 var mudas = acoesPerfil.filter(function (t) { return !/[a-zA-ZÀ-ÿ]{3}/.test(t) });
 chk('nenhuma ação do perfil é só ícone', mudas.length === 0,
     mudas.length + ' botão(ões) sem palavra nenhuma');
-['Pedir orçamento', 'Ver agenda', 'Conversar', 'Seguir'].forEach(function (r) {
+/* "Ver agenda" saiu: a agenda do tatuador não é pública. O cliente
+   pede, ele decide. */
+['Pedir orçamento', 'Conversar', 'Seguir'].forEach(function (r) {
   chk('a ação "' + r + '" diz o que faz', tpf.indexOf(r) >= 0);
 });
 /* Uma ação principal e três secundárias: quatro botões com o mesmo
    peso não são hierarquia, são um menu. */
 chk('uma ação principal, e só uma',
     (tpf.match(/class="btn primary acaoprin/g) || []).length === 1);
-chk('e as outras três abaixo dela',
+chk('e as outras duas abaixo dela',
     /class="acoessec"/.test(tpf) &&
     tpf.indexOf('acaoprin') < tpf.indexOf('acoessec'));
 
