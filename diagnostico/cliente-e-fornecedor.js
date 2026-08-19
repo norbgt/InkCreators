@@ -568,7 +568,7 @@ S.session = "anon";
 var tfeed = ir("home");
 var tcard = tfeed.split('class="post"')[1] || "";
 
-chk("o feed é masonry, não grade", /\.feed\{[^}]*column-gap/.test(css) && /column-count:2/.test(css),
+chk("o feed é masonry, não grade", /\.feedposts\{[^}]*column-gap/.test(css) && /column-count:2/.test(css),
     "voltou a ser grade — e grade obriga toda célula da fileira à mesma altura");
 chk("a foto define a altura", /class="postimg" style="aspect-ratio:/.test(tcard),
     "sem proporção própria, a foto volta a ser recortada");
@@ -705,11 +705,46 @@ chk("toda grade se anuncia como conjunto",
 /* Foto menor é mais trabalho por tela, que é o que um feed de
    descoberta precisa entregar. Duas colunas é o piso: em uma só, cada
    rolagem mostra um trabalho e o feed vira uma fila. */
+/* ── O ELO ENTRE O CSS E O HTML ───────────────────────────────────
+   O defeito que ninguém pegou por três rodadas: todo o masonry vivia
+   escrito em .feed enquanto o HTML usava .feedposts. CSS sem elemento,
+   elemento sem CSS — e o que a pessoa via era uma coluna só, com
+   max-width de 440px centralizado, herdada da interface #1.
+
+   Os testes anteriores liam o CSS e viam column-count:2 lá. Estavam
+   certos sobre a folha de estilo e cegos sobre a página.
+
+   Esta verificação mede o ELO: toda regra que define coluna tem de
+   pertencer a uma classe que existe na tela renderizada. */
+var regrasComColuna = (css.match(/\.[a-zA-Z][\w-]*\{[^}]*column-count[^}]*\}/g) || [])
+  .map(function (r) { return r.slice(1).split("{")[0] });
+/* Nem toda regra de coluna é do feed: o portfólio do perfil também
+   corre em colunas. Junto as duas telas antes de comparar — a pergunta
+   é se a classe existe em ALGUM lugar, não se existe aqui. */
+var classesNaTela = new Set();
+[tfeed, ir("artist")].forEach(function (tela) {
+  (tela.match(/class="([^"]+)"/g) || []).forEach(function (c) {
+    c.replace(/class="|"/g, "").split(/\s+/).forEach(function (x) { if (x) classesNaTela.add(x) });
+  });
+});
+S.session = "anon"; S.route = "home";
+chk("existe regra de coluna para o feed", regrasComColuna.length > 0);
+chk("e a classe dela existe na tela",
+    regrasComColuna.every(function (cl) { return classesNaTela.has(cl) }),
+    "CSS órfão: " + regrasComColuna.filter(function (cl) { return !classesNaTela.has(cl) }).join(", "));
+/* O container do feed tem de ser o mesmo objeto nos dois lados. */
+chk("o container do feed carrega a regra de coluna",
+    /class="feedposts"/.test(tfeed) && /\.feedposts\{[^}]*column-count/.test(css),
+    "o feed voltou a ser uma coluna centralizada");
+chk("e nada o estreita para caber um card por vez",
+    !/\.feedposts\{[^}]*max-width:4[0-9][0-9]px/.test(css),
+    "voltou o max-width que fazia um tatuador por vez");
+
 chk("o feed nunca cai para uma coluna",
-    !/\.feed\{[^}]*column-count:1\}/.test(css) && !/column-count:1/.test(css),
+    !/column-count:1[^0-9]/.test(css),
     "voltou a coluna única, onde cada rolagem mostra um trabalho");
 chk("e ganha coluna conforme a tela cresce",
-    (css.match(/\.feed\{column-count:[3-6]\}/g) || []).length >= 3,
+    (css.match(/\.feedposts\{column-count:[3-6]\}/g) || []).length >= 3,
     "poucos degraus: a foto fica grande demais em tela larga");
 chk("grade de portfólio com quatro células", /class="gcels quatro"/.test(tfeed3),
     "quatro para julgar a mão de uma pessoa — em nove ninguém julga traço");

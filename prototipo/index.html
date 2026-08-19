@@ -443,7 +443,7 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .painel{margin-top:9px;padding:13px 15px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--card)}
 
 /* Feed em publicações, uma por vez */
-.feedposts{max-width:440px;margin:14px auto 0}
+
 /* ═══ FEED EM MASONRY ══════════════════════════════════════════════
    Colunas de CSS, não grade. A grade obriga toda célula da fileira à
    mesma altura, que é exatamente o problema: recortar tatuagem
@@ -452,14 +452,19 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
    Column-count tem um custo conhecido — a ordem desce por coluna em
    vez de atravessar a fileira. Num feed de descoberta isso não pesa:
    não existe "primeiro" e "segundo", existe o conjunto. */
-/* Foto menor é mais foto por tela, e num feed de descoberta o que
-   conta é quantos trabalhos diferentes a pessoa vê antes de decidir
-   parar. Duas colunas é o piso: em uma só, cada rolagem mostra um
-   trabalho e o feed vira uma fila. */
-.feed{column-gap:10px;margin-top:var(--section-gap);column-count:2}
-@media(min-width:560px){.feed{column-count:3}}
-@media(min-width:820px){.feed{column-count:4}}
-@media(min-width:1080px){.feed{column-count:5}}
+   O NOME DA CLASSE IMPORTA. Todo este bloco viveu escrito em .feed
+   enquanto o HTML usava .feedposts — CSS sem elemento, elemento sem
+   CSS. O que a pessoa via era uma coluna só, com max-width de 440px
+   centralizado: um tatuador por vez, que é a herança da interface #1.
+
+   Duas colunas é o piso: em uma só, cada rolagem mostra um trabalho e
+   o feed vira uma fila. Foto menor é mais trabalho por tela, e num
+   feed de descoberta o que conta é quantos trabalhos diferentes a
+   pessoa vê antes de decidir parar. */
+.feedposts{column-gap:10px;margin:var(--section-gap) auto 0;column-count:2}
+@media(min-width:560px){.feedposts{column-count:3}}
+@media(min-width:820px){.feedposts{column-count:4}}
+@media(min-width:1080px){.feedposts{column-count:5}}
 
 /* Espaço entre cards acompanha a coluna: 10px. */
 .post{break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid;
@@ -1014,7 +1019,7 @@ body:has(.convitebarra) main{padding-bottom:96px}
 @media(max-width:1100px) and (min-width:700px){
   .aba{padding:10px 12px;font-size:13px}
   .search{max-width:280px}
-  .feedposts{max-width:460px}
+
 }
 
 /* ── Telefones (até 699px) ───────────────────────────────────────── */
@@ -1024,7 +1029,7 @@ body:has(.convitebarra) main{padding-bottom:96px}
   main{padding:14px 0 60px}
   h1.page{font-size:19px}
   p.sub{font-size:12.5px;margin-top:2px}
-  .feedposts{margin-top:10px}
+  .feedposts{margin-top:14px}
   .resumobusca{margin-top:6px;font-size:11px}
   .postinfo{padding:9px 12px 10px}
   /* No telefone o subtítulo da home cede lugar à foto: o título já diz. */
@@ -1043,7 +1048,7 @@ body:has(.convitebarra) main{padding-bottom:96px}
   .aba{padding:11px 14px}
   .abas-acoes .btn.sm{padding:7px 11px;font-size:12.5px;gap:5px}
   .abas-acoes{gap:6px}
-  .feedposts{max-width:none}
+
   .btnbarra .rot{display:none}
   .btnbarra{padding:0 13px}
   .drawer{width:100%;border-left:none}
