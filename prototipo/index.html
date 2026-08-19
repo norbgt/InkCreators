@@ -1028,16 +1028,13 @@ body:has(.convitebarra) main{padding-bottom:96px}
    defeito que esta reescrita corrigiu era exatamente quatro caixas de
    ícone sem uma palavra. */
 .perfilacoes{margin-top:var(--e4)}
-.acaoprin{width:100%;display:flex;align-items:center;justify-content:space-between;
-  gap:var(--e3);min-height:48px;font-size:var(--t-card);font-weight:500}
-.acaoprin .acaopreco{font-family:var(--f-exp);font-size:var(--t-micro);opacity:.85;
-  white-space:nowrap;letter-spacing:.04em}
-.acoessec{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--e2);margin-top:var(--e2)}
-.acoessec .btn{width:100%;justify-content:center}
-@media(max-width:460px){
-  .acoessec{grid-template-columns:1fr 1fr}
-  .acaoprin{flex-direction:column;align-items:flex-start;gap:var(--e1);padding-top:var(--e3);padding-bottom:var(--e3)}
-}
+/* Três acessos do mesmo peso. Orçar era uma barra preta de largura
+   inteira com o preço dentro; virou botão igual aos outros a pedido
+   dela. O que orçar tem de diferente não é o tamanho do botão — é o
+   que acontece depois dele, que é um formulário com campos fixos. */
+.acoessec{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--e2);align-items:stretch}
+.acoessec .btn{width:100%;justify-content:center;text-align:center;
+  white-space:normal;line-height:1.25;min-height:44px}
 
 /* Contador dos selos que não couberam. Leva à aba onde cada um vem com
    a regra que o produziu — selo sem regra visível é fé, não confiança. */
@@ -1711,7 +1708,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  evT:"all",evP:"all",evD:"all",evSort:"distance",evSel:"e1",evLoc:"São Paulo, SP",
  coT:"all",coL:"all",coP:"all",coSort:"recent",
  qStatus:"todos",hub:"menu",aiStep:0,aiRefs:2,
- aiEstilos:[],aiFora:[],aiParte:"",aiCidade:"",aiFaixa:"",aiObs:"",
+ aiEstilos:[],aiFora:[],aiParte:"",aiCidade:"",aiFaixa:"",aiObs:"",aiTam:"",
  chatOpen:null,chatFilter:"all",chatQ:"",notifFilter:"all",notifs:NOTIFS.map(function(n){return{...n}}),
  sqSel:"s1",orcPasso:"lista",orcEnviado:null,estudioSel:"e1",administraEstudio:false,
  /* Check-in aberto agora. Um por vez, de propósito: o QR na tela é de
@@ -3252,7 +3249,12 @@ function vArtist(){
  h+='</div></div>';
 
  /* 2. O QUE DIZEM — três medidas numa linha, sem competir com o nome */
- h+='<div class="perfilnum">'+stars(a.rating)+' '+a.rating+' <span class="muted">('+a.reviews+' avaliações)</span> · '+a.years+' anos de ofício</div>';
+ /* O preço voltou para esta linha. Ele morava dentro do botão de
+    orçar, e o botão deixou de ser barra. Preço não pode sumir do
+    cabeçalho: é a segunda coisa que a pessoa procura, depois de
+    "esta mão me serve?". */
+ h+='<div class="perfilnum">'+stars(a.rating)+' '+a.rating+' <span class="muted">('+a.reviews+' avaliações)</span> · '+a.years+' anos de ofício · '+cifroes(a)+' por hora</div>';
+ h+='<div class="tiny muted" style="margin-top:var(--e1)">O valor final sai do orçamento — os cifrões são a faixa que ele costuma praticar.</div>';
 
  /* 3. OS SELOS, contidos.
     Eram seis pastilhas em duas linhas, com mais peso visual que o
@@ -3267,19 +3269,20 @@ function vArtist(){
   h+='</div>';
  }
 
- /* 4. O QUE FAZER — com rótulo, e o preço encostado na decisão */
+ /* 4. O QUE FAZER — três acessos, mesmo peso.
+    Orçar era uma barra preta com o preço dentro. A pedido dela virou
+    um acesso como conversar: mesma forma, mesma altura, mesma linha.
+
+    A hierarquia que importa não estava ali. Está no que cada um abre:
+    conversar abre uma conversa em branco, seguir é um clique, e orçar
+    abre um formulário de campos fixos — o mesmo para todo mundo. */
  var seg=S.seguindo.indexOf(a.id)>=0;
- h+='<div class="perfilacoes">';
- h+='<button class="btn primary acaoprin'+(contaPendente()?" pendente":"")+'" onclick="'+
-    (contaPendente()?"explicarTrava(\'pedir orçamento\')":"quoteFor(\'"+a.id+"\')")+'">';
- h+='<span>✨ Pedir orçamento</span>';
- h+='<span class="acaopreco">'+cifroes(a)+' por hora</span>';
- h+='</button>';
- h+='<div class="acoessec">';
+ h+='<div class="perfilacoes"><div class="acoessec">';
+ h+='<button class="btn'+(contaPendente()?" pendente":"")+'" onclick="'+
+    (contaPendente()?"explicarTrava(\'pedir orçamento\')":"quoteFor(\'"+a.id+"\')")+'">✨ Pedir orçamento</button>';
  h+='<button class="btn" onclick="'+(contaPendente()?"explicarTrava(\'conversar\')":(isLog()?"openDrawer(\'chat\')":"irCadastro(null)"))+'">💬 Conversar</button>';
  h+='<button class="btn'+(seg?" primary":"")+'" onclick="alternarSeguir(\''+a.id+'\')">'+(seg?"✓ Seguindo":"👤 Seguir")+'</button>';
  h+='</div></div>';
- h+='<div class="tiny muted" style="margin-top:var(--e2)">O valor final sai do orçamento — os cifrões são a faixa que ele costuma praticar.</div>';
 
  /* 5. SOBRE — duas linhas, sempre visíveis.
     Era um <details> fechado com o triângulo nativo do navegador. Texto
@@ -6566,7 +6569,8 @@ function assistBody(){
   h+='<div class="row wrapf" style="gap:var(--e1);margin-top:var(--e2)">';
   (S.aiEstilos.length?S.aiEstilos:["—"]).forEach(function(x){h+='<span class="badge acc">'+(SL[x]||x)+'</span>'});
   h+='</div>';
-  h+='<div class="tiny muted" style="margin-top:var(--e2)">'+escapar(S.aiParte||"Local não informado")+' · '+escapar(S.aiCidade||"—")+'</div>';
+  h+='<div class="tiny muted" style="margin-top:var(--e2)">'+escapar(S.aiParte||"Local não informado")+' · '+rotuloTamanho(S.aiTam)+' · '+escapar(S.aiCidade||"—")+'</div>';
+  h+='<div class="tiny muted" style="margin-top:var(--e1)">'+S.aiRefs+' referência(s) anexada(s)</div>';
   if(S.arrependido)h+='<div class="tiny" style="margin-top:var(--e1);color:var(--accent)">Cobertura ou correção — vai só para quem faz.</div>';
   h+='</div>';
 
@@ -6596,9 +6600,16 @@ function assistBody(){
  var h='';
  if(a)h+='<div class="banner" style="margin-bottom:var(--e3)"><div class="av">'+ini(a.name)+'</div><div><div class="b small">Orçar com '+a.name+'</div><div class="tiny muted">'+a.studio+' · '+a.city+'</div></div></div>';
  h+='<p class="small muted">Conte o que você quer. Quem trabalha com isso responde com o preço e o prazo.</p>';
+ /* O que torna o pedido padronizado, dito na primeira linha.
+    Sem isso, campo obrigatório parece burocracia; com isso, parece o
+    que é — a condição para as respostas serem comparáveis. */
+ h+='<div class="card pad" style="background:var(--muted);margin-top:var(--e3)">';
+ h+='<div class="tiny"><b>Todo pedido leva as mesmas cinco coisas:</b> referência, estilo, tamanho, parte do corpo e cidade.</div>';
+ h+='<div class="tiny muted" style="margin-top:var(--e1)">É o que permite comparar respostas de tatuadores diferentes — e o que evita a semana de perguntas antes do primeiro preço.</div>';
+ h+='</div>';
 
- h+='<div class="tiny muted" style="margin-top:var(--e3);font-weight:600;text-transform:uppercase;letter-spacing:.08em">Referências ('+S.aiRefs+'/8)</div>';
- h+='<div class="tiny muted" style="margin-top:var(--e1)">Prints, desenhos, fotos de tatuagens que te agradam.</div>';
+ h+='<div class="row" style="margin-top:var(--e4)"><span class="b small">Referências ('+S.aiRefs+'/8)</span><span class="req">obrigatório</span></div>';
+ h+='<div class="tiny muted" style="margin-top:var(--e1)">Prints, desenhos, fotos de tatuagens que te agradam. Pelo menos uma: preço sem imagem é chute, e chute vira briga depois.</div>';
  h+='<div class="row wrapf" style="gap:var(--e2);margin-top:var(--e2)">';
  for(var k=0;k<S.aiRefs;k++)h+='<div class="thumbsq" style="background-image:'+tex(k*6+4)+'"><span class="x" onclick="S.aiRefs--;renderDrawer()">✕</span></div>';
  h+='<button style="width:56px;height:56px;border:1.5px dashed var(--border);border-radius:var(--r-sm);color:var(--muted-foreground)" onclick="S.aiRefs=Math.min(8,S.aiRefs+1);renderDrawer()">＋</button></div>';
@@ -6620,19 +6631,65 @@ function assistBody(){
  h+='<span class="tiny muted" style="display:block;margin-top:var(--e1)">O pedido vai só para quem faz cobertura. Uma foto da tatuagem atual ajuda muito.</span></span></label>';
 
  h+='<div class="sep"></div>';
+ h+='<div class="row"><span class="b small">Tamanho</span><span class="req">obrigatório</span></div>';
+ h+='<div class="tiny muted" style="margin-top:var(--e1)">Meça no corpo com uma fita, ou compare com a mão. "Médio" quer dizer coisa diferente para cada pessoa — centímetro não.</div>';
+ h+='<div class="row wrapf" style="gap:var(--e2);margin-top:var(--e2)">';
+ TAMANHOS.forEach(function(t){
+  h+='<button class="chip '+(S.aiTam===t[0]?"on":"")+'" onclick="S.aiTam=S.aiTam===\''+t[0]+'\'?\'\':\''+t[0]+'\';renderDrawer()" title="'+t[2]+'">'+t[1]+'</button>'});
+ h+='</div>';
+ var tsel=TAMANHOS.filter(function(t){return t[0]===S.aiTam})[0];
+ if(tsel)h+='<div class="tiny muted" style="margin-top:var(--e2)">Mais ou menos '+tsel[2]+'.</div>';
+
+ h+='<div class="sep"></div>';
  h+='<div class="grid" style="gap:var(--e2)">';
- h+='<div><label class="lb">Parte do corpo</label><input class="fld" id="aiParte" value="'+escapar(S.aiParte)+'" oninput="S.aiParte=this.value" placeholder="Antebraço interno" /></div>';
+ h+='<div><label class="lb">Parte do corpo <span class="req">obrigatório</span></label><input class="fld" id="aiParte" value="'+escapar(S.aiParte)+'" oninput="S.aiParte=this.value" placeholder="Antebraço interno" /></div>';
  h+='<div><label class="lb">Cidade</label><input class="fld" id="aiCidade" value="'+escapar(S.aiCidade||(a?a.city:""))+'" oninput="S.aiCidade=this.value" placeholder="São Paulo" /></div>';
  h+='<div><label class="lb">Quanto você pretende gastar <span class="muted" style="font-weight:400">— opcional</span></label><div class="row wrapf" style="gap:var(--e1)">';
  [["ate500","até R$ 500"],["500a1500","R$ 500 a 1.500"],["1500a3000","R$ 1.500 a 3.000"],["acima3000","acima de R$ 3.000"]].forEach(function(f){
   h+='<button class="chip '+(S.aiFaixa===f[0]?"on":"")+'" onclick="S.aiFaixa=S.aiFaixa===\''+f[0]+'\'?\'\':\''+f[0]+'\';renderDrawer()">'+f[1]+'</button>'});
  h+='</div><div class="tiny muted" style="margin-top:var(--e1)">Ajuda quem responde a saber se cabe. Não aparece como oferta.</div></div>';
- h+='<div><label class="lb">Observações</label><textarea class="fld" id="aiObs" style="height:62px;resize:vertical" oninput="S.aiObs=this.value" placeholder="Tamanho aproximado, se tem prazo, o que você não quer…">'+escapar(S.aiObs)+'</textarea></div></div>';
+ h+='<div><label class="lb">Observações</label><textarea class="fld" id="aiObs" style="height:62px;resize:vertical" oninput="S.aiObs=this.value" placeholder="Se tem prazo, se é a primeira, o que você não quer…">'+escapar(S.aiObs)+'</textarea></div></div>';
 
- var pronto=S.aiEstilos.length>0 && (S.aiCidade||a);
- h+='<button class="btn primary blk" style="margin-top:var(--e3)" '+(pronto?"":"disabled")+' onclick="S.aiStep=1;renderDrawer()">'+
-    (pronto?"Ver para quem vai →":"Escolha o estilo e a cidade")+'</button>';
+ /* Botão travado que não diz o que falta é botão que a pessoa clica
+    três vezes e desiste. Ele nomeia a primeira pendência, na ordem em
+    que os campos aparecem na tela — mandar procurar para cima é menos
+    pior do que mandar procurar sem direção. */
+ var falta=[];
+ if(!S.aiRefs)falta.push("uma referência");
+ if(!S.aiEstilos.length)falta.push("o estilo");
+ if(!S.aiTam)falta.push("o tamanho");
+ if(!S.aiParte)falta.push("a parte do corpo");
+ if(!(S.aiCidade||a))falta.push("a cidade");
+ h+='<button class="btn primary blk" style="margin-top:var(--e3)" '+(falta.length?"disabled":"")+' onclick="S.aiStep=1;renderDrawer()">'+
+    (falta.length?"Falta "+falta[0]:"Ver para quem vai →")+'</button>';
+ if(falta.length>1)h+='<div class="tiny muted" style="margin-top:var(--e1);text-align:center">e mais '+(falta.length-1)+': '+falta.slice(1).join(", ")+'</div>';
  return h;
+}
+
+/* Os cinco tamanhos, e por que são cinco e não um campo livre.
+
+   Tamanho é a variável que mais mexe no preço, e era a única do
+   padrão que morava no texto livre — no lugar-comum "tamanho
+   aproximado" dentro de Observações. Ali cada pessoa escreve numa
+   unidade: "médio", "palma da mão", "uns 3 dedos", "grande".
+
+   Nenhuma delas se compara com a outra, e comparar é justamente o que
+   o cliente vai fazer quando as respostas chegarem.
+
+   Centímetro compara. As faixas são largas de propósito: ninguém sabe
+   se quer 12 ou 14 cm, e fingir essa precisão só produz número
+   inventado. O último degrau sai da régua porque fechamento não se
+   mede em centímetros — se mede em sessões. */
+var TAMANHOS=[
+ ["p","até 5 cm","moeda, dedo"],
+ ["m","5 a 10 cm","palma da mão"],
+ ["g","10 a 20 cm","antebraço"],
+ ["gg","20 a 30 cm","panturrilha, costela"],
+ ["fech","fechamento","braço, perna ou costas inteiros"]
+];
+function rotuloTamanho(c){
+ var t=TAMANHOS.filter(function(x){return x[0]===c})[0];
+ return t?t[1]:"";
 }
 
 /* Quem faz o que a pessoa pediu. Se ela marcou cobertura, só quem

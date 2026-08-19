@@ -70,7 +70,7 @@ var SAIRAM_DE_PROPOSITO = [
   ["Sobre o tatuador",
    "era o resumo de um <details> fechado. Texto de duas linhas atrás de um clique é texto que ninguém lê — e o triângulo do <details> era o único componente do produto desenhado pelo sistema operacional. A bio passou a ficar sempre visível, sem rótulo, porque um parágrafo não precisa de título para ser lido"],
   ["4.2 (12) · 2 anos",
-   "a linha ganhou as palavras que faltavam: '(12 avaliações)' e '2 anos de ofício'. Número entre parênteses sem substantivo obriga a pessoa a adivinhar do que ele é — e o preço saiu daqui para o botão de orçar, onde a decisão acontece"],
+   "a linha ganhou as palavras que faltavam: '(12 avaliações)' e '2 anos de ofício'. Número entre parênteses sem substantivo obriga a pessoa a adivinhar do que ele é. O preço chegou a sair desta linha para dentro do botão de orçar e voltou quando o botão deixou de ser barra: hoje a linha diz nota, avaliações, anos de ofício e faixa de preço, nessa ordem"],
   ["Ver todos →",
    "o atalho morria junto com a prévia dos lançamentos, pela mesma razão: ele existia para trocar de sub-aba, e não há mais sub-aba para trocar"]
 ];

@@ -39,9 +39,59 @@ chk('e diz para que serve',/define para quem o pedido vai/.test(d));
 chk('pede referências',/Referências/.test(d));
 chk('faixa de gasto é opcional',/Quanto você pretende gastar/.test(d)&&/opcional/.test(d));
 chk('cobertura continua separada',/cobrir ou corrigir/.test(d));
-chk('travado sem estilo e cidade',/disabled/.test(d));
-g.e("tog(S.aiEstilos,'fineline')");S.aiCidade='São Paulo';g.e("renderDrawer()");
-chk('destrava com estilo e cidade',!/disabled/.test(gav()));
+/* ── O PEDIDO É PADRONIZADO ────────────────────────────────────────
+   Cinco campos, os mesmos para todo mundo. O que isso compra não é
+   organização: é a comparação. Cinco tatuadores respondendo à mesma
+   descrição produzem cinco preços comparáveis; cinco respondendo a
+   cinco textos livres produzem cinco conversas.
+
+   Este bloco preenche um campo de cada vez e exige que o botão
+   continue travado até o último — e que ele DIGA qual falta, porque
+   botão cinza mudo é onde a pessoa desiste. */
+chk('o pedido anuncia o padrão',/Todo pedido leva as mesmas cinco coisas/.test(d));
+chk('e diz para que ele serve',/comparar respostas de tatuadores diferentes/.test(d));
+chk('tamanho virou campo, não texto livre',/>Tamanho</.test(d));
+/* Não basta EXISTIR um "cm" na tela: cada degrau da régua tem de
+   trazer o seu. Sabotei trocando um só rótulo por "médio" e este
+   teste passava, porque os outros quatro seguravam o regex. */
+var regua=g.e("TAMANHOS").filter(function(t){return t[0]!=='fech'});
+var semCm=regua.filter(function(t){return !/\d+\s*cm/.test(t[1])});
+chk('cada degrau da régua traz o centímetro', semCm.length===0,
+    'degrau(s) em adjetivo: '+semCm.map(function(t){return '"'+t[1]+'"'}).join(', ')+
+    ' — adjetivo não se compara entre duas pessoas');
+chk('e a tela explica por que é em cm',
+    /"Médio" quer dizer coisa diferente/.test(d));
+chk('fechamento fica fora da régua',
+    g.e("TAMANHOS").filter(function(t){return t[0]==='fech'}).length===1 &&
+    !/cm/.test(g.e("rotuloTamanho('fech')")),
+    'fechamento entrou na régua: se mede em sessões, não em centímetros');
+chk('o tamanho saiu do campo de observações',!/Tamanho aproximado/.test(d),
+    'o campo existe e o texto livre continua pedindo a mesma coisa');
+
+S.aiRefs=0;S.aiEstilos=[];S.aiTam='';S.aiParte='';S.aiCidade='';g.e("renderDrawer()");
+var passos=[
+ ['uma referência', "S.aiRefs=2"],
+ ['o estilo',       "tog(S.aiEstilos,'fineline')"],
+ ['o tamanho',      "S.aiTam='m'"],
+ ['a parte do corpo',"S.aiParte='Antebraço interno'"],
+ ['a cidade',       "S.aiCidade='São Paulo'"]
+];
+passos.forEach(function(pa,i){
+ var atual=gav();
+ chk('travado, e diz que falta '+pa[0],
+     /disabled/.test(atual)&&atual.indexOf('Falta '+pa[0])>=0,
+     'o botão não nomeia a pendência: "'+((atual.match(/Falta [^<]*/)||['—'])[0])+'"');
+ g.e(pa[1]);g.e("renderDrawer()");
+ var depois=gav();
+ var ultimo=i===passos.length-1;
+ chk(ultimo?'com os cinco, destrava':'ainda travado depois de '+pa[0],
+     ultimo?!/disabled/.test(depois):/disabled/.test(depois),
+     ultimo?'destravou faltando campo do padrão':'destravou cedo, com '+(i+1)+' de 5');
+});
+chk('o resumo devolve o tamanho escolhido',
+    (g.e("S.aiStep=1;renderDrawer()"),/5 a 10 cm/.test(gav())),
+    'quem responde não vê o tamanho que a pessoa escolheu');
+g.e("S.aiStep=0;renderDrawer()");
 g.e("S.aiStep=1;renderDrawer()");
 var d1=gav();
 chk('passo 2 mostra para quem vai',/Vai para/.test(d1));
@@ -192,13 +242,21 @@ chk('nenhuma ação do perfil é só ícone', mudas.length === 0,
 ['Pedir orçamento', 'Conversar', 'Seguir'].forEach(function (r) {
   chk('a ação "' + r + '" diz o que faz', tpf.indexOf(r) >= 0);
 });
-/* Uma ação principal e três secundárias: quatro botões com o mesmo
-   peso não são hierarquia, são um menu. */
-chk('uma ação principal, e só uma',
-    (tpf.match(/class="btn primary acaoprin/g) || []).length === 1);
-chk('e as outras duas abaixo dela',
-    /class="acoessec"/.test(tpf) &&
-    tpf.indexOf('acaoprin') < tpf.indexOf('acoessec'));
+/* ── TRÊS ACESSOS, MESMO PESO ──────────────────────────────────────
+   Orçar era uma barra preta de largura inteira com o preço dentro. A
+   pedido dela virou um acesso como conversar.
+
+   A hierarquia não desapareceu — mudou de lugar. Ela não está mais no
+   tamanho do botão, e sim no que cada um abre: conversar abre uma
+   conversa em branco, seguir é um clique, e orçar abre um formulário
+   de cinco campos fixos, igual para todo mundo. */
+chk('as três ações dividem a mesma linha',
+    (tpf.match(/class="acoessec"/g) || []).length === 1);
+chk('e nenhuma delas é uma barra à parte',
+    !/acaoprin/.test(tpf),
+    'a ação de orçar voltou a ter forma própria');
+chk('o acesso de orçar abre o pedido padronizado',
+    /quoteFor\(/.test(tpf) || /explicarTrava/.test(tpf));
 
 /* Os selos eram seis pastilhas em duas linhas — mais peso visual que o
    nome de quem elas descrevem. */
@@ -228,14 +286,15 @@ chk('e sai na condensada',/\.perfilnome\{font-family:var\(--f-cond\)/.test(css))
    hora" passam cinco estrelas em SVG, e contar bytes de desenho para
    achar palavra é frágil por construção. */
 var linhaNum=(tpf.split('class="perfilnum">')[1]||'').split('</div>')[0].replace(/<[^>]*>/g,' ').replace(/\s+/g,' ');
-/* O preço saiu desta linha e foi para o botão de orçar: é ali que ele
-   pesa na decisão, e solto aqui competia com a nota sem ajudar. */
-chk('nota e anos de ofício na mesma linha',
-    /\d\.\d/.test(linhaNum) && /anos/.test(linhaNum),
+/* O preço voltou para esta linha quando o botão deixou de ser barra.
+   Ele não pode simplesmente sumir: é a segunda coisa que a pessoa
+   procura, depois de "esta mão me serve?". */
+chk('nota, anos de ofício e preço na mesma linha',
+    /\d\.\d/.test(linhaNum) && /anos/.test(linhaNum) && /por hora/.test(linhaNum),
     'linha: "'+linhaNum.trim()+'"');
-chk('e o preço encostado na ação de orçar',
-    /class="acaopreco"/.test(tpf) && /Pedir orçamento/.test(tpf),
-    'o preço ficou solto, longe da decisão');
+chk('e os cifrões vêm explicados',
+    /faixa que ele costuma praticar/.test(tpf),
+    'cifrão sem legenda é a pessoa adivinhando quanto custa');
 chk('número tabular nas medidas',/\.perfilnum\{[^}]*tabular-nums/.test(css));
 
 S.route='estudio';S.estudioSel=(g.e("ESTUDIOS[0].id"));g.e("render()");
