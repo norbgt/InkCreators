@@ -95,11 +95,27 @@ var semTexto = tp.replace(/<[^>]*>/g, " ");
  ["não desbloqueia nada", /desbloque/i],
  ["não tem meta", /\bmeta[s]?\b/i],
  ["não tem conquista a completar", /complete |completar o |para completar/i],
+ /* A palavra "conquista" abre caminhos que "marco" não abria. Estes
+    são os que transformariam o acervo em placar. */
+ ["não promete a próxima conquista", /próxima conquista|nova conquista|conquista a desbloquear/i],
+ ["não conta quantas faltam", /falta[m]? \d+|mais \d+ para/i],
  ["não compara com outros clientes", /voc[êe] est[áa] (à frente|atr[áa]s)|mais que \d+% dos/i]
 ].forEach(function (c) { chk(c[0], !c[1].test(semTexto), "encontrei: " + (semTexto.match(c[1]) || [""])[0]) });
 
-chk("mostra marcos que já aconteceram", /class="marcos"/.test(tp) && /class="marco"/.test(tp));
-chk("e diz por que não cobra o próximo", /Nenhum marco cobra o próximo/.test(tp));
+chk("mostra conquistas que já aconteceram", /class="marcos"/.test(tp) && /class="marco"/.test(tp));
+/* As sessões vêm primeiro: são o que a pessoa tem no corpo, e o que
+   ela veio ver. As conquistas são leitura DAQUILO — vir antes as faria
+   parecer o assunto, e o corpo dela, a nota de rodapé. */
+chk("as sessões vêm antes das conquistas",
+    tp.indexOf(">Sessões<") >= 0 && tp.indexOf(">Sessões<") < tp.indexOf(">Conquistas<"),
+    "as conquistas subiram e viraram o assunto da tela");
+/* "Marcos" virou "Conquistas" a pedido dela. É uma palavra que puxa
+   para placar, e por isso a frase-guarda ficou MAIS explícita, não
+   menos: ela diz na mesma altura do título que nada ali cobra o
+   próximo. Sem essa frase, o título sozinho vira gamificação. */
+chk("e diz por que não cobra a próxima", /Nenhuma conquista cobra a próxima/.test(tp));
+chk("e que elas vêm depois do que foi vivido",
+    /aparecem depois do que você viveu, nunca antes/.test(tp));
 chk("css dos marcos existe", /\.marcos\{/.test(css) && /\.marco\{/.test(css));
 chk("sem barra de progresso no passaporte", !/class="bar"/.test(tp),
     "barra de progresso é a forma visual de dizer que falta algo");

@@ -4533,17 +4533,9 @@ function vMe(sub){
   h+='</div>';
   h+='<div class="tiny muted" style="margin-top:var(--e3)">'+rc.gente+' '+rc.rotuloGente+' diferentes.</div>';
 
-  var mk=marcosDo(l);
-  h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:15px">Marcos</span>';
-  h+='<span class="sp tiny muted">o que já aconteceu</span></div>';
-  h+='<div class="tiny muted" style="margin-top:var(--e1)">Nenhum marco cobra o próximo. Eles aparecem depois, não antes.</div>';
-  h+='<div class="marcos" style="margin-top:var(--e2)">';
-  mk.forEach(function(x){
-   h+='<div class="marco"><span class="mic">'+x.ic+'</span><div style="min-width:0">';
-   h+='<div class="b small">'+x.t+'</div><div class="tiny muted">'+x.p+(x.d?' · '+x.d:'')+'</div></div></div>';
-  });
-  h+='</div>';
-
+  /* As sessões vêm primeiro: são o que a pessoa tem, e o que ela veio
+     ver. As conquistas são leitura DAQUILO — vir antes as faria
+     parecer o assunto, e o corpo dela, a nota de rodapé. */
   h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:15px">Sessões</span>';
   h+='<button class="btn sm sp" onclick="go(\'checkin\')">Fazer check-in</button></div>';
   h+='<div class="lista">';
@@ -4562,6 +4554,22 @@ function vMe(sub){
   });
   h+='</div>';
   h+='<div class="tiny muted" style="margin-top:var(--e2)">Uma sessão verificada nasce do check-in: você e o tatuador confirmaram um ao outro, na hora, no mesmo lugar. É o que faz o registro valer alguma coisa para os dois.</div>';
+
+  var mk=marcosDo(l);
+  h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:15px">Conquistas</span>';
+  h+='<span class="sp tiny muted">o que já aconteceu</span></div>';
+  /* A frase é a guarda inteira desta seção. "Conquistas" é uma palavra
+     que puxa para placar — e aqui elas são registro do que aconteceu,
+     nunca meta a cumprir. A frase precisa dizer isso na mesma altura em
+     que o título sugere o contrário. */
+  h+='<div class="tiny muted" style="margin-top:var(--e1)">Nenhuma conquista cobra a próxima. Elas aparecem depois do que você viveu, nunca antes.</div>';
+  h+='<div class="marcos" style="margin-top:var(--e2)">';
+  mk.forEach(function(x){
+   h+='<div class="marco"><span class="mic">'+x.ic+'</span><div style="min-width:0">';
+   h+='<div class="b small">'+x.t+'</div><div class="tiny muted">'+x.p+(x.d?' · '+x.d:'')+'</div></div></div>';
+  });
+  h+='</div>';
+
  }
 
  /* ── FORMAÇÃO ────────────────────────────────────────────────────

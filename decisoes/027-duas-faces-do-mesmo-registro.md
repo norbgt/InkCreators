@@ -96,3 +96,48 @@ foi o que aconteceu na decisão 019. Desta vez a devolução veio junto com
 o bloco.
 
 **11 roteiros, 0 falhas. 711 frases, nenhuma perdida.**
+
+---
+
+## Sessões antes, e "Marcos" vira "Conquistas"
+
+> "em passaporte, sessões vem antes de marcos; 'marcos' vira
+> 'conquistas'"
+
+**A ordem estava errada e é fácil dizer por quê.** As sessões são o que
+a pessoa tem no corpo — é o que ela veio ver. As conquistas são leitura
+*daquilo*. Vindo antes, elas pareciam o assunto e o corpo dela virava
+nota de rodapé.
+
+## A palavra, e o cuidado que ela exige
+
+"Conquistas" é mais quente que "Marcos", e é a sua chamada. Mas é também
+uma palavra que **puxa para placar** — e o passaporte tem uma decisão
+ética inteira sustentada em não ser placar (decisão original: *acervo,
+não placar*; tatuagem é permanente, e uma interface que mostra "faltam
+duas para" transforma decisão irreversível em tarefa a completar).
+
+Então a frase-guarda ficou **mais explícita, não menos**:
+
+> *"Nenhuma conquista cobra a próxima. Elas aparecem depois do que você
+> viveu, nunca antes."*
+
+Ela vem na mesma altura do título. Sem ela, o título sozinho é
+gamificação.
+
+## A lista ética cresceu junto
+
+Havia oito padrões proibidos no passaporte. A palavra "conquista" abre
+caminhos que "marco" não abria, e dois entraram:
+
+- **"não promete a próxima conquista"** — `próxima conquista`, `nova
+  conquista`, `conquista a desbloquear`
+- **"não conta quantas faltam"** — `faltam N`, `mais N para`
+
+Sabotei escrevendo *"Sua próxima conquista está perto"* no título.
+Acusou, citando o trecho encontrado.
+
+E existe agora um teste para a ordem: se as conquistas subirem de novo,
+ele diz *"as conquistas subiram e viraram o assunto da tela"*.
+
+**11 roteiros, 0 falhas. 711 frases, nenhuma perdida.**

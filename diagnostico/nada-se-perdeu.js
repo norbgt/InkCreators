@@ -63,6 +63,8 @@ var SAIRAM_DE_PROPOSITO = [
    "era o título do cartão com a grade de 28 células. A seção deixou de ser calendário: quem abre a agenda quer saber quem vem, e isso está em Próximas sessões com nome e hora. O que ficou é 'Onde ainda cabe alguém', uma faixa de 14 dias que responde onde há espaço"],
   ["São Paulo, Curitiba, Porto Alegre, Rio",
    "era a nota escrita à mão do cartão de cidades, numa faixa de números que virou repetição quando o passaporte e a trajetória passaram a usar a mesma. A contagem continua na faixa nova, e os nomes das cidades estão em cada linha da lista de estúdios logo abaixo — onde não envelhecem, porque saem do dado"],
+  ["Nenhum marco cobra o próximo. Eles aparecem depois, não antes.",
+   "'Marcos' virou 'Conquistas' a pedido dela, e a frase-guarda foi reescrita junto: 'Nenhuma conquista cobra a próxima. Elas aparecem depois do que você viveu, nunca antes.' Ficou mais explícita de propósito — conquista é uma palavra que puxa para placar, e o título sozinho viraria gamificação sem ela"],
   ["Ver todos →",
    "o atalho morria junto com a prévia dos lançamentos, pela mesma razão: ele existia para trocar de sub-aba, e não há mais sub-aba para trocar"]
 ];
