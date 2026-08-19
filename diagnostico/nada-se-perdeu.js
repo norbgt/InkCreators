@@ -127,6 +127,11 @@ var SUBABAS = [
   ["vg", ["visao", "dinheiro", "lancamentos", "pessoas"]],
   ["mev", ["resumo", "quotes", "payments"]],
   ["rep", ["avaliacoes", "desempenho", "estudios"]],
+  /* As abas do perfil público nunca foram varridas: o roteiro
+     comparava só o portfólio, e tudo o que estava nas outras cinco
+     passava sem ser olhado. Descoberto ao fundir Avaliações e
+     Reputação — a fusão poderia ter perdido conteúdo em silêncio. */
+  ["abaPerfil", ["portfolio", "galeria", "instagram", "cursos", "eventos", "reputacao", "avaliacoes"]],
   ["hist", ["pessoas", "estudios"]], ["ev", ["meus", "participo"]],
   ["av", ["todas", "responder"]], ["fr", ["recebidas", "pedir"]],
   ["fe", ["convites", "ativos"]], ["fl", ["produtos", "pedidos"]]

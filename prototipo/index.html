@@ -3156,7 +3156,13 @@ function vArtist(){
  if(temInsta)abas.push(["instagram","Instagram"]);
  if(cursosDele.length)abas.push(["cursos","Cursos"]);
  if(eventosDele.length)abas.push(["eventos","Eventos"]);
- if(a.reviews>0)abas.push(["avaliacoes","Avaliações"]);
+ /* Avaliações e selos eram duas abas, e respondiam à mesma pergunta:
+    por que confiar nesta pessoa. Quem chegava numa não tinha motivo
+    para procurar a outra — e as duas metades da resposta ficavam
+    separadas justamente no momento em que a pessoa está decidindo.
+
+    Agora é uma aba com as duas leituras em ordem: o que dizem quem já
+    passou por ele, e o que a plataforma conseguiu verificar. */
  abas.push(["reputacao","Reputação"]);
  var aba = abas.map(function(x){return x[0]}).indexOf(S.abaPerfil)>=0 ? S.abaPerfil : "portfolio";
 
@@ -3290,8 +3296,11 @@ function vArtist(){
 
  /* ── AVALIAÇÕES: aba própria. Antes vinham logo abaixo do carrossel
        do Instagram e liam como se fossem parte dele. ──────────────── */
- if(aba==="avaliacoes"){
-  h+='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b small">Avaliações</span>'+tg("mock")+'</div>';
+ if(aba==="reputacao"&&a.reviews>0){
+  /* O que dizem vem antes do que a plataforma verificou: nota de gente
+     que passou por ele pesa mais na decisão que selo de sistema, e
+     esconder isso atrás dos selos seria inverter a ordem da confiança. */
+  h+='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b small">O que dizem</span>'+tg("mock")+'</div>';
   h+='<div class="row" style="gap:var(--e2);margin-top:var(--e2)"><span class="b" style="font-size:22px">'+a.rating+'</span>';
   h+='<div><div class="tiny">'+stars(a.rating)+'</div><div class="tiny muted">'+a.reviews+' avaliações</div></div></div>';
   h+='<div class="sep"></div>';

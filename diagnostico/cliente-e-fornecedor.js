@@ -129,6 +129,32 @@ chk("sem barra de progresso no passaporte", !/class="bar"/.test(tp),
    diferente, a reciprocidade deixa de ser visível — e quem tatua
    também é cliente, então a mesma pessoa reaprende a ler ao trocar de
    papel. */
+/* ── AVALIAÇÃO E SELO SÃO A MESMA PERGUNTA ───────────────────────
+   Eram duas abas no perfil público, e as duas respondiam "por que
+   confiar nesta pessoa". Quem chegava numa não tinha motivo para
+   procurar a outra — e as duas metades da resposta ficavam separadas
+   justamente no momento em que alguém está decidindo. */
+secao("2a. REPUTAÇÃO É UMA ABA SÓ");
+S.session = "anon"; S.abaPerfil = "reputacao";
+var tRep = ir("artist");
+var abasPerfil = (tRep.match(/class="seg [^"]*"[^>]*>([^<]+)</g) || [])
+  .map(function (x) { return x.replace(/.*>/, "").replace(/<$/, "") });
+chk("não existe aba de avaliações separada",
+    abasPerfil.indexOf("Avaliações") < 0,
+    "abas: " + abasPerfil.join(" · "));
+chk("e existe a de reputação", abasPerfil.indexOf("Reputação") >= 0);
+chk("a nota e os depoimentos estão nela", /O que dizem/.test(tRep) && /avaliações/.test(tRep));
+chk("os selos com a regra de cada um também",
+    /Como esta reputação se formou/.test(tRep));
+/* Nota de gente que passou por ele pesa mais na decisão que selo de
+   sistema. Esconder isso atrás dos selos inverteria a ordem da
+   confiança. */
+chk("o que dizem vem antes do que a plataforma verificou",
+    tRep.indexOf("O que dizem") >= 0 &&
+    tRep.indexOf("O que dizem") < tRep.indexOf("Como esta reputação se formou"),
+    "os selos subiram na frente das pessoas");
+S.abaPerfil = "portfolio";
+
 secao("2b. PASSAPORTE E TRAJETÓRIA SÃO O MESMO FATO");
 chk("existe uma função só de resumo", /function resumoDaTrajetoria/.test(code),
     "duas funções de resumo divergem em silêncio na primeira mudança");
