@@ -3936,7 +3936,15 @@ function abasInternas(chave, opcoes, padrao){
    "Meu perfil" saiu da barra: configuração não é superfície de
    trabalho, e ocupava um dos nove lugares como se fosse. Foi para o
    menu da conta, que é onde as pessoas já procuram. */
-var ST_NAV=[["studio","Hoje","▦"],["studio-quotes","Orçamentos","📥"],["studio-schedule","Agenda","🗓"],["studio-caixa","Dinheiro","👛"],["studio-reputacao","Reputação","★"],["studio-eventos","Cursos e eventos","🎟"]];
+/* "Hoje" virou "Visão geral" pelo mesmo motivo que o cliente tem uma:
+   duas áreas com a mesma função e nomes diferentes obrigam a
+   reaprender a ler ao trocar de papel — e a mesma pessoa troca, porque
+   quem tatua também é cliente.
+
+   Ela absorveu Orçamentos e Dinheiro. O painel de números grandes no
+   topo deixa de ser um resumo que aponta para outras abas e passa a
+   ser o índice desta página: cada cartão rola até a sua seção. */
+var ST_NAV=[["studio","Visão geral","▦"],["studio-schedule","Agenda","🗓"],["studio-reputacao","Reputação","★"],["studio-eventos","Cursos e eventos","🎟"]];
 
 /* ═══ UMA FAIXA DE NAVEGAÇÃO, NÃO DUAS ════════════════════════════
    Eram cinco abas em cima e até quatro sub-abas embaixo: dezoito
@@ -3960,13 +3968,17 @@ var SECOES_DA_GESTAO={
  "me":               [["mev","resumo","Visão geral"],
                       ["mev","quotes","Meus orçamentos",function(){return CQ.filter(function(q){return q.status==="respondido"}).length}],
                       ["mev","payments","Pagamentos",function(){return PAYS.length}]],
- "studio":           [["hoje","visao","Visão geral"],["hoje","checkin","Check-in de agora"]],
- "studio-quotes":    [["orc","recebidos","Recebidos",function(){return SQ.filter(function(q){return q.status==="novo"}).length}],
-                      ["orc","enviados","Enviados",function(){return SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length}]],
+ /* Uma chave só para a página inteira. Com chaves separadas por bloco,
+    a seção de orçamentos herdaria o valor de "hoje" da seção anterior e
+    o check-in sairia duas vezes. */
+ "studio":           [["vg","visao","Visão geral"],
+                      ["vg","checkin","Check-in de agora"],
+                      ["vg","recebidos","Orçamentos recebidos",function(){return SQ.filter(function(q){return q.status==="novo"}).length}],
+                      ["vg","enviados","Propostas enviadas",function(){return SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length}],
+                      ["vg","dinheiro","Dinheiro"],
+                      ["vg","lancamentos","Lançamentos",function(){return LANC.length}],
+                      ["vg","pessoas","Quem eu tatuei",function(){return HIST_PESSOAS.length}]],
  "studio-schedule":  [["ag","mes","O mês"],["ag","conexoes","Conexões"]],
- "studio-caixa":     [["cx","resumo","Resumo"],
-                      ["cx","lancamentos","Lançamentos",function(){return LANC.length}],
-                      ["cx","pessoas","Quem eu tatuei",function(){return HIST_PESSOAS.length}]],
  "studio-reputacao": [["rep","avaliacoes","Avaliações",function(){return REVS.filter(function(r){return !r.resp}).length}],
                       ["rep","desempenho","Desempenho por estilo"],["rep","estudios","Onde eu tatuei"]],
  "studio-eventos":   [["ev","meus","Que eu criei"],["ev","participo","Que eu participo"]],
@@ -4051,7 +4063,9 @@ function paginaDeGestao(rota,render1){
    no endereço: quem tinha "studio-events" guardado cairia numa tela em
    branco, e tela em branco parece produto quebrado. */
 var ST_ROTA_ANTIGA={
- "studio-checkin":  ["studio",           "hoje","checkin"],
+ "studio-checkin":  ["studio",           "vg","checkin"],
+ "studio-quotes":   ["studio",           "vg","recebidos"],
+ "studio-caixa":    ["studio",           "vg","dinheiro"],
  "studio-historico":["studio-reputacao", "rep", "estudios"],
  "studio-events":   ["studio-eventos",   "ev",  "meus"],
  "studio-reviews":  ["studio-reputacao", "rep", "avaliacoes"]
@@ -4062,7 +4076,7 @@ function traduzirRotaAntiga(r){
  /* Histórico tinha duas metades que foram para abas diferentes: quem
     eu tatuei virou Dinheiro, onde eu tatuei virou Reputação. */
  if(r==="studio-historico"&&subAba("hist","pessoas")==="pessoas"){
-  S.sub=S.sub||{};S.sub.cx="pessoas";return "studio-caixa";
+  S.sub=S.sub||{};S.sub.vg="pessoas";return "studio";
  }
  S.sub=S.sub||{};S.sub[t[1]]=t[2];
  return t[0];
@@ -5033,19 +5047,29 @@ function vStudio(sub){
     Sub-abas aqui seriam um erro: dividir o resumo obrigaria a pessoa a
     escolher entre duas metades antes de saber o que ela procura. É o
     oposto de resumir. */
- /* ── HOJE ────────────────────────────────────────────────────
+ /* Os blocos abaixo continuam escritos em torno das chaves antigas —
+    orc para orçamentos, cx para caixa. Em vez de reescrever cada um,
+    a chave da página é traduzida para elas. */
+ if(sub==="studio"){
+  var vg=subAba("vg","visao");
+  S.sub=S.sub||{};
+  if(vg==="recebidos"||vg==="enviados")S.sub.orc=vg;
+  if(vg==="dinheiro")S.sub.cx="resumo";
+  if(vg==="lancamentos")S.sub.cx="lancamentos";
+  if(vg==="pessoas")S.sub.cx="pessoas";
+ }
+
+ /* ── VISÃO GERAL ─────────────────────────────────────────────
     A visão geral e o check-in de agora respondem à mesma pergunta:
     o que acontece hoje. Eram duas abas listando as mesmas sessões. */
- if(sub==="studio"){
-  h+=abasInternas("hoje",[["visao","Visão geral"],["checkin","Check-in"]]);
- }
+
  if(sub==="studio-reputacao"){
   var semResp=REVS.filter(function(r){return !r.resp}).length;
   h+=abasInternas("rep",[["avaliacoes","Avaliações",semResp||""],["desempenho","Desempenho"],
                           ["estudios","Onde eu tatuei"]]);
   h+='<div class="tiny muted" style="margin-top:9px">Tudo aqui responde à mesma pergunta: por que confiar em você.</div>';
  }
- if(sub==="studio"&&subAba("hoje","visao")==="visao"){
+ if(sub==="studio"&&subAba("vg","visao")==="visao"){
   var cx=somaCaixa();
   var novosQ=SQ.filter(function(q){return q.status==="novo"}).length;
   var esperando=SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length;
@@ -5061,8 +5085,8 @@ function vStudio(sub){
   h+='<div class="row" style="margin-top:15px"><span class="b" style="font-size:15px">Precisa de você</span>';
   h+='<span class="sp tiny muted">'+(pendentes?pendentes+" item(ns)":"nada parado")+'</span></div>';
   h+='<div class="grandes" style="margin-top:7px">';
-  [["📥","Pedidos novos",novosQ,"sem resposta sua","studio-quotes","orc","recebidos",novosQ>0],
-   ["🕘","Propostas sem retorno",esperando,"cliente não respondeu","studio-quotes","orc","enviados",false],
+  [["📥","Pedidos novos",novosQ,"sem resposta sua","studio","vg","recebidos",novosQ>0],
+   ["🕘","Propostas sem retorno",esperando,"cliente não respondeu","studio","vg","enviados",false],
    ["★","Avaliações a responder",semResp,"esperando você","studio-reviews","av","responder",semResp>0]
   ].forEach(function(x){h+=cartaoGrande(x)});
   h+='</div>';
@@ -5070,9 +5094,9 @@ function vStudio(sub){
   h+='<div class="row" style="margin-top:19px"><span class="b" style="font-size:15px">Como vai o mês</span>';
   h+='<span class="sp tiny muted">julho</span></div>';
   h+='<div class="grandes" style="margin-top:7px">';
-  [["👛","Sobrou",brl(cx.sobrou),"entrou "+brl(cx.entrou),"studio-caixa","cx","resumo",false],
+  [["👛","Sobrou",brl(cx.sobrou),"entrou "+brl(cx.entrou),"studio","vg","dinheiro",false],
    ["🗓","Sessões marcadas",BOOK.length,"próximos 14 dias","studio-schedule","ag","mes",false],
-   ["✅","Propostas que fecharam",agendados,"de "+SQ_ENVIADOS.length+" enviadas","studio-quotes","orc","enviados",false]
+   ["✅","Propostas que fecharam",agendados,"de "+SQ_ENVIADOS.length+" enviadas","studio","vg","enviados",false]
   ].forEach(function(x){h+=cartaoGrande(x)});
   h+='</div>';
 
@@ -5086,7 +5110,7 @@ function vStudio(sub){
   h+='<div class="row" style="margin-top:19px"><span class="b" style="font-size:15px">O que você construiu</span>';
   h+='<span class="sp tiny muted">desde set/2024</span></div>';
   h+='<div class="grandes" style="margin-top:7px">';
-  [["🕘","Pessoas tatuadas",HIST_PESSOAS.length,voltaram+" voltaram","studio-historico","hist","pessoas",false],
+  [["🕘","Pessoas tatuadas",HIST_PESSOAS.length,voltaram+" voltaram","studio","vg","pessoas",false],
    ["🏪","Estúdios por onde passei",HIST_ESTUDIOS.length,"casa, guest e convenção","studio-historico","hist","estudios",false],
    ["🖼","Obras à venda",obras,"na sua galeria","studio-profile",null,null,false],
    ["★","Avaliação",("4.8"),"124 avaliações","studio-reviews","av","todas",false]
@@ -5100,7 +5124,7 @@ function vStudio(sub){
   h+='<div class="tiny muted" style="margin-top:18px">Toque em qualquer número para ver o detalhe na aba correspondente.</div>';
  }
 
- if(sub==="studio-quotes"){
+ if((sub==="studio"&&/^(recebidos|enviados)$/.test(subAba("vg","visao")))||sub==="studio-quotes"){
   var novos=SQ.filter(function(q){return q.status==="novo"}).length;
   var esperando=SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length;
   h+=abasInternas("orc",[["recebidos","Recebidos",novos||""],["enviados","Enviados",esperando||""]]);
@@ -5155,7 +5179,7 @@ function vStudio(sub){
  /* O check-in de agora mora em Hoje; o desempenho por estilo mora em
     Reputação, porque é o que responde "o que eu faço bem", não "o que
     acontece agora". Os dois blocos continuam inteiros. */
- if((sub==="studio"&&subAba("hoje","visao")==="checkin")||
+ if((sub==="studio"&&subAba("vg","visao")==="checkin")||
     (sub==="studio-reputacao"&&subAba("rep","avaliacoes")==="desempenho")){
   if(sub==="studio-reputacao"){
    var porEstilo=desempenhoPorEstilo();
@@ -5328,7 +5352,7 @@ function vStudio(sub){
     Caixa e "quem eu tatuei" mostravam as mesmas pessoas com os mesmos
     valores em duas abas diferentes. São a mesma pergunta vista de dois
     ângulos: por lançamento e por pessoa. */
- if(sub==="studio-caixa"){
+ if((sub==="studio"&&/^(dinheiro|lancamentos)$/.test(subAba("vg","visao")))||sub==="studio-caixa"){
   var c=somaCaixa();
   h+=abasInternas("cx",[["resumo","Resumo"],["lancamentos","Lançamentos",String(LANC.length)],["pessoas","Quem eu tatuei",String(HIST_PESSOAS.length)]]);
 
@@ -5391,9 +5415,11 @@ function vStudio(sub){
  /* O histórico tinha duas metades que respondem a perguntas
     diferentes. "Quem eu tatuei" é dinheiro por pessoa e foi para
     Dinheiro. "Onde eu tatuei" é trajetória e foi para Reputação. */
- if((sub==="studio-caixa"&&subAba("cx","resumo")==="pessoas")||
+ if((sub==="studio"&&subAba("vg","visao")==="pessoas")||(sub==="studio-caixa"&&subAba("cx","resumo")==="pessoas")||
     (sub==="studio-reputacao"&&subAba("rep","avaliacoes")==="estudios")){
-  if(sub==="studio-caixa"){
+  /* Quem eu tatuei mora agora na visão geral. A rota antiga
+     studio-caixa continua entrando aqui pelo mesmo caminho. */
+  if(sub!=="studio-reputacao"){
    var tot=HIST_PESSOAS.reduce(function(a,p){return a+p.sessoes},0);
    h+='<div class="stats" style="margin-top:14px">';
    [["👥","Pessoas",HIST_PESSOAS.length,"desde set/2024"],

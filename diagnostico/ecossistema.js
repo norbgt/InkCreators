@@ -107,7 +107,9 @@ chk('quem não vende arte não tem a aba',!/>Galeria</.test(tela()));
 console.log('── 4. CAIXA ──');
 S.session='artist';S.route='studio-caixa';g.e("render()");
 var tc=tela();
-chk('a aba existe no menu',/studio-caixa/.test(tc));
+/* Dinheiro deixou de ser aba e virou seção da visão geral. O que
+   importa não é o endereço, é a seção estar na página. */
+chk('a seção de dinheiro existe',/class="secgt">Dinheiro</.test(tc));
 chk('mostra entrou, saiu, sobrou',/Entrou em julho/.test(tc)&&/Saiu/.test(tc)&&/Sobrou/.test(tc));
 chk('separa de onde veio',/De onde veio/.test(tc)&&/Sessões/.test(tc)&&/Arte/.test(tc));
 /* A prévia de quatro linhas saiu: com as seções empilhadas, a tabela
@@ -142,8 +144,8 @@ chk('permite registrar passagem',/Registrar passagem/.test(te));
 console.log('── 6. A VISÃO GERAL APONTA PARA AS DUAS ──');
 S.route='studio';S.sub={};g.e("render()");
 var tv=tela();
-chk('o painel leva ao caixa',/Sobrou/.test(tv)&&/studio-caixa/.test(tv));
-chk('o painel leva a quem ele tatuou',/Pessoas tatuadas/.test(tv)&&/studio-caixa|studio-historico/.test(tv));
+chk('o painel leva à seção de dinheiro',/Sobrou/.test(tv)&&/vg&#39;,&#39;dinheiro|vg','dinheiro/.test(tv));
+chk('o painel leva a quem ele tatuou',/Pessoas tatuadas/.test(tv)&&/vg&#39;,&#39;pessoas|vg','pessoas/.test(tv));
 chk('e à galeria',/Obras à venda/.test(tv));
 chk('sem "Receita do mês" solta',!/Receita do mês/.test(tv));
 

@@ -122,17 +122,26 @@ var SUBABAS = [
    sub-aba aberta. É a lista que torna a comparação honesta — e é
    também o registro de onde procurar o que você não achar. */
 var MUDOU_DE_LUGAR = {
-  "studio-checkin":   [["studio",           "hoje", "checkin"],
-                       ["studio-reputacao", "rep",  "desempenho"]],
-  /* Cursos e eventos deixou de ser sub-aba de Reputação e ganhou porta
-     própria: quem entra ali vai criar um curso, não conferir reputação. */
-  "studio-events":    [["studio-eventos",   "ev",   "meus"]],
-  "studio-reviews":   [["studio-reputacao", "rep",  "avaliacoes"]],
-  /* Duas metades, duas abas: quem eu tatuei virou dinheiro por pessoa,
-     onde eu tatuei virou trajetória. */
-  "studio-historico": [["studio-caixa",     "cx",   "pessoas"],
-                       ["studio-reputacao", "rep",  "estudios"]]
+  "studio-checkin":   [["studio",           "vg",  "checkin"],
+                       ["studio-reputacao", "rep", "desempenho"]],
+  "studio-quotes":    [["studio",           "vg",  "recebidos"],
+                       ["studio",           "vg",  "enviados"]],
+  /* Dinheiro inteiro virou seção da visão geral: resumo, lançamentos e
+     quem eu tatuei. */
+  "studio-caixa":     [["studio",           "vg",  "dinheiro"],
+                       ["studio",           "vg",  "lancamentos"],
+                       ["studio",           "vg",  "pessoas"]],
+  "studio-events":    [["studio-eventos",   "ev",  "meus"]],
+  "studio-reviews":   [["studio-reputacao", "rep", "avaliacoes"]],
+  /* Duas metades, duas abas: quem eu tatuei virou seção de dinheiro na
+     visão geral, onde eu tatuei virou trajetória em Reputação. */
+  "studio-historico": [["studio",           "vg",  "pessoas"],
+                       ["studio-reputacao", "rep", "estudios"]],
+  /* No cliente, orçamentos e pagamentos viraram seções da visão geral. */
+  "me-quotes":        [["me",               "mev", "quotes"]],
+  "me-payments":      [["me",               "mev", "payments"]]
 };
+
 
 function varrer(g, ehNova) {
   var telas = {};

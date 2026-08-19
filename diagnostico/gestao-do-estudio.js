@@ -37,10 +37,16 @@ console.log('── SEIS ABAS E UMA FAIXA SÓ ──');
    página que rola, com as partes em sequência — num painel de gestão
    rolar é mais barato que esconder, e comparar duas coisas exige
    vê-las juntas, o que sub-aba impede por construção. */
-chk('exatamente seis abas na barra',g.e("ST_NAV.length")===6,g.e("ST_NAV.length")+' abas');
+chk('exatamente quatro abas na barra',g.e("ST_NAV.length")===4,g.e("ST_NAV.length")+' abas');
 chk('e são estas',
-    g.e("ST_NAV.map(function(x){return x[1]}).join('·')")==='Hoje·Orçamentos·Agenda·Dinheiro·Reputação·Cursos e eventos',
+    g.e("ST_NAV.map(function(x){return x[1]}).join('·')")==='Visão geral·Agenda·Reputação·Cursos e eventos',
     g.e("ST_NAV.map(function(x){return x[1]}).join(' · ')"));
+/* Tatuador e cliente chamam a primeira aba do mesmo jeito. A mesma
+   pessoa troca de papel — quem tatua também é cliente — e dois nomes
+   para a mesma função obrigam a reaprender a ler no meio do caminho. */
+chk('a primeira aba tem o mesmo nome nos dois papéis',
+    g.e("ST_NAV[0][1]")===g.e("ME_NAV[0][1]"),
+    g.e("ST_NAV[0][1]")+' vs '+g.e("ME_NAV[0][1]"));
 chk('Meu perfil saiu da barra',!/studio-profile/.test(JSON.stringify(g.e("ST_NAV"))));
 chk('e continua alcançável',/class="conf /.test(ir('studio')) && ir('studio-profile').length>1500);
 
@@ -49,8 +55,7 @@ chk('e continua alcançável',/class="conf /.test(ir('studio')) && ir('studio-pr
 chk('cursos e eventos é aba, não sub-aba',/studio-eventos/.test(JSON.stringify(g.e("ST_NAV"))));
 
 console.log('── NENHUMA SEGUNDA FAIXA DE ABAS ──');
-var ESPERADO={'studio':2,'studio-quotes':2,'studio-schedule':2,'studio-caixa':3,
-              'studio-reputacao':3,'studio-eventos':2};
+var ESPERADO={'studio':7,'studio-schedule':2,'studio-reputacao':3,'studio-eventos':2};
 Object.keys(ESPERADO).forEach(function(rota){
  var t=ir(rota);
  var secoes=(t.match(/class="secgt"/g)||[]).length;
@@ -74,6 +79,46 @@ chk('a primeira seção não repete o traço da barra',/\.secg\.pri\{margin-top:
    aba, 24 do main e até 36 da margem do segmento, somados sem que
    ninguém tivesse decidido somá-los. */
 chk('sem folga tripla entre a barra e o conteúdo',/\.envhead \+ main\{padding-top:14px\}/.test(css));
+
+console.log('── CADA SEÇÃO MOSTRA COISA DIFERENTE ──');
+/* A guarda essencial da página empilhada, e a que faltava.
+
+   A página tem uma chave só — vg — e os blocos internos continuam
+   escritos em torno das chaves antigas (orc, cx). Uma tradução liga as
+   duas. Se essa tradução sumir, a seção "Propostas enviadas" renderiza
+   o conteúdo de "recebidos" e a página fica com o mesmo bloco duas
+   vezes, com títulos diferentes.
+
+   Descobri isso sabotando: apaguei a linha da tradução e os dez
+   roteiros continuaram verdes. Verificação que não existe é pior que
+   verificação frouxa, porque ninguém sabe que falta. */
+Object.keys(g.e("SECOES_DA_GESTAO")).forEach(function(rota){
+ var secoes=g.e("SECOES_DA_GESTAO['"+rota+"']");
+ var papel=rota.indexOf('forn')===0?'forn':rota.indexOf('me')===0?'client':'artist';
+ S.session=papel;
+ var corpos=secoes.map(function(sc){
+  S.sub=S.sub||{}; S.sub[sc[0]]=sc[1];
+  S.route=rota; g.e("render()");
+  /* Só o miolo: o cabeçalho e a barra de abas são iguais em todas. */
+  var t=tela(); var i=t.lastIndexOf('class="secgt"');
+  return {nome:sc[2], txt:t.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ')};
+ });
+ /* Compara o corpo de cada seção isoladamente, renderizando fora da
+    montagem — é assim que dá para ver uma seção de cada vez. */
+ var isolados=secoes.map(function(sc){
+  S.sub=S.sub||{}; S.sub[sc[0]]=sc[1];
+  var pg=g.e("(function(){var r=(SECOES_DA_GESTAO['"+rota+"']?1:0);return "+
+             (papel==='forn'?'vForn':papel==='client'?'vMe':'vStudio')+"('"+rota+"')})()");
+  var c=pg.replace(/[\s\S]*<main><div class="wrap">/,'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+  return {nome:sc[2], c:c};
+ });
+ var iguais=[];
+ for(var i=0;i<isolados.length;i++)for(var j=i+1;j<isolados.length;j++)
+  if(isolados[i].c===isolados[j].c)iguais.push(isolados[i].nome+' = '+isolados[j].nome);
+ chk(rota+': as '+secoes.length+' seções têm conteúdos distintos',iguais.length===0,
+     'duas seções renderizam a mesma coisa: '+iguais.join(', '));
+});
+S.session='artist'; S.sub={};
 
 console.log('── NENHUMA PÁGINA SE REPETE ──');
 /* Defeito que só existe depois de empilhar: a montagem renderiza a
@@ -103,7 +148,8 @@ S.session='artist';
 
 console.log('── AS ROTAS ANTIGAS AINDA CHEGAM ──');
 [['studio-checkin','studio'],['studio-events','studio-eventos'],
- ['studio-reviews','studio-reputacao'],['studio-historico','studio-caixa']].forEach(function(par){
+ ['studio-reviews','studio-reputacao'],['studio-historico','studio'],
+ ['studio-quotes','studio'],['studio-caixa','studio']].forEach(function(par){
  var t=ir(par[0]);
  chk(par[0]+' → '+par[1],S.route===par[1] && t.length>1500,
      'foi para '+S.route+' com '+t.length+' caracteres');
@@ -205,7 +251,7 @@ chk('todo cartão leva a algum lugar',
     (tv.match(/class="grande[^"]*" onclick="[^"]*(go\(|irSecao\()/g)||[]).length===cartoes,
     'algum cartão sem destino');
 var tvl=tv.replace(/&#39;/g,"'");
-chk('e leva à seção certa',/irSecao\('studio-quotes','orc','enviados'\)/.test(tvl),
+chk('e leva à seção certa',/irSecao\('studio','vg','enviados'\)/.test(tvl),
     'o cartão de propostas sem retorno não aponta para a seção de enviados');
 /* Cartão que aponta para uma seção inexistente rola para lugar nenhum,
    e a pessoa conclui que o número está errado.

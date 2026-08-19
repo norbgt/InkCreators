@@ -89,3 +89,76 @@ seção. Sabotado, acusou com o destino exato.
 3. **Cartão apontando para seção inexistente** → acusou, com o destino.
 
 **10 roteiros, 0 falhas.**
+
+---
+
+## Segunda parte: o tatuador em quatro abas
+
+> "hoje pode virar 'visão geral' para garantirmos o padrão e ai
+> aproveitar a mesma lógica do cliente: conter as informações das abas
+> orçamentos e dinheiro"
+
+### O nome
+
+"Hoje" virou **Visão geral** pelo mesmo motivo que o cliente tem uma: a
+mesma pessoa troca de papel — quem tatua também é cliente — e dois
+nomes para a mesma função obrigam a reaprender a ler no meio do
+caminho. Existe um teste que compara `ST_NAV[0][1]` com `ME_NAV[0][1]`
+e falha se divergirem.
+
+### A barra
+
+| | |
+|---|---|
+| **Visão geral** | painel · check-in · orçamentos recebidos · propostas enviadas · dinheiro · lançamentos · quem eu tatuei |
+| **Agenda** | o mês · conexões |
+| **Reputação** | avaliações · desempenho · onde eu tatuei |
+| **Cursos e eventos** | que eu criei · que eu participo |
+
+De nove abas para quatro, em três rodadas. O painel de dez números
+grandes no topo deixou de ser um resumo que aponta para outras abas: é
+o **índice desta página**, e cada cartão rola até a sua seção.
+
+### Uma chave só para a página
+
+Sete seções numa página, e os blocos internos continuam escritos em
+torno das chaves antigas — `orc` para orçamentos, `cx` para caixa. Com
+chaves separadas por bloco, a seção de orçamentos herdaria o valor de
+`hoje` da seção anterior e o check-in sairia duas vezes.
+
+A página passou a ter uma chave só, `vg`, e uma tradução curta liga ela
+às antigas. Nenhum dos sete blocos precisou ser reescrito.
+
+### A verificação que faltava, achada sabotando
+
+Apaguei a linha da tradução para ver quem reclamava. **Os dez roteiros
+continuaram verdes** — e a seção "Propostas enviadas" estava mostrando
+o conteúdo de "recebidos", com título diferente.
+
+Nem o `nada-se-perdeu` pegava: toda frase continuava presente na
+página, só que duas vezes. Nem a verificação de frase repetida, porque
+o bloco de orçamentos não tem frases longas o bastante.
+
+A guarda que faltava é a invariante central desta arquitetura, e é
+simples de dizer: **duas seções não podem renderizar a mesma coisa.**
+Ela agora renderiza cada seção isoladamente, de todas as oito páginas
+empilhadas, e compara os corpos par a par.
+
+Sabotada duas vezes:
+
+- tradução de `orc` apagada → *"Orçamentos recebidos = Propostas enviadas"*
+- tradução de `cx` apagada → *"Dinheiro = Lançamentos"*
+
+Verificação que não existe é pior que verificação frouxa: ninguém sabe
+que ela falta.
+
+### Um bloco que ficou preso ao endereço antigo
+
+O bloco de "quem eu tatuei" tinha uma guarda interna
+`if(sub==="studio-caixa")`. Com dinheiro virando seção da visão geral,
+o endereço mudou e o bloco parou de aparecer — a seção existia, com
+título, e vinha vazia. Trocado por `if(sub!=="studio-reputacao")`, que
+descreve a intenção real: aqui é a lista de pessoas, lá é a de
+estúdios.
+
+**10 roteiros, 0 falhas.**
