@@ -105,17 +105,19 @@ S.artist=semG.id;S.abaPerfil='portfolio';g.e("render()");
 chk('quem não vende arte não tem a aba',!/>Galeria</.test(tela()));
 
 console.log('── 4. CAIXA ──');
-S.session='artist';S.route='studio-caixa';g.e("render()");
+S.session='artist';S.route='studio';S.sub={vg:'dinheiro'};g.e("render()");
 var tc=tela();
 /* Dinheiro deixou de ser aba e virou seção da visão geral. O que
    importa não é o endereço, é a seção estar na página. */
-chk('a seção de dinheiro existe',/class="secgt">Dinheiro</.test(tc));
+/* Dinheiro virou uma peça do toggle da Visão geral. */
+chk('a peça de dinheiro existe no toggle',/class="seg on"[\s\S]{0,140}?>Dinheiro</.test(tc));
 chk('mostra entrou, saiu, sobrou',/Entrou em julho/.test(tc)&&/Saiu/.test(tc)&&/Sobrou/.test(tc));
 chk('separa de onde veio',/De onde veio/.test(tc)&&/Sessões/.test(tc)&&/Arte/.test(tc));
 /* A prévia de quatro linhas saiu: com as seções empilhadas, a tabela
    completa fica logo abaixo do resumo, na mesma página. */
-chk('a lista completa está na mesma página do resumo',/Lançar entrada/.test(tc)&&/De onde veio/.test(tc));
-S.sub={cx:'lancamentos'};g.e("render()");var tcl=tela();
+/* Com o toggle são duas vistas: o resumo faz ponte, a tabela lança. */
+chk('o resumo faz ponte para a tabela',/De onde veio/.test(tc)&&/Últimos lançamentos/.test(tc));
+S.route='studio';S.sub={vg:'lancamentos'};g.e("render()");var tcl=tela();
 chk('a sub-aba lista todos',/<table class="t"/.test(tcl));
 chk('permite lançar à mão',/Lançar entrada/.test(tcl)&&/Lançar saída/.test(tcl));
 chk('diz que é privado',/ninguém mais vê/.test(tcl));
@@ -127,7 +129,7 @@ chk('tem entrada de sessão, arte e curso',c.porCat.sessao>0&&c.porCat.arte>0&&c
 console.log('── 5. HISTÓRICO ──');
 /* 'Onde eu tatuei' virou sub-aba de Reputação; 'quem eu tatuei' virou
    sub-aba de Dinheiro. Uma tela virou duas. */
-S.route='studio-caixa';S.sub={cx:'pessoas'};g.e("render()");
+S.route='studio';S.sub={vg:'pessoas'};g.e("render()");
 var th=tela();
 chk('lista quem ele tatuou',/Pessoas que você tatuou/.test(th));
 chk('com quantas sessões e desde quando',/cliente desde/.test(th));
@@ -146,7 +148,8 @@ S.route='studio';S.sub={};g.e("render()");
 var tv=tela();
 /* O cartão "Sobrou" saiu do painel: a seção Dinheiro está na mesma
    página. O que o painel promete agora é levar para FORA dela. */
-chk('a seção de dinheiro está na própria visão geral',/class="secgt">Dinheiro</.test(tv)&&/Sobrou/.test(tv));
+chk('dinheiro é uma peça do toggle da visão geral',
+    /class="seg [^"]*"[\s\S]{0,140}?>Dinheiro</.test(tv));
 chk('o painel leva a quem ele tatuou',/Pessoas tatuadas/.test(tv)&&/vg&#39;,&#39;pessoas|vg','pessoas/.test(tv));
 chk('e à galeria',/Obras à venda/.test(tv));
 chk('sem "Receita do mês" solta',!/Receita do mês/.test(tv));

@@ -54,35 +54,48 @@ chk('e continua alcançável',/class="conf /.test(ir('studio')) && ir('studio-pr
    curso, não conferir reputação. */
 chk('cursos e eventos é aba, não sub-aba',/studio-eventos/.test(JSON.stringify(g.e("ST_NAV"))));
 
-console.log('── NENHUMA SEGUNDA FAIXA DE ABAS ──');
-/* Orçamentos não está aqui de propósito: é a única aba da gestão que
-   continua com alternador, e a razão é o fluxo de três passos dentro de
-   Recebidos. Empilhar Enviados embaixo faria a pessoa rolar por um
-   segundo assunto no meio de uma decisão que ainda não terminou. */
+console.log('── A MONTAGEM TEM REDE ──');
+/* montandoSecoes cala as barras internas enquanto a página é montada.
+   Se ela ficar levantada porque uma tela estourou, as barras somem do
+   produto INTEIRO — um erro numa aba apaga a navegação de todas. */
+chk('a bandeira de montagem sempre volta',/finally\{ montandoSecoes=false \}/.test(code),
+    'sem finally, um erro numa tela apaga as barras internas de todas');
+/* Recorte por marcador é frouxo: ele devolve a página inteira em vez
+   de lixo se o marcador mudar. */
+chk('a montagem cai de pé se o marcador mudar',/if\(i<0\)\{ S\.sub=JSON\.parse\(guardado\); return render1\(rota\) \}/.test(code));
+chk('e existe uma função só para preâmbulo de página',/function naPrimeiraSecao/.test(code));
+
+console.log('── UMA SEÇÃO POR VEZ, COM TOGGLE ──');
+/* Antes as seções vinham empilhadas. O argumento era bom — num painel
+   de gestão rolar é mais barato que esconder — e se sustenta com duas
+   ou três. Com sete, a Visão geral virava uma parede de dois metros e
+   o custo de rolar passou a ser maior que o de um clique.
+
+   O toggle diz QUANTAS partes a aba tem, que é o que a rolagem
+   escondia: você só descobria o fim chegando nele. */
 var ESPERADO={'studio':4,'studio-schedule':2,'studio-reputacao':3,'studio-eventos':2};
 Object.keys(ESPERADO).forEach(function(rota){
  var t=ir(rota);
- var secoes=(t.match(/class="secgt"/g)||[]).length;
- chk(rota+': '+ESPERADO[rota]+' seções na página',secoes===ESPERADO[rota],secoes+' seções');
- chk(rota+': sem segunda faixa de abas',!/class="segmento"/.test(t),
-     'voltou a esconder metade do conteúdo atrás de um clique');
+ var pecas=(t.match(/class="seg [^"]*"/g)||[]).length;
+ chk(rota+': '+ESPERADO[rota]+' peças no toggle',pecas===ESPERADO[rota],pecas+' peças');
+ chk(rota+': uma seção por vez',!/class="secgt"/.test(t),
+     'as seções voltaram a empilhar e a página virou parede');
+ chk(rota+': o toggle marca onde você está',/class="seg on"/.test(t));
 });
 
-/* A montagem recorta o corpo da página por marcador. Recorte por
-   marcador é frouxo, então ele devolve null em vez de lixo — e a
-   página inteira volta a ser renderizada do jeito antigo. */
-chk('a montagem em seções tem rede',/if\(i<0\)return null/.test(code));
-chk('e devolve S.sub como estava',/finally\{ montandoSecoes=false; S\.sub=JSON\.parse\(guardado\) \}/.test(code),
-    'sem restaurar, a aba visitada mudaria a próxima');
+/* Escolha guardada que não é mais seção — porque a arquitetura mudou —
+   tem de cair na primeira, não em tela vazia. */
+S.sub=S.sub||{}; S.sub.vg='rota-que-nao-existe-mais';
+var tsalvo=ir('studio');
+chk('escolha antiga inválida cai na primeira seção',
+    /class="seg on"[\s\S]{0,160}?>Visão geral</.test(tsalvo)&&tsalvo.length>2000,
+    'ficou em tela vazia com o toggle sem nada marcado');
 
-/* A primeira seção não leva traço em cima: ela encosta na barra, e um
-   traço logo abaixo de outro traço não separa nada. */
-chk('a primeira seção não repete o traço da barra',/\.secg\.pri\{margin-top:0;padding-top:0;border-top:none\}/.test(css));
-
-/* Setenta pixels de nada entre a barra e o conteúdo: 11 do respiro da
-   aba, 24 do main e até 36 da margem do segmento, somados sem que
-   ninguém tivesse decidido somá-los. */
-chk('sem folga tripla entre a barra e o conteúdo',/\.envhead \+ main\{padding-top:14px\}/.test(css));
+/* A escolha PERSISTE de propósito: quem estava em Lançamentos e sai
+   espera voltar em Lançamentos. Empilhado isso não existia. */
+S.sub.vg='lancamentos'; ir('studio');
+chk('a escolha sobrevive à navegação',(S.sub||{}).vg==='lancamentos');
+S.sub.vg='visao';
 
 console.log('── CADA SEÇÃO MOSTRA COISA DIFERENTE ──');
 /* A guarda essencial da página empilhada, e a que faltava.
@@ -229,7 +242,7 @@ chk('enviados: ação por situação',/Marcar data/.test(te)&&/Lembrar/.test(te)
 chk('enviados: não repete o formulário de resposta',!/Enviar proposta/.test(te));
 
 console.log('── AGENDA: GOOGLE ──');
-var ta=ir('studio-schedule','ag','conexoes');
+var ta=ir('studio-schedule','ag','mes');
 chk('existe a aba de conexões',/Google Agenda/.test(ta));
 chk('começa desconectada',/não conectada/.test(ta));
 chk('diz o que pede de permissão',/O que pedimos/.test(ta)&&/Nada de e-mail/.test(ta));
@@ -284,7 +297,7 @@ console.log('── VISÃO GERAL: UM PAINEL SÓ ──');
 /* Nomeando a sub-aba de propósito: a aba Hoje tem dois recortes, e um
    teste que não diz qual quer depende da ordem em que os outros
    rodaram — que é o tipo de teste que falha por motivo errado. */
-var tv=ir('studio','hoje','visao');
+var tv=ir('studio','vg','visao');
 chk('é um painel de números grandes',/class="grandes"/.test(tv)&&/class="grande/.test(tv));
 var cartoes=(tv.match(/class="grande[ "]/g)||[]).length;
 /* Nove, não dez: "Sobrou" saiu porque a seção Dinheiro está nesta
@@ -375,19 +388,23 @@ console.log('── CAIXA ──');
 var tc=ir('studio-caixa','cx','resumo');
 chk('resumo: entrou, saiu, sobrou',/Entrou em julho/.test(tc));
 chk('resumo: de onde veio',/De onde veio/.test(tc));
-/* A prévia dos últimos lançamentos existia para levar à outra
-   sub-aba. Numa página só, a tabela completa está logo abaixo. */
-chk('resumo não repete a lista que vem abaixo',!/Últimos lançamentos/.test(tc));
-var tl=ir('studio-caixa');
+/* Com o toggle, Lançamentos é outra vista — e a prévia volta a ser o
+   que sempre foi: uma ponte para ela. Empilhado ela era a mesma lista
+   duas vezes, e por isso tinha saído. */
+chk('o resumo faz ponte para os lançamentos',/Últimos lançamentos/.test(tc)&&/Ver todos/.test(tc));
+var tl=ir('studio','vg','lancamentos');
 chk('lançamentos: a tabela cheia',/<table class="t"/.test(tl));
 chk('lançamentos: dá para lançar',/Lançar entrada/.test(tl));
-chk('resumo e lançamentos convivem na mesma página',/De onde veio/.test(tl)&&/Lançar entrada/.test(tl));
+/* Cada um na sua vista: o resumo explica de onde veio o dinheiro, a
+   tabela deixa lançar. Se os dois aparecessem juntos, a prévia acima
+   voltaria a ser repetição. */
+chk('lançamentos não repete o resumo',!/De onde veio/.test(tl)&&/Lançar entrada/.test(tl));
 
 console.log('── EVENTOS ──');
-var tev=ir('studio-events','ev','meus');
+var tev=ir('studio-eventos','ev','meus');
 chk('meus: os que ele criou',/Seus eventos e cursos/.test(tev)&&/publicado/.test(tev));
 chk('meus: liga ao caixa',/entra no caixa/.test(tev));
-var tep=ir('studio-events','ev','participo');
+var tep=ir('studio-eventos','ev','participo');
 chk('participo: onde se inscreveu',/Onde você se inscreveu/.test(tep)&&/inscrito/.test(tep));
 chk('participo: liga ao histórico',/histórico/.test(tep));
 

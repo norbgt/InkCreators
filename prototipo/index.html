@@ -4161,12 +4161,14 @@ function idDaSecao(chave,valor){ return "sec-"+chave+"-"+valor }
    repetidos — três convites idênticos empilhados.
 
    Use assim:  if(naPrimeiraSecao(sub)) h+= ...o preâmbulo... */
-function naPrimeiraSecao(rota){
- if(!montandoSecoes)return true;
- var sec=SECOES_DA_GESTAO[rota];
- if(!sec)return true;
- return subAba(sec[0][0],sec[0][1])===sec[0][1];
-}
+/* Com seções empilhadas, a página era renderizada uma vez por seção e
+   o preâmbulo saía repetido — daí esta função. Com o toggle existe uma
+   renderização por visita, e o preâmbulo pertence à aba inteira: ele
+   tem de aparecer em qualquer recorte.
+
+   A função fica, e as chamadas ficam: se as seções voltarem a
+   empilhar, o problema volta junto e é aqui que se resolve. */
+function naPrimeiraSecao(rota){ return true }
 
 function tituloDeSecao(txt,primeira,conta,id){
  var selo=(conta||conta===0)&&conta!==""&&conta!==0 ? '<span class="selo">'+conta+'</span>' : '';
@@ -4185,28 +4187,50 @@ function irSecao(rota,chave,valor){
  }catch(e){}
 }
 
+/* ── UMA SEÇÃO POR VEZ, COM TOGGLE ────────────────────────────────
+   Antes as seções vinham empilhadas: uma página que rola. O argumento
+   era bom — "num painel de gestão rolar é mais barato que esconder" —
+   e ele se sustenta com duas ou três seções. Com sete, a Visão geral
+   virava uma parede de dois metros, e o custo de rolar passou a ser
+   maior que o de um clique.
+
+   O toggle resolve as duas coisas de uma vez: mostra QUANTAS partes a
+   aba tem (que é o que a rolagem escondia — você só descobria o fim
+   chegando nele) e leva a qualquer uma delas sem percorrer as outras.
+
+   O componente é o mesmo que a Amanda pediu de volta na decisão 020, e
+   pela mesma razão: ele diz "você continua aqui, vendo de outro jeito",
+   que é exatamente o que uma seção é. */
 function paginaDeGestao(rota,render1){
  var secoes=SECOES_DA_GESTAO[rota];
  if(!secoes)return render1(rota);
+ var chave=secoes[0][0];
+ var ativa=subAba(chave,secoes[0][1]);
+ /* Valor guardado que não é mais seção — porque a arquitetura mudou —
+    volta para a primeira em vez de mostrar tela vazia. */
+ if(!secoes.some(function(x){return x[1]===ativa}))ativa=secoes[0][1];
+
  var guardado=JSON.stringify(S.sub||{});
- var cabeca=null, corpos=[];
+ S.sub=S.sub||{}; S.sub[chave]=ativa;
+ var pg;
  montandoSecoes=true;
- try{
-  secoes.forEach(function(sc){
-   S.sub=S.sub||{}; S.sub[sc[0]]=sc[1];
-   var pg=render1(rota);
-   if(cabeca===null){var i=pg.indexOf(G_ABRE); cabeca=i<0?null:pg.slice(0,i+G_ABRE.length)}
-   var c=corpoDaGestao(pg);
-   var conta="";
-   if(typeof sc[3]==="function"){try{conta=sc[3]()}catch(e){conta=""}}
-   if(c!==null&&c.replace(/\s/g,"").length)corpos.push([sc[2],c,conta,idDaSecao(sc[0],sc[1])]);
-  });
- }finally{ montandoSecoes=false; S.sub=JSON.parse(guardado) }
- if(cabeca===null)return render1(rota);
- var h=cabeca;
- corpos.forEach(function(c,i){ h+=tituloDeSecao(c[0],i===0,c[2],c[3])+c[1] });
- return h+G_FECHA;
+ try{ pg=render1(rota) } finally{ montandoSecoes=false }
+
+ var i=pg.indexOf(G_ABRE);
+ if(i<0){ S.sub=JSON.parse(guardado); return render1(rota) }
+
+ var trilho='<div class="segmento">';
+ secoes.forEach(function(sc){
+  var conta="";
+  if(typeof sc[3]==="function"){ try{ conta=sc[3]() }catch(e){ conta="" } }
+  var marca=(conta||conta===0)&&conta!==""&&conta!==0 ? '<span class="selo">'+conta+'</span>' : '';
+  trilho+='<button class="seg '+(ativa===sc[1]?"on":"")+'" onclick="S.sub=S.sub||{};S.sub[\''+chave+'\']=\''+sc[1]+'\';render()">'+sc[2]+marca+'</button>';
+ });
+ trilho+='</div>';
+
+ return pg.slice(0,i+G_ABRE.length) + trilho + pg.slice(i+G_ABRE.length);
 }
+
 
 /* Rotas antigas continuam válidas. S.route é gravado no localStorage e
    no endereço: quem tinha "studio-events" guardado cairia numa tela em
@@ -5563,11 +5587,10 @@ function vStudio(sub){
   });
   h+='</div></div>';
 
-  /* O atalho para os últimos lançamentos existia para levar à outra
-     sub-aba. Com as seções empilhadas, a tabela completa está logo
-     abaixo nesta mesma página — e a prévia passaria a ser a mesma
-     lista duas vezes, com uma rolagem de distância. */
-  if(!montandoSecoes){
+  /* Com as seções empilhadas isto era a mesma lista duas vezes, a uma
+     rolagem de distância, e por isso saiu. Com o toggle, Lançamentos é
+     outra vista — a prévia volta a ser o que sempre foi: uma ponte. */
+  if(true){
   h+='<div class="card pad" style="margin-top:15px"><div class="row"><span class="b">Últimos lançamentos</span>'+tg("mock")+
      '<a class="sp small" style="color:var(--accent);cursor:pointer" onclick="S.sub=S.sub||{};S.sub.cx=\'lancamentos\';render()">Ver todos →</a></div>';
   h+='<div style="margin-top:4px">';

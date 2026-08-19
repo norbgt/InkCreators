@@ -110,9 +110,15 @@ var TELAS = [
   ["forn", "forn"], ["forn", "forn-recomendacoes"], ["forn", "forn-embaixadores"],
   ["forn", "forn-loja"], ["forn", "forn-perfil"]
 ];
+/* Com uma seção por vez, cada valor precisa ser varrido: o que não for
+   aberto não é renderizado, e o que não é renderizado não é comparado.
+   Empilhado, uma varredura pegava a página inteira. */
 var SUBABAS = [
   ["orc", ["recebidos", "enviados"]], ["ck", ["agora", "desempenho"]],
-  ["ag", ["mes", "conexoes"]], ["cx", ["resumo", "lancamentos"]],
+  ["ag", ["sessoes", "mes"]], ["cx", ["resumo", "lancamentos"]],
+  ["vg", ["visao", "dinheiro", "lancamentos", "pessoas"]],
+  ["mev", ["resumo", "quotes", "payments"]],
+  ["rep", ["avaliacoes", "desempenho", "estudios"]],
   ["hist", ["pessoas", "estudios"]], ["ev", ["meus", "participo"]],
   ["av", ["todas", "responder"]], ["fr", ["recebidas", "pedir"]],
   ["fe", ["convites", "ativos"]], ["fl", ["produtos", "pedidos"]]
@@ -131,7 +137,6 @@ var MUDOU_DE_LUGAR = {
   /* O check-in foi para a agenda: é a mesma matéria que ela trata,
      sessão marcada. O desempenho por estilo continua em Reputação. */
   "studio-checkin":   [["studio-schedule",  "ag",  "sessoes"],
-                       ["studio-schedule",  "ag",  "mes"],
                        ["studio-reputacao", "rep", "desempenho"]],
   /* Orçamentos voltou a ser aba: é o único lugar da gestão com fluxo
      de três passos, e fluxo com passos não convive com página que rola. */
@@ -142,7 +147,22 @@ var MUDOU_DE_LUGAR = {
   "studio-caixa":     [["studio",           "vg",  "dinheiro"],
                        ["studio",           "vg",  "lancamentos"],
                        ["studio",           "vg",  "pessoas"]],
-  "studio-events":    [["studio-eventos",   "ev",  "meus"]],
+  "studio-schedule":  [["studio-schedule",  "ag",  "sessoes"],
+                       ["studio-schedule",  "ag",  "mes"]],
+  "studio-reputacao": [["studio-reputacao", "rep", "avaliacoes"],
+                       ["studio-reputacao", "rep", "desempenho"],
+                       ["studio-reputacao", "rep", "estudios"]],
+  "studio-eventos":   [["studio-eventos",   "ev",  "meus"],
+                       ["studio-eventos",   "ev",  "participo"]],
+  "me":               [["me",               "mev", "resumo"],
+                       ["me",               "mev", "quotes"],
+                       ["me",               "mev", "payments"]],
+  "studio":           [["studio",           "vg",  "visao"],
+                       ["studio",           "vg",  "dinheiro"],
+                       ["studio",           "vg",  "lancamentos"],
+                       ["studio",           "vg",  "pessoas"]],
+  "studio-events":    [["studio-eventos",   "ev",  "meus"],
+                       ["studio-eventos",   "ev",  "participo"]],
   "studio-reviews":   [["studio-reputacao", "rep", "avaliacoes"]],
   /* Duas metades, duas abas: quem eu tatuei virou seção de dinheiro na
      visão geral, onde eu tatuei virou trajetória em Reputação. */

@@ -129,7 +129,7 @@ var tc = ir("studio-schedule", "ag", "sessoes");
    agenda. É isso que liga o código a esta pessoa, neste dia, neste
    estúdio — um botão genérico "abrir check-in" não liga a nada, e o
    tatuador teria de reencontrar noutra tela quem já estava vendo. */
-var tag = ir("studio-schedule", "ag", "mes");
+var tag = ir("studio-schedule", "ag", "sessoes");
 /* Não basta existirem botões: cada um tem de apontar para a SUA linha.
    Todos apontando para a mesma sessão é o defeito silencioso aqui —
    a tela parece certa e o QR sai da pessoa errada. */
@@ -193,7 +193,7 @@ chk("abrir outra substitui a anterior, não soma",
     S.checkin.codigo !== cod1 && S.checkin.sessao.c === g.e("BOOK[0].c"));
 /* A linha da sessão aberta muda de botão: gerar de novo trocaria o
    código que a pessoa já está tentando escanear. */
-var tag2 = ir("studio-schedule", "ag", "mes");
+var tag2 = ir("studio-schedule", "ag", "sessoes");
 /* O QR abre embaixo da própria linha, então "ver" deixou de fazer
    sentido: já está à vista. O que a linha aberta oferece é fechar —
    e o que ela NÃO pode oferecer é gerar de novo, porque trocaria o
