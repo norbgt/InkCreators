@@ -162,6 +162,7 @@ echo "    ENVIAR-E-TESTAR.command     publicar"
 echo "    fazer-backup.command        congelar uma versão"
 echo
 echo "    SEGURANCA.md                o que falta em segurança"
+echo "    GOOGLE-AGENDA.md            o que falta para a conexão valer"
 echo "    CHECKPOINT-01…md            mercado, modelo e plano"
 echo
 echo "  Enter para fechar."
