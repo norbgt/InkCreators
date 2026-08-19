@@ -73,7 +73,9 @@ console.log('── UMA SEÇÃO POR VEZ, COM TOGGLE ──');
 
    O toggle diz QUANTAS partes a aba tem, que é o que a rolagem
    escondia: você só descobria o fim chegando nele. */
-var ESPERADO={'studio':4,'studio-schedule':2,'studio-reputacao':3,'studio-eventos':2};
+/* Reputação caiu de 3 para 2 quando 'Desempenho por estilo' saiu a
+   pedido dela — decisão 032. */
+var ESPERADO={'studio':4,'studio-schedule':2,'studio-reputacao':2,'studio-eventos':2};
 Object.keys(ESPERADO).forEach(function(rota){
  var t=ir(rota);
  var pecas=(t.match(/class="seg [^"]*"/g)||[]).length;

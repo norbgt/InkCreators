@@ -71,6 +71,12 @@ var SAIRAM_DE_PROPOSITO = [
    "era o resumo de um <details> fechado. Texto de duas linhas atrás de um clique é texto que ninguém lê — e o triângulo do <details> era o único componente do produto desenhado pelo sistema operacional. A bio passou a ficar sempre visível, sem rótulo, porque um parágrafo não precisa de título para ser lido"],
   ["4.2 (12) · 2 anos",
    "a linha ganhou as palavras que faltavam: '(12 avaliações)' e '2 anos de ofício'. Número entre parênteses sem substantivo obriga a pessoa a adivinhar do que ele é. O preço chegou a sair desta linha para dentro do botão de orçar e voltou quando o botão deixou de ser barra: hoje a linha diz nota, avaliações, anos de ofício e faixa de preço, nessa ordem"],
+  ["Quanto tempo leva, por estilo", "a seção 'Desempenho por estilo' saiu da gestão do tatuador a pedido dela (decisão 032). Esta tabela era o único lugar do produto onde o relógio do check-in virava número visível — duração média e mais longa por estilo. O cálculo continua em desempenhoPorEstilo(), alimentando a faixa de trajetória, mas as durações deixaram de aparecer em qualquer tela"],
+  ["Medido pelo relógio do check-in, não pela sua lembrança.", "a seção 'Desempenho por estilo' saiu da gestão do tatuador a pedido dela (decisão 032). Esta tabela era o único lugar do produto onde o relógio do check-in virava número visível — duração média e mais longa por estilo. O cálculo continua em desempenhoPorEstilo(), alimentando a faixa de trajetória, mas as durações deixaram de aparecer em qualquer tela"],
+  ["Onde você tatuou", "morava no mesmo cartão da seção que saiu, e era a segunda resposta para a pergunta que 'Onde eu tatuei' já responde — a diferença era só a fonte: esta lia os check-ins, aquela lê o histórico de estúdios. Duas listas de lugares na mesma aba, com títulos quase iguais"],
+  ["Cada check-in registra cidade e estúdio.", "morava no mesmo cartão da seção que saiu, e era a segunda resposta para a pergunta que 'Onde eu tatuei' já responde — a diferença era só a fonte: esta lia os check-ins, aquela lê o histórico de estúdios. Duas listas de lugares na mesma aba, com títulos quase iguais"],
+  ["São Paulo · Brasil", "morava no mesmo cartão da seção que saiu, e era a segunda resposta para a pergunta que 'Onde eu tatuei' já responde — a diferença era só a fonte: esta lia os check-ins, aquela lê o histórico de estúdios. Duas listas de lugares na mesma aba, com títulos quase iguais. Os lugares continuam nomeados em 'Onde você já tatuou', linha a linha, exceto os que só existem no mock de check-in"],
+  ["Studio Felipe", "morava no mesmo cartão da seção que saiu, e era a segunda resposta para a pergunta que 'Onde eu tatuei' já responde — a diferença era só a fonte: esta lia os check-ins, aquela lê o histórico de estúdios. Duas listas de lugares na mesma aba, com títulos quase iguais. Este aparecia só na lista de check-ins e não está no histórico de estúdios do mock"],
   ["Ver todos →",
    "o atalho morria junto com a prévia dos lançamentos, pela mesma razão: ele existia para trocar de sub-aba, e não há mais sub-aba para trocar"]
 ];
@@ -130,7 +136,7 @@ var SUBABAS = [
   ["ag", ["sessoes", "mes"]], ["cx", ["resumo", "lancamentos"]],
   ["vg", ["visao", "dinheiro", "lancamentos", "pessoas"]],
   ["mev", ["resumo", "quotes", "payments"]],
-  ["rep", ["avaliacoes", "desempenho", "estudios"]],
+  ["rep", ["avaliacoes", "estudios"]],
   /* As abas do perfil público nunca foram varridas: o roteiro
      comparava só o portfólio, e tudo o que estava nas outras cinco
      passava sem ser olhado. Descoberto ao fundir Avaliações e
@@ -152,9 +158,12 @@ var SUBABAS = [
    também o registro de onde procurar o que você não achar. */
 var MUDOU_DE_LUGAR = {
   /* O check-in foi para a agenda: é a mesma matéria que ela trata,
-     sessão marcada. O desempenho por estilo continua em Reputação. */
+     sessão marcada. A segunda metade apontava para "Desempenho por
+     estilo", que saiu a pedido dela — dos dois cartões que moravam
+     lá, o de lugares era cópia de "Onde eu tatuei" com outra fonte, e
+     é para lá que essas linhas continuam. */
   "studio-checkin":   [["studio-schedule",  "ag",  "sessoes"],
-                       ["studio-reputacao", "rep", "desempenho"]],
+                       ["studio-reputacao", "rep", "estudios"]],
   /* Orçamentos voltou a ser aba: é o único lugar da gestão com fluxo
      de três passos, e fluxo com passos não convive com página que rola. */
   "studio-quotes":    [["studio-quotes",    "orc", "recebidos"],
@@ -167,7 +176,6 @@ var MUDOU_DE_LUGAR = {
   "studio-schedule":  [["studio-schedule",  "ag",  "sessoes"],
                        ["studio-schedule",  "ag",  "mes"]],
   "studio-reputacao": [["studio-reputacao", "rep", "avaliacoes"],
-                       ["studio-reputacao", "rep", "desempenho"],
                        ["studio-reputacao", "rep", "estudios"]],
   "studio-eventos":   [["studio-eventos",   "ev",  "meus"],
                        ["studio-eventos",   "ev",  "participo"]],
@@ -291,10 +299,28 @@ function funcoes(codigo) {
   var m = codigo.match(/^function ([a-zA-Z_$][\w$]*)/gm) || [];
   return m.map(function (x) { return x.replace("function ", "") });
 }
+/* Função também pode sair — mas com a mesma disciplina do texto: com
+   o nome declarado aqui e o motivo escrito. Sem esta lista eu teria
+   duas saídas ruins quando uma seção morre: deixar código morto vivo
+   só para o teste passar, ou apagar a linha do teste. */
+var FUNCOES_QUE_SAIRAM = [
+  ["lugaresDoCheckin",
+   "derivava lugares dos check-ins para um cartão da seção 'Desempenho por estilo', que saiu a pedido dela na decisão 032. Ficou sem nenhum uso, e função sem uso é código que ninguém mantém e todo mundo lê"]
+];
 var f1 = funcoes(g1.codigo), f2 = funcoes(g2.codigo);
-var sumidas = f1.filter(function (n) { return f2.indexOf(n) < 0 });
+var declaradas = FUNCOES_QUE_SAIRAM.map(function (x) { return x[0] });
+var sumidas = f1.filter(function (n) {
+  return f2.indexOf(n) < 0 && declaradas.indexOf(n) < 0;
+});
 chk(f1.length + " funções na #1, " + f2.length + " na #2", true);
-chk("nenhuma função sumiu", sumidas.length === 0, "sumiram: " + sumidas.join(", "));
+chk("nenhuma função sumiu sem aviso", sumidas.length === 0, "sumiram: " + sumidas.join(", "));
+/* A lista não pode virar depósito: cada linha precisa do motivo, e
+   precisa descrever uma função que realmente saiu. */
+FUNCOES_QUE_SAIRAM.forEach(function (par) {
+  chk('a saída de ' + par[0] + ' tem motivo escrito', par[1].length > 40);
+  chk('e ' + par[0] + ' realmente saiu', f2.indexOf(par[0]) < 0,
+      "está na lista de saídas e continua no código");
+});
 
 /* ── Toda tela ainda abre ─────────────────────────────────────── */
 secao("TODA TELA AINDA ABRE");

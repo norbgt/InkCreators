@@ -142,6 +142,130 @@ chk("sem barra de progresso no passaporte", !/class="bar"/.test(tp),
    tatua em recurso a ser reservado — e tatuagem não é sala de reunião.
    O cliente pede; o tatuador decide, marca, e a sessão aparece do lado
    do cliente já resolvida. */
+/* ── A VITRINE NÃO É O FEED ────────────────────────────────────────
+   Duas grades, duas perguntas.
+
+   O feed pergunta "que trabalho é esse?" — a foto é o produto, cada
+   tatuagem tem a sua proporção, e masonry existe para não recortar o
+   trabalho de ninguém.
+
+   A loja pergunta "qual destes eu levo?" — e comparar exige que preço
+   e nota fiquem na mesma altura de um card para o outro. Masonry
+   desalinha de propósito: o que num feed é ritmo, num catálogo é a
+   pessoa reancorando o olho a cada card.
+
+   Este bloco protege a separação das duas gramáticas, e protege a
+   coisa que mais quebra quando existem dois arranjos para os mesmos
+   dados: um deles perder um campo pelo caminho. */
+secao("1c. A VITRINE DA LOJA");
+S.session = "client"; S.route = "home"; S.tab = "shop"; S.shopVista = "grade";
+g.e("render()");
+var tGrade = tela();
+
+chk("a loja monta em grade, não em masonry",
+    /class="vitrine/.test(tGrade) && !/class="feedposts"/.test(tGrade),
+    "a loja voltou a usar o componente do feed");
+chk("e o feed continua em masonry",
+    (S.tab = "discover", g.e("render()"), /class="feedposts"/.test(tela())),
+    "o masonry do feed foi junto — a foto voltou a ser recortada");
+S.tab = "shop"; g.e("render()");
+
+/* Duas no piso, quatro no teto — pedido dela, e cada extremo tem
+   razão: em uma coluna o catálogo vira fila e a comparação some; em
+   cinco a foto do produto fica menor que o polegar. */
+var colunas = (css.match(/\.vitrine\{[\s\S]*?\}/)[0].match(/repeat\((\d)/) || [])[1];
+/* Lê TODA declaração de coluna da vitrine, inclusive as de dentro de
+   @media. Contar só a primeira deixaria um repeat(6) passar. */
+var todas = (css.match(/\.vitrine[^{]*\{[^}]*grid-template-columns:repeat\((\d)/g) || [])
+  .map(function (x) { return Number(x.match(/repeat\((\d)/)[1]) });
+chk("duas colunas no telefone", Number(colunas) === 2,
+    "abre com " + colunas + " coluna(s) — em uma só o catálogo vira fila");
+chk("nunca menos de duas, nunca mais de quatro",
+    Math.min.apply(null, todas) === 2 && Math.max.apply(null, todas) === 4,
+    "colunas declaradas: " + todas.join(", "));
+
+/* O que faz a grade ser REGULAR não é o grid: é o card esticar e o pé
+   descer sozinho. Sem isso a grade é reta e o conteúdo dentro dela
+   não é, que é o pior dos dois mundos. */
+chk("o card ocupa a célula inteira",
+    /\.prod\{[^}]*height:100%/.test(css),
+    "card mais baixo que a célula: a linha volta a ficar irregular");
+chk("e o preço desce para a mesma altura em toda a fileira",
+    /\.prodpe\{margin-top:auto/.test(css),
+    "o preço passa a flutuar onde o nome terminar — nome curto, preço alto");
+chk("o nome não faz a célula crescer",
+    /\.prodnome\{[^}]*line-clamp:2/.test(css),
+    "nome de 60 caracteres estica a fileira toda");
+
+/* ── TROCAR DE VISTA NÃO PODE PERDER NADA ──────────────────────────
+   Dois arranjos para os mesmos dados é onde nasce o defeito silencioso:
+   o segundo caminho esquece um campo, e ninguém percebe porque a tela
+   continua bonita. Aqui os dois textos são comparados palavra a
+   palavra — só a palavra "Grade"/"Lista" do próprio toggle pode
+   diferir. */
+function textoDe(t) {
+  return t.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().split(" ")
+    .filter(function (w) { return w.length > 1 });
+}
+S.shopVista = "lista"; g.e("render()");
+var tLista = tela();
+chk("a lista é a mesma grade com uma coluna",
+    /class="vitrine lista"/.test(tLista) && /\.vitrine\.lista\{grid-template-columns:1fr[;}]/.test(css),
+    "a lista virou outro componente em vez de um arranjo do mesmo");
+var faltando = textoDe(tGrade).filter(function (w) {
+  return textoDe(tLista).indexOf(w) < 0;
+});
+chk("e nada se perde ao trocar de vista", faltando.length === 0,
+    "some ao virar lista: " + faltando.slice(0, 8).join(", "));
+
+/* O teste acima sozinho seria fé. Grade e lista saem do MESMO render
+   — só muda uma classe — então o HTML é idêntico por construção e
+   nenhuma sabotagem de código o faria falhar.
+
+   Onde a perda pode acontecer de verdade é no CSS: basta um
+   display:none dentro de .vitrine.lista para um campo sumir da tela
+   continuando no HTML. É o buraco que a decisão 012 já registrou.
+
+   Some o que é controle — seta e pip, que a 88px cobrem metade da
+   foto. Não some o que é informação. */
+var CARREGAM_TEXTO = ["prodnome", "prodmarca", "prodnota", "prodpreco", "prodtxt", "badge"];
+var escondidos = (css.match(/\.vitrine\.lista[^{]*\{[^}]*display:none[^}]*\}/g) || [])
+  .join(" ");
+var textoEscondido = CARREGAM_TEXTO.filter(function (c) {
+  return escondidos.indexOf("." + c) >= 0;
+});
+chk("e a lista não esconde informação por CSS", textoEscondido.length === 0,
+    "sumiu da tela sem sumir do HTML: " + textoEscondido.join(", ") +
+    " — o texto continua lá e nenhum teste de texto acusaria");
+var mesmaConta = (tGrade.match(/class="prod"/g) || []).length ===
+                 (tLista.match(/class="prod"/g) || []).length;
+chk("com a mesma quantidade de produtos", mesmaConta,
+    "grade: " + (tGrade.match(/class="prod"/g) || []).length +
+    ", lista: " + (tLista.match(/class="prod"/g) || []).length);
+chk("a escolha da vista sobrevive à recarga",
+    /"shopVista"/.test(code),
+    "a pessoa escolhe lista, recarrega e volta para grade");
+S.shopVista = "grade"; g.e("render()");
+
+/* Lote que não fecha fileira parece catálogo acabando. Doze fecha em
+   duas, três e quatro colunas — três, o número antigo, não fechava
+   nenhuma delas. */
+/* Dentro de listaLoja, não no arquivo inteiro: o primeiro
+   S.feedLote* do código é o do feed, que carrega 8 e não precisa
+   fechar fileira nenhuma porque masonry não tem fileira. Medi o lote
+   errado e acusei a loja pelo número do feed. */
+var corpoLoja = code.slice(code.indexOf("function listaLoja"), code.indexOf("function addCart"));
+var lote = Number((corpoLoja.match(/S\.feedLote\*(\d+)/) || [])[1] || 0);
+chk("o lote fecha fileira nas três larguras",
+    lote > 0 && lote % 2 === 0 && lote % 3 === 0 && lote % 4 === 0,
+    "lote de " + lote + ": sobra no meio da última linha");
+
+/* Devolve a aba. Este bloco é o terceiro deste arquivo a deixar
+   estado atrás de si — antes foram um check-in aberto e um papel
+   trocado. Quem herda a sujeira falha por ela, não pelo que mede, e o
+   relatório passa a acusar a tela errada. */
+S.tab = "discover"; g.e("render()");
+
 secao("1b. A AGENDA É DE QUEM TATUA");
 S.session = "anon";
 var tPerfilPub = ir("artist");
@@ -429,16 +553,33 @@ chk("a duração é medida, não estimada", Math.round(g.e("duracaoCheckin()")) 
 
 /* ── 5. O QUE O CHECK-IN PRODUZ ──────────────────────────────────── */
 secao("5. DESEMPENHO SAI DO CHECK-IN");
-/* O desempenho por estilo virou sub-aba de Reputação: responde "o que
-   eu faço bem", não "o que acontece agora". */
-var td = ir("studio-reputacao", "rep", "desempenho");
-chk("mostra duração por estilo", /Quanto tempo leva, por estilo/.test(td));
-chk("diz de onde vem o número", /relógio do check-in/.test(td));
-chk("e onde ele tatuou", /Onde você tatuou/.test(td));
+/* A seção "Desempenho por estilo" saiu a pedido dela (decisão 032).
+   Este bloco mudou de pergunta junto: não mede mais se a tabela de
+   duração aparece — ela não aparece em lugar nenhum —, e sim se o que
+   sobrou continua honesto.
+
+   O cálculo ficou de pé, alimentando a faixa de trajetória com os
+   estilos. As durações continuam sendo computadas e não têm mais
+   tela: é o custo declarado da remoção, e este teste existe para que
+   ele não seja esquecido nem descoberto por acaso. */
+var td = ir("studio-reputacao", "rep", "estudios");
+chk("a tabela de duração não está mais em Reputação",
+    !/Quanto tempo leva, por estilo/.test(td),
+    "a seção voltou sem passar por decisão");
+chk("e nenhuma tela do tatuador mostra duração medida",
+    ["studio", "studio-schedule", "studio-reputacao", "studio-quotes", "studio-eventos"]
+      .every(function (r) { return !/Quanto tempo leva/.test(ir(r)) }),
+    "a tabela reapareceu em outra aba sem registro");
+/* O que o relógio ainda sustenta: os estilos da trajetória. */
 var so = g.e("desempenhoPorEstilo()");
+chk("o cálculo continua de pé", so.length > 0,
+    "desempenhoPorEstilo() ficou sem dado — a faixa de trajetória perde os estilos");
 chk("só entram sessões verificadas",
     so.reduce(function (t, x) { return t + x.n }, 0) === g.e("PASS.filter(function(t){return t.verificado}).length"),
     "sessão declarada entrou na média");
+chk("e os estilos medidos chegam à trajetória",
+    g.e("trajetoriaDoTatuador().filter(function(x){return x.estilo}).length") === so.length,
+    "o que o relógio mede parou de aparecer em qualquer lugar");
 
 secao("6. REPUTAÇÃO ANTES DO ORÇAMENTO");
 S.session = "anon";
