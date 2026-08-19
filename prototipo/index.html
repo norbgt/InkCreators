@@ -2413,9 +2413,41 @@ function salvarEstado(){
   if(o.cad)o.cad=Object.assign({},o.cad,{senha:""});
   localStorage.setItem(CHAVE_ESTADO,JSON.stringify(o))}catch(e){}
 }
+/* ── LIMPEZA DO QUE FICOU GRAVADO ──────────────────────────────────
+   Sub-aba é escolha guardada, e arquitetura muda. Quem usou o produto
+   ontem tem no navegador a chave de uma seção que hoje não existe — e
+   uma escolha guardada apontando para o nada é como uma tela abre
+   vazia sem ninguém entender por quê.
+
+   Duas limpezas, e as duas com o mesmo espírito: guardar a escolha de
+   quem já esteve aqui, mas nunca deixá-la mandar numa arquitetura que
+   ela não conhece.
+
+   1. Chave aposentada: a seção inteira deixou de existir.
+   2. Valor inválido: a chave vive, a peça escolhida não. */
+var CHAVES_APOSENTADAS=[
+ "vg",    // seções da Visão geral, até a decisão 033
+ "ck",    // check-in como aba própria
+ "hoje"   // primeira versão da Visão geral
+];
+function limparSubAntigo(sub){
+ if(!sub||typeof sub!=="object")return {};
+ CHAVES_APOSENTADAS.forEach(function(k){delete sub[k]});
+ var validos={};
+ Object.keys(SECOES_DA_GESTAO).forEach(function(rota){
+  SECOES_DA_GESTAO[rota].forEach(function(sec){
+   (validos[sec[0]]=validos[sec[0]]||[]).push(sec[1]);
+  });
+ });
+ Object.keys(sub).forEach(function(k){
+  if(validos[k] && validos[k].indexOf(sub[k])<0)delete sub[k];
+ });
+ return sub;
+}
 function restaurarEstado(){
  try{var o=JSON.parse(localStorage.getItem(CHAVE_ESTADO)||"{}");
-  GUARDA.forEach(function(k){if(o[k]!==undefined)S[k]=o[k]})}catch(e){}
+  GUARDA.forEach(function(k){if(o[k]!==undefined)S[k]=o[k]});
+  S.sub=limparSubAntigo(S.sub)}catch(e){}
 }
 function limparEstado(){try{localStorage.removeItem(CHAVE_ESTADO)}catch(e){}}
 
@@ -5639,7 +5671,18 @@ function vStudio(sub){
                           ["estudios","Onde eu tatuei"]]);
   h+='<div class="tiny muted" style="margin-top:var(--e2)">Tudo aqui responde à mesma pergunta: por que confiar em você.</div>';
  }
- if(sub==="studio"&&subAba("vg","visao")==="visao"){
+ /* Era sub==="studio" && subAba("vg","visao")==="visao".
+
+    A Visão geral deixou de ter seções na decisão 033, e a chave "vg"
+    morreu junto — mas quem já tinha usado o produto continuava com
+    vg:"dinheiro" gravado no navegador. A condição dava falso, nenhum
+    outro bloco pegava a rota, e a página abria VAZIA: cabeçalho, abas,
+    rodapé, e nada no meio.
+
+    Nos meus roteiros isso nunca apareceu porque todos começam com
+    S.sub={} — estado limpo, que é justamente o estado que ninguém
+    real tem. */
+ if(sub==="studio"){
   var cx=somaCaixa();
   var novosQ=SQ.filter(function(q){return q.status==="novo"}).length;
   var esperando=SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length;

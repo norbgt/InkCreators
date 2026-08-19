@@ -256,6 +256,55 @@ chk('   e a legenda passa a contar zero de fora',
     /Da sua agenda <b>0<\/b>/.test(ir('studio-schedule','ag','agendado')),
     'a contagem não acompanhou a desconexão');
 
+console.log('── NENHUMA TELA ABRE VAZIA COM ESTADO VELHO ──');
+/* O defeito que ela viu no navegador e nenhum roteiro meu via.
+
+   A Visão geral abria VAZIA — cabeçalho, abas, rodapé, e nada no meio.
+   Porque quem já tinha usado o produto tinha vg:"dinheiro" gravado, a
+   chave "vg" morreu com as seções da Visão geral, e a condição do
+   painel exigia vg==="visao".
+
+   Meus roteiros nunca pegaram isso porque TODOS começam com S.sub={} —
+   estado limpo, que é exatamente o estado que ninguém real tem. Testar
+   sempre do zero é testar o primeiro minuto de um produto e nunca o
+   segundo dia.
+
+   Aqui o estado é envenenado de propósito: chaves de arquiteturas
+   passadas, valores de seções que já não existem. Nenhuma tela pode
+   abrir vazia por causa disso. */
+var VENENO={vg:"dinheiro",ck:"agora",hoje:"visao",ag:"mes",rep:"desempenho",
+            fin:"pessoas",mev:"nada",cx:"pessoas",orc:"inexistente",ev:"sumiu"};
+var ROTAS_POR_PAPEL=[
+ ["artist",["studio","studio-quotes","studio-schedule","studio-financeiro",
+            "studio-reputacao","studio-eventos","studio-profile"]],
+ ["client",["me","me-passaporte","me-formacao"]],
+ ["forn",  ["forn","forn-recomendacoes","forn-embaixadores","forn-loja","forn-perfil"]]
+];
+var vazias=[];
+ROTAS_POR_PAPEL.forEach(function(par){
+ par[1].forEach(function(rota){
+  S.session=par[0]; S.sub=JSON.parse(JSON.stringify(VENENO)); S.route=rota;
+  var miolo="";
+  try{ g.e("render()"); miolo=(tela().split("<main>")[1]||"") }catch(e){ miolo="" }
+  if(miolo.length<1200)vazias.push(par[0]+"/"+rota+" ("+miolo.length+")");
+ });
+});
+chk('nenhuma tela abre vazia com sub-aba de arquitetura antiga',vazias.length===0,
+    'abriram só com casca: '+vazias.join(', '));
+S.session='artist'; S.sub={};
+
+/* A segunda defesa: o que ficou gravado é limpo ao carregar. A
+   primeira já basta para a tela não quebrar; esta impede que a pessoa
+   volte, dia após dia, para uma escolha que aponta para o nada. */
+var sujo=g.e("limparSubAntigo({vg:'dinheiro',ck:'agora',hoje:'visao',ag:'mes',rep:'avaliacoes'})");
+chk('chave de seção aposentada é descartada',
+    !('vg' in sujo)&&!('ck' in sujo)&&!('hoje' in sujo),
+    'sobrou: '+Object.keys(sujo).join(', '));
+chk('valor que não é mais seção também',!('ag' in sujo),
+    "ag continuou em 'mes', que deixou de existir");
+chk('e a escolha ainda válida fica',sujo.rep==='avaliacoes',
+    'a limpeza levou junto a escolha boa de quem já usava');
+
 console.log('── AS ROTAS ANTIGAS AINDA CHEGAM ──');
 /* studio-checkin apontava para ["studio","vg","checkin"] e as duas
    metades do destino tinham morrido: a chave vg sumiu com as seções da
