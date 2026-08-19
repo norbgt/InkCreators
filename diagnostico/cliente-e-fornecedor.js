@@ -198,14 +198,34 @@ var tag2 = ir("studio-schedule", "ag", "mes");
    sentido: já está à vista. O que a linha aberta oferece é fechar —
    e o que ela NÃO pode oferecer é gerar de novo, porque trocaria o
    código que a pessoa está tentando escanear. */
-chk("a sessão com QR aberto oferece fechar, não gerar de novo",
-    /Fechar o QR/.test(tag2) && (tag2.match(/Gerar QR/g) || []).length < (tag.match(/Gerar QR/g) || []).length,
+chk("a sessão com QR aberto oferece ver, não gerar de novo",
+    /Ver o QR/.test(tag2) && (tag2.match(/Gerar QR/g) || []).length < (tag.match(/Gerar QR/g) || []).length,
     "dá para gerar um código novo por cima do que já está na tela");
-chk("e o QR abre dentro da linha, não no topo da página",
-    tag2.indexOf('class="ckin"') > tag2.indexOf("Quem vem por aí"),
-    "o bloco do check-in voltou a nascer acima da lista que o gerou");
+/* A linha diz em que pé está sem precisar abrir nada. */
+chk("e a linha mostra o estado da sessão",
+    /esperando escanear|vinculada|em andamento|encerrada/.test(tag2));
+
+/* ── O QR GRANDE FLUTUA, NÃO EMPURRA ──────────────────────────────
+   Numa lista de sessões, um bloco que cresce no meio joga tudo para
+   baixo e a pessoa perde o lugar de onde saiu — ainda mais no telefone.
+   A janela fica por cima, e a página não muda de tamanho. */
+chk("o QR grande abre em janela sobre a página",
+    /class="qrjanela"/.test(tag2) && /class="scrim"/.test(tag2));
+chk("com fundo que fecha ao tocar fora", /class="scrim" onclick="fecharJanelaQR\(\)"/.test(tag2));
+chk("e é anunciada como diálogo", /role="dialog" aria-modal="true"/.test(tag2));
 chk("sem cartão de tela inteira", !/max-width:520px;text-align:center/.test(tag2),
     "voltou a parede centralizada");
+/* Fechar a janela não pode cancelar o check-in: o relógio continua, e
+   confundir os dois faria perder a sessão inteira num toque fora. */
+g.e("fecharJanelaQR()");
+chk("fechar a janela não cancela o check-in",
+    S.checkin.aberto === true && S.checkin.janela === false);
+chk("e a janela reabre pela linha", (function () {
+  g.e("verOQR()"); return /class="qrjanela"/.test(ir("studio-schedule", "ag", "sessoes"));
+})());
+/* Uma janela por página, não uma por sessão: ela é fixa na tela. */
+chk("uma janela só, mesmo com três sessões",
+    (ir("studio-schedule", "ag", "sessoes").match(/class="qrjanela"/g) || []).length === 1);
 /* O tamanho do QR é o que separa "abre na linha" de "abre uma parede".
    Sem esta medida, alguém devolve 180px e a mudança se desfaz sem que
    nenhum roteiro reclame — foi o que descobri sabotando. */

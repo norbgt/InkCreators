@@ -55,7 +55,11 @@ chk('e continua alcançável',/class="conf /.test(ir('studio')) && ir('studio-pr
 chk('cursos e eventos é aba, não sub-aba',/studio-eventos/.test(JSON.stringify(g.e("ST_NAV"))));
 
 console.log('── NENHUMA SEGUNDA FAIXA DE ABAS ──');
-var ESPERADO={'studio':4,'studio-quotes':2,'studio-schedule':2,'studio-reputacao':3,'studio-eventos':2};
+/* Orçamentos não está aqui de propósito: é a única aba da gestão que
+   continua com alternador, e a razão é o fluxo de três passos dentro de
+   Recebidos. Empilhar Enviados embaixo faria a pessoa rolar por um
+   segundo assunto no meio de uma decisão que ainda não terminou. */
+var ESPERADO={'studio':4,'studio-schedule':2,'studio-reputacao':3,'studio-eventos':2};
 Object.keys(ESPERADO).forEach(function(rota){
  var t=ir(rota);
  var secoes=(t.match(/class="secgt"/g)||[]).length;
@@ -145,6 +149,23 @@ chk('existe uma função só para preâmbulo de página',/function naPrimeiraSec
      reps.slice(0,2).map(function(x){return '"'+x.slice(0,58)+'…"'}).join('  '));
 });
 S.session='artist';
+
+console.log('── ORÇAMENTOS CONTINUA COM ALTERNADOR ──');
+/* A exceção à regra da página que rola, e ela tem motivo escrito.
+   Sem este teste, alguém "corrige" a inconsistência e devolve o fluxo
+   de três passos para o meio de uma rolagem. */
+var tq=ir('studio-quotes');
+chk('tem alternador entre recebidos e enviados',/class="segmento"/.test(tq)&&segs(tq)===2,
+    segs(tq)+' opções');
+chk('e não vira página empilhada',!/class="secgt"/.test(tq),
+    'os dois viraram seções e o fluxo de três passos foi parar no meio de uma rolagem');
+/* Zerando a escolha antes de medir: o padrão só se observa em quem
+   nunca escolheu, e um teste anterior pode ter deixado 'enviados'. */
+S.sub=S.sub||{}; delete S.sub.orc;
+var tq0=ir('studio-quotes');
+var ativa=(tq0.match(/class="seg on"[\s\S]{0,150}?>([^<]+)</)||[])[1];
+chk('recebidos é o padrão',/Recebidos/.test(ativa||''),
+    'abre em '+(ativa||'nada')+', e quem chega quer ver quem está pedindo');
 
 console.log('── AS ROTAS ANTIGAS AINDA CHEGAM ──');
 [['studio-checkin','studio'],['studio-events','studio-eventos'],
@@ -314,8 +335,9 @@ chk('todo cartão leva a algum lugar',
     (tv.match(/class="grande[^"]*" onclick="[^"]*(go\(|irSecao\()/g)||[]).length===cartoes,
     'algum cartão sem destino');
 var tvl=tv.replace(/&#39;/g,"'");
-chk('e leva à seção certa',/irSecao\('studio-quotes','orc','enviados'\)/.test(tvl),
-    'o cartão de propostas sem retorno não aponta para a seção de enviados');
+/* Orçamentos é outra página, então o cartão navega em vez de rolar. */
+chk('e leva ao recorte certo',/S\.sub\.orc='enviados';go\('studio-quotes'\)/.test(tvl),
+    'o cartão de propostas sem retorno não abre Enviados');
 /* Cartão que aponta para uma seção inexistente rola para lugar nenhum,
    e a pessoa conclui que o número está errado.
 

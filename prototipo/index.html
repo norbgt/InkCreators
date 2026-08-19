@@ -645,6 +645,23 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 /* ── O CALENDÁRIO DO MÊS, PEQUENO ─────────────────────────────────
    Ele diz densidade, não conteúdo: quantos dias da semana estão
    ocupados. Quem vem, e quando, está na lista acima. */
+/* ── A JANELA DO QR ───────────────────────────────────────────────
+   O QR grande flutua sobre a página em vez de empurrá-la. Numa lista
+   de sessões, um bloco que cresce no meio joga tudo para baixo e a
+   pessoa perde o lugar de onde saiu — ainda mais no telefone, com a
+   tela ocupada por um bloco que ela não pediu para ver.
+
+   Fechar aqui não cancela o check-in: o relógio continua, e a linha da
+   sessão passa a mostrar em que pé está. */
+.qrjanela{position:fixed;z-index:51;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(380px,calc(100vw - 32px));max-height:calc(100vh - 48px);overflow-y:auto;
+  background:var(--background);border:var(--hair) solid var(--border);
+  border-radius:var(--r-sm);box-shadow:0 12px 40px rgba(0,0,0,.22)}
+.qrfechar{position:absolute;top:8px;right:8px;z-index:1}
+.qrjanela .ckin{margin:0;border-left:none;background:none;padding:22px 20px 20px;text-align:center}
+.qrjanela .ckin .row{justify-content:center}
+@media(max-width:460px){.qrjanela{width:calc(100vw - 20px)}}
+
 /* ── O CHECK-IN DENTRO DA LINHA ───────────────────────────────────
    Recuado e com traço de acento à esquerda: lê-se como desdobramento
    daquela sessão, não como bloco novo. O QR em 132px é o que basta
@@ -1912,8 +1929,19 @@ function qrFalso(codigo,lado){
    Agora ele abre embaixo da própria linha, recuado, com o QR no
    tamanho de escanear a um palmo de distância. O vínculo entre a
    sessão e o código deixa de precisar de explicação: está na posição. */
+/* Fechar a janela NÃO cancela o check-in. São coisas diferentes: o
+   check-in é um estado com relógio correndo; a janela é só onde se olha
+   para ele. Confundir os dois faria o tatuador perder a sessão inteira
+   ao tocar fora do QR sem querer. */
+function verOQR(){ if(S.checkin.aberto){S.checkin.janela=true;render()} }
+function fecharJanelaQR(){ S.checkin.janela=false;render() }
+
 function cartaoDoCheckin(ck){
- var h='<div class="ckin">';
+ if(!ck.janela)return "";
+ var h='<div class="scrim" onclick="fecharJanelaQR()"></div>';
+ h+='<div class="qrjanela" role="dialog" aria-modal="true" aria-label="Check-in de '+escapar(ck.sessao.c)+'">';
+ h+='<button class="iconbtn qrfechar" aria-label="Fechar" onclick="fecharJanelaQR()">✕</button>';
+ h+='<div class="ckin">';
   h+='<div class="row" style="gap:7px"><span class="b small">'+ck.sessao.c+'</span>';
   h+=ck.confirmado?'<span class="badge ok">✓ confirmou às '+(ck.quando||"")+'</span>':'<span class="badge warn">esperando escanear</span>';
   h+='</div>';
@@ -1948,7 +1976,7 @@ function cartaoDoCheckin(ck){
    h+='<button class="btn blk" style="margin-top:11px" onclick="fecharCheckin()">Concluir</button>';
   }
   h+='</div>';
- return h+'</div>';
+ return h+'</div></div>';
 }
 
 /* O código nasce do agendamento, não de um botão genérico: cada sessão
@@ -1956,7 +1984,7 @@ function cartaoDoCheckin(ck){
    neste estúdio. Abrir de dentro da agenda deixa esse vínculo óbvio. */
 function abrirCheckin(i){
  var b=BOOK[i]||BOOK[0];
- S.checkin={aberto:true,codigo:novoCodigoCheckin(),sessao:b,confirmado:false,inicio:null,fim:null,erro:null};
+ S.checkin={aberto:true,janela:true,codigo:novoCodigoCheckin(),sessao:b,confirmado:false,inicio:null,fim:null,erro:null};
  S.sub=S.sub||{}; S.sub.ck="agora";
  irSecao("studio-schedule","ag","sessoes");
 }
@@ -4062,8 +4090,11 @@ var SECOES_DA_GESTAO={
  /* O check-in mora na agenda porque é a mesma matéria: sessão marcada.
     Estava na visão geral, e ali obrigava a pessoa a sair da agenda —
     onde ela acabou de ver a sessão — para abrir o QR daquela sessão. */
- "studio-quotes":    [["orc","recebidos","Recebidos",function(){return SQ.filter(function(q){return q.status==="novo"}).length}],
-                      ["orc","enviados","Enviados",function(){return SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length}]],
+ /* Orçamentos NÃO entra aqui de propósito. Recebidos tem um fluxo de
+    três passos dentro — mapa, pedido, proposta — e empilhar a lista de
+    enviados embaixo dele deixa a pessoa rolando por um segundo assunto
+    no meio de uma decisão que ainda não terminou. Aqui o alternador é o
+    componente certo: são dois destinos, não duas partes de um. */
  "studio-schedule":  [["ag","sessoes","Próximas sessões",function(){return BOOK.length}],
                       ["ag","mes","O mês e o Google"]],
  "studio-reputacao": [["rep","avaliacoes","Avaliações",function(){return REVS.filter(function(r){return !r.resp}).length}],
@@ -5337,13 +5368,21 @@ function vStudio(sub){
    h+='<div class="sp b small">'+brl(b.cents)+'</div>';
    /* "Detalhes" era um botão sem onclick: não fazia nada desde que
       nasceu, e estava roubando a largura do único botão que faz. */
-   h+=aberta
-     ? '<button class="btn sm acaoLinha" onclick="fecharCheckin()">Fechar o QR</button>'
-     : '<button class="btn sm primary acaoLinha" onclick="abrirCheckin('+i+')">Gerar QR</button>';
+   /* A linha diz em que pé está a sessão. O QR grande abre numa janela
+      por cima — a página não cresce, e quem está com o telefone na mão
+      não perde o lugar de onde saiu. */
+   if(aberta){
+    var est=S.checkin.fim?"encerrada":S.checkin.inicio?"em andamento":S.checkin.confirmado?"vinculada":"esperando escanear";
+    h+='<span class="badge '+(S.checkin.inicio&&!S.checkin.fim?"ok":"warn")+' acaoLinha" style="align-self:center">'+est+'</span>';
+    h+='<button class="btn sm acaoLinha" onclick="verOQR()">Ver o QR</button>';
+   } else {
+    h+='<button class="btn sm primary acaoLinha" onclick="abrirCheckin('+i+')">Gerar QR</button>';
+   }
    h+='</div>';
-   /* Embaixo da linha que o gerou, e não no topo da página. */
-   if(aberta)h+=cartaoDoCheckin(S.checkin);
   });
+  /* Uma vez por página, não uma por linha: a janela é fixa na tela e
+     não pertence a nenhum lugar do fluxo do documento. */
+  if(S.checkin.aberto)h+=cartaoDoCheckin(S.checkin);
   h+='</div></div>';
   }
 
