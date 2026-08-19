@@ -228,7 +228,7 @@ chk('sem desfoque no controle segmentado',
    que custa. */
 var comDesfoque = (css.match(/[^{}]+\{[^}]*backdrop-filter[^}]*\}/g) || [])
   .map(function (b) { return b.split('{')[0].replace(/\s+/g, ' ').trim() });
-var SOBRE_FOTO = /\.postimg|\.postacoes|\.coracao|\.selosic|\.tagtl|\.nav|\.gmais|\.obrafoto|\.pcard/;
+var SOBRE_FOTO = /\.postimg|\.postacoes|\.coracao|\.selosic|\.tagtl|\.nav|\.getiq|\.obrafoto|\.pcard/;
 chk('todo desfoque que sobrou está sobre imagem',
     comDesfoque.length > 0 && comDesfoque.every(function (sel) { return SOBRE_FOTO.test(sel) }),
     comDesfoque.filter(function (sel) { return !SOBRE_FOTO.test(sel) }).join('  |  '));

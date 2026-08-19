@@ -674,6 +674,43 @@ secao("16c. OS CARDS EM GRADE");
 S.session = "anon"; S.f.styles = []; S.feedLote = 3;
 var tfeed3 = ir("home");
 chk("existem cards em grade no feed", /class="post postgrade"/.test(tfeed3));
+
+/* ── A GRADE PRECISA SER VISTA ────────────────────────────────────
+   Ela existia e não estava sendo notada. Três causas, todas medíveis:
+
+   1. Uma só no primeiro lote, na posição 5 de 8 — perdida no meio de
+      uma coluna do masonry.
+   2. A primeira era a de quatro células, que parece um card com quatro
+      fotos. A de nove é a que se lê como grade à primeira vista.
+   3. Sem etiqueta, um mosaico de nove se confunde com nove cards
+      vizinhos. */
+S.f.styles = []; S.feedLote = 1;
+var tprimeiro = ir("home");
+var seq = tprimeiro.split('<article class="post').slice(1)
+  .map(function (x) { return x.indexOf(" postgrade") === 0 ? (x.indexOf("gcels nove") >= 0 ? "9" : "4") : "." });
+chk("pelo menos duas grades no primeiro lote",
+    seq.filter(function (x) { return x !== "." }).length >= 2,
+    "sequência: " + seq.join(""));
+chk("e a primeira delas é a de nove células",
+    seq.filter(function (x) { return x !== "." })[0] === "9",
+    "a primeira grade é a de quatro, que parece um card com quatro fotos");
+var pos = seq.indexOf("9");
+chk("a primeira aparece cedo, não no fim do lote", pos >= 0 && pos <= 4,
+    "aparece na posição " + (pos + 1) + " de " + seq.length);
+chk("toda grade se anuncia como conjunto",
+    (tprimeiro.match(/class="getiq"/g) || []).length ===
+    (tprimeiro.match(/class="post postgrade"/g) || []).length,
+    "sem etiqueta, o mosaico se confunde com os cards vizinhos");
+
+/* Foto menor é mais trabalho por tela, que é o que um feed de
+   descoberta precisa entregar. Duas colunas é o piso: em uma só, cada
+   rolagem mostra um trabalho e o feed vira uma fila. */
+chk("o feed nunca cai para uma coluna",
+    !/\.feed\{[^}]*column-count:1\}/.test(css) && !/column-count:1/.test(css),
+    "voltou a coluna única, onde cada rolagem mostra um trabalho");
+chk("e ganha coluna conforme a tela cresce",
+    (css.match(/\.feed\{column-count:[3-6]\}/g) || []).length >= 3,
+    "poucos degraus: a foto fica grande demais em tela larga");
 chk("grade de portfólio com quatro células", /class="gcels quatro"/.test(tfeed3),
     "quatro para julgar a mão de uma pessoa — em nove ninguém julga traço");
 chk("grade de estilo com nove", /class="gcels nove"/.test(tfeed3),

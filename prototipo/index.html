@@ -452,14 +452,18 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
    Column-count tem um custo conhecido — a ordem desce por coluna em
    vez de atravessar a fileira. Num feed de descoberta isso não pesa:
    não existe "primeiro" e "segundo", existe o conjunto. */
-.feed{column-gap:14px;margin-top:var(--section-gap);
-  column-count:2}
-@media(min-width:700px){.feed{column-count:3}}
-@media(min-width:1000px){.feed{column-count:4}}
-@media(max-width:400px){.feed{column-count:1}}
+/* Foto menor é mais foto por tela, e num feed de descoberta o que
+   conta é quantos trabalhos diferentes a pessoa vê antes de decidir
+   parar. Duas colunas é o piso: em uma só, cada rolagem mostra um
+   trabalho e o feed vira uma fila. */
+.feed{column-gap:10px;margin-top:var(--section-gap);column-count:2}
+@media(min-width:560px){.feed{column-count:3}}
+@media(min-width:820px){.feed{column-count:4}}
+@media(min-width:1080px){.feed{column-count:5}}
 
+/* Espaço entre cards acompanha a coluna: 10px. */
 .post{break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid;
-  display:block;width:100%;margin:0 0 14px;background:none;border:none}
+  display:block;width:100%;margin:0 0 10px;background:none;border:none}
 
 .postimg{position:relative;width:100%;overflow:hidden;background:var(--muted);
   border-radius:var(--r-sm)}
@@ -561,9 +565,12 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .gcels.nove{grid-template-columns:repeat(3,1fr);aspect-ratio:1}
 .gcel{display:block;width:100%;height:100%;background-size:cover;background-position:center;
   background-color:var(--muted)}
-.gmais{position:absolute;right:6px;bottom:6px;padding:2px 7px;border-radius:var(--r-pill);
-  background:rgba(0,0,0,.55);color:#fff;font-family:var(--f-exp);font-size:var(--t-micro);
-  backdrop-filter:blur(4px)}
+/* Etiqueta que diz "isto é um conjunto". Sem ela, um mosaico se
+   confunde com os cards vizinhos do masonry — que é exatamente o que
+   estava acontecendo. */
+.getiq{position:absolute;left:6px;bottom:6px;padding:3px 8px;border-radius:var(--r-pill);
+  background:rgba(0,0,0,.62);color:#fff;font-family:var(--f-exp);font-size:var(--t-micro);
+  font-weight:500;backdrop-filter:blur(4px)}
 .postgrade .gcx:hover{opacity:.94}
 .pseg{font-family:var(--f-exp);font-size:var(--t-micro);color:var(--accent);padding:3px 2px 0}
 
@@ -2387,7 +2394,7 @@ function gradePortfolio(a) {
     h += '<span class="gcel" style="background-image:' + tex(p) + '"></span>';
   });
   h += '</div>';
-  if (a.port.length > 4) h += '<span class="gmais">+' + (a.port.length - 4) + '</span>';
+  h += '<span class="getiq">' + a.port.length + ' trabalhos</span>';
   h += '</button>';
   h += '<button class="postpe" onclick="go(\'artist\',\'' + a.id + '\')">';
   h += '<div class="row" style="gap:6px;min-width:0"><span class="pnome">' + a.name + '</span></div>';
@@ -2421,7 +2428,11 @@ function gradeEstilo(lista, indice) {
   h += '<button class="gcx" onclick="filtrarPorEstilo(\'' + slug + '\')" aria-label="Ver tatuadores de ' + escapar(SL[slug]) + '">';
   h += '<div class="gcels nove">';
   fotos.forEach(function (p) { h += '<span class="gcel" style="background-image:' + tex(p) + '"></span>' });
-  h += '</div></button>';
+  h += '</div>';
+  /* Sem isto, um mosaico de nove fotos se confunde com nove cards
+     vizinhos do masonry. A etiqueta diz que os nove são um só. */
+  h += '<span class="getiq">' + fotos.length + ' trabalhos</span>';
+  h += '</button>';
   h += '<button class="postpe" onclick="filtrarPorEstilo(\'' + slug + '\')">';
   h += '<div class="row" style="gap:6px;min-width:0"><span class="pnome">' + SL[slug] + '</span></div>';
   h += '<div class="ppe">' + deles.length + ' tatuadores · perto de você</div>';
@@ -2442,15 +2453,21 @@ function filtrarPorEstilo(slug) {
   render();
 }
 
-/* Intercala as grades entre os cards. A cada cinco publicações entra
-   uma, alternando os dois tipos. Cinco é a distância em que a quebra de
-   ritmo ainda se nota sem virar o próprio ritmo — e cai dentro do
-   primeiro lote, senão a variação só apareceria depois de rolar. */
+/* Intercala as grades entre os cards, a cada três publicações.
+
+   Eram cinco, e a primeira caía na posição 5 de um lote de 8: uma
+   grade só, no meio de uma coluna, fácil de não ver. Com fotos menores
+   o feed corre mais rápido, e três é a distância em que a quebra de
+   ritmo se nota sem virar o próprio ritmo.
+
+   A PRIMEIRA é a de estilo, com nove células — é a que se lê como
+   grade à primeira vista. A de portfólio, com quatro, parece um card
+   com quatro fotos, e sozinha não comunica a ideia. */
 function comGrades(lista, ate) {
-  var h = "", g = 0;
+  var h = "", g = 1;
   lista.slice(0, ate).forEach(function (a, i) {
     h += publicacao(a);
-    if ((i + 1) % 5 === 0) { h += grades(lista, g); g++ }
+    if ((i + 1) % 3 === 0) { h += grades(lista, g); g++ }
   });
   return h;
 }
