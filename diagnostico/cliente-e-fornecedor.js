@@ -123,7 +123,7 @@ S.session = "artist";
    sessões que a agenda mostrava, em duas abas diferentes. */
 /* O check-in mora na agenda: é a mesma matéria que ela trata, sessão
    marcada. E o QR nasce do agendamento, não de um botão genérico. */
-var tc = ir("studio-schedule", "ag", "checkin");
+var tc = ir("studio-schedule", "ag", "sessoes");
 /* ── O QR NASCE DE UM AGENDAMENTO ────────────────────────────────
    O botão de abrir o check-in mora na linha da sessão, dentro da
    agenda. É isso que liga o código a esta pessoa, neste dia, neste
@@ -168,9 +168,9 @@ chk("uma ação por sessão, não duas", linhas>0 && acoes<=linhas,
 chk("a agenda e o check-in moram na mesma aba",
     (function () {
       var sec = g.e("SECOES_DA_GESTAO['studio-schedule'].map(function(x){return x[1]}).join(',')");
-      return sec.indexOf("mes") >= 0 && sec.indexOf("checkin") >= 0;
+      return sec.indexOf("sessoes") >= 0;
     })(),
-    "o check-in voltou a exigir sair da agenda para abrir o QR daquela sessão");
+    "o check-in voltou a exigir sair da lista para abrir o QR daquela sessão");
 
 /* Abrir uma sessão específica tem de carregar aquela sessão, não a
    primeira da lista: código certo com pessoa errada é pior que erro,
@@ -180,8 +180,10 @@ g.e("abrirCheckin(1)");
 chk("abrir a segunda sessão carrega a segunda pessoa",
     S.checkin.sessao && S.checkin.sessao.c === segunda,
     "carregou " + (S.checkin.sessao ? S.checkin.sessao.c : "nada") + " em vez de " + segunda);
-chk("e leva para a seção de check-in",
-    S.route === "studio-schedule" && (S.sub || {}).ag === "checkin",
+/* O check-in deixou de ser seção: ele nasce de uma sessão e aparece
+   dentro de Próximas sessões, embaixo da lista que o gerou. */
+chk("e leva para a lista de sessões",
+    S.route === "studio-schedule" && (S.sub || {}).ag === "sessoes",
     "foi para " + S.route + "/" + ((S.sub || {}).ag || "—"));
 /* Duas sessões abertas ao mesmo tempo dariam dois códigos válidos, e
    o cliente poderia confirmar o da pessoa errada. */
@@ -200,7 +202,7 @@ chk("a sessão com QR aberto oferece ver, não gerar de novo",
    eles falhariam pelo estado que ESTE bloco deixou — e não pelo que
    pretendem medir. */
 g.e("fecharCheckin()");
-var tc = ir("studio-schedule", "ag", "checkin");
+var tc = ir("studio-schedule", "ag", "sessoes");
 chk("o tatuador vê as sessões para abrir", /abrirCheckin\(|Gerar QR|O mês/.test(tag));
 chk("nada de valor aparece antes de abrir", !/class="codigo"/.test(tc));
 

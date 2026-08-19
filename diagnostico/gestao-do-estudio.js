@@ -55,7 +55,7 @@ chk('e continua alcançável',/class="conf /.test(ir('studio')) && ir('studio-pr
 chk('cursos e eventos é aba, não sub-aba',/studio-eventos/.test(JSON.stringify(g.e("ST_NAV"))));
 
 console.log('── NENHUMA SEGUNDA FAIXA DE ABAS ──');
-var ESPERADO={'studio':4,'studio-quotes':2,'studio-schedule':3,'studio-reputacao':3,'studio-eventos':2};
+var ESPERADO={'studio':4,'studio-quotes':2,'studio-schedule':2,'studio-reputacao':3,'studio-eventos':2};
 Object.keys(ESPERADO).forEach(function(rota){
  var t=ir(rota);
  var secoes=(t.match(/class="secgt"/g)||[]).length;
@@ -218,14 +218,44 @@ chk('oferece conectar',/conectarGoogleAgenda/.test(ta));
 g.e("conectarGoogleAgenda()");
 chk('mostra que está conectando',S.googleConectando===true);
 tempos.forEach(function(fn){fn()});
+/* Conectar não é mais um passo só: o Google devolve o consentimento e
+   aí vem a pergunta que dá medo — em qual calendário isso cai. */
+chk('depois de autorizar, pergunta o calendário',S.googleEscolhendo===true&&S.agendaGoogle!==true,
+    'conectou sem perguntar onde as sessões vão cair');
+g.e("escolherCalendarioGoogle('ink')");
 chk('conecta',S.agendaGoogle===true);
-var ta2=ir('studio-schedule','ag','conexoes');
+chk('e no calendário separado',S.googleCalendario==='ink');
+var ta2=ir('studio-schedule','ag','mes');
 chk('conectada: mostra a conta',/conectada/.test(ta2)&&/gmail\.com/.test(ta2));
 chk('conectada: diz o que sincroniza',/Sessões confirmadas/.test(ta2)&&/Compromissos do Google/.test(ta2));
 chk('conectada: e o que NÃO sincroniza',/ficam só aqui/.test(ta2));
 chk('conectada: dá para desconectar',/Desconectar/.test(ta2));
+/* O Google mora colado ao calendário: é ele que enche esse calendário
+   com o que acontece fora daqui. */
 var tm=ir('studio-schedule','ag','mes');
 chk('o mês avisa que está sincronizado',/Sincronizada com o Google/.test(tm));
+chk('e o Google está na mesma seção do calendário',/class="calmes"/.test(tm)&&/Google Agenda/.test(tm),
+    'a conexão voltou para o fim da fila, longe do que ela alimenta');
+/* Não basta estarem na mesma seção: tem de estar perto. Longe do
+   calendário que ela alimenta, a conexão parece opcional. */
+var distGoogle = tm.indexOf('Google Agenda') - tm.indexOf('class="calmes"');
+chk('e logo depois dele, não no fim da página',
+    distGoogle > 0 && distGoogle < 4500, distGoogle + ' caracteres de distância');
+/* A ordem é a decisão desta rodada: ninguém abre a agenda para olhar um
+   mês em branco — abre para saber quem vem. */
+var tsec = ir('studio-schedule');
+chk('a lista vem antes do calendário na página',
+    tsec.indexOf('Próximas sessões') < tsec.indexOf('class="calmes"'),
+    'o calendário voltou para cima e a lista virou coisa de rolar');
+chk('e o calendário é pequeno',/\.calmes\{[^}]*max-width:330px/.test(css),
+    'sem largura máxima, ele volta a ocupar a tela toda');
+/* Conexão com serviço de terceiro falha. Protótipo que só acerta dá um
+   teste otimista de graça. */
+g.e("S.agendaGoogle=false;S.googleSimularErro=true");
+g.e("conectarGoogleAgenda()");tempos.forEach(function(fn){fn()});
+chk('recusar no Google não conecta',S.agendaGoogle===false&&!!S.googleErroGoogle);
+chk('e a tela diz o que houve',/fechou a janela do Google/.test(ir('studio-schedule','ag','mes')));
+g.e("S.googleSimularErro=false;S.googleErroGoogle=null;S.agendaGoogle=true");
 S.agendaGoogle=false;
 chk('sem conexão, sem aviso',!/Sincronizada com o Google/.test(ir('studio-schedule','ag','mes')));
 

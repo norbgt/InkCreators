@@ -641,6 +641,16 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .lrow{display:flex;align-items:center;gap:11px;padding:11px 0;flex-wrap:wrap;
   border-bottom:var(--hair) solid var(--rule)}
 .lrow .acaoLinha{margin-left:9px;flex-shrink:0}
+
+/* ── O CALENDÁRIO DO MÊS, PEQUENO ─────────────────────────────────
+   Ele diz densidade, não conteúdo: quantos dias da semana estão
+   ocupados. Quem vem, e quando, está na lista acima. */
+.calmes{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:11px;max-width:330px}
+.caldia{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  border:var(--hair) solid var(--rule);border-radius:var(--r-sm);
+  font-size:var(--t-micro);font-variant-numeric:tabular-nums;color:var(--muted-foreground)}
+.caldia.com{border-color:var(--accent-bd);background:var(--x-accent-bg);color:var(--foreground);font-weight:500}
+.caldia i{width:4px;height:4px;border-radius:var(--r-pill);background:var(--accent);display:block}
 @media(max-width:460px){
   .lrow .acaoLinha{margin-left:0;width:100%;margin-top:7px}
 }
@@ -1583,7 +1593,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  passPub:[], passSel:null, checkinCod:"", onbStep:1,onbName:"",onbStyles:[],onbPort:0,pfTab:"info",menu:false,autoAssist:false,
  sqSelAg:null,agArtist:null,agDia:null,agHora:null,agFeito:false,destaqueAtivo:false,
  voltarPara:null,voltarArtista:null,histAba:"pessoas",sub:{},
- agendaGoogle:false,googleConectando:false,
+ agendaGoogle:false,googleConectando:false,googleEscolhendo:false,googleErroGoogle:null,googleCalendario:'ink',googleSimularErro:false,
  te:{nome:"",email:"",perfil:null,aceite:false,erro:null,enviando:false},
  abaModelo:"painel",painel:{estado:null,dados:null,carregando:false,erro:null,email:"",senha:"",copiado:false},
  ue:{custo:1.20,qtd:1,destaque:120,adesao:12,gmv:600,take:12},
@@ -1889,7 +1899,7 @@ function abrirCheckin(i){
  var b=BOOK[i]||BOOK[0];
  S.checkin={aberto:true,codigo:novoCodigoCheckin(),sessao:b,confirmado:false,inicio:null,fim:null,erro:null};
  S.sub=S.sub||{}; S.sub.ck="agora";
- irSecao("studio-schedule","ag","checkin");
+ irSecao("studio-schedule","ag","sessoes");
 }
 function fecharCheckin(){
  S.checkin={aberto:false,codigo:null,sessao:null,confirmado:false,inicio:null,fim:null,erro:null};
@@ -2038,7 +2048,7 @@ function sessoesVerificadas(a){
 var CHAVE_ESTADO="ink.estado.v2";
 var GUARDA=["session","route","artist","tab","modo","seguindo","curtidas","cart",
  "cad","perfilLanding","abaPerfil","shopAud","shopCat","shopQ","evAba","q",
- "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","histAba","sub","agendaGoogle","emailConfirmado","emailPendente","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura","ehFornecedor",
+ "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","histAba","sub","agendaGoogle","googleCalendario","emailConfirmado","emailPendente","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura","ehFornecedor",
  "notifFilter","pfTab","ue","f","feedLote","caro","cep","sqSel","orcPasso","passPub","checkin","aval","estudioSel","administraEstudio"];
 // orcEnviado fica de fora de propósito: é a confirmação de uma ação que
 // acabou de acontecer. Sobreviver à recarga faria a tela comemorar de
@@ -3995,9 +4005,8 @@ var SECOES_DA_GESTAO={
     onde ela acabou de ver a sessão — para abrir o QR daquela sessão. */
  "studio-quotes":    [["orc","recebidos","Recebidos",function(){return SQ.filter(function(q){return q.status==="novo"}).length}],
                       ["orc","enviados","Enviados",function(){return SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length}]],
- "studio-schedule":  [["ag","mes","O mês"],
-                      ["ag","checkin","Check-in de agora"],
-                      ["ag","conexoes","Conexões"]],
+ "studio-schedule":  [["ag","sessoes","Próximas sessões",function(){return BOOK.length}],
+                      ["ag","mes","O mês e o Google"]],
  "studio-reputacao": [["rep","avaliacoes","Avaliações",function(){return REVS.filter(function(r){return !r.resp}).length}],
                       ["rep","desempenho","Desempenho por estilo"],["rep","estudios","Onde eu tatuei"]],
  "studio-eventos":   [["ev","meus","Que eu criei"],["ev","participo","Que eu participo"]],
@@ -5202,7 +5211,9 @@ function vStudio(sub){
  /* O check-in de agora mora em Hoje; o desempenho por estilo mora em
     Reputação, porque é o que responde "o que eu faço bem", não "o que
     acontece agora". Os dois blocos continuam inteiros. */
- if((sub==="studio-schedule"&&subAba("ag","mes")==="checkin")||
+ /* Dentro de Próximas sessões, logo abaixo da lista: o check-in nasce
+    de uma sessão e não tem por que morar longe dela. */
+ if((sub==="studio-schedule"&&subAba("ag","sessoes")==="sessoes"&&S.checkin.aberto)||
     (sub==="studio-reputacao"&&subAba("rep","avaliacoes")==="desempenho")){
   if(sub==="studio-reputacao"){
    var porEstilo=desempenhoPorEstilo();
@@ -5290,18 +5301,65 @@ function vStudio(sub){
     tem bloco próprio, mais abaixo. Sem esta saída, a seção de check-in
     caía no conteúdo do mês e a página mostrava o calendário duas
     vezes, com dois "Gerar QR" para a mesma sessão. */
- if(sub==="studio-schedule"&&subAba("ag","mes")!=="checkin"){
-  h+=abasInternas("ag",[["mes","O mês"],["conexoes","Conexões"]]);
+ /* ── AGENDA ──────────────────────────────────────────────────────
+    A ordem inverteu. Antes vinha o calendário e a lista aparecia
+    depois de rolar — mas ninguém abre a agenda para olhar um mês em
+    branco: abre para saber quem vem, e para abrir o QR de quem está
+    chegando. O calendário responde "como está a semana", que é uma
+    pergunta de segunda ordem, e por isso encolheu.
 
-  /* ── Google Agenda ───────────────────────────────────────────
-     Tatuador não vive só na plataforma: tem consulta, aula, viagem.
-     Se a agenda daqui ignora o resto da vida dele, ele marca em cima
-     de um compromisso uma vez e nunca mais confia nela.
+    O Google saiu do fim da fila e passou a viver colado ao calendário:
+    é ele que enche esse calendário com o resto da vida de quem tatua —
+    consulta, aula, viagem. Longe dali, a conexão parecia opcional.
 
-     Duas direções, e elas resolvem problemas diferentes: mandar as
-     sessões para o Google é conveniência; trazer os compromissos de
-     lá é o que impede o encontro marcado em cima de outra coisa. */
-  if(subAba("ag","mes")==="conexoes"){
+    O check-in deixou de ser seção: ele nasce de uma sessão e agora
+    aparece dentro da lista, embaixo da sessão que o gerou. */
+ if(sub==="studio-schedule"){
+  var agv=subAba("ag","sessoes");
+
+  if(agv==="sessoes"){
+   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Quem vem por aí</span>'+tg("mock")+'<button class="btn sm sp">+ Bloquear horário</button></div>';
+   /* Esta frase explicava o check-in dentro do cartão que saiu. Ela vale
+      mais que o cartão: é o porquê do botão, e agora fica ao lado dele. */
+   h+='<div class="tiny muted" style="margin-top:3px">Abra quando a pessoa sentar. Ela escaneia, e a sessão fica registrada para os dois — o passaporte dela e a sua reputação.</div>';
+   h+='<div style="margin-top:9px">';
+  /* A ação principal de uma sessão marcada é abrir o check-in dela.
+     Antes o botão daqui era "Detalhes", que não fazia nada, e o
+     check-in vivia noutra aba com uma segunda lista das mesmas
+     sessões — a pessoa tinha de reencontrar ali quem já estava vendo
+     aqui. */
+  BOOK.forEach(function(b,i){
+   var aberta=S.checkin.aberto&&S.checkin.sessao&&S.checkin.sessao.c===b.c;
+   h+='<div class="lrow"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div>';
+   /* "previstas" não é enfeite: a duração de verdade sai do relógio do
+      check-in, e é ela que vira desempenho por estilo. */
+   h+='<div style="min-width:0"><div class="b small">'+b.c+'</div><div class="small muted">'+b.area+' · '+b.h+'h previstas</div></div>';
+   h+='<div class="sp b small">'+brl(b.cents)+'</div>';
+   /* "Detalhes" era um botão sem onclick: não fazia nada desde que
+      nasceu, e estava roubando a largura do único botão que faz. */
+   h+=aberta
+     ? '<button class="btn sm acaoLinha" onclick="irSecao(\'studio-schedule\',\'ag\',\'sessoes\')">Ver o QR ›</button>'
+     : '<button class="btn sm primary acaoLinha" onclick="abrirCheckin('+i+')">Gerar QR</button>';
+   h+='</div>';
+  });
+  h+='</div></div>';
+  }
+
+  if(agv==="mes"){
+  h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Agenda de agosto</span>'+tg("mock")+'<button class="btn sm sp">+ Bloquear horário</button></div>';
+  if(S.agendaGoogle)h+='<div class="tiny muted" style="margin-top:5px">✓ Sincronizada com o Google — os dias em cinza vêm de lá.</div>';
+  /* Menor: ele responde "como está a semana", não "quem vem". Célula
+     quadrada de 44px chega para ver a densidade do mês, e a palavra
+     "sessão" dentro de cada dia virava ruído repetido cinco vezes —
+     o ponto diz o mesmo em um caractere. */
+  h+='<div class="calmes">';
+  ["seg","ter","qua","qui","sex","sáb","dom"].forEach(function(d){h+='<div class="tiny muted b" style="text-align:center">'+d+'</div>'});
+  for(var d=1;d<=28;d++){
+   var b=[2,6,13,17,22].indexOf(d)>=0;
+   h+='<div class="caldia'+(b?" com":"")+'"><span>'+d+'</span>'+(b?'<i></i>':'')+'</div>';
+  }
+   /* Colado ao calendário, e não numa seção no fim: é o Google que
+      enche esse calendário com o que acontece fora daqui. */
    h+='<div class="card pad" style="margin-top:14px">';
    h+='<div class="row" style="gap:11px;align-items:flex-start">';
    h+='<div class="av" style="background:var(--muted);flex-shrink:0">G</div>';
@@ -5311,14 +5369,33 @@ function vStudio(sub){
    h+='<div class="small muted" style="margin-top:4px">'+(S.agendaGoogle
      ? 'Suas sessões aparecem no Google, e o que você marca lá bloqueia o horário aqui.'
      : 'Conecte para as suas sessões irem para o Google e para os seus compromissos de lá bloquearem horário aqui.')+'</div>';
-   if(S.agendaGoogle)h+='<div class="tiny muted" style="margin-top:5px">Conectada como <b>voce@gmail.com</b> · última sincronização há 4 minutos</div>';
+   if(S.agendaGoogle)h+='<div class="tiny muted" style="margin-top:5px">Conectada como <b>voce@gmail.com</b> · '+(S.googleCalendario==="ink"?'calendário <b>Ink Creators</b>':'calendário <b>principal</b>')+' · última sincronização há 4 minutos</div>';
    h+='</div></div>';
 
-   if(!S.agendaGoogle){
-    h+='<div class="tiny muted" style="margin-top:12px;padding-top:11px;border-top:1px solid var(--border)"><b>O que pedimos:</b> ver e criar eventos na agenda que você escolher. Nada de e-mail, contatos ou arquivos.</div>';
+   if(S.googleErroGoogle){
+    h+='<div class="avisoerro" style="margin-top:12px">'+S.googleErroGoogle+'</div>';
+   }
+   if(S.googleEscolhendo){
+    h+='<div class="sep"></div>';
+    h+='<div class="b small">Onde as sessões vão cair</div>';
+    h+='<div class="tiny muted" style="margin-top:3px">Esta é a única escolha que não dá para desfazer sem bagunçar: depois de escolher, os eventos passam a nascer ali.</div>';
+    [["ink","Criar um calendário separado","chamado Ink Creators. Suas sessões não se misturam, e desconectar leva tudo embora de uma vez.",true],
+     ["principal","Usar o calendário principal","tudo junto com o resto da sua vida. Desconectar deixa os eventos para trás.",false]
+    ].forEach(function(o){
+     h+='<button class="cxestudio" style="margin-top:9px" onclick="escolherCalendarioGoogle(\''+o[0]+'\')">';
+     h+='<div class="row" style="gap:7px"><span class="b small">'+o[1]+'</span>'+(o[3]?'<span class="badge ok">recomendado</span>':'')+'</div>';
+     h+='<div class="tiny muted" style="margin-top:3px">'+o[2]+'</div></button>';
+    });
+   }
+   if(!S.agendaGoogle&&!S.googleEscolhendo){
+    h+='<div class="tiny muted" style="margin-top:12px;padding-top:11px;border-top:var(--hair) solid var(--border)"><b>O que pedimos:</b> ver e criar eventos na agenda que você escolher. Nada de e-mail, contatos ou arquivos.</div>';
     h+='<div class="tiny muted" style="margin-top:5px"><b>O que fazemos:</b> criamos um calendário separado chamado "Ink Creators" — suas sessões não se misturam com o resto, e desconectar leva tudo embora de uma vez.</div>';
     h+='<button class="btn primary blk" style="margin-top:13px" '+(S.googleConectando?"disabled":"")+' onclick="conectarGoogleAgenda()">'+
        (S.googleConectando?"Abrindo o Google…":"Conectar com o Google")+'</button>';
+    /* Interruptor do protótipo, não do produto: serve para ver o
+       caminho ruim sem depender de sorte durante o teste. */
+    h+='<label class="tiny muted" style="display:flex;gap:6px;align-items:center;margin-top:9px;cursor:pointer">';
+    h+='<input type="checkbox" '+(S.googleSimularErro?"checked":"")+' onchange="S.googleSimularErro=!S.googleSimularErro;render()"> simular recusa no Google'+tg("mock")+'</label>';
    } else {
     h+='<div class="sep"></div>';
     h+='<div class="b small">O que sincroniza</div><div style="margin-top:8px">';
@@ -5335,38 +5412,8 @@ function vStudio(sub){
    }
    h+='</div>';
    h+='<div class="tiny muted" style="margin-top:11px">Outras conexões — Apple e Outlook — quando houver quem peça'+tg("mock")+'</div>';
-   return h+'</div></main>';
+   h+='<div class="tiny muted" style="margin-top:11px">Outras conexões — Apple e Outlook — quando houver quem peça'+tg("mock")+'</div>';
   }
-
-  h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Agenda de agosto</span>'+tg("mock")+'<button class="btn sm sp">+ Bloquear horário</button></div>';
-  if(S.agendaGoogle)h+='<div class="tiny muted" style="margin-top:5px">✓ Sincronizada com o Google — os dias em cinza vêm de lá.</div>';
-  h+='<div class="grid" style="grid-template-columns:repeat(7,1fr);margin-top:11px;gap:5px">';
-  ["seg","ter","qua","qui","sex","sáb","dom"].forEach(function(d){h+='<div class="tiny muted b" style="text-align:center">'+d+'</div>'});
-  for(var d=1;d<=28;d++){
-   var b=[2,6,13,17,22].indexOf(d)>=0;
-   h+='<div style="aspect-ratio:1;border:1px solid var(--border);border-radius:var(--r-sm);padding:4px;font-size:11px;'+(b?"background:var(--x-accent-bg);border-color:var(--x-accent-border)":"")+'"><div class="b">'+d+'</div>'+(b?'<div class="tiny" style="color:var(--accent)">sessão</div>':'')+'</div>';
-  }
-  h+='</div><div class="sep"></div><div class="b small">Próximas sessões</div><div style="margin-top:3px">';
-  /* A ação principal de uma sessão marcada é abrir o check-in dela.
-     Antes o botão daqui era "Detalhes", que não fazia nada, e o
-     check-in vivia noutra aba com uma segunda lista das mesmas
-     sessões — a pessoa tinha de reencontrar ali quem já estava vendo
-     aqui. */
-  BOOK.forEach(function(b,i){
-   var aberta=S.checkin.aberto&&S.checkin.sessao&&S.checkin.sessao.c===b.c;
-   h+='<div class="lrow"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div>';
-   /* "previstas" não é enfeite: a duração de verdade sai do relógio do
-      check-in, e é ela que vira desempenho por estilo. */
-   h+='<div style="min-width:0"><div class="b small">'+b.c+'</div><div class="small muted">'+b.area+' · '+b.h+'h previstas</div></div>';
-   h+='<div class="sp b small">'+brl(b.cents)+'</div>';
-   /* "Detalhes" era um botão sem onclick: não fazia nada desde que
-      nasceu, e estava roubando a largura do único botão que faz. */
-   h+=aberta
-     ? '<button class="btn sm acaoLinha" onclick="irSecao(\'studio-schedule\',\'ag\',\'checkin\')">Ver o QR ›</button>'
-     : '<button class="btn sm primary acaoLinha" onclick="abrirCheckin('+i+')">Gerar QR</button>';
-   h+='</div>';
-  });
-  h+='</div></div>';
  }
 
  if(sub==="studio-eventos"){
@@ -5749,12 +5796,49 @@ function enviarProposta(){
 /* No produto real isto abriria o consentimento do Google e voltaria
    com um token. Aqui mostra o tempo de espera, que é o que a pessoa
    sente — e a espera é o que faz ela achar que travou. */
+/* ═══ GOOGLE AGENDA ════════════════════════════════════════════════
+   Isto é uma simulação, e ela existe para o teste com usuários medir a
+   decisão — "eu daria acesso à minha agenda?" — sem depender de nada
+   pronto no backend.
+
+   Duas coisas que a simulação anterior fazia mal e que davam um teste
+   otimista de graça:
+
+   1. Ela nunca falhava. Conexão com serviço de terceiro falha: a
+      pessoa fecha a janela do Google, nega o escopo, perde a rede. Um
+      protótipo que só acerta não mostra como é o produto no dia ruim.
+   2. Ela conectava sem perguntar QUAL calendário. Essa pergunta é a
+      parte que dá medo de verdade — ninguém quer sessão de tatuagem
+      caindo no calendário da família.
+
+   O que fica registrado em GOOGLE-AGENDA.md é o que falta para valer:
+   OAuth de verdade precisa de segredo de cliente, e segredo de cliente
+   não pode viver no navegador. */
 function conectarGoogleAgenda(){
  if(S.googleConectando)return;
+ S.googleErroGoogle=null;
  S.googleConectando=true;render();
  setTimeout(function(){
-  S.googleConectando=false;S.agendaGoogle=true;render();
+  S.googleConectando=false;
+  /* Uma em cada quatro falha, de propósito: é a proporção que faz a
+     pessoa do teste encontrar o caminho ruim sem que ele domine. */
+  if(S.googleSimularErro){
+   S.googleErroGoogle="Você fechou a janela do Google antes de autorizar. Nada foi conectado.";
+  } else {
+   S.googleEscolhendo=true;
+  }
+  render();
  },900);
+}
+
+/* A pergunta que dá medo: em qual calendário isso vai cair. Um
+   calendário separado é a resposta que não obriga ninguém a misturar
+   trabalho com o resto da vida. */
+function escolherCalendarioGoogle(qual){
+ S.googleCalendario=qual;
+ S.googleEscolhendo=false;
+ S.agendaGoogle=true;
+ render();
 }
 
 function studioProfile(){

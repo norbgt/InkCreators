@@ -57,6 +57,8 @@ var SAIRAM_DE_PROPOSITO = [
    "a lista de sessões do check-in saiu: empilhada na agenda, ela era a segunda cópia das mesmas sessões a uma rolagem de distância. O botão virou 'Gerar QR' e mora na linha da sessão em 'O mês', que é onde ela já está"],
   ["entrou R$ 4.890",
    "era a nota do cartão 'Sobrou' no painel. O cartão saiu porque a seção Dinheiro está nesta mesma página, uma rolagem abaixo, dizendo o mesmo número com as mesmas palavras — e cartão que repete o que está logo embaixo faz a pessoa ler duas vezes e desconfiar de qual dos dois vale"],
+  ["Abrir o check-in de uma sessão",
+   "o cartão com esse título sumiu porque o check-in deixou de ser uma tela à parte: ele aparece dentro de Próximas sessões, embaixo da lista, e só quando existe um aberto. O que abria por ali agora é o botão 'Gerar QR' na linha de cada sessão — e a frase que explicava o porquê foi para o cabeçalho da lista, ao lado dos botões"],
   ["Ver todos →",
    "o atalho morria junto com a prévia dos lançamentos, pela mesma razão: ele existia para trocar de sub-aba, e não há mais sub-aba para trocar"]
 ];
@@ -128,7 +130,7 @@ var SUBABAS = [
 var MUDOU_DE_LUGAR = {
   /* O check-in foi para a agenda: é a mesma matéria que ela trata,
      sessão marcada. O desempenho por estilo continua em Reputação. */
-  "studio-checkin":   [["studio-schedule",  "ag",  "checkin"],
+  "studio-checkin":   [["studio-schedule",  "ag",  "sessoes"],
                        ["studio-schedule",  "ag",  "mes"],
                        ["studio-reputacao", "rep", "desempenho"]],
   /* Orçamentos voltou a ser aba: é o único lugar da gestão com fluxo
