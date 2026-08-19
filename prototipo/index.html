@@ -709,24 +709,34 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .ckin .btn{margin-top:var(--e3)}
 @media(max-width:460px){.ckin{margin-left:0}}
 
-/* ── OS PRÓXIMOS 14 DIAS ──────────────────────────────────────────
-   O que sobrou do calendário. Era uma grade de 28 células com número
-   de dia em cada uma — pedia que a pessoa procurasse a data para
-   depois interpretar a cor.
+/* ── O CALENDÁRIO, E A ORIGEM DE CADA DIA ─────────────────────────
+   Três origens convivem: sessão marcada aqui, compromisso trazido do
+   Google, bloqueio escrito à mão. O ponto colorido em cada dia diz
+   quais existem ali — sem entrar, e sem depender de nenhuma delas.
 
-   Aqui a leitura é a altura da barra, direta: onde a coluna está
-   baixa, cabe alguém. O número do dia fica embaixo, pequeno, para
-   quando ela precisar dizer qual. */
-.quinzena{display:flex;gap:3px;align-items:flex-end;margin-top:var(--e3);height:72px}
-.qd{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;
-  gap:var(--e1);height:100%;border-radius:var(--r-sm);background:var(--muted);
-  padding-bottom:var(--e1);position:relative;overflow:hidden}
-.qd i{display:block;width:100%;background:var(--accent-bd);border-radius:var(--r-sm);
-  transition:height var(--dur) var(--ease)}
-.qd.cheio i{background:var(--accent)}
-.qd span{font-size:var(--t-micro);color:var(--muted-foreground);font-variant-numeric:tabular-nums;
-  position:relative;z-index:1}
-@media(max-width:460px){.quinzena{height:60px;gap:2px}}
+   A cor não é decoração: ela é o que permite desconectar o Google sem
+   que a pessoa fique sem saber o que sumiu. */
+.legorig{display:flex;flex-wrap:wrap;gap:var(--e3);margin-top:var(--e3)}
+.legorig .lo{display:inline-flex;align-items:center;gap:var(--e1);
+  font-size:var(--t-micro);color:var(--muted-foreground)}
+.legorig .lo b{color:var(--foreground);font-variant-numeric:tabular-nums}
+.pt{width:6px;height:6px;border-radius:var(--r-pill);display:inline-block;flex-shrink:0}
+.pt.ink{background:var(--accent)}
+.pt.google{background:var(--x-warning)}
+.pt.manual{background:var(--muted-foreground)}
+
+.calmes{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:var(--e3);max-width:380px}
+.caldia{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;border:var(--hair) solid var(--rule);border-radius:var(--r-sm);background:none;
+  font-size:var(--t-micro);font-variant-numeric:tabular-nums;color:var(--muted-foreground);
+  cursor:pointer;transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease)}
+.caldia:hover{border-color:var(--muted-foreground)}
+.caldia.com{color:var(--foreground);font-weight:500}
+.caldia.sel{border-color:var(--accent);background:var(--x-accent-bg)}
+.caldia .cn{line-height:1}
+.caldia .pts{display:flex;gap:2px}
+@media(pointer:coarse){.caldia{min-height:44px}}
+@media(max-width:460px){.calmes{max-width:none}}
 @media(max-width:460px){
   .lrow .acaoLinha{margin-left:0;width:100%;margin-top:var(--e2)}
 }
@@ -1669,7 +1679,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  passPub:[], passSel:null, checkinCod:"", onbStep:1,onbName:"",onbStyles:[],onbPort:0,pfTab:"info",menu:false,autoAssist:false,
  sqSelAg:null,agArtist:null,agDia:null,agHora:null,agFeito:false,destaqueAtivo:false,
  voltarPara:null,voltarArtista:null,histAba:"pessoas",sub:{},
- agendaGoogle:false,googleConectando:false,googlePuxando:false,googleQuando:null,googleEscolhendo:false,googleErroGoogle:null,googleCalendario:'ink',googleSimularErro:false,
+ agendaGoogle:false,googleConectando:false,googlePuxando:false,googleQuando:null,diaSel:null,googleEscolhendo:false,googleErroGoogle:null,googleCalendario:'ink',googleSimularErro:false,
  te:{nome:"",email:"",perfil:null,aceite:false,erro:null,enviando:false},
  abaModelo:"painel",painel:{estado:null,dados:null,carregando:false,erro:null,email:"",senha:"",copiado:false},
  ue:{custo:1.20,qtd:1,destaque:120,adesao:12,gmv:600,take:12},
@@ -5476,24 +5486,90 @@ function vStudio(sub){
 
      Então ela deixou de ser calendário e virou a resposta a "o que
      existe fora daqui que ocupa meu tempo, e como eu trago isso". */
-  if(agv==="mes"){
+  /* ── O CALENDÁRIO, COM TRÊS ORIGENS ──────────────────────────
+     O calendário é o centro e não depende de nada: quem nunca
+     conectou o Google monta a agenda à mão e ela serve igual.
 
-   /* Primeiro o estado: sem conexão, nada abaixo faz sentido. */
+     O que o Google faz é ACRESCENTAR uma origem. Por isso cada item
+     diz de onde veio — sem isso, desconectar faria coisas sumirem sem
+     explicação, e a pessoa não saberia se perdeu ou se nunca teve. */
+  if(agv==="mes"){
+   var totInk=BOOK.length, totG=S.agendaGoogle?GCAL.length:0, totM=MANUAL.length;
+
+   h+='<div class="card pad" style="margin-top:var(--e4)">';
+   h+='<div class="row wrapf"><span class="b">Agosto</span>'+tg("mock");
+   h+='<button class="btn sm sp" onclick="bloquearHorario()">+ Bloquear horário</button></div>';
+
+   /* A legenda vem antes da grade: sem ela, os pontos coloridos são
+      enfeite. */
+   h+='<div class="legorig">';
+   [["ink","Sessões daqui",totInk],
+    ["google","Da sua agenda",totG],
+    ["manual","Bloqueios seus",totM]].forEach(function(l){
+    h+='<span class="lo"><i class="pt '+l[0]+'"></i>'+l[1]+' <b>'+l[2]+'</b></span>';
+   });
+   h+='</div>';
+
+   h+='<div class="calmes">';
+   ["seg","ter","qua","qui","sex","sáb","dom"].forEach(function(d){
+    h+='<div class="tiny muted b" style="text-align:center">'+d+'</div>'});
+   for(var d=1;d<=28;d++){
+    var origens=origensDoDia(d);
+    h+='<button class="caldia'+(origens.length?" com":"")+(S.diaSel===d?" sel":"")+'" onclick="escolherDia('+d+')">';
+    h+='<span class="cn">'+d+'</span>';
+    if(origens.length){
+     h+='<span class="pts">';
+     origens.forEach(function(o){h+='<i class="pt '+o+'"></i>'});
+     h+='</span>';
+    }
+    h+='</button>';
+   }
+   h+='</div>';
+
+   /* O dia escolhido abre embaixo, com origem em cada linha. */
+   if(S.diaSel){
+    var itens=itensDoDia(S.diaSel);
+    h+='<div class="sep"></div>';
+    h+='<div class="row"><span class="b small">'+S.diaSel+' de agosto</span>';
+    h+='<span class="sp tiny muted">'+(itens.length?itens.length+" compromisso(s)":"nada marcado")+'</span></div>';
+    if(!itens.length){
+     h+='<div class="tiny muted" style="margin-top:var(--e2)">Dia livre. Use <b>+ Bloquear horário</b> se quiser fechá-lo mesmo assim.</div>';
+    }
+    itens.forEach(function(x){
+     h+='<div class="lrow"><i class="pt '+x.origem+'" style="flex-shrink:0"></i>';
+     h+='<div style="min-width:0;flex:1"><div class="b small">'+x.titulo+'</div>';
+     h+='<div class="tiny muted">'+x.hora+(x.extra?" · "+x.extra:"")+'</div></div>';
+     if(x.origem==="ink")
+      h+='<button class="btn sm primary acaoLinha" onclick="abrirCheckin('+x.idx+')">Gerar QR</button>';
+     if(x.origem==="google"){
+      h+=x.bloqueia?'<span class="badge warn acaoLinha">bloqueia</span>':'<span class="badge acaoLinha">não bloqueia</span>';
+      h+='<button class="btn sm acaoLinha" onclick="alternarBloqueio(\''+x.id+'\')">'+(x.bloqueia?"Liberar":"Bloquear")+'</button>';
+     }
+     if(x.origem==="manual")
+      h+='<button class="btn sm acaoLinha" onclick="apagarManual(\''+x.id+'\')">Remover</button>';
+     h+='</div>';
+    });
+   } else {
+    h+='<div class="tiny muted" style="margin-top:var(--e3)">Toque num dia para ver o que há nele.</div>';
+   }
+   h+='</div>';
+
+   /* ── O GOOGLE, COMO OPÇÃO ─────────────────────────────────────
+      Depois do calendário, não antes: ele acrescenta uma origem a
+      uma agenda que já funciona sem ele. */
    h+='<div class="card pad" style="margin-top:var(--e4)">';
    h+='<div class="row" style="gap:var(--e3);align-items:flex-start">';
    h+='<div class="av" style="background:var(--muted);flex-shrink:0">G</div>';
    h+='<div style="min-width:0;flex:1"><div class="row" style="gap:var(--e2)"><span class="b">Google Agenda</span>';
-   h+=S.agendaGoogle?'<span class="badge ok">conectada</span>':'<span class="badge">não conectada</span>';
+   h+=S.agendaGoogle?'<span class="badge ok">conectada</span>':'<span class="badge">opcional</span>';
    h+='</div>';
    h+='<div class="small muted" style="margin-top:var(--e1)">'+(S.agendaGoogle
-     ? 'O que você marca lá bloqueia horário aqui, e as sessões daqui aparecem lá.'
-     : 'Conecte para que os seus compromissos de lá bloqueiem horário aqui — e para as suas sessões aparecerem no Google.')+'</div>';
-   if(S.agendaGoogle)h+='<div class="tiny muted" style="margin-top:var(--e2)">voce@gmail.com · calendário <b>'+(S.googleCalendario==="ink"?"Ink Creators":"principal")+'</b></div>';
+     ? 'Os compromissos de lá aparecem no calendário acima, marcados como tal. As sessões daqui vão para o Google.'
+     : 'A agenda funciona sem isto. Conecte se quiser que consulta, aula e viagem apareçam aqui — e que as suas sessões apareçam lá.')+'</div>';
+   if(S.agendaGoogle)h+='<div class="tiny muted" style="margin-top:var(--e2)">voce@gmail.com · calendário <b>'+(S.googleCalendario==="ink"?"Ink Creators":"principal")+'</b> · lido '+(S.googleQuando||"há 4 minutos")+'</div>';
    h+='</div></div>';
 
-   if(S.googleErroGoogle){
-    h+='<div class="avisoerro" style="margin-top:var(--e3)">'+S.googleErroGoogle+'</div>';
-   }
+   if(S.googleErroGoogle)h+='<div class="avisoerro" style="margin-top:var(--e3)">'+S.googleErroGoogle+'</div>';
 
    if(S.googleEscolhendo){
     h+='<div class="sep"></div>';
@@ -5513,56 +5589,17 @@ function vStudio(sub){
     h+='<div class="tiny muted" style="margin-top:var(--e1)"><b>O que fazemos:</b> criamos um calendário separado chamado "Ink Creators" — suas sessões não se misturam com o resto, e desconectar leva tudo embora de uma vez.</div>';
     h+='<button class="btn primary blk" style="margin-top:var(--e3)" '+(S.googleConectando?"disabled":"")+' onclick="conectarGoogleAgenda()">'+
        (S.googleConectando?"Abrindo o Google…":"Conectar com o Google")+'</button>';
-    /* Interruptor do protótipo, não do produto: serve para ver o
-       caminho ruim sem depender de sorte durante o teste. */
     h+='<label class="tiny muted" style="display:flex;gap:var(--e2);align-items:center;margin-top:var(--e2);cursor:pointer">';
     h+='<input type="checkbox" '+(S.googleSimularErro?"checked":"")+' onchange="S.googleSimularErro=!S.googleSimularErro;render()"> simular recusa no Google'+tg("mock")+'</label>';
    }
-   h+='</div>';
 
    if(S.agendaGoogle){
-    /* ── O QUE VEIO DE LÁ ──────────────────────────────────────
-       O produto da conexão, e a razão de ela existir. Sem esta
-       lista, "conectada" é uma etiqueta que não mostra nada. */
-    h+='<div class="card pad" style="margin-top:var(--e4)">';
-    h+='<div class="row wrapf"><span class="b">O que veio da sua agenda</span>'+tg("mock");
+    h+='<div class="sep"></div>';
+    h+='<div class="row wrapf"><span class="b small">O que veio de lá</span>';
     h+='<button class="btn sm sp" '+(S.googlePuxando?"disabled":"")+' onclick="puxarDoGoogle()">'+
        (S.googlePuxando?"Puxando…":"Puxar agora")+'</button></div>';
-    h+='<div class="tiny muted" style="margin-top:var(--e1)">Última leitura '+(S.googleQuando||"há 4 minutos")+
-       ' · '+GCAL.length+' compromissos nos próximos 14 dias</div>';
-    h+='<div style="margin-top:var(--e3)">';
-    GCAL.forEach(function(c){
-     h+='<div class="lrow"><div class="datebox"><span class="m">'+c.m+'</span><span class="d">'+c.d+'</span></div>';
-     h+='<div style="min-width:0;flex:1"><div class="b small">'+c.titulo+'</div>';
-     h+='<div class="tiny muted">'+c.hora+' · '+c.agenda+'</div></div>';
-     h+=c.bloqueia
-       ? '<span class="badge warn acaoLinha">bloqueia</span>'
-       : '<span class="badge acaoLinha">não bloqueia</span>';
-     h+='<button class="btn sm acaoLinha" onclick="alternarBloqueio(\''+c.id+'\')">'+(c.bloqueia?"Liberar":"Bloquear")+'</button>';
-     h+='</div>';
-    });
-    h+='</div>';
-    h+='<div class="tiny muted" style="margin-top:var(--e3)">Bloquear esconde o horário de quem tenta marcar com você. O título do compromisso nunca aparece para ninguém — só o horário ocupado.</div>';
-    h+='</div>';
-
-    /* ── OS PRÓXIMOS 14 DIAS ───────────────────────────────────
-       O que sobrou do calendário, e só isto: uma faixa que responde
-       "onde ainda cabe alguém". Sem grade de mês, sem números de dia
-       para procurar — a leitura é a altura da barra. */
-    h+='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b">Onde ainda cabe alguém</span>'+tg("mock")+'<button class="btn sm sp">+ Bloquear horário</button></div>';
-    h+='<div class="tiny muted" style="margin-top:var(--e1)">Próximos 14 dias. Barra cheia é dia sem espaço — daqui e de lá, somados.</div>';
-    h+='<div class="quinzena">';
-    for(var q=0;q<14;q++){
-     var carga=cargaDoDia(q);
-     h+='<div class="qd'+(carga>=3?" cheio":"")+'" title="'+rotuloDoDia(q)+'">';
-     h+='<i style="height:'+Math.min(100,carga*28)+'%"></i>';
-     h+='<span>'+((new Date(2026,7,20+q)).getDate())+'</span></div>';
-    }
-    h+='</div>';
-    h+='<div class="tiny muted" style="margin-top:var(--e3)">'+diasLivres()+' dias sem nada marcado nas próximas duas semanas.</div>';
-    h+='</div>';
-
-    h+='<div class="card pad" style="margin-top:var(--e4)"><div class="b small">O que atravessa, e em que direção</div><div style="margin-top:var(--e2)">';
+    h+='<div class="tiny muted" style="margin-top:var(--e1)">'+GCAL.length+' compromissos. O título nunca aparece para quem tenta marcar com você — só o horário ocupado.</div>';
+    h+='<div style="margin-top:var(--e2)">';
     [["Sessões confirmadas","daqui para o Google",true],
      ["Compromissos do Google","de lá para cá, bloqueando horário",true],
      ["Pedidos de orçamento","ficam só aqui",false]].forEach(function(x){
@@ -5572,9 +5609,9 @@ function vStudio(sub){
     });
     h+='</div>';
     h+='<button class="btn blk" style="margin-top:var(--e3)" onclick="S.agendaGoogle=false;render()">Desconectar</button>';
-    h+='<div class="tiny muted" style="margin-top:var(--e2)">Desconectar apaga o calendário "Ink Creators" do seu Google. As sessões continuam aqui.</div>';
-    h+='</div>';
+    h+='<div class="tiny muted" style="margin-top:var(--e2)">Desconectar tira do calendário só o que veio de lá. Suas sessões e os seus bloqueios ficam.</div>';
    }
+   h+='</div>';
 
    h+='<div class="tiny muted" style="margin-top:var(--e3)">Outras conexões — Apple e Outlook — quando houver quem peça'+tg("mock")+'</div>';
   }
@@ -5959,59 +5996,77 @@ function enviarProposta(){
 /* No produto real isto abriria o consentimento do Google e voltaria
    com um token. Aqui mostra o tempo de espera, que é o que a pessoa
    sente — e a espera é o que faz ela achar que travou. */
-/* ═══ O QUE VEM DA AGENDA DE FORA ══════════════════════════════════
-   Tatuador não vive só na plataforma: tem consulta, aula, viagem. Se a
-   agenda daqui ignora o resto da vida dele, ele marca em cima de um
-   compromisso uma vez e nunca mais confia nela.
+/* ═══ A AGENDA, COM TRÊS ORIGENS ═══════════════════════════════════
+   O calendário é o centro, e nele convivem três procedências:
 
-   Estes compromissos são a razão de a conexão existir. Sem mostrá-los,
-   "conectada" vira uma etiqueta que não prova nada.
+     ink     sessão marcada aqui, com cliente e valor
+     google  compromisso trazido da agenda de fora
+     manual  bloqueio que o tatuador escreveu à mão
 
-   O título fica só para ele. Para quem tenta marcar, o horário aparece
-   ocupado e ponto — ninguém precisa saber que é consulta médica. */
+   Conectar o Google é UMA OPÇÃO, não um pré-requisito. Quem não
+   conecta monta a agenda à mão e ela funciona igual — só não sabe do
+   que acontece fora daqui. É por isso que a origem precisa aparecer em
+   cada item: sem ela, desconectar faria sumir coisas sem explicação.
+
+   O título do compromisso do Google fica só para ele. Para quem tenta
+   marcar, o horário aparece ocupado e ponto. */
 var GCAL=[
- {id:"g1",m:"ago",d:"21",titulo:"Consulta — dermatologista",hora:"14h–15h",agenda:"Pessoal",bloqueia:true},
- {id:"g2",m:"ago",d:"23",titulo:"Aula de desenho",hora:"19h–21h",agenda:"Pessoal",bloqueia:true},
- {id:"g3",m:"ago",d:"26",titulo:"Aniversário da Rita",hora:"dia inteiro",agenda:"Família",bloqueia:false},
- {id:"g4",m:"ago",d:"28",titulo:"Voo para Porto Alegre",hora:"06h–09h",agenda:"Viagens",bloqueia:true},
- {id:"g5",m:"set",d:"01",titulo:"Reunião do prédio",hora:"20h–21h",agenda:"Pessoal",bloqueia:false}
+ {id:"g1",dia:21,titulo:"Consulta — dermatologista",hora:"14h–15h",agenda:"Pessoal",bloqueia:true},
+ {id:"g2",dia:23,titulo:"Aula de desenho",hora:"19h–21h",agenda:"Pessoal",bloqueia:true},
+ {id:"g3",dia:26,titulo:"Aniversário da Rita",hora:"dia inteiro",agenda:"Família",bloqueia:false},
+ {id:"g4",dia:28,titulo:"Voo para Porto Alegre",hora:"06h–09h",agenda:"Viagens",bloqueia:true},
+ {id:"g5",dia:1, titulo:"Reunião do prédio",hora:"20h–21h",agenda:"Pessoal",bloqueia:false}
 ];
 
-/* Bloquear é decisão dele, não do Google. Aniversário não precisa
-   fechar a agenda; voo precisa. */
+/* Bloqueios escritos à mão. Existem sem Google nenhum. */
+var MANUAL=[
+ {id:"m1",dia:25,titulo:"Almoço com fornecedor",hora:"12h–14h"}
+];
+
+/* Tudo o que ocupa um dia, venha de onde vier. É esta função que faz
+   o calendário ser um só em vez de três listas paralelas. */
+function itensDoDia(dia){
+ var itens=[];
+ BOOK.forEach(function(b,i){
+  if(Number(b.d)===dia)itens.push({origem:"ink",titulo:b.c,hora:b.h+"h previstas",extra:b.area,idx:i});
+ });
+ if(S.agendaGoogle)GCAL.forEach(function(c){
+  if(c.dia===dia)itens.push({origem:"google",titulo:c.titulo,hora:c.hora,extra:c.agenda,id:c.id,bloqueia:c.bloqueia});
+ });
+ MANUAL.forEach(function(m){
+  if(m.dia===dia)itens.push({origem:"manual",titulo:m.titulo,hora:m.hora,id:m.id});
+ });
+ return itens;
+}
+function origensDoDia(dia){
+ var o={};itensDoDia(dia).forEach(function(x){o[x.origem]=1});
+ return Object.keys(o);
+}
+
 function alternarBloqueio(id){
  GCAL.forEach(function(c){ if(c.id===id)c.bloqueia=!c.bloqueia });
  render();
 }
+function escolherDia(d){ S.diaSel=(S.diaSel===d?null:d); render() }
 
-/* Puxar sob demanda, e não só na conexão: quem marcou algo no Google
-   agora mesmo quer ver aqui agora mesmo, sem esperar o relógio. */
+/* Bloquear à mão: o caminho de quem não conectou nada, e o que prova
+   que a agenda não depende do Google para servir. */
+function bloquearHorario(){
+ var d=S.diaSel||Number(BOOK[0].d);
+ MANUAL.push({id:"m"+(MANUAL.length+1),dia:d,titulo:"Horário bloqueado",hora:"a definir"});
+ S.diaSel=d; render();
+}
+function apagarManual(id){
+ for(var i=MANUAL.length-1;i>=0;i--)if(MANUAL[i].id===id)MANUAL.splice(i,1);
+ render();
+}
+
+/* Puxar sob demanda: quem marcou algo no Google agora mesmo quer ver
+   aqui agora mesmo, sem esperar o relógio. */
 function puxarDoGoogle(){
  if(S.googlePuxando)return;
  S.googlePuxando=true;render();
- setTimeout(function(){
-  S.googlePuxando=false;
-  S.googleQuando="agora mesmo";
-  render();
- },700);
-}
-
-/* Carga do dia: sessões daqui mais bloqueios de lá. É o número que
-   decide a altura da barra — e o que a faixa responde é "onde ainda
-   cabe alguém", não "que dia é hoje". */
-function cargaDoDia(i){
- var dia=20+i;
- var daqui=BOOK.filter(function(b){return Number(b.d)===dia}).length;
- var dela=GCAL.filter(function(c){return c.bloqueia&&Number(c.d)===dia}).length;
- return daqui*2+dela;
-}
-function rotuloDoDia(i){
- var c=cargaDoDia(i);
- return c===0 ? "dia livre" : c>=3 ? "dia cheio" : "parcialmente ocupado";
-}
-function diasLivres(){
- var n=0; for(var i=0;i<14;i++)if(cargaDoDia(i)===0)n++;
- return n;
+ setTimeout(function(){ S.googlePuxando=false; S.googleQuando="agora mesmo"; render() },700);
 }
 
 /* ═══ GOOGLE AGENDA ════════════════════════════════════════════════

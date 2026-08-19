@@ -180,6 +180,71 @@ var ativa=(tq0.match(/class="seg on"[\s\S]{0,150}?>([^<]+)</)||[])[1];
 chk('recebidos é o padrão',/Recebidos/.test(ativa||''),
     'abre em '+(ativa||'nada')+', e quem chega quer ver quem está pedindo');
 
+console.log('── OS QUATRO FLUXOS DA AGENDA ──');
+/* Conectar o Google é uma OPÇÃO. Quem não conecta monta a agenda à mão
+   e ela funciona igual — só não sabe do que acontece fora daqui.
+
+   Estes quatro fluxos são a prova disso, e o quarto é o que costuma
+   quebrar: desconectar tem de tirar o que veio de lá e SÓ isso. */
+g.e("S.agendaGoogle=false");
+
+/* 1. Sem Google, a agenda serve. */
+S.diaSel=Number(g.e("BOOK[0].d"));
+var f1=ir('studio-schedule','ag','mes');
+chk('1. sem Google, a sessão daqui aparece no dia',/Gerar QR/.test(f1));
+S.diaSel=25;
+var f1b=ir('studio-schedule','ag','mes');
+chk('   e o bloqueio escrito à mão também',/Almoço com fornecedor/.test(f1b));
+chk('   sem nenhum item vindo de fora',!/dermatologista/.test(f1b));
+
+/* 2. Escrever à mão, sem Google nenhum. */
+var antesM=g.e("MANUAL.length");
+S.diaSel=15; g.e("bloquearHorario()");
+chk('2. bloquear à mão cria o item no dia escolhido',
+    g.e("MANUAL.length")===antesM+1 && g.e("MANUAL[MANUAL.length-1].dia")===15);
+var f2=ir('studio-schedule','ag','mes');
+/* Não basta existir marca de origem: ela tem de ser a DESTE item. Com
+   a origem fixada em "ink", tudo continuava marcado e nada acusava —
+   o teste media presença quando o que importa é correspondência. */
+function marcaDe(tela,titulo){
+  var i=tela.indexOf(titulo); if(i<0)return null;
+  var antes=tela.slice(Math.max(0,i-260),i);
+  var m=antes.match(/class="pt (ink|google|manual)"[^>]*><\/i>\s*<div[^>]*>\s*<div class="b small">$/);
+  if(m)return m[1];
+  var todas=antes.match(/class="pt (ink|google|manual)"/g)||[];
+  return todas.length ? todas[todas.length-1].match(/(ink|google|manual)/)[1] : null;
+}
+chk('   e ele aparece marcado como SEU, não como sessão',
+    /Horário bloqueado/.test(f2) && marcaDe(f2,'Horário bloqueado')==='manual',
+    'marcado como '+marcaDe(f2,'Horário bloqueado'));
+g.e("apagarManual('m"+g.e("MANUAL.length")+"')");
+
+/* 3. Conectar acrescenta uma origem, não substitui as outras. */
+g.e("conectarGoogleAgenda()"); tempos.forEach(function(fn){fn()});
+g.e("escolherCalendarioGoogle('ink')");
+S.diaSel=21; var f3=ir('studio-schedule','ag','mes');
+chk('3. conectado, o compromisso de fora entra no calendário',/dermatologista/.test(f3));
+chk('   marcado como vindo de fora',marcaDe(f3,'dermatologista')==='google',
+    'marcado como '+marcaDe(f3,'dermatologista'));
+S.diaSel=25; var f3b=ir('studio-schedule','ag','mes');
+chk('   e o bloqueio à mão continua onde estava',/Almoço com fornecedor/.test(f3b));
+S.diaSel=Number(g.e("BOOK[0].d")); 
+chk('   e a sessão daqui também',/Gerar QR/.test(ir('studio-schedule','ag','mes')));
+
+/* 4. Desconectar tira o que veio de lá, e nada mais. É aqui que uma
+      implementação descuidada apaga a agenda inteira. */
+g.e("S.agendaGoogle=false");
+S.diaSel=21; var f4=ir('studio-schedule','ag','mes');
+chk('4. desconectado, o compromisso de fora some',!/dermatologista/.test(f4));
+S.diaSel=25;
+chk('   o bloqueio à mão fica',/Almoço com fornecedor/.test(ir('studio-schedule','ag','mes')));
+S.diaSel=Number(g.e("BOOK[0].d"));
+chk('   a sessão daqui fica',/Gerar QR/.test(ir('studio-schedule','ag','mes')));
+S.diaSel=null;
+chk('   e a legenda passa a contar zero de fora',
+    /Da sua agenda <b>0<\/b>/.test(ir('studio-schedule','ag','mes')),
+    'a contagem não acompanhou a desconexão');
+
 console.log('── AS ROTAS ANTIGAS AINDA CHEGAM ──');
 [['studio-checkin','studio'],['studio-events','studio-eventos'],
  ['studio-reviews','studio-reputacao'],['studio-historico','studio'],
@@ -244,7 +309,9 @@ chk('enviados: não repete o formulário de resposta',!/Enviar proposta/.test(te
 console.log('── AGENDA: GOOGLE ──');
 var ta=ir('studio-schedule','ag','mes');
 chk('existe a aba de conexões',/Google Agenda/.test(ta));
-chk('começa desconectada',/não conectada/.test(ta));
+/* "opcional" em vez de "não conectada": a etiqueta diz que a agenda
+   funciona sem isto, em vez de sugerir que falta algo. */
+chk('o Google se anuncia como opcional',/>opcional</.test(ta)&&/A agenda funciona sem isto/.test(ta));
 chk('diz o que pede de permissão',/O que pedimos/.test(ta)&&/Nada de e-mail/.test(ta));
 chk('diz o que faz com isso',/calendário separado/.test(ta));
 chk('e como desfazer',/desconectar leva tudo embora/.test(ta));
@@ -267,36 +334,50 @@ chk('conectada: dá para desconectar',/Desconectar/.test(ta2));
 /* O Google mora colado ao calendário: é ele que enche esse calendário
    com o que acontece fora daqui. */
 var tm=ir('studio-schedule','ag','mes');
-/* A seção deixou de ser calendário. O que ela mostra agora é o que
-   veio da agenda de fora — que é a razão de a conexão existir. */
-chk('mostra o que veio da agenda de fora',/O que veio da sua agenda/.test(tm));
-chk('com os compromissos, um a um',(tm.match(/class="lrow"/g)||[]).length>=4);
+/* O calendário é o centro e não depende do Google: quem nunca conectou
+   monta a agenda à mão e ela serve igual. O Google ACRESCENTA uma
+   origem — por isso cada item diz de onde veio. */
+chk('o calendário tem as três origens na legenda',
+    /Sessões daqui/.test(tm)&&/Da sua agenda/.test(tm)&&/Bloqueios seus/.test(tm));
+chk('e dá para bloquear um horário à mão',/bloquearHorario\(\)/.test(tm),
+    'sem Google, a pessoa não consegue montar a própria agenda');
+/* Só aparece com um dia aberto — o botão mora na linha do
+   compromisso, não numa lista à parte. */
+S.diaSel=21; var tdia=ir('studio-schedule','ag','mes');
+chk('o dia se abre com o compromisso do Google',/dermatologista/.test(tdia));
+chk('e ele pode bloquear ou não',/alternarBloqueio\(/.test(tdia)&&/bloqueia/.test(tdia));
+/* Bloquear é decisão dele, não do Google: aniversário não fecha a
+   agenda, voo fecha. */
+S.diaSel=26; var tdia2=ir('studio-schedule','ag','mes');
+chk('aniversário não bloqueia por padrão',/não bloqueia/.test(tdia2));
+S.diaSel=null;
 chk('e dá para puxar sob demanda',/Puxar agora/.test(tm),
     'sem isso, quem marcou algo no Google agora mesmo espera o relógio');
-/* Bloquear é decisão dele, não do Google: aniversário não precisa
-   fechar a agenda, voo precisa. */
-chk('cada compromisso pode bloquear ou não',/alternarBloqueio\(/.test(tm)&&/bloqueia/.test(tm));
-chk('e o título nunca vaza para quem marca',
-    /O título do compromisso nunca aparece para ninguém/.test(tm));
-chk('o Google vem primeiro, porque tudo depende dele',
-    tm.indexOf('Google Agenda') < tm.indexOf('O que veio da sua agenda'),
-    'a conexão ficou depois do que ela alimenta');
-/* O que sobrou do calendário: uma faixa de 14 dias que responde
-   "onde ainda cabe alguém". A grade de 28 células pedia que a pessoa
-   procurasse a data para depois interpretar a cor; aqui a leitura é a
-   altura da barra. */
-chk('sem grade de mês',!/class="calmes"/.test(tm),
-    'voltou o calendário de 28 células que ninguém abre a agenda para ver');
-chk('a faixa tem os próximos 14 dias',(tm.match(/class="qd/g)||[]).length===14,
-    (tm.match(/class="qd/g)||[]).length+' colunas');
-chk('e diz quantos dias estão livres',/dias sem nada marcado/.test(tm));
+chk('o título do Google nunca vaza para quem marca',
+    /O título nunca aparece para quem tenta marcar/.test(tm));
+chk('desconectar tira só o que veio de lá',
+    /Desconectar tira do calendário só o que veio de lá/.test(tm));
+/* Agora o calendário vem primeiro: ele funciona sem o Google, e pôr a
+   conexão antes faria parecer pré-requisito. */
+/* Os dois têm de EXISTIR antes de comparar posição: com a classe
+   ausente, indexOf devolve -1 e "-1 < qualquer coisa" faz o teste
+   passar sozinho. Foi o que a sabotagem mostrou. */
+var iCal=tm.indexOf('class="calmes"'), iG=tm.indexOf('Google Agenda');
+chk('o calendário vem antes do Google', iCal>=0 && iG>=0 && iCal<iG,
+    iCal<0 ? 'não há calendário na seção' : iG<0 ? 'não há bloco do Google' :
+    'a conexão voltou a parecer pré-requisito de uma agenda que funciona sem ela');
+chk('o calendário tem 28 dias',(tm.match(/class="caldia/g)||[]).length===28,
+    (tm.match(/class="caldia/g)||[]).length+' células');
+/* Ponto por origem: é o que permite desconectar o Google sem que a
+   pessoa fique sem saber o que sumiu. */
+chk('cada dia mostra de onde vêm seus compromissos',/class="pt ink"/.test(tm));
+chk('e o dia se abre ao toque',/escolherDia\(/.test(tm));
 /* A ordem é a decisão desta rodada: ninguém abre a agenda para olhar um
    mês em branco — abre para saber quem vem. */
 /* A ordem no toggle: quem vem primeiro, o resto depois. */
 var ordemAg = g.e("SECOES_DA_GESTAO['studio-schedule'].map(function(x){return x[1]}).join(',')");
 chk('próximas sessões é a primeira peça da agenda',ordemAg.indexOf('sessoes')===0,ordemAg);
-chk('a faixa é baixa, não é bloco',/\.quinzena\{[^}]*height:72px/.test(css),
-    'a faixa cresceu e virou calendário de novo');
+chk('a célula do dia respeita o dedo',/@media\(pointer:coarse\)\{\.caldia\{min-height:44px\}\}/.test(css));
 /* Conexão com serviço de terceiro falha. Protótipo que só acerta dá um
    teste otimista de graça. */
 g.e("S.agendaGoogle=false;S.googleSimularErro=true");
