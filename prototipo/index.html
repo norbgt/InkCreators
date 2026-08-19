@@ -716,6 +716,19 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 
    A cor não é decoração: ela é o que permite desconectar o Google sem
    que a pessoa fique sem saber o que sumiu. */
+/* ── A RECIPROCIDADE, DITA ─────────────────────────────────────────
+   O passaporte do cliente e "onde eu tatuei" do tatuador são o mesmo
+   registro lido de dois lados. Sem uma frase que diga isso, cada um
+   parece um recurso solto — e o produto perde o que tem de mais seu:
+   o fato de que os dois lados constroem a mesma coisa.
+
+   Fundo do acento, texto pequeno: é nota de rodapé conceitual, não
+   aviso. */
+.reciproco{background:var(--x-accent-bg);border:var(--hair) solid var(--accent-bd);
+  border-radius:var(--r-sm);padding:var(--e3) var(--e4);
+  font-size:var(--t-meta);color:var(--foreground);line-height:1.5}
+.reciproco b{font-weight:600}
+
 .legorig{display:flex;flex-wrap:wrap;gap:var(--e3);margin-top:var(--e3)}
 .legorig .lo{display:inline-flex;align-items:center;gap:var(--e1);
   font-size:var(--t-micro);color:var(--muted-foreground)}
@@ -2161,6 +2174,87 @@ function alternarPassPublico(id){
  if(i>=0)S.passPub.splice(i,1); else S.passPub.push(id);
  render();
 }
+/* ═══ AS DUAS FACES DO MESMO REGISTRO ══════════════════════════════
+   Um check-in produz UM fato: fulana tatuou com beltrano, no estúdio
+   tal, na cidade tal, no estilo tal, naquela data.
+
+   O cliente lê esse fato como onde ele já esteve — tatuadores,
+   estilos, estúdios, cidades, países.
+   O tatuador lê o MESMO fato como o que já fez — pessoas, estilos,
+   estúdios, cidades, países.
+
+   É o mesmo dado com o sujeito trocado, e por isso o resumo é uma
+   função só. O que muda é qual dimensão leva o nome do outro: para o
+   cliente, "tatuadores"; para o tatuador, "pessoas".
+
+   A assimetria que sobra é de granularidade, não de natureza: o
+   cliente tem uma linha por sessão porque são poucas e cada uma é uma
+   marca no corpo dele. O tatuador tem agregados porque sessenta e
+   cinco linhas seriam ruído — mas as dimensões contadas são as mesmas
+   cinco, nos dois lados. */
+var DIMENSOES=["sessoes","estilos","estudios","cidades","paises"];
+
+function resumoDaTrajetoria(itens, papel){
+ var estilos={},estudios={},cidades={},paises={},gente={},sessoes=0,horas=0,ver=0;
+ itens.forEach(function(t){
+  var peso=t.peso||1;
+  sessoes+=peso;
+  if(t.estilo)estilos[t.estilo]=1;
+  if(t.estudio)estudios[t.estudio]=1;
+  if(t.cidade)cidades[t.cidade]=1;
+  if(t.pais)paises[t.pais]=1;
+  /* A dimensão que troca de nome com o papel. */
+  var outro = papel==="cliente" ? t.artista : t.cliente;
+  if(outro)gente[outro]=1;
+  horas+=(t.horas||0);
+  if(t.verificado)ver+=peso;
+ });
+ return {sessoes:sessoes,estilos:Object.keys(estilos).length,
+         estudios:Object.keys(estudios).length,cidades:Object.keys(cidades).length,
+         paises:Object.keys(paises).length,gente:Object.keys(gente).length,
+         horas:horas,verificadas:ver,
+         rotuloGente: papel==="cliente" ? "tatuadores" : "pessoas"};
+}
+
+/* O que o tatuador acumulou, na mesma forma que o passaporte do
+   cliente: estúdios com peso, estilos medidos pelo relógio do
+   check-in, pessoas do histórico. */
+function trajetoriaDoTatuador(){
+ var itens=HIST_ESTUDIOS.map(function(e){
+  return {peso:e.sessoes,estudio:e.nome,cidade:e.cidade,pais:e.pais,verificado:true};
+ });
+ desempenhoPorEstilo().forEach(function(x){ itens.push({peso:0,estilo:x.slug||x.rotulo}) });
+ HIST_PESSOAS.forEach(function(p){ itens.push({peso:0,cliente:p.nome}) });
+ return itens;
+}
+
+/* A mesma faixa de números nos dois lados. Formas diferentes para o
+   mesmo fato fariam a pessoa que é cliente E tatuadora — que é a
+   maioria de quem tatua — reaprender a ler ao trocar de papel. */
+function faixaDaTrajetoria(r,papel){
+ var cliente = papel==="cliente";
+ /* As dimensões e a ordem são as mesmas nos dois lados. O que muda é
+    a nota embaixo — porque a mesma sessão é "onde você tatuou" para
+    quem levou a agulha e "incluindo os de passagem" para quem a
+    segurou. */
+ var linhas=[
+  ["◉","Sessões",r.sessoes,r.verificadas+" com check-in"],
+  ["🎨","Estilos",r.estilos,"registrados"],
+  ["🏠","Estúdios",r.estudios,cliente?"onde você se tatuou":"incluindo os de passagem"],
+  ["📍","Cidades",r.cidades,"diferentes"],
+  ["🌐","Países",r.paises,cliente?"onde você tatuou":"onde você trabalhou"]
+ ];
+ /* Horas só existem do lado de quem contou o relógio. Mostrar zero
+    seria pior que não mostrar. */
+ if(r.horas>0)linhas.push(["🕘","Horas sob agulha",Math.round(r.horas),"somando as sessões"]);
+ var h='<div class="stats" style="margin-top:var(--e4)">';
+ linhas.forEach(function(x){
+  h+='<div class="stat"><div class="lbl">'+x[0]+' '+x[1]+'</div><div class="val">'+x[2]+'</div><div class="hint">'+x[3]+'</div></div>';
+ });
+ h+='</div>';
+ return h;
+}
+
 function resumoDoPassaporte(l){
  var paises={}, estilos={}, artistas={}, horas=0, ver=0;
  l.forEach(function(t){paises[t.pais]=1;estilos[t.estilo]=1;artistas[t.artista]=1;horas+=t.horas;if(t.verificado)ver++});
@@ -4334,11 +4428,12 @@ var HIST_PESSOAS=[
 /* Tatuador é itinerante: guest spot, convenção, estúdio de amigo. O
    histórico registra onde ele esteve, não só onde ele está. */
 var HIST_ESTUDIOS=[
- {nome:"Studio Marina",cidade:"São Paulo/SP",tipo:"Casa",periodo:"desde mar/2024",sessoes:38,atual:true},
- {nome:"Black Lotus",cidade:"Curitiba/PR",tipo:"Guest spot",periodo:"mai/2026, 5 dias",sessoes:7},
- {nome:"Convenção Sul",cidade:"Porto Alegre/RS",tipo:"Convenção",periodo:"abr/2026, 3 dias",sessoes:4},
- {nome:"Ateliê Bruta",cidade:"São Paulo/SP",tipo:"Guest spot",periodo:"fev/2026, 4 dias",sessoes:6},
- {nome:"Casa Preta",cidade:"Rio de Janeiro/RJ",tipo:"Guest spot",periodo:"nov/2025, 6 dias",sessoes:9}
+ {nome:"Studio Marina",cidade:"São Paulo/SP",pais:"Brasil",tipo:"Casa",periodo:"desde mar/2024",sessoes:38,atual:true},
+ {nome:"Black Lotus",cidade:"Curitiba/PR",pais:"Brasil",tipo:"Guest spot",periodo:"mai/2026, 5 dias",sessoes:7},
+ {nome:"Convenção Sul",cidade:"Porto Alegre/RS",pais:"Brasil",tipo:"Convenção",periodo:"abr/2026, 3 dias",sessoes:4},
+ {nome:"Ateliê Bruta",cidade:"São Paulo/SP",pais:"Brasil",tipo:"Guest spot",periodo:"fev/2026, 4 dias",sessoes:6},
+ {nome:"Casa Preta",cidade:"Rio de Janeiro/RJ",pais:"Brasil",tipo:"Guest spot",periodo:"nov/2025, 6 dias",sessoes:9},
+ {nome:"Kreuzberg Ink",cidade:"Berlim",pais:"Alemanha",tipo:"Guest spot",periodo:"set/2025, 8 dias",sessoes:11}
 ];
 
 function somaCaixa(){
@@ -4429,13 +4524,14 @@ function vMe(sub){
   h+=(nPub?'<span class="badge warn sp">'+nPub+' de '+l.length+' visíveis</span>':'<span class="badge ok sp">🔒 só você vê</span>')+'</div>';
   h+='<div class="tiny muted" style="margin-top:var(--e1)">Parte do corpo, estúdio e cidade dizem muito sobre você. Nada aqui aparece para ninguém até você liberar, sessão por sessão.</div></div>';
 
-  h+='<div class="grandes" style="margin-top:var(--e4)">';
-  [["🌐","Sessões",r2.sessoes,r2.verificadas+" com check-in","me-passaporte",null,null,false],
-   ["🎨","Estilos",r2.estilos,"diferentes","me-passaporte",null,null,false],
-   ["📍","Países",r2.paises,"onde você tatuou","me-passaporte",null,null,false],
-   ["🕘","Horas sob agulha",Math.round(r2.horas),"somando as sessões","me-passaporte",null,null,false]
-  ].forEach(function(x){h+=cartaoGrande(x)});
+  /* A mesma faixa que o tatuador vê em "Onde eu tatuei", com o sujeito
+     trocado. Cinco dimensões, na mesma ordem, com as mesmas palavras. */
+  var rc=resumoDaTrajetoria(l,"cliente");
+  h+=faixaDaTrajetoria(rc,"cliente");
+  h+='<div class="reciproco" style="margin-top:var(--e3)">';
+  h+='<b>Cada sessão aqui existe dos dois lados.</b> A mesma que virou um carimbo seu entrou na trajetória de quem tatuou você — ele vê o que fez, você vê onde esteve. É um check-in só, lido de duas direções.';
   h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:var(--e3)">'+rc.gente+' '+rc.rotuloGente+' diferentes.</div>';
 
   var mk=marcosDo(l);
   h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:15px">Marcos</span>';
@@ -5739,12 +5835,16 @@ function vStudio(sub){
    h+='</div>';
    h+='<div class="tiny muted" style="margin-top:var(--e3)">Saber quem voltou, e quando, é o que permite chamar de volta quem sumiu.</div></div>';
   } else {
-   h+='<div class="stats" style="margin-top:var(--e4)">';
-   [["🏪","Estúdios",HIST_ESTUDIOS.length,"incluindo os de passagem"],
-    ["📍","Cidades",4,"São Paulo, Curitiba, Porto Alegre, Rio"],
-    ["◉","Sessões fora",HIST_ESTUDIOS.filter(function(e){return !e.atual}).reduce(function(a,e){return a+e.sessoes},0),"em guest spot e convenção"]].forEach(function(x){
-    h+='<div class="stat"><div class="lbl">'+x[0]+' '+x[1]+'</div><div class="val">'+x[2]+'</div><div class="hint">'+x[3]+'</div></div>'});
+   /* A mesma faixa do passaporte do cliente, com o sujeito trocado.
+      Quem tatua também é cliente — a maioria é — e formas diferentes
+      para o mesmo fato obrigariam a reaprender a ler ao trocar de
+      papel. */
+   var rt=resumoDaTrajetoria(trajetoriaDoTatuador(),"tatuador");
+   h+=faixaDaTrajetoria(rt,"tatuador");
+   h+='<div class="reciproco" style="margin-top:var(--e3)">';
+   h+='<b>Isto é o passaporte, visto do outro lado.</b> Cada linha aqui é a mesma sessão que aparece no passaporte de quem você tatuou — o mesmo check-in, lido de trás para frente. Você vê o que fez; a pessoa vê onde esteve.';
    h+='</div>';
+
    h+='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b">Onde você já tatuou</span>'+tg("mock")+'</div>';
    h+='<div class="tiny muted" style="margin-top:var(--e1)">Casa, guest spot e convenção. Cada estúdio tem o próprio caderno — aqui fica o seu.</div>';
    h+='<div style="margin-top:var(--e2)">';
@@ -5752,10 +5852,17 @@ function vStudio(sub){
     h+='<div class="lrow"><div class="av">'+ini(e.nome)+'</div>';
     h+='<div style="min-width:0;flex:1"><div class="row" style="gap:var(--e2)"><span class="b small">'+e.nome+'</span>';
     h+='<span class="badge'+(e.atual?" ok":"")+'">'+e.tipo+'</span></div>';
-    h+='<div class="tiny muted">'+e.cidade+' · '+e.periodo+'</div></div>';
+    h+='<div class="tiny muted">'+e.cidade+(e.pais&&e.pais!=="Brasil"?" · "+e.pais:"")+' · '+e.periodo+'</div></div>';
     h+='<div class="sp" style="text-align:right"><div class="b small">'+e.sessoes+'</div><div class="tiny muted">sessões</div></div></div>';
    });
    h+='</div>';
+   /* A conta que separa a casa do resto. Estava numa faixa de números
+      própria, que virou repetição quando a faixa compartilhada chegou —
+      mas o dado é bom: é ele que mostra o quanto o ofício é itinerante,
+      e é a mesma informação que no passaporte do cliente vira "estúdios
+      onde você se tatuou". */
+   var fora=HIST_ESTUDIOS.filter(function(e){return !e.atual}).reduce(function(a,e){return a+e.sessoes},0);
+   h+='<div class="tiny muted" style="margin-top:var(--e3)"><b>Sessões fora</b> da sua casa: '+fora+', em guest spot e convenção.</div>';
    h+='<button class="btn sm blk" style="margin-top:var(--e3)">＋ Registrar passagem por um estúdio</button></div>';
   }
  }

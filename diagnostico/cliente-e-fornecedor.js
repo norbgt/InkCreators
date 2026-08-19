@@ -105,6 +105,69 @@ chk("sem barra de progresso no passaporte", !/class="bar"/.test(tp),
     "barra de progresso é a forma visual de dizer que falta algo");
 
 /* ── 3. PRIVACIDADE ──────────────────────────────────────────────── */
+/* ── 2b. AS DUAS FACES DO MESMO REGISTRO ─────────────────────────
+   Um check-in produz UM fato. O cliente o lê como onde já esteve; o
+   tatuador, como o que já fez. É o mesmo dado com o sujeito trocado.
+
+   Se as duas telas contarem dimensões diferentes, ou na ordem
+   diferente, a reciprocidade deixa de ser visível — e quem tatua
+   também é cliente, então a mesma pessoa reaprende a ler ao trocar de
+   papel. */
+secao("2b. PASSAPORTE E TRAJETÓRIA SÃO O MESMO FATO");
+chk("existe uma função só de resumo", /function resumoDaTrajetoria/.test(code),
+    "duas funções de resumo divergem em silêncio na primeira mudança");
+chk("e uma faixa só de números", /function faixaDaTrajetoria/.test(code));
+chk("com a dimensão que troca de nome conforme o papel",
+    /papel==="cliente" \? t\.artista : t\.cliente/.test(code),
+    "sem isso, a reciprocidade é decoração e não estrutura");
+
+/* O ícone do rótulo vira SVG no render, então "class=lbl>" é seguido
+   de "<svg", não de texto. Extrair até o primeiro "<" devolvia string
+   vazia e o teste acusava o produto por um erro do medidor. */
+function dimensoesDe(tela) {
+  var i = tela.indexOf('class="stats"');
+  if (i < 0) return [];
+  return (tela.slice(i, i + 4000).match(/class="lbl">[\s\S]*?<\/div>/g) || [])
+    .map(function (x) {
+      return x.replace(/class="lbl">/, "").replace(/<[^>]*>/g, " ")
+              .replace(/[^\wÀ-ÿ\s]/g, " ").replace(/\s+/g, " ").trim();
+    });
+}
+S.session = "client";
+var tPass = ir("me-passaporte");
+S.session = "artist"; S.sub = S.sub || {}; S.sub.rep = "estudios";
+var tTraj = ir("studio-reputacao");
+var dc = dimensoesDe(tPass), dt = dimensoesDe(tTraj);
+chk("o passaporte conta as cinco dimensões",
+    ["Sessões","Estilos","Estúdios","Cidades","Países"].every(function (d) { return dc.indexOf(d) >= 0 }),
+    dc.join(" · "));
+chk("a trajetória conta as mesmas cinco",
+    ["Sessões","Estilos","Estúdios","Cidades","Países"].every(function (d) { return dt.indexOf(d) >= 0 }),
+    dt.join(" · "));
+chk("e na mesma ordem",
+    dc.slice(0, 5).join("|") === dt.slice(0, 5).join("|"),
+    "cliente: " + dc.slice(0, 5).join(" · ") + "  |  tatuador: " + dt.slice(0, 5).join(" · "));
+/* Horas só existem do lado de quem contou o relógio. Mostrar zero
+   seria pior que não mostrar. */
+chk("horas sob agulha só onde há relógio",
+    dc.indexOf("Horas sob agulha") >= 0 && dt.indexOf("Horas sob agulha") < 0);
+/* A frase que diz que são o mesmo fato. Sem ela, cada tela parece um
+   recurso solto e o produto perde o que tem de mais seu. */
+chk("os dois lados dizem que são o mesmo registro",
+    /class="reciproco"/.test(tPass) && /class="reciproco"/.test(tTraj));
+chk("e a frase nomeia o outro lado",
+    /passaporte de quem você tatuou/.test(tTraj) && /trajetória de quem tatuou você/.test(tPass),
+    "a reciprocidade está afirmada sem dizer quem é o outro");
+/* Uma faixa por tela: duas seria a repetição que este projeto passou a
+   semana tirando — e foi o que aconteceu na primeira tentativa. */
+chk("uma faixa de números por tela, não duas",
+    (tTraj.match(/class="stats"/g) || []).length === 1,
+    (tTraj.match(/class="stats"/g) || []).length + " faixas na trajetória");
+/* Devolve papel E rota: os testes seguintes leem a tela do passaporte,
+   e deixar a rota do tatuador aberta os faria falhar pelo estado que
+   este bloco deixou. Mesmo erro da decisão 019, agora evitado. */
+S.session = "client"; ir("me-passaporte");
+
 secao("3. PRIVADO POR PADRÃO");
 chk("nasce fechado", /Seu passaporte está privado/.test(tp));
 chk("diz por que é sensível", /Parte do corpo, estúdio e cidade/.test(tp));

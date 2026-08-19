@@ -61,6 +61,8 @@ var SAIRAM_DE_PROPOSITO = [
    "o cartão com esse título sumiu porque o check-in deixou de ser uma tela à parte: ele aparece dentro de Próximas sessões, embaixo da lista, e só quando existe um aberto. O que abria por ali agora é o botão 'Gerar QR' na linha de cada sessão — e a frase que explicava o porquê foi para o cabeçalho da lista, ao lado dos botões"],
   ["Agenda de agosto",
    "era o título do cartão com a grade de 28 células. A seção deixou de ser calendário: quem abre a agenda quer saber quem vem, e isso está em Próximas sessões com nome e hora. O que ficou é 'Onde ainda cabe alguém', uma faixa de 14 dias que responde onde há espaço"],
+  ["São Paulo, Curitiba, Porto Alegre, Rio",
+   "era a nota escrita à mão do cartão de cidades, numa faixa de números que virou repetição quando o passaporte e a trajetória passaram a usar a mesma. A contagem continua na faixa nova, e os nomes das cidades estão em cada linha da lista de estúdios logo abaixo — onde não envelhecem, porque saem do dado"],
   ["Ver todos →",
    "o atalho morria junto com a prévia dos lançamentos, pela mesma razão: ele existia para trocar de sub-aba, e não há mais sub-aba para trocar"]
 ];
