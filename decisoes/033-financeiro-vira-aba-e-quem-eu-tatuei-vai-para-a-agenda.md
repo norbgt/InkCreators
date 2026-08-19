@@ -101,3 +101,77 @@ mede o **miolo**, não a página.
 5. Cartão do painel apontando para `studio-caixinha` → acusou pelo nome.
 
 **11 roteiros, 0 falhas. 702 frases, nenhuma perdida.**
+
+---
+
+## Adendo: a justificativa com prazo de validade
+
+> "visão geral perdeu os numeros que consolidavam a visão do todo para
+> o tatuador"
+
+Você está certa, e o defeito é meu — nasceu na mudança acima.
+
+### O que aconteceu
+
+"Sobrou", "Entrou" e "Saiu" tinham saído do painel numa rodada
+anterior, com um motivo que era **bom na época**:
+
+> *"a seção Dinheiro está nesta mesma página, uma rolagem abaixo,
+> dizendo o mesmo número com as mesmas palavras. Cartão que repete o
+> que está logo embaixo não resume nada."*
+
+Aí Dinheiro virou a aba Financeiro. **A justificativa morreu, e o
+cartão não voltou sozinho.** O painel ficou com nove números e nenhum
+deles era dinheiro — que é a primeira coisa que alguém que trabalha por
+conta própria quer ver de manhã.
+
+### A classe de defeito
+
+Chamo de **justificativa com prazo de validade**: uma remoção
+justificada por *"isto sai porque está logo abaixo"* deixa de valer no
+dia em que o que estava abaixo muda de casa. E nada avisa, porque a
+justificativa vive num comentário e a mudança acontece noutro arquivo.
+
+É parente do que já aconteceu duas vezes aqui — testes que descreviam
+comportamento antigo — mas pior, porque um teste que quebra ao menos
+grita. Uma justificativa envelhecida fica em silêncio.
+
+### O painel agora
+
+Treze números, em três faixas:
+
+| faixa | o que responde |
+|---|---|
+| **Precisa de você** | o que trava se você não mexer hoje |
+| **Como vai o mês** | Sobrou · Entrou · Saiu · Sessões marcadas · Propostas que fecharam |
+| **O que você construiu** | pessoas, estúdios, obras, cursos, avaliação |
+
+**Sobrou vem primeiro** na faixa do mês: entrou e saiu são o caminho,
+sobrou é a resposta.
+
+E **Cursos e eventos ganhou um número** — era a única aba sem nenhum, e
+aba sem número no painel é aba que a pessoa esquece que tem.
+
+### O guarda que faltava
+
+Os testes olhavam para o que **está** no painel e nunca para o que
+**deveria** estar. Contavam nove cartões, e nove continuava sendo nove
+depois que o dinheiro saiu.
+
+A regra nova é estrutural: **toda aba da barra precisa de pelo menos um
+número no painel**. Ela teria pegado este defeito no dia em que
+Financeiro nasceu.
+
+*(E a primeira versão dela varria a página inteira em busca de
+`go('...')` — encontrava todas as abas sempre, porque a própria barra
+de navegação as repete. Teste que nunca falha. Agora lê só o `onclick`
+dos cartões.)*
+
+### Sabotagens
+
+6. O dinheiro sai do painel de novo → acusou quatro vezes, uma delas
+   nomeando `studio-financeiro`.
+7. "Sobrou" vai para o fim da faixa → acusou.
+8. Cursos e eventos perde o número → acusou, nomeando a aba órfã.
+
+**11 roteiros, 0 falhas.**

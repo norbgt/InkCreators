@@ -424,9 +424,48 @@ console.log('── VISÃO GERAL: UM PAINEL SÓ ──');
 var tv=ir('studio','vg','visao');
 chk('é um painel de números grandes',/class="grandes"/.test(tv)&&/class="grande/.test(tv));
 var cartoes=(tv.match(/class="grande[ "]/g)||[]).length;
-/* Nove, não dez: "Sobrou" saiu porque a seção Dinheiro está nesta
-   mesma página dizendo o mesmo número. */
-chk('nove números',cartoes===9,cartoes+' cartões');
+/* Doze, e três deles são dinheiro.
+
+   Foram nove por um tempo: "Sobrou", "Entrou" e "Saiu" tinham saído
+   porque a seção Dinheiro estava NESTA página, uma rolagem abaixo,
+   dizendo o mesmo número. Quando Dinheiro virou a aba Financeiro, a
+   justificativa morreu — e o cartão não voltou sozinho. O painel ficou
+   com nove números e nenhum era dinheiro.
+
+   Por isso este teste deixou de contar só o total: ele exige que o
+   dinheiro esteja aqui. Número solto envelhece; a regra, não. */
+chk('treze números',cartoes===13,cartoes+' cartões');
+
+/* ── O PAINEL CONSOLIDA O TODO ─────────────────────────────────────
+   A regra que faltava, e que teria pego este defeito no dia em que ele
+   nasceu: TODA aba da barra precisa de pelo menos um número no painel.
+
+   Financeiro nasceu na decisão 033 e o painel não ganhou nenhum cartão
+   para ela — nove números e nenhum era dinheiro. Nada acusou, porque
+   os testes olhavam para o que ESTÁ no painel e nunca para o que
+   deveria estar.
+
+   Aba sem número no painel é aba que a pessoa esquece que tem. */
+/* Só os cartões, e não a página: a barra de navegação repete o nome
+   de todas as abas em go('...'), e uma varredura da tela inteira
+   encontraria todas elas sempre — teste que nunca falha. */
+var alvos=(tv.match(/<button class="grande[^>]*onclick="[^"]*"/g)||[])
+  .map(function(b){
+    var m=b.match(/(?:irSecao|go)\('([a-z-]+)'/);
+    return m?m[1]:"";
+  }).filter(Boolean);
+var traduz=g.e("ST_ROTA_ANTIGA");
+alvos=alvos.map(function(r){return traduz[r]?traduz[r][0]:r});
+var semNumero=g.e("ST_NAV.map(function(x){return x[0]})")
+  .filter(function(r){return r!=='studio'&&alvos.indexOf(r)<0});
+chk('toda aba tem pelo menos um número no painel',semNumero.length===0,
+    'sem número nenhum: '+semNumero.join(', ')+' — aba sem número é aba que a pessoa esquece que tem');
+var comDinheiro=(tv.match(/class="grot">(Sobrou em julho|Entrou|Saiu)</g)||[]).length;
+chk('e três deles são dinheiro',comDinheiro===3,
+    comDinheiro+' de 3 — quem trabalha por conta própria abre a gestão para ver isto');
+chk('sobrou vem antes de entrou e saiu',
+    tv.indexOf('Sobrou em julho')<tv.indexOf('>Entrou<'),
+    'entrou e saiu são o caminho; sobrou é a resposta');
 
 /* ── A REGRA DO PAINEL ────────────────────────────────────────────
    O painel só guarda cartão que leva para FORA desta página. O que

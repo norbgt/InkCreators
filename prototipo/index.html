@@ -5664,14 +5664,28 @@ function vStudio(sub){
   h+='<div class="row" style="margin-top:var(--e4)"><span class="b" style="font-size:15px">Como vai o mês</span>';
   h+='<span class="sp tiny muted">julho</span></div>';
   h+='<div class="grandes" style="margin-top:var(--e2)">';
-  /* "Sobrou" saiu do painel: a seção Dinheiro está nesta mesma página,
-     uma rolagem abaixo, e diz o mesmo número com as mesmas palavras.
-     Cartão que repete o que está logo embaixo não resume nada — só faz
-     a pessoa ler duas vezes e desconfiar de qual dos dois vale.
+  /* ── O DINHEIRO VOLTOU ────────────────────────────────────────
+     "Entrou", "Saiu" e "Sobrou" tinham saído daqui com um motivo que
+     era bom na época: a seção Dinheiro estava NESTA página, uma
+     rolagem abaixo, dizendo o mesmo número com as mesmas palavras.
 
-     A regra que ficou: o painel só guarda cartão que leva para FORA
-     desta página. O que mora aqui se lê rolando. */
-  [["🗓","Sessões marcadas",BOOK.length,"próximos 14 dias","studio-schedule","ag","agendado",false],
+     Dinheiro virou a aba Financeiro na decisão 033, e a justificativa
+     morreu junto — mas o cartão não voltou sozinho. O painel ficou com
+     nove números e nenhum deles era dinheiro, que é a primeira coisa
+     que alguém que trabalha por conta própria quer ver de manhã.
+
+     É a armadilha das justificativas com prazo de validade: "isto sai
+     porque está logo abaixo" deixa de valer no dia em que o que estava
+     abaixo muda de casa, e nada avisa. A regra do painel continua a
+     mesma — só cartão que leva para FORA desta página — e agora é
+     justamente por isso que o dinheiro cabe aqui.
+
+     "Sobrou" primeiro: entrou e saiu são o caminho, sobrou é a
+     resposta. */
+  [["👛","Sobrou em julho",brl(cx.sobrou),"depois das saídas","studio-financeiro","fin","dinheiro",false],
+   ["↗","Entrou",brl(cx.entrou),"sessões, arte e cursos","studio-financeiro","fin","dinheiro",false],
+   ["↘","Saiu",brl(cx.saiu),"cadeira, material e destaque","studio-financeiro","fin","dinheiro",false],
+   ["🗓","Sessões marcadas",BOOK.length,"próximos 14 dias","studio-schedule","ag","agendado",false],
    ["✅","Propostas que fecharam",agendados,"de "+SQ_ENVIADOS.length+" enviadas","studio-quotes","orc","enviados",false]
   ].forEach(function(x){h+=cartaoGrande(x)});
   h+='</div>';
@@ -5686,9 +5700,12 @@ function vStudio(sub){
   h+='<div class="row" style="margin-top:var(--e4)"><span class="b" style="font-size:15px">O que você construiu</span>';
   h+='<span class="sp tiny muted">desde set/2024</span></div>';
   h+='<div class="grandes" style="margin-top:var(--e2)">';
+  /* Cursos e eventos era a única aba sem número no painel — e aba sem
+     número no painel é aba que a pessoa esquece que tem. */
   [["🕘","Pessoas tatuadas",HIST_PESSOAS.length,voltaram+" voltaram","studio-schedule","ag","pessoas",false],
    ["🏪","Estúdios por onde passei",HIST_ESTUDIOS.length,"casa, guest e convenção","studio-historico","hist","estudios",false],
    ["🖼","Obras à venda",obras,"na sua galeria","studio-profile",null,null,false],
+   ["🎟","Cursos e eventos",2,"que você criou","studio-eventos","ev","meus",false],
    ["★","Avaliação",("4.8"),"124 avaliações","studio-reviews","av","todas",false]
   ].forEach(function(x){h+=cartaoGrande(x)});
   h+='</div>';
