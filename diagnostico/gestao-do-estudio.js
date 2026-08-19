@@ -37,9 +37,12 @@ console.log('── SEIS ABAS E UMA FAIXA SÓ ──');
    página que rola, com as partes em sequência — num painel de gestão
    rolar é mais barato que esconder, e comparar duas coisas exige
    vê-las juntas, o que sub-aba impede por construção. */
-chk('exatamente cinco abas na barra',g.e("ST_NAV.length")===5,g.e("ST_NAV.length")+' abas');
+/* Seis, e seis é o teto que ela mesma pôs. Financeiro nasceu porque
+   dinheiro é pergunta inteira, não pedaço da primeira tela. */
+chk('exatamente seis abas na barra',g.e("ST_NAV.length")===6,g.e("ST_NAV.length")+' abas');
+chk('e não passam do teto de seis',g.e("ST_NAV.length")<=6);
 chk('e são estas',
-    g.e("ST_NAV.map(function(x){return x[1]}).join('·')")==='Visão geral·Orçamentos·Agenda·Reputação·Cursos e eventos',
+    g.e("ST_NAV.map(function(x){return x[1]}).join('·')")==='Visão geral·Orçamentos·Agenda·Financeiro·Reputação·Cursos e eventos',
     g.e("ST_NAV.map(function(x){return x[1]}).join(' · ')"));
 /* Tatuador e cliente chamam a primeira aba do mesmo jeito. A mesma
    pessoa troca de papel — quem tatua também é cliente — e dois nomes
@@ -75,7 +78,13 @@ console.log('── UMA SEÇÃO POR VEZ, COM TOGGLE ──');
    escondia: você só descobria o fim chegando nele. */
 /* Reputação caiu de 3 para 2 quando 'Desempenho por estilo' saiu a
    pedido dela — decisão 032. */
-var ESPERADO={'studio':4,'studio-schedule':2,'studio-reputacao':2,'studio-eventos':2};
+/* studio saiu da lista: a Visão geral ficou sem seções, e trilho de
+   uma peça só é um botão que não leva a lugar nenhum. Agenda foi de 2
+   para 3 e Financeiro nasceu com 2. */
+var ESPERADO={'studio-schedule':3,'studio-financeiro':2,'studio-reputacao':2,'studio-eventos':2};
+chk('a Visão geral não tem toggle',!g.e("SECOES_DA_GESTAO['studio']"),
+    'voltou a ter seções: trilho de uma peça é botão que não leva a lugar nenhum');
+chk('e mesmo assim ela abre cheia',ir('studio').length>2000);
 Object.keys(ESPERADO).forEach(function(rota){
  var t=ir(rota);
  var pecas=(t.match(/class="seg [^"]*"/g)||[]).length;
@@ -87,17 +96,17 @@ Object.keys(ESPERADO).forEach(function(rota){
 
 /* Escolha guardada que não é mais seção — porque a arquitetura mudou —
    tem de cair na primeira, não em tela vazia. */
-S.sub=S.sub||{}; S.sub.vg='rota-que-nao-existe-mais';
-var tsalvo=ir('studio');
+S.sub=S.sub||{}; S.sub.fin='rota-que-nao-existe-mais';
+var tsalvo=ir('studio-financeiro');
 chk('escolha antiga inválida cai na primeira seção',
-    /class="seg on"[\s\S]{0,160}?>Visão geral</.test(tsalvo)&&tsalvo.length>2000,
+    /class="seg on"[\s\S]{0,160}?>Dinheiro</.test(tsalvo)&&tsalvo.length>2000,
     'ficou em tela vazia com o toggle sem nada marcado');
 
 /* A escolha PERSISTE de propósito: quem estava em Lançamentos e sai
    espera voltar em Lançamentos. Empilhado isso não existia. */
-S.sub.vg='lancamentos'; ir('studio');
-chk('a escolha sobrevive à navegação',(S.sub||{}).vg==='lancamentos');
-S.sub.vg='visao';
+S.sub.fin='lancamentos'; ir('studio-financeiro');
+chk('a escolha sobrevive à navegação',(S.sub||{}).fin==='lancamentos');
+S.sub.fin='dinheiro';
 
 console.log('── CADA SEÇÃO MOSTRA COISA DIFERENTE ──');
 /* A guarda essencial da página empilhada, e a que faltava.
@@ -192,10 +201,10 @@ g.e("S.agendaGoogle=false");
 
 /* 1. Sem Google, a agenda serve. */
 S.diaSel=Number(g.e("BOOK[0].d"));
-var f1=ir('studio-schedule','ag','mes');
+var f1=ir('studio-schedule','ag','agendado');
 chk('1. sem Google, a sessão daqui aparece no dia',/Gerar QR/.test(f1));
 S.diaSel=25;
-var f1b=ir('studio-schedule','ag','mes');
+var f1b=ir('studio-schedule','ag','agendado');
 chk('   e o bloqueio escrito à mão também',/Almoço com fornecedor/.test(f1b));
 chk('   sem nenhum item vindo de fora',!/dermatologista/.test(f1b));
 
@@ -204,7 +213,7 @@ var antesM=g.e("MANUAL.length");
 S.diaSel=15; g.e("bloquearHorario()");
 chk('2. bloquear à mão cria o item no dia escolhido',
     g.e("MANUAL.length")===antesM+1 && g.e("MANUAL[MANUAL.length-1].dia")===15);
-var f2=ir('studio-schedule','ag','mes');
+var f2=ir('studio-schedule','ag','agendado');
 /* Não basta existir marca de origem: ela tem de ser a DESTE item. Com
    a origem fixada em "ink", tudo continuava marcado e nada acusava —
    o teste media presença quando o que importa é correspondência. */
@@ -224,36 +233,50 @@ g.e("apagarManual('m"+g.e("MANUAL.length")+"')");
 /* 3. Conectar acrescenta uma origem, não substitui as outras. */
 g.e("conectarGoogleAgenda()"); tempos.forEach(function(fn){fn()});
 g.e("escolherCalendarioGoogle('ink')");
-S.diaSel=21; var f3=ir('studio-schedule','ag','mes');
+S.diaSel=21; var f3=ir('studio-schedule','ag','agendado');
 chk('3. conectado, o compromisso de fora entra no calendário',/dermatologista/.test(f3));
 chk('   marcado como vindo de fora',marcaDe(f3,'dermatologista')==='google',
     'marcado como '+marcaDe(f3,'dermatologista'));
-S.diaSel=25; var f3b=ir('studio-schedule','ag','mes');
+S.diaSel=25; var f3b=ir('studio-schedule','ag','agendado');
 chk('   e o bloqueio à mão continua onde estava',/Almoço com fornecedor/.test(f3b));
 S.diaSel=Number(g.e("BOOK[0].d")); 
-chk('   e a sessão daqui também',/Gerar QR/.test(ir('studio-schedule','ag','mes')));
+chk('   e a sessão daqui também',/Gerar QR/.test(ir('studio-schedule','ag','agendado')));
 
 /* 4. Desconectar tira o que veio de lá, e nada mais. É aqui que uma
       implementação descuidada apaga a agenda inteira. */
 g.e("S.agendaGoogle=false");
-S.diaSel=21; var f4=ir('studio-schedule','ag','mes');
+S.diaSel=21; var f4=ir('studio-schedule','ag','agendado');
 chk('4. desconectado, o compromisso de fora some',!/dermatologista/.test(f4));
 S.diaSel=25;
-chk('   o bloqueio à mão fica',/Almoço com fornecedor/.test(ir('studio-schedule','ag','mes')));
+chk('   o bloqueio à mão fica',/Almoço com fornecedor/.test(ir('studio-schedule','ag','agendado')));
 S.diaSel=Number(g.e("BOOK[0].d"));
-chk('   a sessão daqui fica',/Gerar QR/.test(ir('studio-schedule','ag','mes')));
+chk('   a sessão daqui fica',/Gerar QR/.test(ir('studio-schedule','ag','agendado')));
 S.diaSel=null;
 chk('   e a legenda passa a contar zero de fora',
-    /Da sua agenda <b>0<\/b>/.test(ir('studio-schedule','ag','mes')),
+    /Da sua agenda <b>0<\/b>/.test(ir('studio-schedule','ag','agendado')),
     'a contagem não acompanhou a desconexão');
 
 console.log('── AS ROTAS ANTIGAS AINDA CHEGAM ──');
-[['studio-checkin','studio'],['studio-events','studio-eventos'],
- ['studio-reviews','studio-reputacao'],['studio-historico','studio'],
- ['studio-quotes','studio-quotes'],['studio-caixa','studio']].forEach(function(par){
+/* studio-checkin apontava para ["studio","vg","checkin"] e as duas
+   metades do destino tinham morrido: a chave vg sumiu com as seções da
+   Visão geral, e "checkin" deixou de ser seção quando o QR passou a
+   abrir dentro da linha da sessão. Quem entrasse pela rota antiga caía
+   numa tela de corpo vazio.
+
+   Este teste passava — ele conferia que a rota chegava em "studio",
+   que era o destino ERRADO escrito na tradução. Media a promessa
+   contra ela mesma. O piso de 1500 caracteres deveria ter pegado, e
+   não pegou porque o cabeçalho sozinho já passa de 2800. */
+[['studio-checkin','studio-schedule'],['studio-events','studio-eventos'],
+ ['studio-reviews','studio-reputacao'],['studio-historico','studio-schedule'],
+ ['studio-quotes','studio-quotes'],['studio-caixa','studio-financeiro']].forEach(function(par){
  var t=ir(par[0]);
- chk(par[0]+' → '+par[1],S.route===par[1] && t.length>1500,
-     'foi para '+S.route+' com '+t.length+' caracteres');
+ /* Mede o MIOLO, não a página. O cabeçalho de navegação sozinho já
+    passa de 2800 caracteres, então um piso sobre a página inteira
+    aprova uma tela sem conteúdo nenhum. */
+ var miolo=(t.split("<main>")[1]||"");
+ chk(par[0]+' → '+par[1],S.route===par[1] && miolo.length>1200,
+     'foi para '+S.route+' com '+miolo.length+' caracteres de miolo');
 });
 
 console.log('── ORÇAMENTOS RECEBIDOS: MAPA, PEDIDO, PROPOSTA ──');
@@ -309,7 +332,7 @@ chk('enviados: ação por situação',/Marcar data/.test(te)&&/Lembrar/.test(te)
 chk('enviados: não repete o formulário de resposta',!/Enviar proposta/.test(te));
 
 console.log('── AGENDA: GOOGLE ──');
-var ta=ir('studio-schedule','ag','mes');
+var ta=ir('studio-schedule','ag','agendado');
 chk('existe a aba de conexões',/Google Agenda/.test(ta));
 /* "opcional" em vez de "não conectada": a etiqueta diz que a agenda
    funciona sem isto, em vez de sugerir que falta algo. */
@@ -328,14 +351,14 @@ chk('depois de autorizar, pergunta o calendário',S.googleEscolhendo===true&&S.a
 g.e("escolherCalendarioGoogle('ink')");
 chk('conecta',S.agendaGoogle===true);
 chk('e no calendário separado',S.googleCalendario==='ink');
-var ta2=ir('studio-schedule','ag','mes');
+var ta2=ir('studio-schedule','ag','agendado');
 chk('conectada: mostra a conta',/conectada/.test(ta2)&&/gmail\.com/.test(ta2));
 chk('conectada: diz o que sincroniza',/Sessões confirmadas/.test(ta2)&&/Compromissos do Google/.test(ta2));
 chk('conectada: e o que NÃO sincroniza',/ficam só aqui/.test(ta2));
 chk('conectada: dá para desconectar',/Desconectar/.test(ta2));
 /* O Google mora colado ao calendário: é ele que enche esse calendário
    com o que acontece fora daqui. */
-var tm=ir('studio-schedule','ag','mes');
+var tm=ir('studio-schedule','ag','agendado');
 /* O calendário é o centro e não depende do Google: quem nunca conectou
    monta a agenda à mão e ela serve igual. O Google ACRESCENTA uma
    origem — por isso cada item diz de onde veio. */
@@ -345,12 +368,12 @@ chk('e dá para bloquear um horário à mão',/bloquearHorario\(\)/.test(tm),
     'sem Google, a pessoa não consegue montar a própria agenda');
 /* Só aparece com um dia aberto — o botão mora na linha do
    compromisso, não numa lista à parte. */
-S.diaSel=21; var tdia=ir('studio-schedule','ag','mes');
+S.diaSel=21; var tdia=ir('studio-schedule','ag','agendado');
 chk('o dia se abre com o compromisso do Google',/dermatologista/.test(tdia));
 chk('e ele pode bloquear ou não',/alternarBloqueio\(/.test(tdia)&&/bloqueia/.test(tdia));
 /* Bloquear é decisão dele, não do Google: aniversário não fecha a
    agenda, voo fecha. */
-S.diaSel=26; var tdia2=ir('studio-schedule','ag','mes');
+S.diaSel=26; var tdia2=ir('studio-schedule','ag','agendado');
 chk('aniversário não bloqueia por padrão',/não bloqueia/.test(tdia2));
 S.diaSel=null;
 chk('e dá para puxar sob demanda',/Puxar agora/.test(tm),
@@ -374,21 +397,25 @@ chk('o calendário tem 28 dias',(tm.match(/class="caldia/g)||[]).length===28,
    pessoa fique sem saber o que sumiu. */
 chk('cada dia mostra de onde vêm seus compromissos',/class="pt ink"/.test(tm));
 chk('e o dia se abre ao toque',/escolherDia\(/.test(tm));
-/* A ordem é a decisão desta rodada: ninguém abre a agenda para olhar um
-   mês em branco — abre para saber quem vem. */
-/* A ordem no toggle: quem vem primeiro, o resto depois. */
+/* A ordem mudou por pedido dela, e inverteu a de antes: agendado
+   primeiro, quem eu tatuei no meio, próximas sessões no fim.
+
+   A agenda passou a responder três perguntas em vez de duas — o que
+   está marcado, quem já sentou, quem vai sentar. Registro a inversão
+   porque a ordem anterior também tinha sido pedida, e uma decisão que
+   troca de sinal sem registro vira "sempre foi assim". */
 var ordemAg = g.e("SECOES_DA_GESTAO['studio-schedule'].map(function(x){return x[1]}).join(',')");
-chk('próximas sessões é a primeira peça da agenda',ordemAg.indexOf('sessoes')===0,ordemAg);
+chk('a agenda tem as três peças, nesta ordem',ordemAg==='agendado,pessoas,sessoes',ordemAg);
 chk('a célula do dia respeita o dedo',/@media\(pointer:coarse\)\{\.caldia\{min-height:44px\}\}/.test(css));
 /* Conexão com serviço de terceiro falha. Protótipo que só acerta dá um
    teste otimista de graça. */
 g.e("S.agendaGoogle=false;S.googleSimularErro=true");
 g.e("conectarGoogleAgenda()");tempos.forEach(function(fn){fn()});
 chk('recusar no Google não conecta',S.agendaGoogle===false&&!!S.googleErroGoogle);
-chk('e a tela diz o que houve',/fechou a janela do Google/.test(ir('studio-schedule','ag','mes')));
+chk('e a tela diz o que houve',/fechou a janela do Google/.test(ir('studio-schedule','ag','agendado')));
 g.e("S.googleSimularErro=false;S.googleErroGoogle=null;S.agendaGoogle=true");
 S.agendaGoogle=false;
-chk('sem conexão, sem aviso',!/Sincronizada com o Google/.test(ir('studio-schedule','ag','mes')));
+chk('sem conexão, sem aviso',!/Sincronizada com o Google/.test(ir('studio-schedule','ag','agendado')));
 
 console.log('── VISÃO GERAL: UM PAINEL SÓ ──');
 /* Nomeando a sub-aba de propósito: a aba Hoje tem dois recortes, e um
@@ -489,7 +516,7 @@ chk('resumo: de onde veio',/De onde veio/.test(tc));
    que sempre foi: uma ponte para ela. Empilhado ela era a mesma lista
    duas vezes, e por isso tinha saído. */
 chk('o resumo faz ponte para os lançamentos',/Últimos lançamentos/.test(tc)&&/Ver todos/.test(tc));
-var tl=ir('studio','vg','lancamentos');
+var tl=ir('studio-financeiro','fin','lancamentos');
 chk('lançamentos: a tabela cheia',/<table class="t"/.test(tl));
 chk('lançamentos: dá para lançar',/Lançar entrada/.test(tl));
 /* Cada um na sua vista: o resumo explica de onde veio o dinheiro, a

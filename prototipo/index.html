@@ -4406,7 +4406,15 @@ function abasInternas(chave, opcoes, padrao){
    Ela absorveu Orçamentos e Dinheiro. O painel de números grandes no
    topo deixa de ser um resumo que aponta para outras abas e passa a
    ser o índice desta página: cada cartão rola até a sua seção. */
-var ST_NAV=[["studio","Visão geral","▦"],["studio-quotes","Orçamentos","📥"],["studio-schedule","Agenda","🗓"],["studio-reputacao","Reputação","★"],["studio-eventos","Cursos e eventos","🎟"]];
+/* Seis abas. Financeiro nasceu a pedido dela: Dinheiro e Lançamentos
+   eram seções da Visão geral, e a Visão geral ficava com quatro
+   assuntos — o painel, o caixa, o extrato e as pessoas. Dinheiro é
+   uma pergunta inteira, não um pedaço da primeira tela.
+
+   E "Quem eu tatuei" foi para a Agenda pela mesma lógica: quem já
+   sentou na sua cadeira e quem vai sentar são a mesma matéria, lida
+   em duas direções. */
+var ST_NAV=[["studio","Visão geral","▦"],["studio-quotes","Orçamentos","📥"],["studio-schedule","Agenda","🗓"],["studio-financeiro","Financeiro","👛"],["studio-reputacao","Reputação","★"],["studio-eventos","Cursos e eventos","🎟"]];
 
 /* ═══ UMA FAIXA DE NAVEGAÇÃO, NÃO DUAS ════════════════════════════
    Eram cinco abas em cima e até quatro sub-abas embaixo: dezoito
@@ -4438,10 +4446,12 @@ var SECOES_DA_GESTAO={
     fluxo de três passos dentro — mapa, pedido, proposta — e fluxo com
     passos não convive com página que rola, porque a pessoa perde de
     vista em que passo está. Dinheiro fica, porque é leitura. */
- "studio":           [["vg","visao","Visão geral"],
-                      ["vg","dinheiro","Dinheiro"],
-                      ["vg","lancamentos","Lançamentos",function(){return LANC.length}],
-                      ["vg","pessoas","Quem eu tatuei",function(){return HIST_PESSOAS.length}]],
+ /* A Visão geral ficou sem seções: é uma tela só, o painel. Sem
+    entrada aqui, paginaDeGestao devolve a página direto e nenhum
+    trilho é emitido — que é o certo, porque trilho de uma peça só é
+    um botão que não leva a lugar nenhum. */
+ "studio-financeiro":[["fin","dinheiro","Dinheiro"],
+                      ["fin","lancamentos","Lançamentos",function(){return LANC.length}]],
  /* O check-in mora na agenda porque é a mesma matéria: sessão marcada.
     Estava na visão geral, e ali obrigava a pessoa a sair da agenda —
     onde ela acabou de ver a sessão — para abrir o QR daquela sessão. */
@@ -4450,8 +4460,13 @@ var SECOES_DA_GESTAO={
     enviados embaixo dele deixa a pessoa rolando por um segundo assunto
     no meio de uma decisão que ainda não terminou. Aqui o alternador é o
     componente certo: são dois destinos, não duas partes de um. */
- "studio-schedule":  [["ag","sessoes","Próximas sessões",function(){return BOOK.length}],
-                      ["ag","mes","O mês e o Google"]],
+ /* A ordem é dela, e inverte a de antes: agendado primeiro. A chave
+    "mes" virou "agendado" porque o conteúdo deixou de ser sobre o mês
+    e passou a ser sobre o que está marcado — chave que descreve outra
+    coisa que o rótulo é onde nasce o próximo engano. */
+ "studio-schedule":  [["ag","agendado","Agendado"],
+                      ["ag","pessoas","Quem eu tatuei",function(){return HIST_PESSOAS.length}],
+                      ["ag","sessoes","Próximas sessões",function(){return BOOK.length}]],
  /* "Desempenho por estilo" saiu a pedido dela. Ver a decisão 032:
     das duas coisas que moravam ali, uma era cópia de "Onde eu tatuei"
     com outra fonte de dados, e a outra — a tabela de duração medida —
@@ -4565,8 +4580,18 @@ function paginaDeGestao(rota,render1){
    no endereço: quem tinha "studio-events" guardado cairia numa tela em
    branco, e tela em branco parece produto quebrado. */
 var ST_ROTA_ANTIGA={
- "studio-checkin":  ["studio",           "vg","checkin"],
- "studio-caixa":    ["studio",           "vg","dinheiro"],
+ /* Apontava para ["studio","vg","checkin"], e as duas metades do
+    destino morreram: a chave vg sumiu quando a Visão geral deixou de
+    ter seções, e "checkin" já não era seção desde que o QR passou a
+    abrir dentro da linha da sessão.
+
+    Resultado: quem entrasse pela rota antiga caía na Visão geral com
+    o corpo VAZIO — só o cabeçalho. A tradução existia, apontava para
+    lugar nenhum, e nada acusava porque tradução de rota não é texto
+    nem componente: é ligação. O check-in mora na agenda, com as
+    sessões. */
+ "studio-checkin":  ["studio-schedule",  "ag","sessoes"],
+ "studio-caixa":    ["studio-financeiro","fin","dinheiro"],
  "studio-historico":["studio-reputacao", "rep", "estudios"],
  "studio-events":   ["studio-eventos",   "ev",  "meus"],
  "studio-reviews":  ["studio-reputacao", "rep", "avaliacoes"]
@@ -4577,7 +4602,7 @@ function traduzirRotaAntiga(r){
  /* Histórico tinha duas metades que foram para abas diferentes: quem
     eu tatuei virou Dinheiro, onde eu tatuei virou Reputação. */
  if(r==="studio-historico"&&subAba("hist","pessoas")==="pessoas"){
-  S.sub=S.sub||{};S.sub.vg="pessoas";return "studio";
+  S.sub=S.sub||{};S.sub.ag="pessoas";return "studio-schedule";
  }
  S.sub=S.sub||{};S.sub[t[1]]=t[2];
  return t[0];
@@ -5595,12 +5620,13 @@ function vStudio(sub){
  /* Os blocos abaixo continuam escritos em torno das chaves antigas —
     orc para orçamentos, cx para caixa. Em vez de reescrever cada um,
     a chave da página é traduzida para elas. */
- if(sub==="studio"){
-  var vg=subAba("vg","visao");
+ if(sub==="studio-financeiro"){
+  var fin=subAba("fin","dinheiro");
   S.sub=S.sub||{};
-  if(vg==="dinheiro")S.sub.cx="resumo";
-  if(vg==="lancamentos")S.sub.cx="lancamentos";
-  if(vg==="pessoas")S.sub.cx="pessoas";
+  S.sub.cx = fin==="lancamentos" ? "lancamentos" : "resumo";
+ }
+ if(sub==="studio-schedule"&&subAba("ag","agendado")==="pessoas"){
+  S.sub=S.sub||{};S.sub.cx="pessoas";
  }
 
  /* ── VISÃO GERAL ─────────────────────────────────────────────
@@ -5645,7 +5671,7 @@ function vStudio(sub){
 
      A regra que ficou: o painel só guarda cartão que leva para FORA
      desta página. O que mora aqui se lê rolando. */
-  [["🗓","Sessões marcadas",BOOK.length,"próximos 14 dias","studio-schedule","ag","mes",false],
+  [["🗓","Sessões marcadas",BOOK.length,"próximos 14 dias","studio-schedule","ag","agendado",false],
    ["✅","Propostas que fecharam",agendados,"de "+SQ_ENVIADOS.length+" enviadas","studio-quotes","orc","enviados",false]
   ].forEach(function(x){h+=cartaoGrande(x)});
   h+='</div>';
@@ -5660,7 +5686,7 @@ function vStudio(sub){
   h+='<div class="row" style="margin-top:var(--e4)"><span class="b" style="font-size:15px">O que você construiu</span>';
   h+='<span class="sp tiny muted">desde set/2024</span></div>';
   h+='<div class="grandes" style="margin-top:var(--e2)">';
-  [["🕘","Pessoas tatuadas",HIST_PESSOAS.length,voltaram+" voltaram","studio","vg","pessoas",false],
+  [["🕘","Pessoas tatuadas",HIST_PESSOAS.length,voltaram+" voltaram","studio-schedule","ag","pessoas",false],
    ["🏪","Estúdios por onde passei",HIST_ESTUDIOS.length,"casa, guest e convenção","studio-historico","hist","estudios",false],
    ["🖼","Obras à venda",obras,"na sua galeria","studio-profile",null,null,false],
    ["★","Avaliação",("4.8"),"124 avaliações","studio-reviews","av","todas",false]
@@ -5747,7 +5773,11 @@ function vStudio(sub){
     O check-in deixou de ser seção: ele nasce de uma sessão e agora
     aparece dentro da lista, embaixo da sessão que o gerou. */
  if(sub==="studio-schedule"){
-  var agv=subAba("ag","sessoes");
+  var agv=subAba("ag","agendado");
+  /* "Quem eu tatuei" também mora aqui, e é montado pelo bloco de
+     histórico mais abaixo — este trecho só cuida das duas metades que
+     olham para a frente. */
+  if(agv==="pessoas")agv="";
 
   if(agv==="sessoes"){
    h+='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b">Quem vem por aí</span>'+tg("mock")+'<button class="btn sm sp">+ Bloquear horário</button></div>';
@@ -5802,7 +5832,7 @@ function vStudio(sub){
      O que o Google faz é ACRESCENTAR uma origem. Por isso cada item
      diz de onde veio — sem isso, desconectar faria coisas sumirem sem
      explicação, e a pessoa não saberia se perdeu ou se nunca teve. */
-  if(agv==="mes"){
+  if(agv==="agendado"){
    var totInk=BOOK.length, totG=S.agendaGoogle?GCAL.length:0, totM=MANUAL.length;
 
    h+='<div class="card pad" style="margin-top:var(--e4)">';
@@ -5962,7 +5992,7 @@ function vStudio(sub){
     Caixa e "quem eu tatuei" mostravam as mesmas pessoas com os mesmos
     valores em duas abas diferentes. São a mesma pergunta vista de dois
     ângulos: por lançamento e por pessoa. */
- if((sub==="studio"&&/^(dinheiro|lancamentos)$/.test(subAba("vg","visao")))||sub==="studio-caixa"){
+ if(sub==="studio-financeiro"||sub==="studio-caixa"){
   var c=somaCaixa();
   h+=abasInternas("cx",[["resumo","Resumo"],["lancamentos","Lançamentos",String(LANC.length)],["pessoas","Quem eu tatuei",String(HIST_PESSOAS.length)]]);
 
@@ -6024,7 +6054,7 @@ function vStudio(sub){
  /* O histórico tinha duas metades que respondem a perguntas
     diferentes. "Quem eu tatuei" é dinheiro por pessoa e foi para
     Dinheiro. "Onde eu tatuei" é trajetória e foi para Reputação. */
- if((sub==="studio"&&subAba("vg","visao")==="pessoas")||(sub==="studio-caixa"&&subAba("cx","resumo")==="pessoas")||
+ if((sub==="studio-schedule"&&subAba("ag","agendado")==="pessoas")||(sub==="studio-caixa"&&subAba("cx","resumo")==="pessoas")||
     (sub==="studio-reputacao"&&subAba("rep","avaliacoes")==="estudios")){
   /* Quem eu tatuei mora agora na visão geral. A rota antiga
      studio-caixa continua entrando aqui pelo mesmo caminho. */

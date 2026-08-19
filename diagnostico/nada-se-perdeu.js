@@ -133,8 +133,8 @@ var TELAS = [
    Empilhado, uma varredura pegava a página inteira. */
 var SUBABAS = [
   ["orc", ["recebidos", "enviados"]], ["ck", ["agora", "desempenho"]],
-  ["ag", ["sessoes", "mes"]], ["cx", ["resumo", "lancamentos"]],
-  ["vg", ["visao", "dinheiro", "lancamentos", "pessoas"]],
+  ["ag", ["agendado", "pessoas", "sessoes"]], ["cx", ["resumo", "lancamentos"]],
+  ["fin", ["dinheiro", "lancamentos"]],
   ["mev", ["resumo", "quotes", "payments"]],
   ["rep", ["avaliacoes", "estudios"]],
   /* As abas do perfil público nunca foram varridas: o roteiro
@@ -168,13 +168,15 @@ var MUDOU_DE_LUGAR = {
      de três passos, e fluxo com passos não convive com página que rola. */
   "studio-quotes":    [["studio-quotes",    "orc", "recebidos"],
                        ["studio-quotes",    "orc", "enviados"]],
-  /* Dinheiro inteiro virou seção da visão geral: resumo, lançamentos e
-     quem eu tatuei. */
-  "studio-caixa":     [["studio",           "vg",  "dinheiro"],
-                       ["studio",           "vg",  "lancamentos"],
-                       ["studio",           "vg",  "pessoas"]],
-  "studio-schedule":  [["studio-schedule",  "ag",  "sessoes"],
-                       ["studio-schedule",  "ag",  "mes"]],
+  /* Dinheiro andou duas vezes: virou seção da Visão geral e depois aba
+     própria, "Financeiro". A terceira metade — quem eu tatuei — foi
+     parar na Agenda, a pedido dela. */
+  "studio-caixa":     [["studio-financeiro","fin", "dinheiro"],
+                       ["studio-financeiro","fin", "lancamentos"],
+                       ["studio-schedule",  "ag",  "pessoas"]],
+  "studio-schedule":  [["studio-schedule",  "ag",  "agendado"],
+                       ["studio-schedule",  "ag",  "pessoas"],
+                       ["studio-schedule",  "ag",  "sessoes"]],
   "studio-reputacao": [["studio-reputacao", "rep", "avaliacoes"],
                        ["studio-reputacao", "rep", "estudios"]],
   "studio-eventos":   [["studio-eventos",   "ev",  "meus"],
@@ -182,16 +184,18 @@ var MUDOU_DE_LUGAR = {
   "me":               [["me",               "mev", "resumo"],
                        ["me",               "mev", "quotes"],
                        ["me",               "mev", "payments"]],
-  "studio":           [["studio",           "vg",  "visao"],
-                       ["studio",           "vg",  "dinheiro"],
-                       ["studio",           "vg",  "lancamentos"],
-                       ["studio",           "vg",  "pessoas"]],
+  /* A Visão geral ficou sendo só o painel. O que morava nas outras
+     três seções está em Financeiro e na Agenda. */
+  "studio":           [["studio",           null,  null],
+                       ["studio-financeiro","fin", "dinheiro"],
+                       ["studio-financeiro","fin", "lancamentos"],
+                       ["studio-schedule",  "ag",  "pessoas"]],
   "studio-events":    [["studio-eventos",   "ev",  "meus"],
                        ["studio-eventos",   "ev",  "participo"]],
   "studio-reviews":   [["studio-reputacao", "rep", "avaliacoes"]],
   /* Duas metades, duas abas: quem eu tatuei virou seção de dinheiro na
      visão geral, onde eu tatuei virou trajetória em Reputação. */
-  "studio-historico": [["studio",           "vg",  "pessoas"],
+  "studio-historico": [["studio-schedule",  "ag",  "pessoas"],
                        ["studio-reputacao", "rep", "estudios"]],
   /* No cliente, orçamentos e pagamentos viraram seções da visão geral. */
   "me-quotes":        [["me",               "mev", "quotes"]],

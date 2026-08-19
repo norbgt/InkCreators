@@ -161,11 +161,12 @@ S.artist=semG.id;S.abaPerfil='portfolio';g.e("render()");
 chk('quem não vende arte não tem a aba',!/>Galeria</.test(tela()));
 
 console.log('── 4. CAIXA ──');
-S.session='artist';S.route='studio';S.sub={vg:'dinheiro'};g.e("render()");
+/* Dinheiro já foi aba, virou seção da Visão geral, e voltou a ser aba
+   — agora "Financeiro", com Dinheiro e Lançamentos dentro. O que este
+   bloco protege não é o endereço: é o conteúdo continuar inteiro em
+   cada mudança de casa. */
+S.session='artist';S.route='studio-financeiro';S.sub={fin:'dinheiro'};g.e("render()");
 var tc=tela();
-/* Dinheiro deixou de ser aba e virou seção da visão geral. O que
-   importa não é o endereço, é a seção estar na página. */
-/* Dinheiro virou uma peça do toggle da Visão geral. */
 chk('a peça de dinheiro existe no toggle',/class="seg on"[\s\S]{0,140}?>Dinheiro</.test(tc));
 chk('mostra entrou, saiu, sobrou',/Entrou em julho/.test(tc)&&/Saiu/.test(tc)&&/Sobrou/.test(tc));
 chk('separa de onde veio',/De onde veio/.test(tc)&&/Sessões/.test(tc)&&/Arte/.test(tc));
@@ -173,7 +174,7 @@ chk('separa de onde veio',/De onde veio/.test(tc)&&/Sessões/.test(tc)&&/Arte/.t
    completa fica logo abaixo do resumo, na mesma página. */
 /* Com o toggle são duas vistas: o resumo faz ponte, a tabela lança. */
 chk('o resumo faz ponte para a tabela',/De onde veio/.test(tc)&&/Últimos lançamentos/.test(tc));
-S.route='studio';S.sub={vg:'lancamentos'};g.e("render()");var tcl=tela();
+S.route='studio-financeiro';S.sub={fin:'lancamentos'};g.e("render()");var tcl=tela();
 chk('a sub-aba lista todos',/<table class="t"/.test(tcl));
 chk('permite lançar à mão',/Lançar entrada/.test(tcl)&&/Lançar saída/.test(tcl));
 chk('diz que é privado',/ninguém mais vê/.test(tcl));
@@ -183,9 +184,10 @@ chk('a conta fecha',c.sobrou===c.entrou-c.saiu,c.entrou+' - '+c.saiu+' ≠ '+c.s
 chk('tem entrada de sessão, arte e curso',c.porCat.sessao>0&&c.porCat.arte>0&&c.porCat.curso>0);
 
 console.log('── 5. HISTÓRICO ──');
-/* 'Onde eu tatuei' virou sub-aba de Reputação; 'quem eu tatuei' virou
-   sub-aba de Dinheiro. Uma tela virou duas. */
-S.route='studio';S.sub={vg:'pessoas'};g.e("render()");
+/* 'Onde eu tatuei' virou sub-aba de Reputação; 'quem eu tatuei' foi
+   para a Agenda a pedido dela — quem já sentou na cadeira e quem vai
+   sentar são a mesma matéria, lida em duas direções. */
+S.route='studio-schedule';S.sub={ag:'pessoas'};g.e("render()");
 var th=tela();
 chk('lista quem ele tatuou',/Pessoas que você tatuou/.test(th));
 chk('com quantas sessões e desde quando',/cliente desde/.test(th));
@@ -204,9 +206,22 @@ S.route='studio';S.sub={};g.e("render()");
 var tv=tela();
 /* O cartão "Sobrou" saiu do painel: a seção Dinheiro está na mesma
    página. O que o painel promete agora é levar para FORA dela. */
-chk('dinheiro é uma peça do toggle da visão geral',
-    /class="seg [^"]*"[\s\S]{0,140}?>Dinheiro</.test(tv));
-chk('o painel leva a quem ele tatuou',/Pessoas tatuadas/.test(tv)&&/vg&#39;,&#39;pessoas|vg','pessoas/.test(tv));
+/* Dinheiro saiu desta página: virou a aba Financeiro. O painel
+   continua responsável por levar até lá, e a checagem passou a exigir
+   isso — cartão que aponta para uma aba que não existe mais é o
+   defeito silencioso de toda mudança de arquitetura. */
+chk('a visão geral não tem mais toggle',!/class="seg /.test(tv),
+    'a Visão geral voltou a ter seções');
+var destinos=(tv.match(/irSecao\(&#39;([a-z-]+)&#39;|irSecao\('([a-z-]+)'/g)||[])
+  .concat(tv.match(/go\(&#39;([a-z-]+)&#39;|go\('([a-z-]+)'/g)||[])
+  .map(function(x){return x.replace(/.*\(&?#?3?9?;?'?/,'').replace(/&#39;|'/g,'')});
+var rotasValidas=g.e("ST_NAV.map(function(x){return x[0]})")
+  .concat(Object.keys(g.e("ST_ROTA_ANTIGA")))
+  .concat(["studio-profile","estudio-reivindicar","studio-checkin"]);
+var orfaos=destinos.filter(function(r){return r.indexOf("studio")===0&&rotasValidas.indexOf(r)<0});
+chk('nenhum cartão do painel aponta para aba que não existe',orfaos.length===0,
+    'apontam para o vazio: '+orfaos.join(', '));
+chk('o painel leva a quem ele tatuou',/Pessoas tatuadas/.test(tv)&&/ag&#39;,&#39;pessoas|ag','pessoas/.test(tv));
 chk('e à galeria',/Obras à venda/.test(tv));
 chk('sem "Receita do mês" solta',!/Receita do mês/.test(tv));
 
