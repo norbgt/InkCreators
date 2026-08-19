@@ -143,6 +143,56 @@ chk('o painel leva ao histórico',/Pessoas tatuadas/.test(tv)&&/studio-historico
 chk('e à galeria',/Obras à venda/.test(tv));
 chk('sem "Receita do mês" solta',!/Receita do mês/.test(tv));
 
+console.log('── 7. O PERFIL E O ESTÚDIO NA INTERFACE #2 ──');
+/* Os dois cabeçalhos são a mesma pergunta — quem é este, o essencial,
+   e o que fazer daqui. Se um for caixa e o outro não, a pessoa
+   reaprende a ler no meio do caminho. */
+S.session='anon';S.route='artist';S.sub={};g.e("render()");
+var tpf=tela();
+chk('o perfil abre sem moldura de cartão',/class="perfilcab"/.test(tpf)&&!/class="card pad" style="margin-top:12px"/.test(tpf),
+    'o cabeçalho voltou para dentro de um cartão');
+chk('o nome é título, não negrito de texto',/class="perfilnome"/.test(tpf));
+chk('e sai na condensada',/\.perfilnome\{font-family:var\(--f-cond\)/.test(css));
+/* Medido no texto sem as marcas: entre a abertura da linha e "por
+   hora" passam cinco estrelas em SVG, e contar bytes de desenho para
+   achar palavra é frágil por construção. */
+var linhaNum=(tpf.split('class="perfilnum">')[1]||'').split('</div>')[0].replace(/<[^>]*>/g,' ').replace(/\s+/g,' ');
+chk('nota, anos e preço na mesma linha',
+    /\d\.\d/.test(linhaNum) && /anos/.test(linhaNum) && /por hora/.test(linhaNum),
+    'linha: "'+linhaNum.trim()+'"');
+chk('número tabular nas medidas',/\.perfilnum\{[^}]*tabular-nums/.test(css));
+
+S.route='estudio';S.estudioSel=(g.e("ESTUDIOS[0].id"));g.e("render()");
+var tes=tela();
+chk('o estúdio usa o mesmo cabeçalho',/class="perfilcab"/.test(tes)&&/class="perfilnome"/.test(tes),
+    'as duas páginas voltaram a ter formas diferentes para a mesma coisa');
+
+/* Portfólio: a obra define a própria altura, igual ao feed. Grade de
+   quadrados obriga a recortar, e recortar tatuagem é editar trabalho
+   dos outros. */
+chk('o portfólio corre em colunas, não em grade',/\.gradeport\{display:block;column-count:3/.test(css));
+chk('e cada trabalho traz a própria proporção',/aspect-ratio:'\+proporcaoDaFoto\(p\)/.test(code),
+    'voltou aspect-ratio:1 — o quadrado recorta');
+chk('a mesma função de proporção do feed',/function proporcaoDaFoto/.test(code));
+
+/* O trilho de vidro saiu do controle segmentado. Desfoque de fundo
+   custa GPU e travava a rolagem em telefone antigo — e ali não pagava
+   nada em troca, porque atrás da aba não passa foto nenhuma.
+
+   Sobre a foto ele continua, e ali se paga: o desfoque é o que garante
+   que o coração e os selos sejam legíveis contra uma tatuagem preta e
+   contra uma tatuagem clara com o mesmo código. */
+chk('as abas são sublinhado, não pílula de vidro',
+    /\.seg\.on\{color:var\(--foreground\);border-bottom-color:var\(--accent\)\}/.test(css));
+chk('sem desfoque no controle segmentado',
+    !/\.segmento\{[^}]*backdrop-filter/.test(css),
+    'voltou o vidro nas abas — caro em GPU e sem nada atrás para desfocar');
+chk('e o desfoque que sobrou está só sobre foto',
+    (css.match(/backdrop-filter/g)||[]).length <= 3 &&
+    /\.postimg[\s\S]{0,400}backdrop-filter/.test(css));
+chk('o bloco do estúdio no perfil é traço, não caixa dentro de caixa',
+    /\.cxestudio\{[^}]*border-top:var\(--hair\)/.test(css));
+
 console.log('── 7. NADA QUEBROU ──');
 ['home','artist','plataforma','cadastro','modelo','conexao','me','studio','studio-caixa','studio-historico','studio-profile','studio-quotes'].forEach(function(r){
  S.session=r.indexOf('studio')===0?'artist':r.indexOf('me')===0?'client':'anon';S.route=r;

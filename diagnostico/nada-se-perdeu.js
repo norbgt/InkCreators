@@ -128,6 +128,20 @@ function varrer(g) {
   return telas;
 }
 
+/* O texto como se lê, em fila, sem as marcas. Serve para procurar: se
+   uma frase existia e continua legível na mesma ordem, ela não se
+   perdeu — mesmo que agora esteja repartida em três nós. Quebrar um nó
+   muda o HTML e não muda o que a pessoa lê. */
+function corrido(bruto) {
+  return bruto
+    .replace(/<script[\s\S]*?<\/script>/g, " ")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&")
+    .replace(/&#39;/g, "'").replace(/&quot;/g, '"')
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/\s+/g, " ");
+}
+
 /* Texto visível: fora as tags, fora o que só existe para máquina. */
 function frases(bruto) {
   return bruto
@@ -205,18 +219,14 @@ var telas1 = varrer(g1), telas2 = varrer(g2);
 var perdidas = [], totalFrases = 0;
 
 Object.keys(telas1).forEach(function (ch) {
-  var aqui = telas2[ch] || "";
+  var aqui = corrido(telas2[ch] || "");
   var unicas = Array.from(new Set(frases(telas1[ch])));
   totalFrases += unicas.length;
   unicas.forEach(function (frase) {
+    /* Procurado no texto corrido DESTA tela. Duas exigências de uma vez:
+       a frase inteira, na ordem, e nesta tela. Frase que migrou para
+       outra tela conta como perdida — é perda para quem estava aqui. */
     if (aqui.indexOf(frase) >= 0) return;
-    /* A frase pode ter sido quebrada em nós diferentes sem sair da
-       tela. Só vale como remontagem se TODAS as palavras longas
-       continuarem NESTA MESMA tela — procurar no protótipo inteiro
-       deixaria passar frase que mudou de lugar, e mudar de lugar é
-       perda para quem estava naquela tela. */
-    var palavras = frase.split(" ").filter(function (w) { return w.length > 5 });
-    if (palavras.length >= 2 && palavras.every(function (w) { return aqui.indexOf(w) >= 0 })) return;
     if (SAIRAM_DE_PROPOSITO.some(function (par) { return frase.indexOf(par[0]) >= 0 })) return;
     perdidas.push(ch + "  ·  " + frase);
   });

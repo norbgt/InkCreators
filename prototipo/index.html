@@ -286,31 +286,29 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .abas-acoes{display:flex;gap:7px;flex:0 0 auto;padding-bottom:7px}
 .btn.sm.destaque{background:var(--accent);color:var(--accent-foreground);border-color:var(--accent)}
 /* Controle segmentado — recorte dentro da aba.
-   Peças unidas num trilho translúcido; a ativa sobe como uma lente.
-   O desfoque de fundo faz o conteúdo que rola por baixo aparecer
-   levemente, dando profundidade sem competir com o conteúdo. */
-.segmento{display:flex;margin-top:16px;padding:3px;border-radius:999px;position:relative;
-  background:color-mix(in oklab, var(--muted) 75%, transparent);
-  backdrop-filter:blur(18px) saturate(170%);
-  -webkit-backdrop-filter:blur(18px) saturate(170%);
-  border:1px solid color-mix(in oklab, var(--foreground) 7%, transparent);
-  box-shadow:inset 0 1px 0 color-mix(in oklab, #fff 55%, transparent), 0 1px 2px rgba(0,0,0,.05);
+
+   Era um trilho de vidro: fundo translúcido, desfoque de 18px,
+   saturação em 170%, sombra interna e a peça ativa levitando. Bonito, e
+   caro em três moedas — desfoque de fundo custa GPU e trava a rolagem
+   em telefone antigo, a peça ativa dependia de quatro sombras
+   empilhadas, e nada daquilo tinha equivalente em nenhum outro lugar do
+   produto.
+
+   Agora é o mesmo recurso do resto: um traço embaixo do ativo. A
+   informação é idêntica — qual recorte está aberto — e a gramática
+   passa a ser uma só. */
+.segmento{display:flex;gap:2px;margin-top:var(--section-gap);
+  border-bottom:var(--hair) solid var(--border);
   overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .segmento::-webkit-scrollbar{display:none}
-.seg{flex:1 1 0;min-width:0;white-space:nowrap;padding:7px 11px;border-radius:999px;
-  font-size:12.5px;font-weight:600;color:var(--muted-foreground);background:none;
-  transition:color .18s ease, background .18s ease}
+.seg{flex:0 0 auto;min-width:0;white-space:nowrap;padding:9px 13px;
+  font-family:var(--f-cond);font-size:var(--t-meta);font-weight:500;
+  color:var(--muted-foreground);background:none;border:none;
+  border-bottom:2px solid transparent;margin-bottom:calc(var(--hair) * -1);
+  transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}
 .seg:hover{color:var(--foreground)}
-.seg.on{color:var(--foreground);
-  background:color-mix(in oklab, var(--card) 92%, transparent);
-  box-shadow:0 1px 3px rgba(0,0,0,.11), 0 0 0 .5px color-mix(in oklab, var(--foreground) 6%, transparent),
-    inset 0 1px 0 color-mix(in oklab, #fff 70%, transparent)}
-html[data-dark] .segmento{
-  background:color-mix(in oklab, var(--muted) 60%, transparent);
-  box-shadow:inset 0 1px 0 color-mix(in oklab, #fff 8%, transparent), 0 1px 2px rgba(0,0,0,.3)}
-html[data-dark] .seg.on{
-  background:color-mix(in oklab, var(--card) 96%, transparent);
-  box-shadow:0 1px 4px rgba(0,0,0,.45), inset 0 1px 0 color-mix(in oklab, #fff 10%, transparent)}
+.seg.on{color:var(--foreground);border-bottom-color:var(--accent)}
+@media(pointer:coarse){.seg{padding:12px 14px}}
 
 /* Barra de localização + mapa pequeno + lista compacta.
    Padrão de app de mobilidade: contexto no topo, decisão na lista. */
@@ -355,9 +353,13 @@ html[data-dark] .seg.on{
 .estrela.on{color:var(--x-warning);border-color:var(--x-warning)}
 .estrela .ico{width:19px;height:19px}
 
-.cxestudio{display:block;width:100%;text-align:left;margin-top:11px;padding:10px 12px;border-radius:11px;
-  border:1px solid var(--border);background:var(--muted);cursor:pointer}
-.cxestudio:hover{border-color:var(--muted-foreground)}
+/* O lugar não é um cartão dentro do cartão: é um bloco separado por um
+   traço. Fundo cinza aqui empilhava duas caixas e a pessoa lia como se
+   o estúdio fosse propriedade do perfil. */
+.cxestudio{display:block;width:100%;text-align:left;margin-top:var(--section-gap);
+  padding:13px 0 0;border:none;border-top:var(--hair) solid var(--rule);
+  background:none;cursor:pointer;border-radius:0}
+.cxestudio:hover .b{color:var(--accent)}
 
 .regracat{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;opacity:.55}
 
@@ -784,7 +786,9 @@ body:has(.convitebarra) main{padding-bottom:96px}
    No celular cada degrau encolhe, senão a página vira rolagem vazia. */
 .resumobusca{margin-top:10px}
 .acoescentro{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:6px}
-.segmento.centrado{max-width:420px;margin:26px auto 0}
+/* Centrar sublinhado é alinhar o trilho, não estreitar a caixa: com
+   max-width o traço da aba ativa ficava mais curto que o conteúdo. */
+.segmento.centrado{justify-content:center;margin:var(--block-gap) 0 0}
 .blococentro{max-width:620px;margin:26px auto 0;text-align:center}
 .blococentro.banner{text-align:left;margin-top:16px}
 .gradeconteudo{display:grid;gap:14px;margin:26px auto 0;max-width:900px;
@@ -804,8 +808,8 @@ body:has(.convitebarra) main{padding-bottom:96px}
    title e no aria-label — quem usa leitor de tela continua ouvindo. */
 .acoestrio{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
 .acaoic{display:flex;align-items:center;justify-content:center;height:38px;
-  border:1px solid var(--border);background:var(--card);border-radius:10px;
-  color:var(--foreground);transition:background .15s ease,border-color .15s ease}
+  border:var(--hair) solid var(--border);background:var(--card);border-radius:var(--r-sm);
+  color:var(--foreground);transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}
 .acaoic svg{width:17px;height:17px}
 .acaoic:hover{border-color:var(--muted-foreground)}
 .acaoic.principal{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
@@ -815,8 +819,28 @@ body:has(.convitebarra) main{padding-bottom:96px}
 /* Perfil em coluna única, largura de leitura. Dimensionado pelo celular:
    o que cabe em 393px cabe em qualquer lugar. */
 .perfilcol{max-width:640px;margin:0 auto}
-.gradeport{grid-template-columns:repeat(3,1fr);gap:7px}
-@media(max-width:460px){.gradeport{gap:5px}}
+
+/* ── CABEÇALHO DO PERFIL ──────────────────────────────────────────
+   Sem borda, sem fundo: a hierarquia sai do tamanho e do espaço. */
+.perfilcab{margin-top:var(--section-gap)}
+.perfilnome{font-family:var(--f-cond);font-size:var(--t-h2);font-weight:600;
+  line-height:1.12;letter-spacing:-.01em;margin:0}
+.vfd{color:var(--accent);font-size:.7em;vertical-align:.15em}
+.perfilloc{font-size:var(--t-body);color:var(--muted-foreground);margin-top:3px}
+/* Nota, anos e faixa de preço na mesma linha, com número tabular: são
+   três medidas, e medida que dança de largura parece instável. */
+.perfilnum{font-size:var(--t-meta);color:var(--foreground);margin-top:5px;
+  font-variant-numeric:tabular-nums}
+.perfilnum .muted{color:var(--muted-foreground)}
+
+/* ── PORTFÓLIO ────────────────────────────────────────────────────
+   Mesma decisão do feed: a obra define a própria altura. Uma grade de
+   quadrados obriga a recortar, e recortar tatuagem é editar o trabalho
+   de outra pessoa. Aqui as colunas correm soltas. */
+.gradeport{display:block;column-count:3;column-gap:7px}
+.gradeport .tat{break-inside:avoid;margin:0 0 7px;width:100%}
+@media(max-width:460px){.gradeport{column-count:2;column-gap:5px}
+  .gradeport .tat{margin-bottom:5px}}
 .vantagem{display:flex;flex-direction:column}
 .vantagem .small.muted{flex:1}
 .plan{border:1px solid var(--border);border-radius:var(--radius);padding:18px;background:var(--card);position:relative}
@@ -2688,17 +2712,24 @@ function vArtist(){
  var h='<main><div class="wrap"><div class="perfilcol">';
  h+='<button class="btn sm" onclick="go(\'home\')">← Voltar</button>';
 
- /* ── CABEÇALHO: quem é, quanto cobra, e o que fazer ────────────── */
- h+='<div class="card pad" style="margin-top:12px">';
- h+='<div class="row" style="gap:11px;align-items:flex-start">';
- h+='<div class="av" style="width:52px;height:52px;font-size:16px;flex-shrink:0">'+ini(a.name)+'</div>';
+ /* ── CABEÇALHO: quem é, quanto cobra, e o que fazer ──────────────
+    Sem caixa. Na interface #1 tudo isso vivia dentro de um .card com
+    borda, e o cartão dentro da página criava uma moldura que não
+    servia para nada: a página já é a moldura. O que separa agora é
+    espaço e um traço.
+
+    O nome sobe para o tamanho de título e vai para a condensada — é a
+    informação de que a pessoa veio atrás. */
+ h+='<div class="perfilcab">';
+ h+='<div class="row" style="gap:12px;align-items:flex-start">';
+ h+='<div class="av" style="width:56px;height:56px;font-size:17px;flex-shrink:0">'+ini(a.name)+'</div>';
  h+='<div style="min-width:0;flex:1">';
- h+='<div class="b" style="font-size:17px">'+a.name+(a.verified?' <span style="color:var(--accent)">✔</span>':'')+'</div>';
- h+='<div class="small muted">'+a.studio+' · '+a.city+'/'+a.state+'</div>';
- h+='<div class="tiny muted" style="margin-top:2px">'+stars(a.rating)+' '+a.rating+' ('+a.reviews+') · '+a.years+' anos</div>';
+ h+='<h1 class="perfilnome">'+a.name+(a.verified?' <span class="vfd" title="identidade verificada">✔</span>':'')+'</h1>';
+ h+='<div class="perfilloc">'+a.studio+' · '+a.city+'/'+a.state+'</div>';
+ h+='<div class="perfilnum">'+stars(a.rating)+' '+a.rating+' <span class="muted">('+a.reviews+')</span> · '+a.years+' anos · '+cifroes(a)+' <span class="muted">por hora</span></div>';
  h+='</div></div>';
 
- h+='<div class="selos" style="margin-top:9px">'+selosDe(a).map(function(x){return selo(x,true)}).join("")+'</div>';
+ h+='<div class="selos" style="margin-top:12px">'+selosDe(a).map(function(x){return selo(x,true)}).join("")+'</div>';
 
  h+='<div class="row wrapf" style="gap:5px;margin-top:11px">'+
     a.styles.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("")+'</div>';
@@ -2741,7 +2772,7 @@ function vArtist(){
 
  // Só a descrição. Preço por tamanho saiu: número fixo por tamanho é a
  // mesma promessa que os cifrões evitam — o valor sai do orçamento.
- h+='<details style="margin-top:11px"><summary class="tiny muted" style="cursor:pointer">Sobre o tatuador</summary>';
+ h+='<details style="margin-top:var(--section-gap)"><summary class="tiny muted" style="cursor:pointer">Sobre o tatuador</summary>';
  h+='<p class="small" style="margin-top:9px">'+a.bio+'</p></details>';
  h+='</div>';
 
@@ -2755,7 +2786,9 @@ function vArtist(){
 
  if(aba==="portfolio"){
   h+='<div class="grid gradeport" style="margin-top:14px">';
-  a.port.forEach(function(p){h+='<div class="tat" style="aspect-ratio:1;border-radius:9px;background-image:'+tex(p)+'"></div>'});
+  /* A proporção vem do próprio trabalho, pela mesma função do feed:
+     o mesmo trabalho aparece com a mesma forma nos dois lugares. */
+  a.port.forEach(function(p){h+='<div class="tat" style="aspect-ratio:'+proporcaoDaFoto(p)+';border-radius:var(--r-sm);background-image:'+tex(p)+'"></div>'});
   h+='</div>';
   h+='<div class="tiny muted" style="margin-top:9px">'+a.port.length+' trabalhos publicados aqui'+tg("real")+'</div>';
  }
@@ -4282,15 +4315,18 @@ function vEstudio(){
  var h='<main><div class="wrap" style="max-width:640px">';
  h+='<button class="btn sm" style="margin-top:16px" onclick="go(\'home\')">← Voltar</button>';
 
- h+='<div class="card pad" style="margin-top:12px">';
- h+='<div class="row" style="gap:11px;align-items:flex-start">';
- h+='<div class="av" style="width:52px;height:52px;font-size:16px;flex-shrink:0">'+ini(e.nome)+'</div>';
- h+='<div style="min-width:0;flex:1"><div class="b" style="font-size:17px">'+e.nome+'</div>';
- h+='<div class="small muted">'+(e.handle?'@'+e.handle+' · ':'')+e.cidade+(e.uf?'/'+e.uf:'')+'</div>';
- h+='<div class="tiny muted" style="margin-top:2px">'+e.sessoes+' sessões verificadas aqui'+(e.desde?' · desde '+e.desde:'')+'</div>';
+ /* Mesmo cabeçalho do perfil de quem tatua, sem caixa: os dois são
+    "quem é este, aqui está o essencial, aqui está o que fazer". Formas
+    diferentes para a mesma coisa fariam a pessoa reaprender a ler. */
+ h+='<div class="perfilcab">';
+ h+='<div class="row" style="gap:12px;align-items:flex-start">';
+ h+='<div class="av" style="width:56px;height:56px;font-size:17px;flex-shrink:0">'+ini(e.nome)+'</div>';
+ h+='<div style="min-width:0;flex:1"><h1 class="perfilnome">'+e.nome+'</h1>';
+ h+='<div class="perfilloc">'+(e.handle?'@'+e.handle+' · ':'')+e.cidade+(e.uf?'/'+e.uf:'')+'</div>';
+ h+='<div class="perfilnum">'+e.sessoes+' sessões verificadas aqui'+(e.desde?' · desde '+e.desde:'')+'</div>';
  h+='</div></div>';
 
- if(selos.length)h+='<div class="selos" style="margin-top:10px">'+selos.map(function(x){return selo(x,true)}).join("")+'</div>';
+ if(selos.length)h+='<div class="selos" style="margin-top:12px">'+selos.map(function(x){return selo(x,true)}).join("")+'</div>';
 
  /* ── O estúdio que ninguém reivindicou ─────────────────────────
     Aqui está a decisão de negócio inteira, num bloco. O lugar aparece
