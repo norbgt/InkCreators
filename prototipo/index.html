@@ -635,24 +635,37 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 @media(min-width:560px){.vitrine{grid-template-columns:repeat(3,1fr)}}
 @media(min-width:1100px){.vitrine{grid-template-columns:repeat(4,1fr)}}
 
-/* height:100% mais o pé com margin-top:auto é o que mantém o preço na
+/* O card do produto É o card do feed: ele carrega as duas classes,
+   `post prod`, e por isso herda a foto com carrossel, as setas, os
+   pips e o hover — em vez de ter uma cópia parecida que envelhece
+   sozinha. O que .prod acrescenta é só o que a grade exige: altura de
+   célula inteira, sem a margem que o masonry usava.
+
+   height:100% mais o pé com margin-top:auto é o que mantém o preço na
    mesma linha em toda a fileira, mesmo com nomes de tamanhos
    diferentes. Sem isso a grade é regular e o conteúdo dentro dela
    não é — que é o pior dos dois mundos. */
-.prod{display:flex;flex-direction:column;height:100%;overflow:hidden;
-  background:var(--card);border:var(--hair) solid var(--border);
-  border-radius:var(--r-sm);transition:border-color var(--dur) var(--ease)}
-.prod:hover{border-color:var(--muted-foreground)}
-.prodimg{position:relative;width:100%;aspect-ratio:1;overflow:hidden;background:var(--muted)}
-.prodinfo{display:flex;flex-direction:column;flex:1;padding:var(--e3)}
+.prod{display:flex;flex-direction:column;height:100%;margin:0}
+.prod .postimg{aspect-ratio:1}
+/* Todos os slides ficam montados e só o ativo aparece, como no feed.
+   O emoji é o que diz qual é o produto enquanto não há foto de
+   verdade — some no dia em que houver. */
+.prod .postimg .sl{display:flex;align-items:center;justify-content:center}
+.prod .postimg .emj{font-size:clamp(34px,9vw,56px);filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
+.prodinfo{display:flex;flex-direction:column;flex:1;padding:var(--e2) 2px 0}
 /* Duas linhas e corta. Nome de produto varia de 3 a 60 caracteres, e
    é ele que faria a célula crescer. */
-.prodnome{font-size:var(--t-meta);font-weight:500;line-height:1.3;
+.prodnome{font-size:var(--t-card);font-weight:500;line-height:1.25;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.prodmarca{font-size:var(--t-micro);color:var(--muted-foreground);margin-top:var(--e1)}
+/* A descrição é o que o feed resolve no hover e aqui não pode
+   resolver assim: quem compra decide pelo que a coisa faz, e no toque
+   o hover não existe. Fica visível, cortada em duas linhas. */
+.proddesc{font-family:var(--f-exp);font-size:var(--t-micro);color:var(--muted-foreground);
+  line-height:1.45;margin-top:var(--e1);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .prodnota{font-size:var(--t-micro);color:var(--muted-foreground);margin-top:var(--e2);
   display:flex;align-items:center;gap:var(--e1);font-variant-numeric:tabular-nums}
-.prodpe{margin-top:auto;padding-top:var(--e3)}
+.prodpe{margin-top:auto;padding-top:var(--e2)}
 .prodpreco{font-family:var(--f-exp);font-weight:600;font-variant-numeric:tabular-nums;
   display:flex;align-items:baseline;gap:var(--e2)}
 .prodpreco s{font-family:var(--f-base);font-weight:400;font-size:var(--t-micro);
@@ -665,17 +678,17 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
    quem está garimpando vê mais produto por tela na grade. Duas
    perguntas, dois arranjos, um componente. */
 .vitrine.lista{grid-template-columns:1fr;gap:var(--e2)}
-.vitrine.lista .prod{flex-direction:row}
-.vitrine.lista .prodimg{width:88px;flex:0 0 88px;height:88px;aspect-ratio:auto}
-.vitrine.lista .prodinfo{flex-direction:row;align-items:center;gap:var(--e3);
-  padding:var(--e2) var(--e3)}
+.vitrine.lista .prod{flex-direction:row;gap:var(--e3);align-items:center}
+.vitrine.lista .prod .postimg{width:88px;flex:0 0 88px;height:88px;aspect-ratio:auto}
+.vitrine.lista .prodinfo{flex-direction:row;align-items:center;gap:var(--e3);padding:0}
 .vitrine.lista .prodtxt{flex:1;min-width:0}
 .vitrine.lista .prodnome{-webkit-line-clamp:1}
+.vitrine.lista .proddesc{-webkit-line-clamp:1}
 .vitrine.lista .prodpe{margin-top:0;padding-top:0;flex:0 0 auto;text-align:right}
 .vitrine.lista .prodpreco{justify-content:flex-end}
 .vitrine.lista .prodpe .btn{width:auto;margin-top:var(--e1)}
 /* Seta e pip somem: a 88px eles cobrem metade da foto. */
-.vitrine.lista .prodimg .nav,.vitrine.lista .prodimg .pips{display:none}
+.vitrine.lista .postimg .nav,.vitrine.lista .postimg .pips{display:none}
 
 /* A contagem à esquerda, o modo de ver à direita. O toggle perde as
    margens próprias aqui porque quem separa do conteúdo é a margem da
@@ -1500,26 +1513,26 @@ var SHOP_CATS={
  client:[["all","Todos"],["healing","Cicatrizantes"],["moisturizers","Hidratantes"],["color","Realce de cor"],["sunscreen","Proteção solar"],["kits","Kits pós-tattoo"]],
  art:[["all","Todos"],["prints","Prints"],["frames","Quadros"],["stamps","Estampas"],["stickers","Adesivos"],["decor","Decoração"]]};
 var PRODUCTS=[
- {id:"p1",n:"Cartucho Round Liner 0.30mm — 20un",b:"Cheyenne Craft",a:"artist",c:"needles",p:189.9,o:219,r:4.9,rv:312,e:"🪡",bg:"Mais vendido"},
- {id:"p2",n:"Cartucho Magnum 9M1 — 20un",b:"EZ Revolution",a:"artist",c:"needles",p:229,r:4.8,rv:198,e:"🪡"},
- {id:"p3",n:"Tinta preta Sumi 120ml",b:"Intenze",a:"artist",c:"inks",p:159,r:4.9,rv:241,e:"🫙"},
- {id:"p4",n:"Set tintas coloridas 12x30ml",b:"Eternal",a:"artist",c:"inks",p:689,o:790,r:4.7,rv:96,e:"🎨",bg:"Oferta"},
- {id:"p5",n:"Máquina rotativa Pen",b:"Mast Tour",a:"artist",c:"machines",p:749,o:899,r:4.7,rv:87,e:"🖊️"},
- {id:"p6",n:"Pedal sem fio",b:"Critical",a:"artist",c:"machines",p:459,r:4.6,rv:54,e:"🦶"},
- {id:"p7",n:"Braço de apoio articulado",b:"TatSoul",a:"artist",c:"accessories",p:329,r:4.8,rv:71,e:"💺"},
- {id:"p8",n:"Luvas nitrilo preta — 100un",b:"Supermax",a:"artist",c:"hygiene",p:79.9,r:4.5,rv:520,e:"🧤"},
- {id:"p9",n:"Filme protetor pós-tattoo 10m",b:"Dermalize",a:"artist",c:"hygiene",p:98.5,r:4.8,rv:410,e:"🩹"},
- {id:"p10",n:"Pomada cicatrizante 50g",b:"Inkeeze",a:"client",c:"healing",p:64.9,r:4.6,rv:156,e:"🧴",bg:"Mais vendido"},
- {id:"p11",n:"Bepantol derma 100g",b:"Bayer",a:"client",c:"healing",p:52.9,r:4.9,rv:890,e:"🧴"},
- {id:"p12",n:"Hidratante corporal sem perfume 400ml",b:"Cetaphil",a:"client",c:"moisturizers",p:78.9,r:4.7,rv:342,e:"🧼"},
- {id:"p13",n:"Bálsamo realce de cor 60g",b:"Hustle Butter",a:"client",c:"color",p:119,o:139,r:4.8,rv:203,e:"✨"},
- {id:"p14",n:"Protetor solar FPS 70 tattoo",b:"Anthelios",a:"client",c:"sunscreen",p:89.9,r:4.9,rv:467,e:"☀️"},
- {id:"p15",n:"Kit aftercare completo",b:"Ink Creators",a:"client",c:"kits",p:139,o:169,r:4.9,rv:73,e:"📦",bg:"Kit"},
- {id:"p16",n:"Print fineline botânico A3",b:"Marina Vieira",a:"art",c:"prints",p:89,r:4.9,rv:41,e:"🖼"},
- {id:"p17",n:"Quadro blackwork ornamental 40x60",b:"Caio Lobo",a:"art",c:"frames",p:349,r:4.8,rv:19,e:"🏞"},
- {id:"p18",n:"Estampa camiseta old school",b:"Studio Renan",a:"art",c:"stamps",p:119,r:4.6,rv:88,e:"👕"},
- {id:"p19",n:"Cartela de adesivos flash",b:"Ana Petrova",a:"art",c:"stickers",p:29.9,r:4.7,rv:214,e:"🏷"},
- {id:"p20",n:"Luminária traço minimalista",b:"Ink Creators",a:"art",c:"decor",p:229,r:4.5,rv:33,e:"💡"}
+ {id:"p1",n:"Cartucho Round Liner 0.30mm — 20un",b:"Cheyenne Craft",a:"artist",c:"needles",p:189.9,o:219,r:4.9,rv:312,e:"🪡",bg:"Mais vendido",d:"Traço fino e contínuo, para contorno. Ponta de 0,30mm, esterilizado, uso único."},
+ {id:"p2",n:"Cartucho Magnum 9M1 — 20un",b:"EZ Revolution",a:"artist",c:"needles",p:229,r:4.8,rv:198,e:"🪡",d:"Preenchimento e sombra em área grande. Nove agulhas em leque, curva suave."},
+ {id:"p3",n:"Tinta preta Sumi 120ml",b:"Intenze",a:"artist",c:"inks",p:159,r:4.9,rv:241,e:"🫙",d:"Preto puro para contorno e preenchimento sólido. Vegana, sem metais pesados."},
+ {id:"p4",n:"Set tintas coloridas 12x30ml",b:"Eternal",a:"artist",c:"inks",p:689,o:790,r:4.7,rv:96,e:"🎨",bg:"Oferta",d:"Doze cores base que se misturam entre si. Cobre o que a maioria dos trabalhos pede."},
+ {id:"p5",n:"Máquina rotativa Pen",b:"Mast Tour",a:"artist",c:"machines",p:749,o:899,r:4.7,rv:87,e:"🖊️",d:"Rotativa leve, curso de 3,5mm. Serve para linha e sombra sem trocar de máquina."},
+ {id:"p6",n:"Pedal sem fio",b:"Critical",a:"artist",c:"machines",p:459,r:4.6,rv:54,e:"🦶",d:"Sem fio, com bateria de 40 horas. Um cabo a menos no chão da cabine."},
+ {id:"p7",n:"Braço de apoio articulado",b:"TatSoul",a:"artist",c:"accessories",p:329,r:4.8,rv:71,e:"💺",d:"Prende na maca e sustenta o braço na altura que você trabalha. Evita ombro erguido."},
+ {id:"p8",n:"Luvas nitrilo preta — 100un",b:"Supermax",a:"artist",c:"hygiene",p:79.9,r:4.5,rv:520,e:"🧤",d:"Nitrilo preto, sem pó, sem látex. Cem unidades, tamanho único M."},
+ {id:"p9",n:"Filme protetor pós-tattoo 10m",b:"Dermalize",a:"artist",c:"hygiene",p:98.5,r:4.8,rv:410,e:"🩹",d:"Filme respirável para os primeiros dias. Dez metros, corta no tamanho que precisar."},
+ {id:"p10",n:"Pomada cicatrizante 50g",b:"Inkeeze",a:"client",c:"healing",p:64.9,r:4.6,rv:156,e:"🧴",bg:"Mais vendido",d:"Para os primeiros dias, quando a pele fecha. Sem perfume, sem corante."},
+ {id:"p11",n:"Bepantol derma 100g",b:"Bayer",a:"client",c:"healing",p:52.9,r:4.9,rv:890,e:"🧴",d:"O clássico que dermatologista indica. Serve depois da fase do filme."},
+ {id:"p12",n:"Hidratante corporal sem perfume 400ml",b:"Cetaphil",a:"client",c:"moisturizers",p:78.9,r:4.7,rv:342,e:"🧼",d:"Manutenção de todo dia, depois que cicatrizou. É o que mantém o preto vivo."},
+ {id:"p13",n:"Bálsamo realce de cor 60g",b:"Hustle Butter",a:"client",c:"color",p:119,o:139,r:4.8,rv:203,e:"✨",d:"Para tatuagem já curada que perdeu brilho. Manteiga de karité e óleos vegetais."},
+ {id:"p14",n:"Protetor solar FPS 70 tattoo",b:"Anthelios",a:"client",c:"sunscreen",p:89.9,r:4.9,rv:467,e:"☀️",d:"Sol é o que mais desbota tatuagem. FPS 70, resistente à água, sem óleo."},
+ {id:"p15",n:"Kit aftercare completo",b:"Ink Creators",a:"client",c:"kits",p:139,o:169,r:4.9,rv:73,e:"📦",bg:"Kit",d:"Filme, pomada e hidratante na quantidade certa para uma tatuagem média."},
+ {id:"p16",n:"Print fineline botânico A3",b:"Marina Vieira",a:"art",c:"prints",p:89,r:4.9,rv:41,e:"🖼",d:"Impressão em papel algodão 300g, assinada. Tiragem de 50, numerada."},
+ {id:"p17",n:"Quadro blackwork ornamental 40x60",b:"Caio Lobo",a:"art",c:"frames",p:349,r:4.8,rv:19,e:"🏞",d:"Original em nanquim sobre papel, com moldura de madeira maciça. Peça única."},
+ {id:"p18",n:"Estampa camiseta old school",b:"Studio Renan",a:"art",c:"stamps",p:119,r:4.6,rv:88,e:"👕",d:"Serigrafia manual em algodão pesado. Do P ao GG, preto ou off-white."},
+ {id:"p19",n:"Cartela de adesivos flash",b:"Ana Petrova",a:"art",c:"stickers",p:29.9,r:4.7,rv:214,e:"🏷",d:"Vinte flashes em vinil resistente à água. Do mesmo caderno que vira tatuagem."},
+ {id:"p20",n:"Luminária traço minimalista",b:"Ink Creators",a:"art",c:"decor",p:229,r:4.5,rv:33,e:"💡",d:"Recorte em chapa de aço com luz indireta. Projeto do estúdio, feito sob encomenda."}
 ];
 var EVENTS=[
  {id:"e1",n:"Tattoo Week São Paulo",t:"Convenção",city:"São Paulo, SP",cost:120,d:"12–14 jul",lat:-23.5631,lng:-46.6544,x:38,y:44},
@@ -3090,17 +3103,25 @@ function listaLoja(){
  h+='<div class="vitrine'+(lista?" lista":"")+'">';
  l.slice(0,ate).forEach(function(p){
   var i=S.caro["sh"+p.id]||0;
-  h+='<article class="prod">';
-  h+='<div class="prodimg">';
-  h+='<div class="vazio" style="font-size:'+(lista?"30px":"52px")+'">'+[p.e,"📸","🔎"][i]+'</div>';
-  if(i>0)h+='<button class="nav l" onclick="caro(\'sh'+p.id+'\',-1,3)">‹</button>';
-  if(i<2)h+='<button class="nav r" onclick="caro(\'sh'+p.id+'\',1,3)">›</button>';
+  /* Mesmo componente do feed: `post` traz a foto com carrossel, as
+     setas, os pips e o hover; `prod` acrescenta só o que a grade
+     regular exige. Duas classes em vez de dois componentes. */
+  h+='<article class="post prod">';
+  h+='<div class="postimg">';
+  /* Três fotos por produto, como o portfólio tem várias do mesmo
+     trabalho: quem compra quer ver a embalagem, o conteúdo e a
+     escala. */
+  for(var k=0;k<3;k++)
+   h+='<div class="sl '+(k===i?"on":"")+'" style="background-image:'+tex(p.n.length+k*2)+'"><span class="emj">'+[p.e,"📸","🔎"][k]+'</span></div>';
+  if(p.bg)h+='<span class="tagtl">'+p.bg+'</span>';
+  if(i>0)h+='<button class="nav l" aria-label="Foto anterior" onclick="caro(\'sh'+p.id+'\',-1,3)">‹</button>';
+  if(i<2)h+='<button class="nav r" aria-label="Próxima foto" onclick="caro(\'sh'+p.id+'\',1,3)">›</button>';
   h+='<div class="pips"><i class="'+(i===0?"on":"")+'"></i><i class="'+(i===1?"on":"")+'"></i><i class="'+(i===2?"on":"")+'"></i></div>';
   h+='</div>';
   h+='<div class="prodinfo"><div class="prodtxt">';
-  if(p.bg)h+='<span class="badge acc">'+p.bg+'</span>';
-  h+='<div class="prodnome"'+(p.bg?' style="margin-top:var(--e1)"':'')+'>'+p.n+'</div>';
-  h+='<div class="prodmarca">'+p.b+'</div>';
+  h+='<div class="prodnome">'+p.n+'</div>';
+  h+='<div class="proddesc">'+p.d+'</div>';
+  h+='<div class="ppe">'+p.b+'</div>';
   h+='<div class="prodnota">'+stars(p.r)+' '+p.r+' <span class="muted">('+p.rv+')</span></div>';
   h+='</div>';
   h+='<div class="prodpe"><div class="prodpreco">'+money(p.p)+(p.o?'<s>'+money(p.o)+'</s>':'')+'</div>';

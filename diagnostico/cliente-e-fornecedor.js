@@ -228,7 +228,7 @@ chk("e nada se perde ao trocar de vista", faltando.length === 0,
 
    Some o que é controle — seta e pip, que a 88px cobrem metade da
    foto. Não some o que é informação. */
-var CARREGAM_TEXTO = ["prodnome", "prodmarca", "prodnota", "prodpreco", "prodtxt", "badge"];
+var CARREGAM_TEXTO = ["prodnome", "proddesc", "ppe", "prodnota", "prodpreco", "prodtxt", "badge"];
 var escondidos = (css.match(/\.vitrine\.lista[^{]*\{[^}]*display:none[^}]*\}/g) || [])
   .join(" ");
 var textoEscondido = CARREGAM_TEXTO.filter(function (c) {
@@ -246,6 +246,69 @@ chk("a escolha da vista sobrevive à recarga",
     /"shopVista"/.test(code),
     "a pessoa escolhe lista, recarrega e volta para grade");
 S.shopVista = "grade"; g.e("render()");
+
+/* ── UM COMPONENTE, NÃO UMA CÓPIA PARECIDA ─────────────────────────
+   "Mais consistência com o componente dos cards do feed" não se cumpre
+   escrevendo CSS parecido: cópia parecida envelhece sozinha, e daqui a
+   três rodadas as duas telas divergem sem ninguém decidir nada.
+
+   O card do produto carrega as DUAS classes — post e prod — e herda de
+   verdade a foto, o carrossel, as setas e os pips. */
+chk("o card da loja é o card do feed, com um acréscimo",
+    /class="post prod"/.test(tGrade),
+    "a loja voltou a ter um card próprio, parecido e separado");
+
+/* A armadilha desta herança: a seta só aparece por .post:hover. Se o
+   card perder a classe post, o botão continua no HTML e nunca aparece
+   na tela — o defeito que já apareceu aqui três vezes, existir sem
+   estar ao alcance. Por isso o teste lê a REGRA e confere se a classe
+   que ela exige está no card. */
+var seletorSeta = (css.match(/([.\w\s:>-]+)\.postimg \.nav\{opacity:1\}/) ||
+                   css.match(/([.\w\s:>-]+) \.postimg \.nav\{opacity:1\}/) || [])[1] || "";
+chk("a seta do carrossel tem regra que a revela", seletorSeta.length > 0,
+    "nenhuma regra liga a seta: ela existe e nunca aparece");
+var classeExigida = (seletorSeta.match(/\.([a-z]+):hover/) || [])[1];
+chk("e a classe que a revela está no card da loja",
+    !!classeExigida && new RegExp('class="[^"]*\\b' + classeExigida + '\\b').test(tGrade),
+    "a regra pede ." + classeExigida + " e o card da loja não tem — seta invisível");
+
+/* Descrição: pedido dela, e a coisa que o feed resolve no hover.
+   Aqui não pode ser hover — no toque ele não existe e quem compra
+   decide pelo que a coisa faz. */
+var semDesc = g.e("PRODUCTS").filter(function (x) { return !x.d || x.d.length < 20 });
+chk("todo produto tem descrição escrita", semDesc.length === 0,
+    semDesc.length + " sem descrição: " + semDesc.map(function (x) { return x.n }).slice(0, 4).join(", "));
+chk("e ela aparece no card", /class="proddesc"/.test(tGrade));
+chk("visível, não escondida atrás do mouse",
+    !/\.proddesc\{[^}]*max-height:0/.test(css) && !/pehover[^{]*proddesc/.test(css),
+    "descrição no hover: no telefone ela nunca aparece");
+
+/* Carrossel: três slides, e trocar de slide troca de verdade. Contar
+   que existem três não diz nada — o defeito real é a seta que não
+   move nada. */
+var slides = (tGrade.split('class="post prod"')[1] || "").split("</article>")[0];
+chk("três fotos por produto", (slides.match(/class="sl /g) || []).length === 3);
+var qualLiga = function (t) {
+  var c = (t.split('class="post prod"')[1] || "").split("</article>")[0];
+  return (c.match(/class="sl (on)?"/g) || []).indexOf('class="sl on"');
+};
+/* Primeira versão deste teste: eu mexia em S.caro na mão e conferia
+   que o slide ligado mudava. Sabotei o onclick da seta para não fazer
+   nada e o teste PASSOU — porque ele nunca tocou na seta.
+
+   É a mesma armadilha de sempre, na sua forma mais pura: medir o
+   efeito quando o defeito está no gatilho. Agora ele extrai o onclick
+   do botão renderizado e executa exatamente o que o dedo executaria. */
+var antesC = qualLiga(tGrade);
+var cardUm = (tGrade.split('class="post prod"')[1] || "").split("</article>")[0];
+var cliqueSeta = (cardUm.match(/class="nav r"[^>]*onclick="([^"]+)"/) || [])[1];
+chk("a seta seguinte tem ação", !!cliqueSeta,
+    "o botão do carrossel existe sem nada acontecendo ao clicar");
+if (cliqueSeta) { try { g.e(cliqueSeta.replace(/&#39;|&apos;/g, "'")) } catch (e) {} }
+g.e("render()");
+chk("e clicar nela troca a foto", qualLiga(tela()) !== antesC,
+    "a seta está lá, o dedo alcança, e nada muda");
+g.e("S.caro={}"); g.e("render()"); tGrade = tela();
 
 /* Lote que não fecha fileira parece catálogo acabando. Doze fecha em
    duas, três e quatro colunas — três, o número antigo, não fechava

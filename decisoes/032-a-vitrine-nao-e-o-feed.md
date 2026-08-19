@@ -169,3 +169,87 @@ lista não virar depósito.
 10. O cálculo do relógio morre junto → acusou três vezes.
 
 **11 roteiros, 0 falhas. 702 frases, 6 saídas novas com motivo escrito.**
+
+---
+
+## Terceira parte: um componente, não uma cópia parecida
+
+> "os cards das lojas estão ruins, garanta carrossel de imagens +
+> descrição, garanta mais consistência com o componente dos cards do
+> feed"
+
+### Consistência não se cumpre escrevendo CSS parecido
+
+Essa foi a parte que eu tinha feito errado. O card da loja era um
+componente **próprio**, com aparência parecida com a do feed: borda,
+fundo de cartão, foto sem carrossel de verdade, um emoji trocando de
+lugar.
+
+Cópia parecida envelhece sozinha. Daqui a três rodadas as duas telas
+divergem sem ninguém ter decidido nada — e a divergência aparece como
+"o site está inconsistente", que é a frase que ninguém consegue
+depurar.
+
+Agora o card da loja **carrega as duas classes**:
+
+```html
+<article class="post prod">
+```
+
+`post` traz a foto, o carrossel, as setas, os pips e o hover. `prod`
+acrescenta só o que a grade regular exige: altura de célula inteira e
+nenhuma margem de masonry. A borda e o fundo de cartão saíram — o feed
+não tem, e agora a loja também não.
+
+### Carrossel de verdade
+
+Três fotos por produto, montadas como o feed monta: todos os slides
+presentes, só o ativo visível. Setas, pips e a etiqueta de destaque —
+"Mais vendido", "Oferta" — que saiu do meio do texto e virou tarja sobre
+a foto, como no feed.
+
+### Descrição, e por que não no hover
+
+Os vinte produtos ganharam uma frase que diz o que a coisa faz e para
+quem: *"Traço fino e contínuo, para contorno. Ponta de 0,30mm,
+esterilizado, uso único."*
+
+O feed resolve as linhas extras com hover. Aqui não pode: **no toque o
+hover não existe**, e quem compra decide pelo que a coisa faz. A
+descrição fica visível, cortada em duas linhas.
+
+### A armadilha que a herança criou
+
+A seta do carrossel só aparece por `.post:hover .postimg .nav`. Se o
+card perder a classe `post`, o botão continua no HTML e **nunca aparece
+na tela** — o defeito que já apareceu neste projeto três vezes: existir
+sem estar ao alcance.
+
+O teste não confere que a seta existe. Ele lê a **regra** de CSS que a
+revela, extrai a classe que ela exige, e confere se essa classe está no
+card da loja. Sabotado tirando `post` do card — acusou: *"a regra pede
+.post e o card da loja não tem — seta invisível"*.
+
+### E o teste do carrossel nasceu errado outra vez
+
+Primeira versão: eu mudava `S.caro` na mão e conferia que o slide ligado
+mudava. **Sabotei o `onclick` da seta para não fazer nada e o teste
+passou** — porque ele nunca tocou na seta.
+
+É a mesma armadilha de sempre, na forma mais pura: medir o efeito quando
+o defeito está no gatilho. Um botão que não faz nada é indistinguível de
+um botão que funciona, se o teste chama a função por trás dele.
+
+Agora ele extrai o `onclick` do botão renderizado e executa exatamente o
+que o dedo executaria.
+
+### Sabotagens desta parte
+
+11. Card sem a classe `post` → acusou quatro vezes.
+12. Um produto sem descrição → acusou pelo nome.
+13. Descrição escondida atrás do mouse → acusou.
+14. Seta com `onclick` morto → acusou (depois de o teste ser
+    consertado).
+15. Uma foto em vez de três → acusou.
+
+**11 roteiros, 0 falhas.**
