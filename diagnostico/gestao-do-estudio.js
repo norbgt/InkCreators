@@ -267,22 +267,36 @@ chk('conectada: dá para desconectar',/Desconectar/.test(ta2));
 /* O Google mora colado ao calendário: é ele que enche esse calendário
    com o que acontece fora daqui. */
 var tm=ir('studio-schedule','ag','mes');
-chk('o mês avisa que está sincronizado',/Sincronizada com o Google/.test(tm));
-chk('e o Google está na mesma seção do calendário',/class="calmes"/.test(tm)&&/Google Agenda/.test(tm),
-    'a conexão voltou para o fim da fila, longe do que ela alimenta');
-/* Não basta estarem na mesma seção: tem de estar perto. Longe do
-   calendário que ela alimenta, a conexão parece opcional. */
-var distGoogle = tm.indexOf('Google Agenda') - tm.indexOf('class="calmes"');
-chk('e logo depois dele, não no fim da página',
-    distGoogle > 0 && distGoogle < 4500, distGoogle + ' caracteres de distância');
+/* A seção deixou de ser calendário. O que ela mostra agora é o que
+   veio da agenda de fora — que é a razão de a conexão existir. */
+chk('mostra o que veio da agenda de fora',/O que veio da sua agenda/.test(tm));
+chk('com os compromissos, um a um',(tm.match(/class="lrow"/g)||[]).length>=4);
+chk('e dá para puxar sob demanda',/Puxar agora/.test(tm),
+    'sem isso, quem marcou algo no Google agora mesmo espera o relógio');
+/* Bloquear é decisão dele, não do Google: aniversário não precisa
+   fechar a agenda, voo precisa. */
+chk('cada compromisso pode bloquear ou não',/alternarBloqueio\(/.test(tm)&&/bloqueia/.test(tm));
+chk('e o título nunca vaza para quem marca',
+    /O título do compromisso nunca aparece para ninguém/.test(tm));
+chk('o Google vem primeiro, porque tudo depende dele',
+    tm.indexOf('Google Agenda') < tm.indexOf('O que veio da sua agenda'),
+    'a conexão ficou depois do que ela alimenta');
+/* O que sobrou do calendário: uma faixa de 14 dias que responde
+   "onde ainda cabe alguém". A grade de 28 células pedia que a pessoa
+   procurasse a data para depois interpretar a cor; aqui a leitura é a
+   altura da barra. */
+chk('sem grade de mês',!/class="calmes"/.test(tm),
+    'voltou o calendário de 28 células que ninguém abre a agenda para ver');
+chk('a faixa tem os próximos 14 dias',(tm.match(/class="qd/g)||[]).length===14,
+    (tm.match(/class="qd/g)||[]).length+' colunas');
+chk('e diz quantos dias estão livres',/dias sem nada marcado/.test(tm));
 /* A ordem é a decisão desta rodada: ninguém abre a agenda para olhar um
    mês em branco — abre para saber quem vem. */
-var tsec = ir('studio-schedule');
-chk('a lista vem antes do calendário na página',
-    tsec.indexOf('Próximas sessões') < tsec.indexOf('class="calmes"'),
-    'o calendário voltou para cima e a lista virou coisa de rolar');
-chk('e o calendário é pequeno',/\.calmes\{[^}]*max-width:330px/.test(css),
-    'sem largura máxima, ele volta a ocupar a tela toda');
+/* A ordem no toggle: quem vem primeiro, o resto depois. */
+var ordemAg = g.e("SECOES_DA_GESTAO['studio-schedule'].map(function(x){return x[1]}).join(',')");
+chk('próximas sessões é a primeira peça da agenda',ordemAg.indexOf('sessoes')===0,ordemAg);
+chk('a faixa é baixa, não é bloco',/\.quinzena\{[^}]*height:72px/.test(css),
+    'a faixa cresceu e virou calendário de novo');
 /* Conexão com serviço de terceiro falha. Protótipo que só acerta dá um
    teste otimista de graça. */
 g.e("S.agendaGoogle=false;S.googleSimularErro=true");
