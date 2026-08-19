@@ -4528,9 +4528,13 @@ function vMe(sub){
      trocado. Cinco dimensões, na mesma ordem, com as mesmas palavras. */
   var rc=resumoDaTrajetoria(l,"cliente");
   h+=faixaDaTrajetoria(rc,"cliente");
-  h+='<div class="reciproco" style="margin-top:var(--e3)">';
-  h+='<b>Cada sessão aqui existe dos dois lados.</b> A mesma que virou um carimbo seu entrou na trajetória de quem tatuou você — ele vê o que fez, você vê onde esteve. É um check-in só, lido de duas direções.';
-  h+='</div>';
+  /* O aviso de reciprocidade saiu daqui. No passaporte a pessoa está
+     olhando o próprio corpo — explicar o que o tatuador vê do outro
+     lado é assunto dele, não dela, e ocupava o lugar de leitura mais
+     nobre da tela.
+
+     Do lado do tatuador a mesma frase fica, e ali ela serve: é o que
+     explica de onde vem o número que ele mostra. */
   h+='<div class="tiny muted" style="margin-top:var(--e3)">'+rc.gente+' '+rc.rotuloGente+' diferentes.</div>';
 
   /* As sessões vêm primeiro: são o que a pessoa tem, e o que ela veio

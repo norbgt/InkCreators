@@ -167,13 +167,21 @@ chk("e na mesma ordem",
    seria pior que não mostrar. */
 chk("horas sob agulha só onde há relógio",
     dc.indexOf("Horas sob agulha") >= 0 && dt.indexOf("Horas sob agulha") < 0);
-/* A frase que diz que são o mesmo fato. Sem ela, cada tela parece um
-   recurso solto e o produto perde o que tem de mais seu. */
-chk("os dois lados dizem que são o mesmo registro",
-    /class="reciproco"/.test(tPass) && /class="reciproco"/.test(tTraj));
-chk("e a frase nomeia o outro lado",
-    /passaporte de quem você tatuou/.test(tTraj) && /trajetória de quem tatuou você/.test(tPass),
-    "a reciprocidade está afirmada sem dizer quem é o outro");
+/* A frase de reciprocidade fica só do lado do tatuador, e ali serve:
+   é o que explica de onde vem o número que ele mostra.
+
+   No passaporte ela saiu. A pessoa está olhando o próprio corpo —
+   explicar o que o outro vê é assunto dele, não dela, e a frase
+   ocupava o lugar de leitura mais nobre da tela.
+
+   A reciprocidade continua garantida onde importa: na estrutura, pelas
+   verificações acima, não por um aviso. */
+chk("a trajetória diz de onde vem o número",
+    /class="reciproco"/.test(tTraj) && /passaporte de quem você tatuou/.test(tTraj),
+    "sem isso, os números do tatuador parecem contagem interna");
+chk("e o passaporte não explica o lado do outro",
+    !/class="reciproco"/.test(tPass),
+    "voltou o aviso que fala do tatuador na tela do corpo dela");
 /* Uma faixa por tela: duas seria a repetição que este projeto passou a
    semana tirando — e foi o que aconteceu na primeira tentativa. */
 chk("uma faixa de números por tela, não duas",
