@@ -92,3 +92,47 @@ escolha ali que não dá para desfazer sem bagunçar.
 4. Calendário sem largura máxima → acusou.
 
 **10 roteiros, 0 falhas. 711 frases, nenhuma perdida.**
+
+---
+
+## Correção: o QR abria uma parede, e abria no lugar errado
+
+> "retire esse elemento gigante, ele é acessado a partir da seção que já
+> está abaixo 'quem vem por aí'"
+
+Duas coisas erradas, e a segunda eu não tinha visto.
+
+**Ele nascia acima da lista.** Eu disse na decisão anterior que o
+check-in apareceria "embaixo da lista que o gerou" — e não aparecia. O
+bloco do check-in vem antes do bloco da agenda dentro de `vStudio()`, e
+ordem no código é ordem na tela. Quem gerava o código via uma parede
+surgir no topo e **perdia de vista a sessão que a tinha gerado** — o
+oposto exato do que a mudança prometia.
+
+Escrevi a intenção certa e verifiquei a coisa errada. Os testes
+confirmavam que o QR aparecia; nenhum perguntava *onde*.
+
+**Ele era um cartão de tela inteira.** Centralizado, com QR de 180px.
+Numa tela de telefone isso é a página toda.
+
+## O que ficou
+
+`cartaoDoCheckin()` renderiza dentro do laço das sessões, logo abaixo da
+linha que o gerou: recuado 55px, com traço de acento à esquerda, QR de
+132px. Lê-se como desdobramento daquela sessão, não como bloco novo — o
+vínculo entre a sessão e o código deixa de precisar de explicação porque
+está na posição.
+
+O botão da linha aberta virou **"Fechar o QR"**. "Ver o QR" perdeu o
+sentido: ele já está à vista.
+
+## Três guardas novas, todas sabotadas
+
+- **onde ele abre** — sabotei devolvendo o bloco para o topo da seção:
+  acusou.
+- **sem cartão de tela inteira** — procura o `max-width:520px` que
+  criava a parede.
+- **o tamanho do QR** — 132px, não 180px. Esta eu só escrevi porque
+  sabotei e nada reclamou: o tamanho é justamente o que separa "abre na
+  linha" de "abre uma parede", e sem medi-lo alguém devolve 180px e a
+  mudança se desfaz em silêncio.

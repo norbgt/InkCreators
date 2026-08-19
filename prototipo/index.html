@@ -645,6 +645,17 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 /* ── O CALENDÁRIO DO MÊS, PEQUENO ─────────────────────────────────
    Ele diz densidade, não conteúdo: quantos dias da semana estão
    ocupados. Quem vem, e quando, está na lista acima. */
+/* ── O CHECK-IN DENTRO DA LINHA ───────────────────────────────────
+   Recuado e com traço de acento à esquerda: lê-se como desdobramento
+   daquela sessão, não como bloco novo. O QR em 132px é o que basta
+   para escanear a um palmo — 180px eram parede. */
+.ckin{margin:0 0 11px 55px;padding:13px 15px;border-radius:var(--r-sm);
+  background:var(--muted);border-left:2px solid var(--accent)}
+.ckin .qrcx{margin:11px 0;display:inline-block;background:#fff;padding:9px;border-radius:var(--r-sm)}
+.ckin .codigo{font-size:clamp(20px,3vw,26px)}
+.ckin .btn{margin-top:11px}
+@media(max-width:460px){.ckin{margin-left:0}}
+
 .calmes{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:11px;max-width:330px}
 .caldia{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   border:var(--hair) solid var(--rule);border-radius:var(--r-sm);
@@ -1890,6 +1901,54 @@ function qrFalso(codigo,lado){
  }
  h+=ancora(0,0)+ancora(n-7,0)+ancora(0,n-7);
  return h+'</svg>';
+}
+
+/* ═══ O CHECK-IN ABRE NA LINHA DA SESSÃO ═══════════════════════════
+   Era um cartão de tela inteira, centralizado, com QR de 180px — e ele
+   nascia ACIMA da lista, porque o bloco vinha antes no código. Quem
+   gerava o código via uma parede aparecer no topo e perdia de vista a
+   sessão que a tinha gerado.
+
+   Agora ele abre embaixo da própria linha, recuado, com o QR no
+   tamanho de escanear a um palmo de distância. O vínculo entre a
+   sessão e o código deixa de precisar de explicação: está na posição. */
+function cartaoDoCheckin(ck){
+ var h='<div class="ckin">';
+  h+='<div class="row" style="gap:7px"><span class="b small">'+ck.sessao.c+'</span>';
+  h+=ck.confirmado?'<span class="badge ok">✓ confirmou às '+(ck.quando||"")+'</span>':'<span class="badge warn">esperando escanear</span>';
+  h+='</div>';
+  h+='<div class="tiny muted">'+ck.sessao.area+' · Studio Marina · São Paulo</div>';
+
+  if(!ck.confirmado){
+   h+='<div class="qrcx">'+qrFalso(ck.codigo,132)+'</div>';
+   h+='<div class="tiny muted">ou dite o código</div>';
+   h+='<div class="codigo">'+ck.codigo+'</div>';
+   h+='<div class="tiny muted" style="margin-top:9px">Mostre a tela para a pessoa. Câmera ruim acontece — por isso o código serve para ser ditado.</div>';
+   h+='<div class="sep"></div>';
+   h+='<div class="tiny muted">Enquanto ela não confirmar, nada é registrado. O check-in exige os dois.</div>';
+   h+='<button class="btn blk" style="margin-top:11px" onclick="fecharCheckin()">Cancelar</button>';
+  } else if(!ck.inicio){
+   h+='<div style="font-size:34px;margin-top:14px">✅</div>';
+   h+='<div class="b" style="margin-top:5px">Vinculado</div>';
+   h+='<div class="small muted" style="margin-top:3px">Agora o relógio. Ele é o que transforma esta sessão em dado de desempenho — quanto tempo este estilo leva com você, de verdade.</div>';
+   h+='<button class="btn primary blk" style="margin-top:13px" onclick="iniciarSessaoCheckin()">Iniciar a sessão</button>';
+  } else if(!ck.fim){
+   h+='<div class="relogio">em andamento</div>';
+   h+='<div class="small muted">Começou às '+agoraHm()+'. Pode fechar a tela: o relógio continua.</div>';
+   h+='<button class="btn primary blk" style="margin-top:13px" onclick="S.checkin.saida=\'qr\';encerrarSessaoCheckin()">Encerrar a sessão</button>';
+  } else {
+   h+='<div class="relogio">'+horasBonitas(duracaoCheckin())+'</div>';
+   h+='<div class="small muted">'+rotuloDaSaida()+'</div>';
+   h+='<div class="tiny muted" style="margin-top:5px">Registrado nos dois lados: no passaporte de '+ck.sessao.c+' e no seu histórico.</div>';
+   if(duracaoEhMedida())
+    h+='<div class="avisook" style="margin-top:12px;text-align:left">A duração entra em <b>Desempenho</b>. Com algumas sessões, a média por estilo passa a valer mais que a sua estimativa.</div>';
+   else
+    h+='<div class="avisoerro" style="margin-top:12px;text-align:left">Esta não entra em <b>Desempenho</b>: o fechamento foi por distância, e o tempo é estimativa. Misturar estimado com medido estragaria a média que você usa para orçar.</div>';
+   h+='<div class="tiny muted" style="margin-top:10px">'+ck.sessao.c+' recebe agora as perguntas do checkout. Higiene e orientação sobre os cuidados são o que decide o seu selo <b>Recomendado</b>.</div>';
+   h+='<button class="btn blk" style="margin-top:11px" onclick="fecharCheckin()">Concluir</button>';
+  }
+  h+='</div>';
+ return h+'</div>';
 }
 
 /* O código nasce do agendamento, não de um botão genérico: cada sessão
@@ -5213,9 +5272,9 @@ function vStudio(sub){
     acontece agora". Os dois blocos continuam inteiros. */
  /* Dentro de Próximas sessões, logo abaixo da lista: o check-in nasce
     de uma sessão e não tem por que morar longe dela. */
- if((sub==="studio-schedule"&&subAba("ag","sessoes")==="sessoes"&&S.checkin.aberto)||
-    (sub==="studio-reputacao"&&subAba("rep","avaliacoes")==="desempenho")){
-  if(sub==="studio-reputacao"){
+ /* Só o desempenho por estilo continua aqui. O check-in virou um bloco
+    que abre dentro da linha da sessão — ver cartaoDoCheckin(). */
+ if(sub==="studio-reputacao"&&subAba("rep","avaliacoes")==="desempenho"){
    var porEstilo=desempenhoPorEstilo();
    h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Quanto tempo leva, por estilo</span>'+tg("novo")+'</div>';
    h+='<div class="tiny muted" style="margin-top:3px">Medido pelo relógio do check-in, não pela sua lembrança. É o número que faz o orçamento parar de ser chute.</div>';
@@ -5237,65 +5296,6 @@ function vStudio(sub){
    h+='</div></div>';
    return h+'</div></main>';
   }
-
-  var ck=S.checkin;
-  if(!ck.aberto){
-   h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Abrir o check-in de uma sessão</span>'+tg("novo")+'</div>';
-   h+='<div class="tiny muted" style="margin-top:3px">Abra quando a pessoa sentar. Ela escaneia, e a sessão fica registrada para os dois — o passaporte dela e a sua reputação.</div>';
-   /* Empilhada na agenda, esta lista seria a segunda cópia das mesmas
-      sessões, a uma rolagem de distância. O botão de gerar o QR mora
-      na lista de cima, onde a sessão já está. */
-   if(!montandoSecoes){
-    h+='<div class="lista" style="margin-top:10px">';
-    BOOK.forEach(function(b,i){
-     h+='<button class="item" onclick="abrirCheckin('+i+')"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div>';
-     h+='<div class="itemtxt"><div class="b small">'+b.c+'</div><div class="tiny muted">'+b.area+' · '+b.h+'h previstas</div></div>';
-     h+='<div class="itemfim"><span class="tiny muted">abrir check-in ›</span></div></button>';
-    });
-    h+='</div>';
-   } else {
-    h+='<div class="tiny muted" style="margin-top:9px">Cada sessão em <b>O mês</b>, aqui em cima, tem o seu botão de gerar o QR. O código nasce do agendamento — é ele que liga o QR a esta pessoa, neste dia.</div>';
-   }
-   h+='</div>';
-   return h+'</div></main>';
-  }
-
-  h+='<div class="card pad" style="margin-top:14px;max-width:520px;text-align:center">';
-  h+='<div class="row" style="justify-content:center;gap:7px"><span class="b">'+ck.sessao.c+'</span>';
-  h+=ck.confirmado?'<span class="badge ok">✓ confirmou às '+(ck.quando||"")+'</span>':'<span class="badge warn">esperando escanear</span>';
-  h+='</div>';
-  h+='<div class="tiny muted">'+ck.sessao.area+' · Studio Marina · São Paulo</div>';
-
-  if(!ck.confirmado){
-   h+='<div class="qrcx">'+qrFalso(ck.codigo,180)+'</div>';
-   h+='<div class="tiny muted">ou dite o código</div>';
-   h+='<div class="codigo">'+ck.codigo+'</div>';
-   h+='<div class="tiny muted" style="margin-top:9px">Mostre a tela para a pessoa. Câmera ruim acontece — por isso o código serve para ser ditado.</div>';
-   h+='<div class="sep"></div>';
-   h+='<div class="tiny muted">Enquanto ela não confirmar, nada é registrado. O check-in exige os dois.</div>';
-   h+='<button class="btn blk" style="margin-top:11px" onclick="fecharCheckin()">Cancelar</button>';
-  } else if(!ck.inicio){
-   h+='<div style="font-size:34px;margin-top:14px">✅</div>';
-   h+='<div class="b" style="margin-top:5px">Vinculado</div>';
-   h+='<div class="small muted" style="margin-top:3px">Agora o relógio. Ele é o que transforma esta sessão em dado de desempenho — quanto tempo este estilo leva com você, de verdade.</div>';
-   h+='<button class="btn primary blk" style="margin-top:13px" onclick="iniciarSessaoCheckin()">Iniciar a sessão</button>';
-  } else if(!ck.fim){
-   h+='<div class="relogio">em andamento</div>';
-   h+='<div class="small muted">Começou às '+agoraHm()+'. Pode fechar a tela: o relógio continua.</div>';
-   h+='<button class="btn primary blk" style="margin-top:13px" onclick="S.checkin.saida=\'qr\';encerrarSessaoCheckin()">Encerrar a sessão</button>';
-  } else {
-   h+='<div class="relogio">'+horasBonitas(duracaoCheckin())+'</div>';
-   h+='<div class="small muted">'+rotuloDaSaida()+'</div>';
-   h+='<div class="tiny muted" style="margin-top:5px">Registrado nos dois lados: no passaporte de '+ck.sessao.c+' e no seu histórico.</div>';
-   if(duracaoEhMedida())
-    h+='<div class="avisook" style="margin-top:12px;text-align:left">A duração entra em <b>Desempenho</b>. Com algumas sessões, a média por estilo passa a valer mais que a sua estimativa.</div>';
-   else
-    h+='<div class="avisoerro" style="margin-top:12px;text-align:left">Esta não entra em <b>Desempenho</b>: o fechamento foi por distância, e o tempo é estimativa. Misturar estimado com medido estragaria a média que você usa para orçar.</div>';
-   h+='<div class="tiny muted" style="margin-top:10px">'+ck.sessao.c+' recebe agora as perguntas do checkout. Higiene e orientação sobre os cuidados são o que decide o seu selo <b>Recomendado</b>.</div>';
-   h+='<button class="btn blk" style="margin-top:11px" onclick="fecharCheckin()">Concluir</button>';
-  }
-  h+='</div>';
- }
 
  /* A agenda tem três recortes agora, e o do meio é o check-in — que
     tem bloco próprio, mais abaixo. Sem esta saída, a seção de check-in
@@ -5338,9 +5338,11 @@ function vStudio(sub){
    /* "Detalhes" era um botão sem onclick: não fazia nada desde que
       nasceu, e estava roubando a largura do único botão que faz. */
    h+=aberta
-     ? '<button class="btn sm acaoLinha" onclick="irSecao(\'studio-schedule\',\'ag\',\'sessoes\')">Ver o QR ›</button>'
+     ? '<button class="btn sm acaoLinha" onclick="fecharCheckin()">Fechar o QR</button>'
      : '<button class="btn sm primary acaoLinha" onclick="abrirCheckin('+i+')">Gerar QR</button>';
    h+='</div>';
+   /* Embaixo da linha que o gerou, e não no topo da página. */
+   if(aberta)h+=cartaoDoCheckin(S.checkin);
   });
   h+='</div></div>';
   }

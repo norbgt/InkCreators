@@ -194,9 +194,24 @@ chk("abrir outra substitui a anterior, não soma",
 /* A linha da sessão aberta muda de botão: gerar de novo trocaria o
    código que a pessoa já está tentando escanear. */
 var tag2 = ir("studio-schedule", "ag", "mes");
-chk("a sessão com QR aberto oferece ver, não gerar de novo",
-    /Ver o QR/.test(tag2) && (tag2.match(/Gerar QR/g) || []).length < (tag.match(/Gerar QR/g) || []).length,
+/* O QR abre embaixo da própria linha, então "ver" deixou de fazer
+   sentido: já está à vista. O que a linha aberta oferece é fechar —
+   e o que ela NÃO pode oferecer é gerar de novo, porque trocaria o
+   código que a pessoa está tentando escanear. */
+chk("a sessão com QR aberto oferece fechar, não gerar de novo",
+    /Fechar o QR/.test(tag2) && (tag2.match(/Gerar QR/g) || []).length < (tag.match(/Gerar QR/g) || []).length,
     "dá para gerar um código novo por cima do que já está na tela");
+chk("e o QR abre dentro da linha, não no topo da página",
+    tag2.indexOf('class="ckin"') > tag2.indexOf("Quem vem por aí"),
+    "o bloco do check-in voltou a nascer acima da lista que o gerou");
+chk("sem cartão de tela inteira", !/max-width:520px;text-align:center/.test(tag2),
+    "voltou a parede centralizada");
+/* O tamanho do QR é o que separa "abre na linha" de "abre uma parede".
+   Sem esta medida, alguém devolve 180px e a mudança se desfaz sem que
+   nenhum roteiro reclame — foi o que descobri sabotando. */
+chk("e o QR no tamanho de escanear a um palmo, não de parede",
+    /qrFalso\(ck\.codigo,13[0-9]\)/.test(code),
+    "o QR voltou ao tamanho que empurrava a sessão para fora da tela");
 
 /* Os testes abaixo pressupõem que não há check-in aberto. Sem fechar,
    eles falhariam pelo estado que ESTE bloco deixou — e não pelo que
