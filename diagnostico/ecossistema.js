@@ -110,7 +110,9 @@ var tc=tela();
 chk('a aba existe no menu',/studio-caixa/.test(tc));
 chk('mostra entrou, saiu, sobrou',/Entrou em julho/.test(tc)&&/Saiu/.test(tc)&&/Sobrou/.test(tc));
 chk('separa de onde veio',/De onde veio/.test(tc)&&/Sessões/.test(tc)&&/Arte/.test(tc));
-chk('resumo mostra os últimos lançamentos',/Últimos lançamentos/.test(tc));
+/* A prévia de quatro linhas saiu: com as seções empilhadas, a tabela
+   completa fica logo abaixo do resumo, na mesma página. */
+chk('a lista completa está na mesma página do resumo',/Lançar entrada/.test(tc)&&/De onde veio/.test(tc));
 S.sub={cx:'lancamentos'};g.e("render()");var tcl=tela();
 chk('a sub-aba lista todos',/<table class="t"/.test(tcl));
 chk('permite lançar à mão',/Lançar entrada/.test(tcl)&&/Lançar saída/.test(tcl));

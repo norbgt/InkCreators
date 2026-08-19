@@ -31,43 +31,52 @@ S.session='artist';S.modo='demo';
 function ir(rota,chave,valor){S.route=rota;if(chave){S.sub=S.sub||{};S.sub[chave]=valor}g.e("render()");return tela()}
 function segs(t){var m=t.match(/class="segmento">([\s\S]*?)<\/div>/);return m?(m[1].match(/class="seg /g)||[]).length:0}
 
-console.log('── CINCO ABAS, UM MECANISMO SÓ ──');
-/* Eram nove abas. Quatro pares mostravam a mesma coisa duas vezes, e
-   nove abas prometiam que o ofício tem nove assuntos — não tem.
-   Agora são cinco, agrupadas por momento do dia de quem tatua. */
-chk('exatamente cinco abas na barra',g.e("ST_NAV.length")===5,g.e("ST_NAV.length")+' abas');
-chk('e são estas',g.e("ST_NAV.map(function(x){return x[1]}).join('·')")==='Hoje·Orçamentos·Agenda·Dinheiro·Reputação',
+console.log('── SEIS ABAS E UMA FAIXA SÓ ──');
+/* Eram nove abas com até quatro sub-abas: dezoito lugares para clicar
+   e metade do conteúdo atrás do segundo clique. Agora cada aba é uma
+   página que rola, com as partes em sequência — num painel de gestão
+   rolar é mais barato que esconder, e comparar duas coisas exige
+   vê-las juntas, o que sub-aba impede por construção. */
+chk('exatamente seis abas na barra',g.e("ST_NAV.length")===6,g.e("ST_NAV.length")+' abas');
+chk('e são estas',
+    g.e("ST_NAV.map(function(x){return x[1]}).join('·')")==='Hoje·Orçamentos·Agenda·Dinheiro·Reputação·Cursos e eventos',
     g.e("ST_NAV.map(function(x){return x[1]}).join(' · ')"));
-/* Configuração não é superfície de trabalho e ocupava um dos nove
-   lugares como se fosse. Saiu da barra, mas não do produto. */
 chk('Meu perfil saiu da barra',!/studio-profile/.test(JSON.stringify(g.e("ST_NAV"))));
 chk('e continua alcançável',/class="conf /.test(ir('studio')) && ir('studio-profile').length>1500);
 
-[['studio','hoje','Hoje',2],['studio-quotes','orc','Orçamentos',2],
- ['studio-schedule','ag','Agenda',2],['studio-caixa','cx','Dinheiro',3],
- ['studio-reputacao','rep','Reputação',4]].forEach(function(c){
- var t=ir(c[0]);
- chk(c[2]+': tem sub-abas',/class="segmento"/.test(t),'nenhuma');
- chk(c[2]+': '+c[3]+' recortes',segs(t)===c[3],segs(t)+' opções');
+/* Cursos e eventos tem porta própria: quem entra ali vai criar um
+   curso, não conferir reputação. */
+chk('cursos e eventos é aba, não sub-aba',/studio-eventos/.test(JSON.stringify(g.e("ST_NAV"))));
+
+console.log('── NENHUMA SEGUNDA FAIXA DE ABAS ──');
+var ESPERADO={'studio':2,'studio-quotes':2,'studio-schedule':2,'studio-caixa':3,
+              'studio-reputacao':3,'studio-eventos':2};
+Object.keys(ESPERADO).forEach(function(rota){
+ var t=ir(rota);
+ var secoes=(t.match(/class="secgt"/g)||[]).length;
+ chk(rota+': '+ESPERADO[rota]+' seções na página',secoes===ESPERADO[rota],secoes+' seções');
+ chk(rota+': sem segunda faixa de abas',!/class="segmento"/.test(t),
+     'voltou a esconder metade do conteúdo atrás de um clique');
 });
-chk('todas usam a mesma função',(html.match(/abasInternas\(/g)||[]).length>=6,
-    (html.match(/abasInternas\(/g)||[]).length+' usos');
-chk('e o mesmo componente visual',/\.segmento\{/.test(css));
 
-/* Aba dentro de aba é o que transforma uma aba grande em depósito.
-   Onde o segundo nível é recorte da MESMA lista — responder/todas,
-   criei/participo — ele vira pastilha, que promete outra vista e não
-   outro destino. */
-chk('o segundo nível é pastilha, não aba',/function chipsInternos/.test(code));
-var tRep=ir('studio-reputacao','rep','avaliacoes');
-chk('avaliações filtra por pastilha',/class="chip /.test(tRep) && segs(tRep)===4,
-    'voltou a ser aba dentro de aba');
+/* A montagem recorta o corpo da página por marcador. Recorte por
+   marcador é frouxo, então ele devolve null em vez de lixo — e a
+   página inteira volta a ser renderizada do jeito antigo. */
+chk('a montagem em seções tem rede',/if\(i<0\)return null/.test(code));
+chk('e devolve S.sub como estava',/finally\{ montandoSecoes=false; S\.sub=JSON\.parse\(guardado\) \}/.test(code),
+    'sem restaurar, a aba visitada mudaria a próxima');
 
-/* Toda tela da arquitetura antiga tem de chegar em algum lugar: S.route
-   é gravado no localStorage e no endereço, e quem já usou o produto
-   tem rota velha guardada. Tela em branco parece produto quebrado. */
+/* A primeira seção não leva traço em cima: ela encosta na barra, e um
+   traço logo abaixo de outro traço não separa nada. */
+chk('a primeira seção não repete o traço da barra',/\.secg\.pri\{margin-top:0;padding-top:0;border-top:none\}/.test(css));
+
+/* Setenta pixels de nada entre a barra e o conteúdo: 11 do respiro da
+   aba, 24 do main e até 36 da margem do segmento, somados sem que
+   ninguém tivesse decidido somá-los. */
+chk('sem folga tripla entre a barra e o conteúdo',/\.envhead \+ main\{padding-top:14px\}/.test(css));
+
 console.log('── AS ROTAS ANTIGAS AINDA CHEGAM ──');
-[['studio-checkin','studio'],['studio-events','studio-reputacao'],
+[['studio-checkin','studio'],['studio-events','studio-eventos'],
  ['studio-reviews','studio-reputacao'],['studio-historico','studio-caixa']].forEach(function(par){
  var t=ir(par[0]);
  chk(par[0]+' → '+par[1],S.route===par[1] && t.length>1500,
@@ -189,11 +198,13 @@ console.log('── CAIXA ──');
 var tc=ir('studio-caixa','cx','resumo');
 chk('resumo: entrou, saiu, sobrou',/Entrou em julho/.test(tc));
 chk('resumo: de onde veio',/De onde veio/.test(tc));
-chk('resumo: só os últimos lançamentos',/Últimos lançamentos/.test(tc)&&/Ver todos/.test(tc));
-var tl=ir('studio-caixa','cx','lancamentos');
+/* A prévia dos últimos lançamentos existia para levar à outra
+   sub-aba. Numa página só, a tabela completa está logo abaixo. */
+chk('resumo não repete a lista que vem abaixo',!/Últimos lançamentos/.test(tc));
+var tl=ir('studio-caixa');
 chk('lançamentos: a tabela cheia',/<table class="t"/.test(tl));
 chk('lançamentos: dá para lançar',/Lançar entrada/.test(tl));
-chk('lançamentos: não repete o resumo',!/De onde veio/.test(tl));
+chk('resumo e lançamentos convivem na mesma página',/De onde veio/.test(tl)&&/Lançar entrada/.test(tl));
 
 console.log('── EVENTOS ──');
 var tev=ir('studio-events','ev','meus');

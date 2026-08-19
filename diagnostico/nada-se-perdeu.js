@@ -48,7 +48,11 @@ var SAIRAM_DE_PROPOSITO = [
   ["Costas — omoplata · Blackwork",
    "a visão geral deixou de mostrar os três orçamentos mais recentes e passou a mostrar os três que dependem de alguém. Este continua inteiro em 'Meus orçamentos', que é a lista completa a um clique — resumo que repete o começo da lista não é resumo"],
   ["Studio Caio · 2 respostas · há 3 semanas",
-   "mesma razão: saiu do resumo por não estar esperando ninguém, e continua na aba cheia de orçamentos"]
+   "mesma razão: saiu do resumo por não estar esperando ninguém, e continua na aba cheia de orçamentos"],
+  ["Últimos lançamentos",
+   "era uma prévia de quatro linhas com 'Ver todos' que levava à outra sub-aba. Com as seções empilhadas numa página só, a tabela completa está logo abaixo — a prévia viraria a mesma lista duas vezes, a uma rolagem de distância"],
+  ["Ver todos →",
+   "o atalho morria junto com a prévia dos lançamentos, pela mesma razão: ele existia para trocar de sub-aba, e não há mais sub-aba para trocar"]
 ];
 
 /* ── Um protótipo de mentira, mas completo ─────────────────────── */
@@ -118,7 +122,9 @@ var SUBABAS = [
 var MUDOU_DE_LUGAR = {
   "studio-checkin":   [["studio",           "hoje", "checkin"],
                        ["studio-reputacao", "rep",  "desempenho"]],
-  "studio-events":    [["studio-reputacao", "rep",  "eventos"]],
+  /* Cursos e eventos deixou de ser sub-aba de Reputação e ganhou porta
+     própria: quem entra ali vai criar um curso, não conferir reputação. */
+  "studio-events":    [["studio-eventos",   "ev",   "meus"]],
   "studio-reviews":   [["studio-reputacao", "rep",  "avaliacoes"]],
   /* Duas metades, duas abas: quem eu tatuei virou dinheiro por pessoa,
      onde eu tatuei virou trajetória. */

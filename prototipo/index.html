@@ -603,7 +603,21 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
   letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
 .stat .hint{font-size:var(--t-micro);color:var(--muted-foreground);margin-top:3px}
 
-.envhead{border-bottom:1px solid var(--border);background:var(--card)}
+.envhead{border-bottom:var(--hair) solid var(--border);background:var(--card)}
+/* Entre a barra de abas e o começo do conteúdo somavam-se três folgas
+   independentes: 11px do respiro da aba, 24px do main e até 36px da
+   margem do segmento — setenta pixels de nada, no lugar onde a pessoa
+   mais precisa ver conteúdo. */
+.envhead + main{padding-top:14px}
+
+/* ── SEÇÕES DE UMA PÁGINA DE GESTÃO ──────────────────────────────
+   Substituem a segunda faixa de abas. O conteúdo continua separado, e
+   passa a ser comparável sem clique. */
+.secg{margin-top:var(--block-gap);padding-top:13px;border-top:var(--hair) solid var(--border)}
+.secg.pri{margin-top:0;padding-top:0;border-top:none}
+.secg{display:flex;align-items:center;gap:8px}
+.secgt{font-family:var(--f-cond);font-size:var(--t-h3);font-weight:600;
+  letter-spacing:-.005em;margin:0}
 .kicker{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-foreground)}
 .subnav{display:flex;gap:2px;overflow-x:auto;margin-top:13px}
 /* A aba ativa se marca por um traço de 1px, como tudo no site. Dois
@@ -3869,6 +3883,10 @@ function subAba(chave, padrao){
    outro destino; pastilha promete a mesma coisa vista de outro jeito.
    Usar aba para as duas é o que faz uma aba grande virar depósito. */
 function chipsInternos(chave, opcoes, padrao){
+ /* A pastilha de eventos filtra a mesma lista que agora virou duas
+    seções: ela repetiria o que a seção já diz. A de avaliações fica,
+    porque ali é filtro de verdade dentro de uma seção só. */
+ if(montandoSecoes&&chave==="ev")return "";
  var atual=subAba(chave,padrao||opcoes[0][0]);
  var h='<div class="row wrapf" style="gap:6px;margin-top:13px">';
  opcoes.forEach(function(o){
@@ -3878,6 +3896,7 @@ function chipsInternos(chave, opcoes, padrao){
  return h+'</div>';
 }
 function abasInternas(chave, opcoes, padrao){
+ if(montandoSecoes)return "";
  var atual=subAba(chave,padrao||opcoes[0][0]);
  var h='<div class="segmento">';
  opcoes.forEach(function(o){
@@ -3905,7 +3924,86 @@ function abasInternas(chave, opcoes, padrao){
    "Meu perfil" saiu da barra: configuração não é superfície de
    trabalho, e ocupava um dos nove lugares como se fosse. Foi para o
    menu da conta, que é onde as pessoas já procuram. */
-var ST_NAV=[["studio","Hoje","▦"],["studio-quotes","Orçamentos","📥"],["studio-schedule","Agenda","🗓"],["studio-caixa","Dinheiro","👛"],["studio-reputacao","Reputação","★"]];
+var ST_NAV=[["studio","Hoje","▦"],["studio-quotes","Orçamentos","📥"],["studio-schedule","Agenda","🗓"],["studio-caixa","Dinheiro","👛"],["studio-reputacao","Reputação","★"],["studio-eventos","Cursos e eventos","🎟"]];
+
+/* ═══ UMA FAIXA DE NAVEGAÇÃO, NÃO DUAS ════════════════════════════
+   Eram cinco abas em cima e até quatro sub-abas embaixo: dezoito
+   lugares para clicar, e metade do conteúdo escondido atrás do
+   segundo clique.
+
+   Agora cada aba é uma página que rola, com as partes em sequência.
+   Num painel de gestão rolar é mais barato que esconder — e comparar
+   duas coisas exige vê-las juntas, o que sub-aba impede por
+   construção.
+
+   A tabela abaixo é a única definição de quais partes tem cada aba, e
+   em que ordem. Os blocos de código não mudaram: continuam sendo
+   escritos como se cada parte fosse uma sub-aba, e esta montagem os
+   empilha. */
+/* O quarto item é o contador que vivia no selo da sub-aba. Ele não
+   podia sumir junto com a barra: era o que dizia onde olhar antes de
+   olhar. Agora fica ao lado do título da seção, que é ainda mais
+   perto do que ele conta. */
+var SECOES_DA_GESTAO={
+ "studio":           [["hoje","visao","Visão geral"],["hoje","checkin","Check-in de agora"]],
+ "studio-quotes":    [["orc","recebidos","Recebidos",function(){return SQ.filter(function(q){return q.status==="novo"}).length}],
+                      ["orc","enviados","Enviados",function(){return SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length}]],
+ "studio-schedule":  [["ag","mes","O mês"],["ag","conexoes","Conexões"]],
+ "studio-caixa":     [["cx","resumo","Resumo"],
+                      ["cx","lancamentos","Lançamentos",function(){return LANC.length}],
+                      ["cx","pessoas","Quem eu tatuei",function(){return HIST_PESSOAS.length}]],
+ "studio-reputacao": [["rep","avaliacoes","Avaliações",function(){return REVS.filter(function(r){return !r.resp}).length}],
+                      ["rep","desempenho","Desempenho por estilo"],["rep","estudios","Onde eu tatuei"]],
+ "studio-eventos":   [["ev","meus","Que eu criei"],["ev","participo","Que eu participo"]],
+ "forn-recomendacoes":[["fr","recebidas","Recebidas"],["fr","pedir","Pedir"]],
+ "forn-embaixadores": [["fe","convites","Convites"],["fe","ativos","Ativos"]],
+ "forn-loja":         [["fl","produtos","Produtos"],["fl","pedidos","Pedidos"]]
+};
+
+/* Enquanto a página empilhada é montada, as barras de sub-aba se
+   calam: elas seriam desenhadas uma vez por seção. */
+var montandoSecoes=false;
+
+var G_ABRE='<main><div class="wrap">', G_FECHA='</div></main>';
+
+/* Recorte por marcador é frouxo por natureza. Por isso ele avisa em
+   vez de devolver lixo — e existe um diagnóstico que sabota o
+   marcador para provar que o aviso aparece. */
+function corpoDaGestao(pagina){
+ var i=pagina.indexOf(G_ABRE);
+ if(i<0)return null;
+ var corpo=pagina.slice(i+G_ABRE.length);
+ if(corpo.slice(-G_FECHA.length)===G_FECHA)corpo=corpo.slice(0,-G_FECHA.length);
+ return corpo;
+}
+
+function tituloDeSecao(txt,primeira,conta){
+ var selo=(conta||conta===0)&&conta!==""&&conta!==0 ? '<span class="selo">'+conta+'</span>' : '';
+ return '<div class="secg'+(primeira?' pri':'')+'"><h2 class="secgt">'+txt+'</h2>'+selo+'</div>';
+}
+
+function paginaDeGestao(rota,render1){
+ var secoes=SECOES_DA_GESTAO[rota];
+ if(!secoes)return render1(rota);
+ var guardado=JSON.stringify(S.sub||{});
+ var cabeca=null, corpos=[];
+ montandoSecoes=true;
+ try{
+  secoes.forEach(function(sc){
+   S.sub=S.sub||{}; S.sub[sc[0]]=sc[1];
+   var pg=render1(rota);
+   if(cabeca===null){var i=pg.indexOf(G_ABRE); cabeca=i<0?null:pg.slice(0,i+G_ABRE.length)}
+   var c=corpoDaGestao(pg);
+   var conta="";
+   if(typeof sc[3]==="function"){try{conta=sc[3]()}catch(e){conta=""}}
+   if(c!==null&&c.replace(/\s/g,"").length)corpos.push([sc[2],c,conta]);
+  });
+ }finally{ montandoSecoes=false; S.sub=JSON.parse(guardado) }
+ if(cabeca===null)return render1(rota);
+ var h=cabeca;
+ corpos.forEach(function(c,i){ h+=tituloDeSecao(c[0],i===0,c[2])+c[1] });
+ return h+G_FECHA;
+}
 
 /* Rotas antigas continuam válidas. S.route é gravado no localStorage e
    no endereço: quem tinha "studio-events" guardado cairia numa tela em
@@ -3913,7 +4011,7 @@ var ST_NAV=[["studio","Hoje","▦"],["studio-quotes","Orçamentos","📥"],["stu
 var ST_ROTA_ANTIGA={
  "studio-checkin":  ["studio",           "hoje","checkin"],
  "studio-historico":["studio-reputacao", "rep", "estudios"],
- "studio-events":   ["studio-reputacao", "rep", "eventos"],
+ "studio-events":   ["studio-eventos",   "ev",  "meus"],
  "studio-reviews":  ["studio-reputacao", "rep", "avaliacoes"]
 };
 function traduzirRotaAntiga(r){
@@ -4897,7 +4995,7 @@ function vStudio(sub){
  if(sub==="studio-reputacao"){
   var semResp=REVS.filter(function(r){return !r.resp}).length;
   h+=abasInternas("rep",[["avaliacoes","Avaliações",semResp||""],["desempenho","Desempenho"],
-                          ["estudios","Onde eu tatuei"],["eventos","Eventos"]]);
+                          ["estudios","Onde eu tatuei"]]);
   h+='<div class="tiny muted" style="margin-top:9px">Tudo aqui responde à mesma pergunta: por que confiar em você.</div>';
  }
  if(sub==="studio"&&subAba("hoje","visao")==="visao"){
@@ -5147,7 +5245,7 @@ function vStudio(sub){
   h+='</div></div>';
  }
 
- if(sub==="studio-reputacao"&&subAba("rep","avaliacoes")==="eventos"){
+ if(sub==="studio-eventos"){
   var meus=[EVENTS[4],COURSES[0]], deOutros=[EVENTS[0],EVENTS[2],COURSES[2]];
   /* Segundo nível, e de propósito em pastilha e não em aba: criar e
      participar são dois recortes da mesma lista, não dois destinos.
@@ -5222,6 +5320,11 @@ function vStudio(sub){
   });
   h+='</div></div>';
 
+  /* O atalho para os últimos lançamentos existia para levar à outra
+     sub-aba. Com as seções empilhadas, a tabela completa está logo
+     abaixo nesta mesma página — e a prévia passaria a ser a mesma
+     lista duas vezes, com uma rolagem de distância. */
+  if(!montandoSecoes){
   h+='<div class="card pad" style="margin-top:15px"><div class="row"><span class="b">Últimos lançamentos</span>'+tg("mock")+
      '<a class="sp small" style="color:var(--accent);cursor:pointer" onclick="S.sub=S.sub||{};S.sub.cx=\'lancamentos\';render()">Ver todos →</a></div>';
   h+='<div style="margin-top:4px">';
@@ -5231,6 +5334,7 @@ function vStudio(sub){
    h+='<div class="sp b small" style="color:var(--'+(x.tipo==="entrada"?"x-success":"x-danger")+')">'+(x.tipo==="entrada"?"+":"−")+' '+brl(x.cents)+'</div></div>';
   });
   h+='</div></div>';
+  }
  }
 
  /* ── HISTÓRICO ──────────────────────────────────────────────────
@@ -6587,8 +6691,8 @@ function render(){
  /* Rota antiga guardada no localStorage ou no endereço vira a nova
     antes de chegar na tela. Sem isso, quem já usou o produto abre numa
     tela em branco — e tela em branco parece produto quebrado. */
- else if(r.indexOf("studio")===0){var rr=traduzirRotaAntiga(r); if(rr!==r)S.route=rr; h=isLog()?vStudio(rr):vCadastro();}
- else if(r.indexOf("forn")===0)h=isLog()?vForn(r):vCadastro();
+ else if(r.indexOf("studio")===0){var rr=traduzirRotaAntiga(r); if(rr!==r)S.route=rr; h=isLog()?paginaDeGestao(rr,vStudio):vCadastro();}
+ else if(r.indexOf("forn")===0)h=isLog()?paginaDeGestao(r,vForn):vCadastro();
  comFoco(function(){document.getElementById("app").innerHTML=icons(h)});
  document.getElementById("sessionSel").value=S.session;
  if(r==="modelo"&&S.abaModelo==="modelo")calcUE();
