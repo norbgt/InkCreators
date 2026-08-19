@@ -51,6 +51,8 @@ var SAIRAM_DE_PROPOSITO = [
    "mesma razão: saiu do resumo por não estar esperando ninguém, e continua na aba cheia de orçamentos"],
   ["Últimos lançamentos",
    "era uma prévia de quatro linhas com 'Ver todos' que levava à outra sub-aba. Com as seções empilhadas numa página só, a tabela completa está logo abaixo — a prévia viraria a mesma lista duas vezes, a uma rolagem de distância"],
+  ["Meus orçamentos",
+   "deixou de ser aba e virou seção da Visão geral, junto com Pagamentos. A frase some da barra das outras telas do cliente — de Passaporte e Formação não se lê mais a palavra. É a troca que a arquitetura de três abas impõe, e o custo está registrado na decisão 015"],
   ["Ver todos →",
    "o atalho morria junto com a prévia dos lançamentos, pela mesma razão: ele existia para trocar de sub-aba, e não há mais sub-aba para trocar"]
 ];

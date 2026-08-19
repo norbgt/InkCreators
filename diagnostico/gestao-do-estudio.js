@@ -75,6 +75,32 @@ chk('a primeira seção não repete o traço da barra',/\.secg\.pri\{margin-top:
    ninguém tivesse decidido somá-los. */
 chk('sem folga tripla entre a barra e o conteúdo',/\.envhead \+ main\{padding-top:14px\}/.test(css));
 
+console.log('── NENHUMA PÁGINA SE REPETE ──');
+/* Defeito que só existe depois de empilhar: a montagem renderiza a
+   página inteira uma vez por seção, então tudo o que é da PÁGINA e não
+   da seção — banner de convite, aviso de área em estudo — sai repetido.
+
+   Aconteceu com dois deles na primeira versão desta arquitetura: três
+   convites "Também é tatuador?" empilhados no cliente, e três avisos
+   "Perfil em estudo" no fornecedor. A guarda é naPrimeiraSecao(). */
+chk('existe uma função só para preâmbulo de página',/function naPrimeiraSecao/.test(code),
+    'sem ela, cada preâmbulo novo inventa a própria guarda e um deles erra');
+
+[['artist','studio'],['artist','studio-quotes'],['artist','studio-schedule'],
+ ['artist','studio-caixa'],['artist','studio-reputacao'],['artist','studio-eventos'],
+ ['client','me'],['forn','forn-loja'],['forn','forn-recomendacoes'],
+ ['forn','forn-embaixadores']].forEach(function(par){
+ S.session=par[0];
+ var t=ir(par[1]).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ');
+ var frases=t.split(/(?<=[.?!])\s|\s{2,}/).map(function(x){return x.trim()})
+              .filter(function(x){return x.length>32});
+ var vistos={},reps=[];
+ frases.forEach(function(x){ if(vistos[x]&&reps.indexOf(x)<0)reps.push(x); vistos[x]=1 });
+ chk(par[1]+': nenhuma frase sai duas vezes',reps.length===0,
+     reps.slice(0,2).map(function(x){return '"'+x.slice(0,58)+'…"'}).join('  '));
+});
+S.session='artist';
+
 console.log('── AS ROTAS ANTIGAS AINDA CHEGAM ──');
 [['studio-checkin','studio'],['studio-events','studio-eventos'],
  ['studio-reviews','studio-reputacao'],['studio-historico','studio-caixa']].forEach(function(par){
@@ -173,9 +199,29 @@ chk('agrupa por urgência',/Precisa de você/.test(tv)&&/Como vai o mês/.test(t
  ['obras à venda',/Obras à venda/],['avaliação',/>Avaliação</]].forEach(function(c){
  chk('resume '+c[0],c[1].test(tv));
 });
-chk('todo cartão leva a algum lugar',(tv.match(/class="grande[^"]*" onclick="[^"]*go\(/g)||[]).length===cartoes,
+/* O destino pode ser outra rota (go) ou uma seção da mesma página
+   (irSecao). O que não pode é cartão sem destino nenhum. */
+chk('todo cartão leva a algum lugar',
+    (tv.match(/class="grande[^"]*" onclick="[^"]*(go\(|irSecao\()/g)||[]).length===cartoes,
     'algum cartão sem destino');
-chk('e leva à sub-aba certa',/S\.sub\.orc='enviados';go\('studio-quotes'\)/.test(tv.replace(/&#39;/g,"'")));
+var tvl=tv.replace(/&#39;/g,"'");
+chk('e leva à seção certa',/irSecao\('studio-quotes','orc','enviados'\)/.test(tvl),
+    'o cartão de propostas sem retorno não aponta para a seção de enviados');
+/* Cartão que aponta para uma seção inexistente rola para lugar nenhum,
+   e a pessoa conclui que o número está errado.
+
+   A primeira versão deste teste procurava irSecao() com destino
+   inválido — e não podia falhar nunca: cartaoGrande() só emite
+   irSecao quando a seção existe. Com valor errado ele cai no caminho
+   antigo, go() + S.sub, e o clique não faz nada visível. É esse o
+   sintoma que precisa ser procurado. */
+var caiuNoAntigo=(tvl.match(/S\.sub\.([a-z]+)='([^']+)';go\('([^']+)'\)/g)||[]);
+var orfaos=caiuNoAntigo.filter(function(x){
+ var m=x.match(/S\.sub\.([a-z]+)='([^']+)';go\('([^']+)'\)/);
+ return !!g.e("SECOES_DA_GESTAO['"+m[3]+"']");
+});
+chk('nenhum cartão aponta para seção que não existe',orfaos.length===0,
+    'destino em página empilhada que não é seção: '+orfaos.join(' '));
 chk('só o que tem pendência destaca',(tv.match(/grande alerta/g)||[]).length<=2);
 /* Dez números e nada mais. As listas de "pedidos recentes" e "próximas
    sessões" saíram: cada uma já tem um número apontando para ela, e
