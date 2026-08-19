@@ -48,8 +48,14 @@ chk('cobertura continua separada',/cobrir ou corrigir/.test(d));
    Este bloco preenche um campo de cada vez e exige que o botão
    continue travado até o último — e que ele DIGA qual falta, porque
    botão cinza mudo é onde a pessoa desiste. */
-chk('o pedido anuncia o padrão',/Todo pedido leva as mesmas cinco coisas/.test(d));
-chk('e diz para que ele serve',/comparar respostas de tatuadores diferentes/.test(d));
+/* O aviso que anunciava o padrão em palavras saiu a pedido dela. O
+   teste não foi apagado junto — mudou para medir a coisa em vez do
+   texto sobre a coisa: os cinco campos continuam marcados como
+   obrigatórios, um a um. Guarda que depende de uma frase morre na
+   primeira revisão de copy; guarda que conta selos, não. */
+var obrigatorios = (d.match(/class="req">obrigatório</g) || []).length;
+chk('os cinco campos do padrão continuam obrigatórios', obrigatorios === 5,
+    obrigatorios + ' de 5 — sem os cinco, cada pedido chega com um recorte diferente');
 chk('tamanho virou campo, não texto livre',/>Tamanho</.test(d));
 /* Não basta EXISTIR um "cm" na tela: cada degrau da régua tem de
    trazer o seu. Sabotei trocando um só rótulo por "médio" e este

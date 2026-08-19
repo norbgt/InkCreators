@@ -6654,14 +6654,11 @@ function assistBody(){
  var h='';
  if(a)h+='<div class="banner" style="margin-bottom:var(--e3)"><div class="av">'+ini(a.name)+'</div><div><div class="b small">Orçar com '+a.name+'</div><div class="tiny muted">'+a.studio+' · '+a.city+'</div></div></div>';
  h+='<p class="small muted">Conte o que você quer. Quem trabalha com isso responde com o preço e o prazo.</p>';
- /* O que torna o pedido padronizado, dito na primeira linha.
-    Sem isso, campo obrigatório parece burocracia; com isso, parece o
-    que é — a condição para as respostas serem comparáveis. */
- h+='<div class="card pad" style="background:var(--muted);margin-top:var(--e3)">';
- h+='<div class="tiny"><b>Todo pedido leva as mesmas cinco coisas:</b> referência, estilo, tamanho, parte do corpo e cidade.</div>';
- h+='<div class="tiny muted" style="margin-top:var(--e1)">É o que permite comparar respostas de tatuadores diferentes — e o que evita a semana de perguntas antes do primeiro preço.</div>';
- h+='</div>';
-
+ /* O aviso que explicava o padrão saiu a pedido dela. O padrão não
+    dependia dele: quem diz que os cinco campos são os mesmos para
+    todo mundo é o selo "obrigatório" em cada um, e o botão que nomeia
+    o que falta. Parágrafo que explica o que a tela já mostra é
+    parágrafo que a pessoa pula. */
  h+='<div class="row" style="margin-top:var(--e4)"><span class="b small">Referências ('+S.aiRefs+'/8)</span><span class="req">obrigatório</span></div>';
  h+='<div class="tiny muted" style="margin-top:var(--e1)">Prints, desenhos, fotos de tatuagens que te agradam. Pelo menos uma: preço sem imagem é chute, e chute vira briga depois.</div>';
  h+='<div class="row wrapf" style="gap:var(--e2);margin-top:var(--e2)">';
@@ -6697,7 +6694,7 @@ function assistBody(){
  h+='<div class="sep"></div>';
  h+='<div class="grid" style="gap:var(--e2)">';
  h+='<div><label class="lb">Parte do corpo <span class="req">obrigatório</span></label><input class="fld" id="aiParte" value="'+escapar(S.aiParte)+'" oninput="S.aiParte=this.value" placeholder="Antebraço interno" /></div>';
- h+='<div><label class="lb">Cidade</label><input class="fld" id="aiCidade" value="'+escapar(S.aiCidade||(a?a.city:""))+'" oninput="S.aiCidade=this.value" placeholder="São Paulo" /></div>';
+ h+='<div><label class="lb">Cidade <span class="req">obrigatório</span></label><input class="fld" id="aiCidade" value="'+escapar(S.aiCidade||(a?a.city:""))+'" oninput="S.aiCidade=this.value" placeholder="São Paulo" /></div>';
  h+='<div><label class="lb">Quanto você pretende gastar <span class="muted" style="font-weight:400">— opcional</span></label><div class="row wrapf" style="gap:var(--e1)">';
  [["ate500","até R$ 500"],["500a1500","R$ 500 a 1.500"],["1500a3000","R$ 1.500 a 3.000"],["acima3000","acima de R$ 3.000"]].forEach(function(f){
   h+='<button class="chip '+(S.aiFaixa===f[0]?"on":"")+'" onclick="S.aiFaixa=S.aiFaixa===\''+f[0]+'\'?\'\':\''+f[0]+'\';renderDrawer()">'+f[1]+'</button>'});

@@ -121,3 +121,36 @@ nesta rodada. O motivo foi reescrito — registro que envelhece sem ser
 corrigido é pior que registro nenhum, porque continua sendo lido.
 
 **11 roteiros, 0 falhas. 702 frases, nenhuma perdida.**
+
+---
+
+## Adendo: o aviso saiu, o padrão ficou
+
+> "Todo pedido leva as mesmas cinco coisas… esse aviso pode ser excluído"
+
+Saiu. E o padrão não dependia dele: quem diz que os cinco campos são os
+mesmos para todo mundo é o selo **obrigatório** em cada um, mais o botão
+que nomeia o que falta. Parágrafo que explica o que a tela já mostra é
+parágrafo que a pessoa pula.
+
+### O teste mudou de objeto, não foi apagado
+
+O guarda checava a frase. Sem ela, o certo não era apagar a linha — era
+medir **a coisa em vez do texto sobre a coisa**: contar os cinco selos
+de obrigatório.
+
+Guarda que depende de uma frase morre na primeira revisão de copy.
+Guarda que conta selos, não.
+
+### E ele achou um buraco no primeiro segundo
+
+`4 de 5`. **Cidade** entrava na trava do botão e nunca tinha ganhado o
+selo — obrigatória no código, opcional aos olhos de quem preenche.
+Estava assim desde que escrevi o campo, e nenhum teste anterior podia
+ver, porque todos mediam frases.
+
+Corrigido. Sabotado tirando o selo do tamanho — acusou com a contagem.
+
+*(E errei o alvo na primeira tentativa: coloquei o selo no campo Cidade
+do **cadastro**, que tem o mesmo rótulo. O teste continuou acusando
+`4 de 5` e foi por isso que eu vi.)*
