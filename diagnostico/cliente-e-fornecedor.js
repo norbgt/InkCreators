@@ -69,7 +69,7 @@ console.log("╚═════════════════════�
 /* ── 1. NENHUMA TELA NOVA QUEBRA ─────────────────────────────────── */
 secao("1. AS TELAS NOVAS ABREM");
 [["client", ["me", "me-passaporte", "me-formacao", "me-quotes", "me-payments", "checkin"]],
- ["artist", ["studio-checkin"]],
+ ["artist", ["studio", "studio-reputacao"]],
  ["forn",   ["forn", "forn-recomendacoes", "forn-embaixadores", "forn-loja", "forn-perfil"]]
 ].forEach(function (par) {
   S.session = par[0]; S.modo = "demo";
@@ -119,7 +119,9 @@ g.e("alternarPassPublico('pa2')");
 /* ── 4. CHECK-IN: EXIGE OS DOIS ──────────────────────────────────── */
 secao("4. CHECK-IN EXIGE AS DUAS PARTES");
 S.session = "artist";
-var tc = ir("studio-checkin", "ck", "agora");
+/* O check-in de agora virou sub-aba de Hoje: era a mesma lista de
+   sessões que a agenda mostrava, em duas abas diferentes. */
+var tc = ir("studio", "hoje", "checkin");
 chk("o tatuador vê as sessões para abrir", /abrirCheckin\(/.test(tc));
 chk("nada de valor aparece antes de abrir", !/class="codigo"/.test(tc));
 
@@ -166,7 +168,9 @@ chk("a duração é medida, não estimada", Math.round(g.e("duracaoCheckin()")) 
 
 /* ── 5. O QUE O CHECK-IN PRODUZ ──────────────────────────────────── */
 secao("5. DESEMPENHO SAI DO CHECK-IN");
-var td = ir("studio-checkin", "ck", "desempenho");
+/* O desempenho por estilo virou sub-aba de Reputação: responde "o que
+   eu faço bem", não "o que acontece agora". */
+var td = ir("studio-reputacao", "rep", "desempenho");
 chk("mostra duração por estilo", /Quanto tempo leva, por estilo/.test(td));
 chk("diz de onde vem o número", /relógio do check-in/.test(td));
 chk("e onde ele tatuou", /Onde você tatuou/.test(td));

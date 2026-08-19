@@ -615,6 +615,11 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
   transition:color var(--dur) var(--ease)}
 .subnav a.on{color:var(--foreground);font-weight:500;border-bottom-color:var(--foreground)}
 .subnav.client a.on{color:var(--accent);border-bottom-color:var(--accent)}
+/* Empurrado para o fim e separado por um traço: lê-se como ajuste, não
+   como mais um lugar de trabalho. */
+.subnav a.conf{margin-left:auto;padding-left:15px;border-left:var(--hair) solid var(--border);
+  color:var(--muted-foreground)}
+@media(max-width:699px){.subnav a.conf{margin-left:0;border-left:none;padding-left:13px}}
 
 .lrow{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--border)}
 .lrow:last-child{border-bottom:none}
@@ -3860,6 +3865,18 @@ function cartaoGrande(x){
 function subAba(chave, padrao){
  return (S.sub&&S.sub[chave])||padrao;
 }
+/* Recorte da MESMA lista, e por isso pastilha e não aba. Aba promete
+   outro destino; pastilha promete a mesma coisa vista de outro jeito.
+   Usar aba para as duas é o que faz uma aba grande virar depósito. */
+function chipsInternos(chave, opcoes, padrao){
+ var atual=subAba(chave,padrao||opcoes[0][0]);
+ var h='<div class="row wrapf" style="gap:6px;margin-top:13px">';
+ opcoes.forEach(function(o){
+  var marca=o[2]?' <span class="selo">'+o[2]+'</span>':'';
+  h+='<button class="chip '+(atual===o[0]?"on":"")+'" onclick="S.sub=S.sub||{};S.sub[\''+chave+'\']=\''+o[0]+'\';render()">'+o[1]+marca+'</button>';
+ });
+ return h+'</div>';
+}
 function abasInternas(chave, opcoes, padrao){
  var atual=subAba(chave,padrao||opcoes[0][0]);
  var h='<div class="segmento">';
@@ -3871,7 +3888,45 @@ function abasInternas(chave, opcoes, padrao){
  return h+'</div>';
 }
 
-var ST_NAV=[["studio","Visão geral","▦"],["studio-quotes","Orçamentos","📥"],["studio-checkin","Check-in","📱"],["studio-schedule","Agenda","🗓"],["studio-caixa","Caixa","👛"],["studio-historico","Histórico","🕘"],["studio-events","Eventos","🎟"],["studio-reviews","Avaliações","★"],["studio-profile","Meu perfil","⚙"]];
+/* ═══ A BARRA DO TATUADOR ══════════════════════════════════════════
+   Eram nove abas, e nove abas diziam que o ofício tem nove assuntos.
+   Não tem. Quatro pares mostravam a mesma coisa duas vezes:
+
+     check-in/agora  ≈  agenda/mês        as mesmas sessões
+     caixa/lançam.   ≈  histórico/pessoas as mesmas pessoas e o mesmo dinheiro
+     check-in/desemp.≈  histórico/estúdios os mesmos lugares
+     eventos/participo ≈ histórico/estúdios a mesma convenção
+
+   Cinco abas agora, agrupadas por momento do dia de quem tatua:
+   o que é hoje, quem está pedindo, quando vai ser, quanto entrou, e
+   por que confiar em mim. Nenhuma tela sumiu — todas viraram sub-aba
+   de uma dessas cinco.
+
+   "Meu perfil" saiu da barra: configuração não é superfície de
+   trabalho, e ocupava um dos nove lugares como se fosse. Foi para o
+   menu da conta, que é onde as pessoas já procuram. */
+var ST_NAV=[["studio","Hoje","▦"],["studio-quotes","Orçamentos","📥"],["studio-schedule","Agenda","🗓"],["studio-caixa","Dinheiro","👛"],["studio-reputacao","Reputação","★"]];
+
+/* Rotas antigas continuam válidas. S.route é gravado no localStorage e
+   no endereço: quem tinha "studio-events" guardado cairia numa tela em
+   branco, e tela em branco parece produto quebrado. */
+var ST_ROTA_ANTIGA={
+ "studio-checkin":  ["studio",           "hoje","checkin"],
+ "studio-historico":["studio-reputacao", "rep", "estudios"],
+ "studio-events":   ["studio-reputacao", "rep", "eventos"],
+ "studio-reviews":  ["studio-reputacao", "rep", "avaliacoes"]
+};
+function traduzirRotaAntiga(r){
+ var t=ST_ROTA_ANTIGA[r];
+ if(!t)return r;
+ /* Histórico tinha duas metades que foram para abas diferentes: quem
+    eu tatuei virou Dinheiro, onde eu tatuei virou Reputação. */
+ if(r==="studio-historico"&&subAba("hist","pessoas")==="pessoas"){
+  S.sub=S.sub||{};S.sub.cx="pessoas";return "studio-caixa";
+ }
+ S.sub=S.sub||{};S.sub[t[1]]=t[2];
+ return t[0];
+}
 
 /* ═══ CAIXA E HISTÓRICO ════════════════════════════════════════════
    As duas telas que sustentam "tudo num lugar só". Uma responde
@@ -3939,6 +3994,11 @@ function envHead(kind,title,nav,act){
  h+='<button class="pill sp" onclick="go(\'home\')">← '+volta+'</button></div>';
  h+='<div class="subnav '+(kind==="me"?"client":"")+'">';
  nav.forEach(function(n){h+='<a class="'+(act===n[0]?"on":"")+'" onclick="go(\''+n[0]+'\')">'+n[2]+' '+n[1]+'</a>'});
+ /* Configuração não é superfície de trabalho: ocupava um lugar na
+    barra como se fosse. Fica no fim, separada por um traço, no peso de
+    um ajuste — que é o que ela é. */
+ var conf = kind==="me" ? null : kind==="forn" ? ["forn-perfil","Perfil da marca"] : ["studio-profile","Meu perfil"];
+ if(conf)h+='<a class="conf '+(act===conf[0]?"on":"")+'" onclick="go(\''+conf[0]+'\')">⚙ '+conf[1]+'</a>';
  return h+'</div></div></div>';
 }
 
@@ -3965,8 +4025,23 @@ function vMe(sub){
   h+='</div>';
 
   h+='<div class="grid cols2" style="margin-top:20px;align-items:start">';
-  h+='<div class="card pad"><div class="row"><span class="b">Orçamentos em andamento</span>'+tg("real")+'<a class="sp small" style="color:var(--accent);cursor:pointer" onclick="go(\'me-quotes\')">Ver todos →</a></div><div style="margin-top:4px">';
-  CQ.slice(0,3).forEach(function(q){h+=cqRow(q)});
+  /* ── O QUE ESPERA VOCÊ ───────────────────────────────────────
+     Antes esta lista eram os três orçamentos mais recentes, o que
+     repetia o começo da aba cheia sem dizer nada de novo. Agora ela
+     ordena por quem está esperando: primeiro os que o tatuador já
+     respondeu e dependem da sua decisão, depois os que ainda aguardam
+     resposta dele. Resumo que repete a lista não é resumo. */
+  var esperandoVoce=CQ.filter(function(q){return q.status==="respondido"});
+  var esperandoEle=CQ.filter(function(q){return q.status==="aguardando"});
+  var naFila=esperandoVoce.concat(esperandoEle).slice(0,3);
+  h+='<div class="card pad"><div class="row"><span class="b">'+(esperandoVoce.length?'Esperando você':'Orçamentos em andamento')+'</span>'+tg("real")+'<a class="sp small" style="color:var(--accent);cursor:pointer" onclick="go(\'me-quotes\')">Ver todos →</a></div>';
+  h+='<div class="tiny muted" style="margin-top:3px">'+
+     (esperandoVoce.length
+       ? esperandoVoce.length+' proposta(s) já respondida(s) — a decisão é sua.'
+       : 'Nenhuma proposta esperando decisão sua no momento.')+'</div>';
+  h+='<div style="margin-top:4px">';
+  if(naFila.length)naFila.forEach(function(q){h+=cqRow(q)});
+  else h+='<div class="muted small" style="padding:14px 0">Nada em andamento. Peça um orçamento pelo feed.</div>';
   h+='</div></div>';
   h+='<div class="card pad"><div class="row"><span class="b">Último carimbo</span>'+tg("novo")+'</div>';
   h+='<div class="tat" style="aspect-ratio:16/10;border-radius:var(--r-sm);margin-top:9px;background-image:'+tex(PASS[0].seed)+'"></div>';
@@ -4623,7 +4698,7 @@ function vReivindicar(){
 
    Nada disto tem backend. É proposta, e a etiqueta em cada tela diz. */
 var FORN_NAV=[["forn","Visão geral","▦"],["forn-recomendacoes","Recomendações","★"],
- ["forn-embaixadores","Embaixadores","👥"],["forn-loja","Minha loja","🛍"],["forn-perfil","Perfil da marca","⚙"]];
+ ["forn-embaixadores","Embaixadores","👥"],["forn-loja","Minha loja","🛍"]];
 
 function vForn(sub){
  if(!isForn())return '<main><div class="wrap"><div class="card pad" style="max-width:500px;margin:36px auto;text-align:center"><div style="font-size:25px">🔒</div><div class="b" style="margin-top:7px">Ambiente do fornecedor</div><p class="small muted" style="margin-top:5px">Esta conta não tem o papel <code>supplier</code>. Troque o papel na barra de desenvolvimento para navegar por aqui.</p><button class="btn blk" style="margin-top:12px" onclick="go(\'home\')">Voltar</button></div></div></main>';
@@ -4813,7 +4888,19 @@ function vStudio(sub){
     Sub-abas aqui seriam um erro: dividir o resumo obrigaria a pessoa a
     escolher entre duas metades antes de saber o que ela procura. É o
     oposto de resumir. */
+ /* ── HOJE ────────────────────────────────────────────────────
+    A visão geral e o check-in de agora respondem à mesma pergunta:
+    o que acontece hoje. Eram duas abas listando as mesmas sessões. */
  if(sub==="studio"){
+  h+=abasInternas("hoje",[["visao","Visão geral"],["checkin","Check-in"]]);
+ }
+ if(sub==="studio-reputacao"){
+  var semResp=REVS.filter(function(r){return !r.resp}).length;
+  h+=abasInternas("rep",[["avaliacoes","Avaliações",semResp||""],["desempenho","Desempenho"],
+                          ["estudios","Onde eu tatuei"],["eventos","Eventos"]]);
+  h+='<div class="tiny muted" style="margin-top:9px">Tudo aqui responde à mesma pergunta: por que confiar em você.</div>';
+ }
+ if(sub==="studio"&&subAba("hoje","visao")==="visao"){
   var cx=somaCaixa();
   var novosQ=SQ.filter(function(q){return q.status==="novo"}).length;
   var esperando=SQ_ENVIADOS.filter(function(q){return q.situacao==="aguardando"}).length;
@@ -4920,10 +5007,12 @@ function vStudio(sub){
     passados revelaram. A segunda só existe por causa da primeira —
     duração honesta por estilo é impossível de coletar por formulário,
     porque ninguém preenche depois de seis horas tatuando. */
- if(sub==="studio-checkin"){
-  h+=abasInternas("ck",[["agora","Agora"],["desempenho","Desempenho"]]);
-
-  if(subAba("ck","agora")==="desempenho"){
+ /* O check-in de agora mora em Hoje; o desempenho por estilo mora em
+    Reputação, porque é o que responde "o que eu faço bem", não "o que
+    acontece agora". Os dois blocos continuam inteiros. */
+ if((sub==="studio"&&subAba("hoje","visao")==="checkin")||
+    (sub==="studio-reputacao"&&subAba("rep","avaliacoes")==="desempenho")){
+  if(sub==="studio-reputacao"){
    var porEstilo=desempenhoPorEstilo();
    h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Quanto tempo leva, por estilo</span>'+tg("novo")+'</div>';
    h+='<div class="tiny muted" style="margin-top:3px">Medido pelo relógio do check-in, não pela sua lembrança. É o número que faz o orçamento parar de ser chute.</div>';
@@ -5058,9 +5147,12 @@ function vStudio(sub){
   h+='</div></div>';
  }
 
- if(sub==="studio-events"){
+ if(sub==="studio-reputacao"&&subAba("rep","avaliacoes")==="eventos"){
   var meus=[EVENTS[4],COURSES[0]], deOutros=[EVENTS[0],EVENTS[2],COURSES[2]];
-  h+=abasInternas("ev",[["meus","Que eu criei",String(meus.length)],["participo","Que eu participo",String(deOutros.length)]]);
+  /* Segundo nível, e de propósito em pastilha e não em aba: criar e
+     participar são dois recortes da mesma lista, não dois destinos.
+     Aba dentro de aba é o que transforma uma aba grande em depósito. */
+  h+=chipsInternos("ev",[["meus","Que eu criei",String(meus.length)],["participo","Que eu participo",String(deOutros.length)]]);
 
   if(subAba("ev","meus")==="participo"){
    h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Onde você se inscreveu</span>'+tg("mock")+'</div>';
@@ -5087,9 +5179,13 @@ function vStudio(sub){
  /* ── CAIXA ──────────────────────────────────────────────────────
     O que entrou, o que saiu, o que sobrou. Nessa ordem, porque é a
     ordem em que a pergunta se forma na cabeça de quem abre a tela. */
+ /* ── DINHEIRO ────────────────────────────────────────────────
+    Caixa e "quem eu tatuei" mostravam as mesmas pessoas com os mesmos
+    valores em duas abas diferentes. São a mesma pergunta vista de dois
+    ângulos: por lançamento e por pessoa. */
  if(sub==="studio-caixa"){
   var c=somaCaixa();
-  h+=abasInternas("cx",[["resumo","Resumo"],["lancamentos","Lançamentos",String(LANC.length)]]);
+  h+=abasInternas("cx",[["resumo","Resumo"],["lancamentos","Lançamentos",String(LANC.length)],["pessoas","Quem eu tatuei",String(HIST_PESSOAS.length)]]);
 
   if(subAba("cx","resumo")==="lancamentos"){
    h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Julho</span>'+tg("mock")+'</div>';
@@ -5141,10 +5237,12 @@ function vStudio(sub){
     Duas listas que só existem aqui: quem ele tatuou, e onde ele
     esteve. A segunda é o que caderno nenhum guarda, porque tatuador
     é itinerante e cada estúdio tem o próprio caderno. */
- if(sub==="studio-historico"){
-  h+=abasInternas("hist",[["pessoas","Quem eu tatuei"],["estudios","Onde eu tatuei"]]);
-
-  if(subAba("hist","pessoas")!=="estudios"){
+ /* O histórico tinha duas metades que respondem a perguntas
+    diferentes. "Quem eu tatuei" é dinheiro por pessoa e foi para
+    Dinheiro. "Onde eu tatuei" é trajetória e foi para Reputação. */
+ if((sub==="studio-caixa"&&subAba("cx","resumo")==="pessoas")||
+    (sub==="studio-reputacao"&&subAba("rep","avaliacoes")==="estudios")){
+  if(sub==="studio-caixa"){
    var tot=HIST_PESSOAS.reduce(function(a,p){return a+p.sessoes},0);
    h+='<div class="stats" style="margin-top:14px">';
    [["👥","Pessoas",HIST_PESSOAS.length,"desde set/2024"],
@@ -5185,6 +5283,11 @@ function vStudio(sub){
   }
  }
 
+ /* ── REPUTAÇÃO ───────────────────────────────────────────────
+    Quatro recortes de uma pergunta só: por que confiar em você.
+    O que dizem (avaliações), o que você faz bem (desempenho), onde já
+    trabalhou (estúdios) e onde aparece (eventos). Sem essa pergunta
+    comum a aba viraria depósito das sobras. */
  if(sub==="studio-campaigns"){
   h+='<div class="card pad"><div class="row"><span class="b">Campanhas</span>'+tg("mock")+'<button class="btn sm sp">+ Nova campanha</button></div>';
   h+='<table class="t" style="margin-top:6px"><tr><th>Campanha</th><th>Status</th><th style="text-align:right">Enviados</th><th style="text-align:right">Abertura</th><th></th></tr>';
@@ -5194,9 +5297,9 @@ function vStudio(sub){
   h+='</div></div>';
  }
 
- if(sub==="studio-reviews"){
+ if(sub==="studio-reputacao"&&subAba("rep","avaliacoes")==="avaliacoes"){
   var semResposta=REVS.filter(function(r){return !r.resp}).length;
-  h+=abasInternas("av",[["responder","Sem resposta",semResposta||""],["todas","Todas",String(REVS.length)]],"todas");
+  h+=chipsInternos("av",[["todas","Todas",String(REVS.length)],["responder","Sem resposta",semResposta||""]],"todas");
 
   if(subAba("av","todas")==="responder"){
    h+='<div class="card pad" style="margin-top:14px"><div class="row"><span class="b">Esperando você</span>'+tg("mock")+'</div>';
@@ -6481,7 +6584,10 @@ function render(){
  else if(r==="estudio")h=vEstudio();
  else if(r==="estudio-reivindicar")h=isLog()?vReivindicar():vCadastro();
  else if(r.indexOf("me")===0)h=isLog()?vMe(r):vCadastro();
- else if(r.indexOf("studio")===0)h=isLog()?vStudio(r):vCadastro();
+ /* Rota antiga guardada no localStorage ou no endereço vira a nova
+    antes de chegar na tela. Sem isso, quem já usou o produto abre numa
+    tela em branco — e tela em branco parece produto quebrado. */
+ else if(r.indexOf("studio")===0){var rr=traduzirRotaAntiga(r); if(rr!==r)S.route=rr; h=isLog()?vStudio(rr):vCadastro();}
  else if(r.indexOf("forn")===0)h=isLog()?vForn(r):vCadastro();
  comFoco(function(){document.getElementById("app").innerHTML=icons(h)});
  document.getElementById("sessionSel").value=S.session;

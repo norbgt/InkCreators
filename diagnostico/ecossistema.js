@@ -121,13 +121,15 @@ chk('a conta fecha',c.sobrou===c.entrou-c.saiu,c.entrou+' - '+c.saiu+' ≠ '+c.s
 chk('tem entrada de sessão, arte e curso',c.porCat.sessao>0&&c.porCat.arte>0&&c.porCat.curso>0);
 
 console.log('── 5. HISTÓRICO ──');
-S.route='studio-historico';S.sub={hist:'pessoas'};g.e("render()");
+/* 'Onde eu tatuei' virou sub-aba de Reputação; 'quem eu tatuei' virou
+   sub-aba de Dinheiro. Uma tela virou duas. */
+S.route='studio-caixa';S.sub={cx:'pessoas'};g.e("render()");
 var th=tela();
 chk('lista quem ele tatuou',/Pessoas que você tatuou/.test(th));
 chk('com quantas sessões e desde quando',/cliente desde/.test(th));
 chk('e quanto cada um gastou',/no total/.test(th));
 chk('diz para que serve',/chamar de volta quem sumiu/.test(th));
-S.sub={hist:'estudios'};g.e("render()");
+S.route='studio-reputacao';S.sub={rep:'estudios'};g.e("render()");
 var te=tela();
 chk('lista onde ele tatuou',/Onde você já tatuou/.test(te));
 chk('distingue casa de guest spot',/Guest spot/.test(te)&&/Casa/.test(te));
@@ -139,7 +141,7 @@ console.log('── 6. A VISÃO GERAL APONTA PARA AS DUAS ──');
 S.route='studio';S.sub={};g.e("render()");
 var tv=tela();
 chk('o painel leva ao caixa',/Sobrou/.test(tv)&&/studio-caixa/.test(tv));
-chk('o painel leva ao histórico',/Pessoas tatuadas/.test(tv)&&/studio-historico/.test(tv));
+chk('o painel leva a quem ele tatuou',/Pessoas tatuadas/.test(tv)&&/studio-caixa|studio-historico/.test(tv));
 chk('e à galeria',/Obras à venda/.test(tv));
 chk('sem "Receita do mês" solta',!/Receita do mês/.test(tv));
 
@@ -214,7 +216,7 @@ chk('o bloco do estúdio no perfil é traço, não caixa dentro de caixa',
     /\.cxestudio\{[^}]*border-top:var\(--hair\)/.test(css));
 
 console.log('── 7. NADA QUEBROU ──');
-['home','artist','plataforma','cadastro','modelo','conexao','me','studio','studio-caixa','studio-historico','studio-profile','studio-quotes'].forEach(function(r){
+['home','artist','plataforma','cadastro','modelo','conexao','me','studio','studio-caixa','studio-reputacao','studio-profile','studio-quotes'].forEach(function(r){
  S.session=r.indexOf('studio')===0?'artist':r.indexOf('me')===0?'client':'anon';S.route=r;
  try{g.e("render()");chk(r,tela().length>400)}catch(e){chk(r,false,e.message)}
 });

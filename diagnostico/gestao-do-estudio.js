@@ -31,20 +31,48 @@ S.session='artist';S.modo='demo';
 function ir(rota,chave,valor){S.route=rota;if(chave){S.sub=S.sub||{};S.sub[chave]=valor}g.e("render()");return tela()}
 function segs(t){var m=t.match(/class="segmento">([\s\S]*?)<\/div>/);return m?(m[1].match(/class="seg /g)||[]).length:0}
 
-console.log('── UM MECANISMO SÓ, EM SEIS TELAS ──');
-[['studio-quotes','orc','Orçamentos'],['studio-schedule','ag','Agenda'],
- ['studio-caixa','cx','Caixa'],['studio-historico','hist','Histórico'],['studio-events','ev','Eventos'],
- ['studio-reviews','av','Avaliações']].forEach(function(c){
+console.log('── CINCO ABAS, UM MECANISMO SÓ ──');
+/* Eram nove abas. Quatro pares mostravam a mesma coisa duas vezes, e
+   nove abas prometiam que o ofício tem nove assuntos — não tem.
+   Agora são cinco, agrupadas por momento do dia de quem tatua. */
+chk('exatamente cinco abas na barra',g.e("ST_NAV.length")===5,g.e("ST_NAV.length")+' abas');
+chk('e são estas',g.e("ST_NAV.map(function(x){return x[1]}).join('·')")==='Hoje·Orçamentos·Agenda·Dinheiro·Reputação',
+    g.e("ST_NAV.map(function(x){return x[1]}).join(' · ')"));
+/* Configuração não é superfície de trabalho e ocupava um dos nove
+   lugares como se fosse. Saiu da barra, mas não do produto. */
+chk('Meu perfil saiu da barra',!/studio-profile/.test(JSON.stringify(g.e("ST_NAV"))));
+chk('e continua alcançável',/class="conf /.test(ir('studio')) && ir('studio-profile').length>1500);
+
+[['studio','hoje','Hoje',2],['studio-quotes','orc','Orçamentos',2],
+ ['studio-schedule','ag','Agenda',2],['studio-caixa','cx','Dinheiro',3],
+ ['studio-reputacao','rep','Reputação',4]].forEach(function(c){
  var t=ir(c[0]);
  chk(c[2]+': tem sub-abas',/class="segmento"/.test(t),'nenhuma');
- chk(c[2]+': exatamente duas',segs(t)===2,segs(t)+' opções');
+ chk(c[2]+': '+c[3]+' recortes',segs(t)===c[3],segs(t)+' opções');
 });
-// A visão geral é a exceção, e de propósito: dividir um resumo obriga a
-// pessoa a escolher entre duas metades antes de saber o que procura.
-chk('Visão geral NÃO tem sub-abas',!/class="segmento"/.test(ir('studio')));
-chk('as seis usam a mesma função',(html.match(/abasInternas\(/g)||[]).length>=7,
+chk('todas usam a mesma função',(html.match(/abasInternas\(/g)||[]).length>=6,
     (html.match(/abasInternas\(/g)||[]).length+' usos');
 chk('e o mesmo componente visual',/\.segmento\{/.test(css));
+
+/* Aba dentro de aba é o que transforma uma aba grande em depósito.
+   Onde o segundo nível é recorte da MESMA lista — responder/todas,
+   criei/participo — ele vira pastilha, que promete outra vista e não
+   outro destino. */
+chk('o segundo nível é pastilha, não aba',/function chipsInternos/.test(code));
+var tRep=ir('studio-reputacao','rep','avaliacoes');
+chk('avaliações filtra por pastilha',/class="chip /.test(tRep) && segs(tRep)===4,
+    'voltou a ser aba dentro de aba');
+
+/* Toda tela da arquitetura antiga tem de chegar em algum lugar: S.route
+   é gravado no localStorage e no endereço, e quem já usou o produto
+   tem rota velha guardada. Tela em branco parece produto quebrado. */
+console.log('── AS ROTAS ANTIGAS AINDA CHEGAM ──');
+[['studio-checkin','studio'],['studio-events','studio-reputacao'],
+ ['studio-reviews','studio-reputacao'],['studio-historico','studio-caixa']].forEach(function(par){
+ var t=ir(par[0]);
+ chk(par[0]+' → '+par[1],S.route===par[1] && t.length>1500,
+     'foi para '+S.route+' com '+t.length+' caracteres');
+});
 
 console.log('── ORÇAMENTOS RECEBIDOS: MAPA, PEDIDO, PROPOSTA ──');
 /* Três passos, um de cada vez. O que a verificação persegue aqui é a
@@ -121,7 +149,10 @@ S.agendaGoogle=false;
 chk('sem conexão, sem aviso',!/Sincronizada com o Google/.test(ir('studio-schedule','ag','mes')));
 
 console.log('── VISÃO GERAL: UM PAINEL SÓ ──');
-var tv=ir('studio');
+/* Nomeando a sub-aba de propósito: a aba Hoje tem dois recortes, e um
+   teste que não diz qual quer depende da ordem em que os outros
+   rodaram — que é o tipo de teste que falha por motivo errado. */
+var tv=ir('studio','hoje','visao');
 chk('é um painel de números grandes',/class="grandes"/.test(tv)&&/class="grande/.test(tv));
 var cartoes=(tv.match(/class="grande[ "]/g)||[]).length;
 chk('dez números',cartoes===10,cartoes+' cartões');

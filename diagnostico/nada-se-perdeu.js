@@ -42,7 +42,14 @@ function secao(t) { console.log("\n── " + t + " " + "─".repeat(Math.max(0,
    de nenhuma tela. Se um dia entrar linha aqui, ela vem com o motivo
    escrito ao lado e com a decisão numerada — senão a lista deixa de
    ser registro e vira lugar de esconder perda. */
-var SAIRAM_DE_PROPOSITO = [];
+var SAIRAM_DE_PROPOSITO = [
+  ["Orçamentos em andamento",
+   "vira 'Esperando você' quando existe proposta já respondida aguardando decisão do cliente. O título antigo continua no código como alternativa e aparece quando não há nada esperando — o que os dados de demonstração não produzem"],
+  ["Costas — omoplata · Blackwork",
+   "a visão geral deixou de mostrar os três orçamentos mais recentes e passou a mostrar os três que dependem de alguém. Este continua inteiro em 'Meus orçamentos', que é a lista completa a um clique — resumo que repete o começo da lista não é resumo"],
+  ["Studio Caio · 2 respostas · há 3 semanas",
+   "mesma razão: saiu do resumo por não estar esperando ninguém, e continua na aba cheia de orçamentos"]
+];
 
 /* ── Um protótipo de mentira, mas completo ─────────────────────── */
 function montar(arquivo) {
@@ -99,7 +106,27 @@ var SUBABAS = [
   ["fe", ["convites", "ativos"]], ["fl", ["produtos", "pedidos"]]
 ];
 
-function varrer(g) {
+/* ── PARA ONDE CADA TELA FOI ──────────────────────────────────────
+   A barra do tatuador passou de nove abas para cinco. Nenhuma tela
+   sumiu — todas viraram sub-aba de uma das cinco. Mas os endereços
+   mudaram, e sem esta tabela o roteiro compararia telas diferentes e
+   acusaria perda onde só houve mudança de lugar.
+
+   Cada linha diz: esta tela da #1 mora, na #2, naquela aba com aquela
+   sub-aba aberta. É a lista que torna a comparação honesta — e é
+   também o registro de onde procurar o que você não achar. */
+var MUDOU_DE_LUGAR = {
+  "studio-checkin":   [["studio",           "hoje", "checkin"],
+                       ["studio-reputacao", "rep",  "desempenho"]],
+  "studio-events":    [["studio-reputacao", "rep",  "eventos"]],
+  "studio-reviews":   [["studio-reputacao", "rep",  "avaliacoes"]],
+  /* Duas metades, duas abas: quem eu tatuei virou dinheiro por pessoa,
+     onde eu tatuei virou trajetória. */
+  "studio-historico": [["studio-caixa",     "cx",   "pessoas"],
+                       ["studio-reputacao", "rep",  "estudios"]]
+};
+
+function varrer(g, ehNova) {
   var telas = {};
   g.S.modo = "demo";
   TELAS.forEach(function (t) {
@@ -107,24 +134,26 @@ function varrer(g) {
     SUBABAS.forEach(function (par) {
       par[1].forEach(function (v) {
         g.S.sub = g.S.sub || {}; g.S.sub[par[0]] = v;
-        g.S.route = t[1];
-        var ch = t[0] + "/" + t[1];
+        var rota = t[1], ch = t[0] + "/" + t[1];
+        /* Na interface nova, entra pela porta nova; a chave continua
+           sendo o nome antigo, para as duas varreduras casarem. */
+        if (ehNova && MUDOU_DE_LUGAR[rota]) {
+          /* Uma tela da #1 pode ter virado duas na #2. Junta as duas
+             sob a mesma chave: a pergunta é se o conteúdo continua
+             existindo em algum lugar alcançável, não em qual aba. */
+          MUDOU_DE_LUGAR[rota].forEach(function (d) {
+            g.S.route = d[0]; g.S.sub[d[1]] = d[2];
+            try { g.e("render()"); telas[ch] = (telas[ch] || "") + g.nos["app"].innerHTML } catch (e) {}
+          });
+          return;
+        }
+        if (ehNova && rota === "studio") g.S.sub.hoje = "visao";
+        g.S.route = rota;
         try { g.e("render()"); telas[ch] = (telas[ch] || "") + g.nos["app"].innerHTML } catch (e) {}
       });
     });
   });
-  /* As gavetas também são tela, e render() não desenha gaveta —
-     renderDrawer() desenha. Chamar render() aqui devolveria oito
-     caracteres de casca e o roteiro diria que está tudo bem. */
-  ["hub", "assist", "chat", "notif", "cart", "agenda", "trava"].forEach(function (d) {
-    g.S.session = "client"; g.S.drawer = d;
-    try {
-      g.e("renderDrawer()");
-      var conteudo = g.nos["drawerHost"] ? g.nos["drawerHost"].innerHTML : "";
-      if (conteudo.length > 200) telas["gaveta/" + d] = conteudo;
-    } catch (e) {}
-  });
-  g.S.drawer = null;
+
   return telas;
 }
 
@@ -215,7 +244,7 @@ chk(TELAS.length + " telas, nenhuma vazia", vazias.length === 0, "vazias: " + va
 
 /* ── O texto ──────────────────────────────────────────────────── */
 secao("O QUE A #1 DIZIA, A #2 CONTINUA DIZENDO");
-var telas1 = varrer(g1), telas2 = varrer(g2);
+var telas1 = varrer(g1, false), telas2 = varrer(g2, true);
 var perdidas = [], totalFrases = 0;
 
 Object.keys(telas1).forEach(function (ch) {
@@ -243,6 +272,17 @@ if (perdidas.length) {
   console.log("       Ou a frase volta, ou entra em SAIRAM_DE_PROPOSITO");
   console.log("       com o motivo escrito ao lado.");
 }
+
+secao("PARA ONDE CADA TELA FOI");
+Object.keys(MUDOU_DE_LUGAR).forEach(function (k) {
+  console.log("  ·  " + k);
+  MUDOU_DE_LUGAR[k].forEach(function (d) { console.log("       →  " + d[0] + " / " + d[2]) });
+});
+chk("toda mudança de endereço tem destino declarado",
+    Object.keys(MUDOU_DE_LUGAR).every(function (k) {
+      return MUDOU_DE_LUGAR[k].length > 0 &&
+             MUDOU_DE_LUGAR[k].every(function (d) { return d.length === 3 });
+    }));
 
 secao("O QUE SAIU DE PROPÓSITO");
 SAIRAM_DE_PROPOSITO.forEach(function (par) {
