@@ -200,9 +200,16 @@ chk('os três controles de aba usam o mesmo traço',
 chk('sem desfoque no controle segmentado',
     !/\.segmento\{[^}]*backdrop-filter/.test(css),
     'voltou o vidro nas abas — caro em GPU e sem nada atrás para desfocar');
-chk('e o desfoque que sobrou está só sobre foto',
-    (css.match(/backdrop-filter/g)||[]).length <= 3 &&
-    /\.postimg[\s\S]{0,400}backdrop-filter/.test(css));
+/* Contar ocorrências era frágil: bastou nascer um selo novo sobre a
+   grade para o teste falhar sem nada ter piorado. O que importa não é
+   quantos são — é se cada um está sobre imagem, onde o desfoque paga o
+   que custa. */
+var comDesfoque = (css.match(/[^{}]+\{[^}]*backdrop-filter[^}]*\}/g) || [])
+  .map(function (b) { return b.split('{')[0].replace(/\s+/g, ' ').trim() });
+var SOBRE_FOTO = /\.postimg|\.postacoes|\.coracao|\.selosic|\.tagtl|\.nav|\.gmais|\.obrafoto|\.pcard/;
+chk('todo desfoque que sobrou está sobre imagem',
+    comDesfoque.length > 0 && comDesfoque.every(function (sel) { return SOBRE_FOTO.test(sel) }),
+    comDesfoque.filter(function (sel) { return !SOBRE_FOTO.test(sel) }).join('  |  '));
 chk('o bloco do estúdio no perfil é traço, não caixa dentro de caixa',
     /\.cxestudio\{[^}]*border-top:var\(--hair\)/.test(css));
 

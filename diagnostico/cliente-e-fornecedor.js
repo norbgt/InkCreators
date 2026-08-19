@@ -509,6 +509,87 @@ chk("e todo artista também",
 chk("sem coordenada, a distância some em vez de virar NaN",
     g.e("kmDe({})") === null && g.e("distanciaTexto({})") === "");
 
+/* ── 16b. O QUE FICA SÓ NO HOVER ─────────────────────────────────
+   Um buraco no roteiro nada-se-perdeu.js, dito em voz alta.
+
+   Aquele roteiro compara o texto renderizado. Texto escondido por
+   display:none continua no HTML — então uma linha que só aparece ao
+   passar o mouse passa por lá como se estivesse visível, e quem usa
+   telefone nunca a vê. O roteiro não mente; ele mede presença no
+   HTML, e presença no HTML não é o mesmo que estar na tela.
+
+   Esta seção fecha o buraco com a única regra que torna o hover
+   aceitável: tudo o que só aparece no hover tem de estar no perfil, a
+   um toque. Se algum dia deixar de estar, aqui falha. */
+secao("16b. O QUE SÓ APARECE NO HOVER ESTÁ A UM TOQUE");
+chk("o pé do card tem duas linhas sempre visíveis",
+    /class="pnome"/.test(tcard) && /class="ppe">[^<]*\//.test(tcard));
+chk("estilos e preço vivem num bloco de hover", /class="pehover"/.test(tcard));
+chk("e esse bloco some no toque",
+    /@media\(pointer:coarse\)\{\.pehover\{display:none\}\}/.test(css),
+    "no toque a linha nunca apareceria e só ocuparia altura");
+
+/* O perfil tem de ser o DESTE card. A primeira versão abria o perfil
+   padrão, que é outra pessoa com outros estilos, e acusava perda onde
+   só havia comparação errada. */
+S.session = "anon";
+S.artist = (tcard.match(/go\('artist','([^']+)'\)/) || [])[1];
+var tperfil = ir("artist");
+var soHover = (tcard.split('class="pehover"')[1] || "").split("</button>")[0];
+var estilosNoHover = (soHover.match(/Lettering|Blackwork|Fineline|Realismo|Minimalista|Old School|Oriental|Aquarela|Geométrico|Pontilhismo|Tribal|Neo-tradicional|Biomecânico/g) || []);
+chk("no hover ficam estilos e preço", estilosNoHover.length > 0 && /por hora/.test(soHover),
+    "o bloco de hover não é o que este teste pensa que é");
+/* A prova de que esconder foi mover, e não perder. */
+chk("os estilos estão no perfil",
+    estilosNoHover.every(function (e) { return tperfil.indexOf(e) >= 0 }),
+    "estilo escondido no feed e ausente do perfil = perdido para quem usa telefone");
+chk("o preço por hora está no perfil", /por hora/.test(tperfil),
+    "preço escondido no feed e ausente do perfil = perdido para quem usa telefone");
+chk("e o card leva ao perfil num toque", /class="postir"/.test(tcard));
+
+/* ── 16c. OS CARDS EM GRADE ──────────────────────────────────────
+   Quebram o ritmo do feed. A densidade de cada um vem da pergunta que
+   ele responde, não da estética. */
+secao("16c. OS CARDS EM GRADE");
+S.session = "anon"; S.f.styles = []; S.feedLote = 3;
+var tfeed3 = ir("home");
+chk("existem cards em grade no feed", /class="post postgrade"/.test(tfeed3));
+chk("grade de portfólio com quatro células", /class="gcels quatro"/.test(tfeed3),
+    "quatro para julgar a mão de uma pessoa — em nove ninguém julga traço");
+chk("grade de estilo com nove", /class="gcels nove"/.test(tfeed3),
+    "nove para varrer um estilo atrás de gente nova");
+chk("a grade de portfólio leva ao perfil",
+    /class="gcx" onclick="go\('artist'/.test(tfeed3));
+chk("a de estilo leva ao feed filtrado", /filtrarPorEstilo\('[a-z-]+'\)/.test(tfeed3));
+
+/* Botão de descoberta que não filtra nada é o pior defeito possível
+   aqui: a pessoa conclui que não existe mais ninguém naquele estilo.
+
+   A primeira versão deste teste contava cards antes e depois e exigia
+   que caísse. Passava com o filtro sabotado, porque filtrarPorEstilo
+   também reinicia o lote de rolagem — o número cairia de qualquer
+   jeito. Contar não serve; é preciso perguntar de quem é cada card. */
+var slugG = (tfeed3.match(/filtrarPorEstilo\('([a-z-]+)'\)/) || [])[1];
+g.e("filtrarPorEstilo('" + slugG + "')");
+var depoisG = tela();
+var nomesNoFeed = (depoisG.match(/class="pnome">([^<]+)</g) || [])
+  .map(function (x) { return x.replace(/class="pnome">/, "").replace(/</, "").replace(/ .$/, "").trim() });
+var doEstilo = g.e("ARTISTS.filter(function(a){return a.styles.indexOf('" + slugG + "')>=0})" +
+                   ".map(function(a){return a.name})");
+var intrusos = nomesNoFeed.filter(function (n) {
+  return n && doEstilo.indexOf(n) < 0 && n !== g.e("SL['" + slugG + "']");
+});
+chk("e o filtro realmente filtra", nomesNoFeed.length > 0 && intrusos.length === 0,
+    "aparecem no feed sem serem de " + slugG + ": " + intrusos.join(", "));
+chk("o filtro aplicado aparece na tela", depoisG.indexOf(g.e("SL['" + slugG + "']")) >= 0);
+S.f.styles = []; S.feedLote = 1;
+
+/* Grade sorteada embaralharia o feed a cada repintura e pareceria
+   defeito. A escolha sai do índice, que não muda. */
+chk("as grades são estáveis entre repinturas",
+    (function () { S.route = "home"; var x = ir("home"); g.e("render()"); return x === tela() })());
+chk("nenhuma célula vazia", !/class="gcel" style="background-image:"/.test(tfeed3));
+
 /* ── 17. O SISTEMA DE DESIGN ─────────────────────────────────────
    A gramática do portfólio da Amanda: um traço, três raios, escala
    fluida, uma duração. O que este roteiro impede é a entropia — que

@@ -524,6 +524,38 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
   line-height:1.45;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ppe .cifra{font-family:var(--f-sans);font-size:12.5px;letter-spacing:.05em}
 .pph{font-family:var(--f-exp);font-size:var(--t-micro);color:var(--muted-foreground)}
+
+/* ── O QUE APARECE AO PASSAR O MOUSE ──────────────────────────────
+   Estilos e preço. Embaixo de uma foto pequena, quatro linhas de texto
+   ficam da altura da própria imagem, e o feed deixa de ser um feed de
+   trabalho para virar uma lista com foto.
+
+   max-height animado em vez de display: display não faz transição, e a
+   linha apareceria estalando. O valor é folgado de propósito — apertado
+   cortaria a segunda linha em telas estreitas. */
+.pehover{max-height:0;opacity:0;overflow:hidden;
+  transition:max-height var(--dur) var(--ease),opacity var(--dur) var(--ease)}
+.post:hover .pehover,.post:focus-within .pehover{max-height:60px;opacity:1}
+/* No toque não existe hover, e linha que nunca aparece só ocupa altura.
+   As duas estão no perfil, a um toque — e um diagnóstico falha se um
+   dia deixarem de estar. */
+@media(pointer:coarse){.pehover{display:none}}
+
+/* ── CARDS EM GRADE ───────────────────────────────────────────────
+   Quebram o ritmo do feed. A densidade de cada um vem da pergunta:
+   quatro células para julgar a mão de uma pessoa, nove para varrer um
+   estilo atrás de gente nova. */
+.postgrade .gcx{display:block;width:100%;padding:0;background:none;border:none;
+  position:relative;cursor:pointer;border-radius:var(--r-sm);overflow:hidden}
+.gcels{display:grid;gap:2px;width:100%}
+.gcels.quatro{grid-template-columns:1fr 1fr;aspect-ratio:1}
+.gcels.nove{grid-template-columns:repeat(3,1fr);aspect-ratio:1}
+.gcel{display:block;width:100%;height:100%;background-size:cover;background-position:center;
+  background-color:var(--muted)}
+.gmais{position:absolute;right:6px;bottom:6px;padding:2px 7px;border-radius:var(--r-pill);
+  background:rgba(0,0,0,.55);color:#fff;font-family:var(--f-exp);font-size:var(--t-micro);
+  backdrop-filter:blur(4px)}
+.postgrade .gcx:hover{opacity:.94}
 .pseg{font-family:var(--f-exp);font-size:var(--t-micro);color:var(--accent);padding:3px 2px 0}
 
 .btnseguir{display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 11px;
@@ -2186,6 +2218,107 @@ function filteredArtists(){
  if(f.sort==="distance")l.sort(function(a,b){return a.seed-b.seed});
  return l;
 }
+/* ═══ CARDS EM GRADE ═══════════════════════════════════════════════
+   Feed de uma foto por card é regular demais: a pessoa desce e tudo
+   tem a mesma cara. Dois tipos de grade quebram o ritmo, e cada um
+   responde a uma pergunta diferente.
+
+   A densidade de cada um vem da pergunta, não da estética. Quatro
+   células para julgar consistência de traço de uma pessoa — em nove
+   células ninguém julga traço. Nove células para descobrir gente nova
+   num estilo — ali a pessoa varre, não julga.
+   ═════════════════════════════════════════════════════════════════ */
+
+/* Quem entra em grade é decidido pelo seed, não por sorteio: sorteio
+   embaralharia o feed a cada repintura e pareceria defeito. */
+function grades(lista, indice) {
+  if (lista.length < 5) return "";
+  var qual = indice % 2;
+  if (qual === 0) {
+    var a = lista[(indice * 7) % lista.length];
+    return (a && !a.empty && a.port.length >= 4) ? gradePortfolio(a) : "";
+  }
+  return gradeEstilo(lista, indice);
+}
+
+/* Quatro trabalhos da mesma pessoa. Uma foto isolada diz se você gosta
+   daquela peça; quatro dizem se você gosta da mão. */
+function gradePortfolio(a) {
+  var h = '<article class="post postgrade">';
+  h += '<button class="gcx" onclick="go(\'artist\',\'' + a.id + '\')" aria-label="Ver o portfólio de ' + escapar(a.name) + '">';
+  h += '<div class="gcels quatro">';
+  a.port.slice(0, 4).forEach(function (p) {
+    h += '<span class="gcel" style="background-image:' + tex(p) + '"></span>';
+  });
+  h += '</div>';
+  if (a.port.length > 4) h += '<span class="gmais">+' + (a.port.length - 4) + '</span>';
+  h += '</button>';
+  h += '<button class="postpe" onclick="go(\'artist\',\'' + a.id + '\')">';
+  h += '<div class="row" style="gap:6px;min-width:0"><span class="pnome">' + a.name + '</span></div>';
+  h += '<div class="ppe">' + a.port.length + ' trabalhos · ' + a.city + '/' + a.state + '</div>';
+  h += '</button></article>';
+  return h;
+}
+
+/* Nove trabalhos de gente diferente no mesmo estilo. Serve para
+   descobrir quem você ainda não viu — por isso o card leva ao filtro,
+   não a um perfil. */
+function gradeEstilo(lista, indice) {
+  var estilos = Object.keys(SL);
+  var slug = estilos[(indice * 5) % estilos.length];
+  var deles = lista.filter(function (x) { return !x.empty && x.styles.indexOf(slug) >= 0 });
+  if (deles.length < 3) return "";
+  /* Uma peça por pessoa: nove fotos do mesmo tatuador não seriam uma
+     descoberta, seriam o portfólio dele com outro nome. */
+  var fotos = [];
+  deles.forEach(function (x) { if (x.port.length) fotos.push(x.port[0]) });
+  while (fotos.length < 9 && deles.length) {
+    var x = deles[fotos.length % deles.length];
+    var p = x.port[Math.floor(fotos.length / deles.length) % x.port.length];
+    if (p === undefined) break;
+    fotos.push(p);
+  }
+  fotos = fotos.slice(0, 9);
+  if (fotos.length < 6) return "";
+
+  var h = '<article class="post postgrade">';
+  h += '<button class="gcx" onclick="filtrarPorEstilo(\'' + slug + '\')" aria-label="Ver tatuadores de ' + escapar(SL[slug]) + '">';
+  h += '<div class="gcels nove">';
+  fotos.forEach(function (p) { h += '<span class="gcel" style="background-image:' + tex(p) + '"></span>' });
+  h += '</div></button>';
+  h += '<button class="postpe" onclick="filtrarPorEstilo(\'' + slug + '\')">';
+  h += '<div class="row" style="gap:6px;min-width:0"><span class="pnome">' + SL[slug] + '</span></div>';
+  h += '<div class="ppe">' + deles.length + ' tatuadores · perto de você</div>';
+  h += '</button></article>';
+  return h;
+}
+
+/* O filtro mora em S.f.styles, não em S.styles. Escrevi no lugar
+   errado na primeira versão e o card virava um botão que não fazia
+   nada — o pior defeito possível num card de descoberta, porque a
+   pessoa conclui que não há mais nada naquele estilo. */
+function filtrarPorEstilo(slug) {
+  S.f.styles = [slug];
+  S.f.q = "";
+  S.feedLote = 1;
+  S.route = "home";
+  window.scrollTo(0, 0);
+  render();
+}
+
+/* Intercala as grades entre os cards. A cada cinco publicações entra
+   uma, alternando os dois tipos. Cinco é a distância em que a quebra de
+   ritmo ainda se nota sem virar o próprio ritmo — e cai dentro do
+   primeiro lote, senão a variação só apareceria depois de rolar. */
+function comGrades(lista, ate) {
+  var h = "", g = 0;
+  lista.slice(0, ate).forEach(function (a, i) {
+    h += publicacao(a);
+    if ((i + 1) % 5 === 0) { h += grades(lista, g); g++ }
+  });
+  return h;
+}
+
 function feedList(){
  // Em modo real, o catálogo vem do banco. Se estiver vazio, dizer isso
  // com clareza é mais honesto do que preencher com gente que não existe.
@@ -2201,7 +2334,7 @@ function feedList(){
     '<button class="btn" onclick="setModo(\'demo\')">Voltar para demonstração</button></div></div>';
   }
   var h='<div class="feedposts">';
-  S.reaisArtistas.forEach(function(a){h+=publicacao(a)});
+  h+=comGrades(S.reaisArtistas,S.reaisArtistas.length);
   return h+'</div>';
  }
  var l=filteredArtists();
@@ -2212,11 +2345,13 @@ function feedList(){
  // ordem como mérito.
  l=l.slice().sort(function(x,y){return (y.destaque?1:0)-(x.destaque?1:0)});
 
- // Scroll infinito: mostra um lote por vez e cresce ao chegar no fim.
- // Uma publicação por vez cabe melhor na tela do celular que uma grade.
- var ate=Math.min(l.length,S.feedLote*3);
+ /* Scroll infinito: mostra um lote por vez e cresce ao chegar no fim.
+    O lote era de três porque cada card ocupava a largura toda. Com a
+    foto menor e duas colunas, três cards são meia tela — e meia tela
+    de conteúdo com o rodapé aparecendo parece que acabou. */
+ var ate=Math.min(l.length,S.feedLote*8);
  var h='<div class="feedposts">';
- l.slice(0,ate).forEach(function(a){h+=publicacao(a)});
+ h+=comGrades(l,ate);
  h+='</div>';
  if(ate<l.length){
   h+='<div id="sentinela" class="row" style="justify-content:center;padding:22px 0"><span class="tiny muted">carregando mais…</span></div>';
@@ -2305,16 +2440,25 @@ function publicacao(a){
  }
  h+='</div>';
 
- /* ── O pé: duas linhas, e só ───────────────────────────────────
-    Quem, e o que ele faz por quanto. Tudo o mais está a um toque. */
+ /* ── O pé: duas linhas, e o resto ao passar o mouse ─────────────
+    Quem, e onde atende. Estilos e preço continuam existindo, mas
+    embaixo de uma foto pequena quatro linhas de texto ficam da altura
+    da própria imagem — e aí o feed deixa de ser um feed de trabalho e
+    vira uma lista com foto.
+
+    No toque não há hover, então lá ficam as duas linhas. As outras
+    duas estão no perfil, a um toque, e existe um diagnóstico que
+    falha se algum dia deixarem de estar. */
  h+='<button class="postpe" onclick="go(\'artist\',\''+a.id+'\')">';
  h+='<div class="row" style="gap:6px;min-width:0">';
  h+='<span class="pnome">'+a.name+(a.verified?' <span style="color:var(--accent)">✔</span>':'')+'</span>';
  h+=pagos.map(function(x){return selo(x,false)}).join("");
  h+='</div>';
- h+='<div class="ppe">'+a.styles.map(function(x){return SL[x]}).join(" · ")+'</div>';
  h+='<div class="ppe">'+(a.studio?a.studio+' · ':'')+a.city+'/'+a.state+(dist?' · '+dist:'')+'</div>';
+ h+='<div class="pehover">';
+ h+='<div class="ppe">'+a.styles.map(function(x){return SL[x]}).join(" · ")+'</div>';
  h+='<div class="ppe">'+cifroes(a)+' <span class="pph">por hora</span></div>';
+ h+='</div>';
  h+='</button>';
 
  if(segue){

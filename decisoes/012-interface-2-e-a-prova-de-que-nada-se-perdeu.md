@@ -203,3 +203,85 @@ Vinte telas onde a pessoa faz duas coisas: ler número e comparar linha.
    três lado a lado.
 
 **10 roteiros, 0 falhas. 792 frases, nenhuma perdida.**
+
+---
+
+## Terceira parte: o feed mais perto do Pinterest
+
+> "o feed pode ficar um pouco mais como pinterest, considerando uma
+> estrutura menos estática e fotos menores, podendo aparecer uma grade"
+
+Três escolhas suas, e uma tensão real entre elas.
+
+### A tensão
+
+Sua referência do Pinterest não tem texto nenhum embaixo das fotos. O
+feed tinha quatro linhas. Encolher a foto sem mexer no pé faria o texto
+pesar mais que a imagem — o oposto do pedido. Mas "não quero perder
+nada" é da mesma rodada.
+
+**Sua escolha:** nome e lugar sempre visíveis; estilos e preço ao passar
+o mouse. No toque, onde hover não existe, ficam as duas linhas e as
+outras duas estão no perfil, a um toque.
+
+### O buraco que isso abriu na prova
+
+`nada-se-perdeu.js` compara o texto renderizado. Texto escondido por
+`display:none` **continua no HTML** — então uma linha que só aparece no
+hover passa por lá como se estivesse visível, e quem usa telefone nunca
+a vê. O roteiro não mente; ele mede presença no HTML, e presença no HTML
+não é o mesmo que estar na tela.
+
+A seção 16b de `cliente-e-fornecedor.js` fecha o buraco com a única
+regra que torna o hover aceitável: **tudo o que só aparece no hover tem
+de estar no perfil**. Sabotado tirando o preço do perfil — acusou.
+
+### Dois tipos de grade
+
+A densidade de cada uma vem da pergunta que ela responde, não da
+estética:
+
+| grade | células | pergunta | leva a |
+|---|---|---|---|
+| portfólio | 4 | esta mão é consistente? | o perfil |
+| estilo | 9 | quem mais faz isso perto de mim? | o feed filtrado |
+
+Quatro para julgar traço — em nove ninguém julga traço. Nove para
+varrer atrás de gente nova, onde a pessoa não julga, escaneia.
+
+Entram a cada cinco cards, alternando. Cinco cai dentro do primeiro
+lote: se fosse mais, a variação só apareceria depois de rolar.
+
+Quem vira grade sai do índice, nunca de sorteio. Sorteio embaralharia o
+feed a cada repintura e pareceria defeito.
+
+### Dois defeitos meus, achados pelos testes
+
+**O filtro escrito no lugar errado.** Escrevi `S.styles`; o filtro lê
+`S.f.styles`. O card de estilo virava um botão que não fazia nada — o
+pior defeito possível num card de descoberta, porque a pessoa conclui
+que não existe mais ninguém naquele estilo.
+
+**O teste que media a coisa errada.** A primeira versão da verificação
+contava cards antes e depois e exigia que o número caísse. Passou com o
+filtro sabotado, porque `filtrarPorEstilo` também reinicia o lote de
+rolagem — o número cairia de qualquer jeito. Contar não serve; é preciso
+perguntar de quem é cada card. Reescrito, a sabotagem passou a acusar
+com nome e sobrenome: *"aparecem no feed sem serem de blackwork: Felipe
+Tanaka, Marina Vieira…"*
+
+### O lote de rolagem estava calibrado para o card antigo
+
+O feed carregava 3 cards por vez, número escolhido quando cada card
+ocupava a largura toda. Com foto menor e duas colunas, 3 cards são meia
+tela — e meia tela de conteúdo com o rodapé aparecendo parece que
+acabou. Passou para 8.
+
+### Um teste que ficou frágil e foi consertado
+
+A verificação de desfoque contava ocorrências e exigia no máximo três.
+Bastou nascer o selo "+N" sobre a grade para ela falhar sem nada ter
+piorado. Agora ela lê o seletor de cada regra e pergunta se está sobre
+imagem — onde o desfoque paga o que custa.
+
+**10 roteiros, 0 falhas.**
