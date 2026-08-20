@@ -706,8 +706,14 @@ button,a{touch-action:manipulation}
    Quem chega sabendo o que quer lê nome e preço mais rápido em lista;
    quem está garimpando vê mais produto por tela na grade. Duas
    perguntas, dois arranjos, um componente. */
-.vitrine.lista{grid-template-columns:1fr;gap:var(--e2)}
-.vitrine.lista .prod{flex-direction:row;gap:var(--e3);align-items:center}
+/* Sem o traço, as linhas encostavam: o card perdeu a moldura quando
+   virou o componente do feed, e em lista não sobra foto grande para
+   separar visualmente — o que separa é o fio, como em toda lista do
+   produto. */
+.vitrine.lista{grid-template-columns:1fr;gap:0}
+.vitrine.lista .prod{flex-direction:row;gap:var(--e3);align-items:center;
+  padding:var(--e3) 0;border-bottom:var(--hair) solid var(--rule)}
+.vitrine.lista .prod:last-child{border-bottom:none}
 .vitrine.lista .prod .postimg{width:88px;flex:0 0 88px;height:88px;aspect-ratio:auto}
 .vitrine.lista .prodinfo{flex-direction:row;align-items:center;gap:var(--e3);padding:0}
 .vitrine.lista .prodtxt{flex:1;min-width:0}
@@ -746,12 +752,17 @@ button,a{touch-action:manipulation}
 .pcard .im{height:125px;background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:36px;position:relative}
 .pcard .im .nv{position:absolute;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:var(--t-micro);display:flex;align-items:center;justify-content:center}
 
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:11px}
+/* 145px de mínimo punha 2 por linha no telefone: o terceiro cartão
+   caía sozinho na segunda, com um vão à direita. 100px põe os três
+   na mesma linha em 393px — número pequeno não precisa de cartão
+   largo. */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:var(--e2)}
 /* O rótulo é etiqueta, não frase: expandida, caixa alta, pequena. O
    número é o conteúdo, e usa a escala fluida — num painel de gestão a
    pessoa lê de longe, encostada na mesa. Tabular porque a coluna de
    números precisa alinhar entre cartões vizinhos. */
 .stat{background:var(--muted);border-radius:var(--r-sm);padding:14px 16px}
+@media(max-width:460px){.stat{padding:10px 11px}}
 .stat .lbl{font-family:var(--f-exp);font-size:var(--t-micro);font-weight:500;
   letter-spacing:.05em;text-transform:uppercase;color:var(--muted-foreground)}
 .stat .val{font-size:clamp(21px,2.4vw,28px);font-weight:600;margin-top:var(--e1);
@@ -1016,6 +1027,16 @@ table.t td{padding:10px 0;border-bottom:var(--hair) solid var(--rule);
 }
 /* Espaço para a faixa não tapar o fim da página. */
 body:has(.convitebarra) main{padding-bottom:96px}
+
+/* O cartão-convite do painel. Existia um bug de nome aqui: dois
+   botões usavam a classe .convitecx — que é o MODAL de tela cheia do
+   teste, position:fixed cobrindo tudo — e o texto deles flutuava por
+   cima do cabeçalho. Uma classe, um trabalho: o modal continua
+   .convitecx; o cartão de dentro da página é este. */
+.convitecard{display:block;width:100%;text-align:left;padding:var(--e3) var(--e4);
+  border:var(--hair) dashed var(--x-warning);border-radius:var(--r-sm);
+  background:var(--x-warning-bg);transition:border-color var(--dur) var(--ease)}
+.convitecard:hover{border-style:solid}
 
 .convitecx{position:fixed;inset:0;z-index:901;overflow:auto;
   display:flex;align-items:flex-start;justify-content:center;padding:20px;
@@ -2528,7 +2549,10 @@ function renderTop(){
   // Entrar e criar conta são a mesma porta desde que o cadastro virou
   // fluxo único. Levar para 'auth' funcionava por alias; apontar direto
   // para o fluxo tira uma indireção que não servia a ninguém.
-  h+='<button class="pill solid" onclick="irCadastro(null)">👤 Entrar ou criar conta</button>';
+  /* Era "Entrar ou criar conta" — no telefone o botão preto comia
+     metade do cabeçalho. "Entrar" diz o mesmo: quem não tem conta
+     descobre na tela seguinte, que oferece as duas portas. */
+  h+='<button class="pill solid" onclick="irCadastro(null)">👤 Entrar</button>';
  }else{
   h+='<div style="position:relative"><button class="avatarbtn" onclick="S.menu=!S.menu;renderTop()">'+(isArt()?"MV":"HD")+'</button>';
   if(S.menu){
@@ -4814,7 +4838,7 @@ function vMe(sub){
   /* Check-in em primeiro lugar quando existe um aberto: é a única coisa
      nesta tela que tem hora marcada. */
   if(S.checkin.aberto&&!S.checkin.confirmado){
-   h+='<button class="convitecx" style="width:100%;text-align:left;margin-bottom:var(--e4)" onclick="go(\'checkin\')">';
+   h+='<button class="convitecard" style="margin-bottom:var(--e4)" onclick="go(\'checkin\')">';
    h+='<div class="b small">Tem um check-in esperando você</div>';
    h+='<div class="tiny muted">O tatuador abriu o check-in desta sessão. Escaneie para registrar.</div></button>';
   }
@@ -5825,7 +5849,7 @@ function vStudio(sub){
   /* Quem marcou "também administro um estúdio" no cadastro cai aqui
      sem nada para fazer, a não ser que a gestão diga onde continuar. */
   if(S.administraEstudio){
-   h+='<button class="convitecx" style="width:100%;text-align:left;margin-top:var(--e4)" onclick="go(\'estudio-reivindicar\')">';
+   h+='<button class="convitecard" style="margin-top:var(--e4)" onclick="go(\'estudio-reivindicar\')">';
    h+='<div class="b small">Falta reivindicar o seu estúdio</div>';
    h+='<div class="tiny muted">Você marcou que administra um estúdio. Se ele já aparece nas sessões, o histórico vem junto — e a nota de higiene só fica visível depois disso.</div></button>';
   }
@@ -6605,9 +6629,13 @@ function escolherCalendarioGoogle(qual){
 }
 
 function studioProfile(){
- var h='<div class="row wrapf" style="gap:var(--e2)">';
+ /* Eram chips soltos — o componente de FILTRO — fazendo papel de
+    seção. Quatro fatias do mesmo lugar é exatamente o trabalho do
+    toggle, e o padrão vale aqui como em toda parte. Ele rola na
+    horizontal quando as quatro não couberem. */
+ var h='<div class="segmento">';
  [["info","Informações"],["portfolio","Portfólio"],["pricing","Tabela de preços"],["insta","Instagram"]].forEach(function(t){
-  h+='<button class="chip '+(S.pfTab===t[0]?"on":"")+'" onclick="S.pfTab=\''+t[0]+'\';render()">'+t[1]+'</button>'});
+  h+='<button class="seg '+(S.pfTab===t[0]?"on":"")+'" onclick="S.pfTab=\''+t[0]+'\';render()">'+t[1]+'</button>'});
  h+='</div>';
 
  if(S.pfTab==="info"){

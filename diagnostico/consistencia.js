@@ -211,6 +211,44 @@ var raios = (css.match(/border-radius:\s*(\d+)px/g) || [])
   .filter(function (r) { return !/:\s*(0|50)px/.test(r) });
 chk("nenhum raio fora dos três do sistema", raios.length === 0, raios.join(", "));
 
+/* ── 4b. O QUE O IPHONE DELA ENSINOU ─────────────────────────────
+   Cinco defeitos vistos em prints reais de celular, cada um com o seu
+   guarda para não voltar. */
+secao("4b. OS DEFEITOS DO CELULAR NÃO VOLTAM");
+
+/* A sobreposição: dois botões do painel usavam .convitecx — a classe
+   do MODAL de tela cheia — e herdavam position:fixed com z-index 901.
+   O texto flutuava por cima do cabeçalho. Uma classe, um trabalho. */
+chk("nenhum botão da página carrega a classe do modal",
+    !/<button class="convitecx/.test(code) && !/class="convitecx" style="width/.test(code),
+    "um botão voltou a vestir o modal: texto flutuando sobre o cabeçalho");
+chk("e o cartão-convite tem classe própria",
+    /\.convitecard\{/.test(css) && /class="convitecard"/.test(code));
+
+/* A lista da loja: sem moldura de card, o que separa as linhas é o
+   fio — sem ele, os produtos encostavam uns nos outros. */
+chk("as linhas da lista da loja têm o fio",
+    /\.vitrine\.lista \.prod\{[^}]*border-bottom:var\(--hair\)/.test(css),
+    "as linhas voltaram a encostar: card sem moldura precisa do fio");
+
+/* O botão de entrar: "Entrar ou criar conta" comia metade do
+   cabeçalho do telefone. */
+chk("o botão do cabeçalho diz só Entrar",
+    /pill solid" onclick="irCadastro\(null\)">👤 Entrar</.test(code),
+    "o rótulo cresceu de novo e come o cabeçalho no telefone");
+
+/* Os cartões de número: 145px de mínimo punha dois por linha no
+   telefone e o terceiro caía sozinho. */
+var statMin = Number((css.match(/\.stats\{[^}]*minmax\((\d+)px/) || [])[1] || 999);
+chk("três cartões de número cabem numa linha de telefone",
+    statMin <= 110,
+    "mínimo de " + statMin + "px: o terceiro cartão cai sozinho na segunda linha");
+
+/* O perfil do tatuador: chips são filtro; fatia de lugar é toggle. */
+chk("as seções do perfil usam o toggle padrão",
+    /class="segmento">[\s\S]{0,400}?Informações/.test(code) && !/class="chip '\+\(S\.pfTab/.test(code),
+    "as seções do perfil voltaram a ser chips — o componente de filtro");
+
 /* ── 5. A MOLDURA DA PÁGINA ──────────────────────────────────────
    Uma largura máxima e uma margem lateral, fluidas, para as três
    telas. Se cada tela declarar a sua, o conteúdo dança ao trocar de
