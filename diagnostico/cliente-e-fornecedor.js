@@ -1163,6 +1163,25 @@ var variedade = colunas.map(function (c) {
 });
 chk("cada coluna mistura proporções", variedade.every(function (v) { return v >= 2 }),
     "proporções por coluna: " + variedade.join(", ") + " — a foto deixou de mandar na altura");
+/* O "engessado" que ela apontou duas vezes: alturas até variavam, mas
+   pouco, e o topo do feed nascia numa régua reta. Três medidas:
+   o vão entre a proporção mais baixa e a mais alta é de pelo menos
+   1,7; o pin ALTO existe; e as colunas pares descem um degrau para o
+   desencontro começar na primeira dobra. */
+var razoes = g.e("PROPORCOES").map(function (p2) {
+  var ab = p2.split("/"); return Number(ab[1]) / Number(ab[0]);
+});
+var vao = Math.max.apply(null, razoes) / Math.min.apply(null, razoes);
+chk("as proporções vão do quadrado ao pin alto",
+    razoes.length >= 6 && vao >= 1.7,
+    razoes.length + " proporções, vão de " + vao.toFixed(2) + " — variação tímida lê como grade");
+chk("o topo do feed não é uma régua",
+    /\.feedcol:nth-child\(even\)\{padding-top:var\(--e6\)\}/.test(css),
+    "as colunas voltaram a nascer na mesma linha — o primeiro olhar vê grade");
+var tons = (code.match(/var g=\[([^\]]+)\]/) || [])[1] || "";
+chk("as texturas têm amplitude de luz",
+    (tons.match(/#/g) || []).length >= 7,
+    "voltaram os cinco cinzas médios: toda foto com a mesma luz lê como bloco");
 /* Contar COLUNAS com grade era um buraco: duas grades na mesma
    coluna davam UMA coluna-com-grade, a lista tinha um elemento só, e
    a condição pulava o teste. Sabotei o período para constante — toda

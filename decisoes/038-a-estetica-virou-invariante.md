@@ -120,3 +120,37 @@ página do estúdio.
 
 **11 roteiros, tudo verde por código de saída. 702 frases, nenhuma
 perdida.**
+
+---
+
+## Terceira parte: o engessado tinha três camadas
+
+> "a grade do feed continua engessada sem a ideia de visualização no
+> modelo de grid do pinterest"
+
+Antes de mexer, medi: uma simulação com as alturas reais mostrou que as
+colunas **já** se desencontravam (mediana de 204px) — o engessado não
+era a estrutura. Era percepção, e percepção tem causas físicas:
+
+**1. Variação tímida de proporção.** Cinco proporções, vão de 1,0 a
+1,67 — variações do mesmo card. Entrou o **pin alto** (9/16) e o médio
+(5/7): vão de 1,78, que é o que dá ao Pinterest a cara de Pinterest.
+
+**2. O topo era uma régua.** O primeiro par de cards nascia na mesma
+linha — e o primeiro olhar decide se aquilo é grade ou fluxo. As
+colunas pares descem um degrau (`--e6`): o desencontro começa na
+primeira dobra, não depois de rolar.
+
+**3. Toda foto tinha a mesma luz.** As texturas de demonstração usavam
+cinco cinzas médios — o feed lia como bloco único mesmo com alturas
+variando. Sete tons agora, do quase-preto ao quase-branco: foto de
+verdade varia de luz, e a demonstração precisa variar junto.
+
+E o aperto do Pinterest: vãos de 10px para 8px.
+
+Guardas para as três camadas; sabotagens acusadas nas três.
+
+*Se ainda ler como grade depois desta rodada, o próximo suspeito são as
+próprias texturas procedurais (listras e círculos regulares demais) — e
+aí vale um print do que você vê, porque é onde meu olho de máquina não
+alcança.*

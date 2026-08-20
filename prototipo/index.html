@@ -507,12 +507,16 @@ label.lb{font-size:var(--t-micro);color:var(--muted-foreground);display:block;ma
    cada card entra na coluna mais curta e NUNCA mais se move — lote
    novo só acrescenta no pé. O número de colunas segue os mesmos
    pontos de quebra de antes, decidido em quantasColunas(). */
-.feedposts{display:flex;gap:10px;align-items:flex-start;margin:var(--section-gap) auto 0}
+.feedposts{display:flex;gap:8px;align-items:flex-start;margin:var(--section-gap) auto 0}
 .feedcol{flex:1 1 0;min-width:0}
+/* O primeiro par de cards nascia na MESMA linha: o topo do feed era
+   uma régua reta, e régua reta é grade, não Pinterest. As colunas
+   pares descem um degrau — o desencontro começa na primeira dobra,
+   não depois de rolar. */
+.feedcol:nth-child(even){padding-top:var(--e6)}
 
-/* Espaço entre cards acompanha a coluna: 10px. */
-.post{break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid;
-  display:block;width:100%;margin:0 0 10px;background:none;border:none}
+/* Espaço entre cards acompanha a coluna: 8px, o aperto do Pinterest. */
+.post{display:block;width:100%;margin:0 0 8px;background:none;border:none}
 
 .postimg{position:relative;width:100%;overflow:hidden;background:var(--muted);
   border-radius:var(--r-foto)}
@@ -1543,8 +1547,12 @@ var CITIES=[["São Paulo","SP",-23.5505,-46.6333],["Rio de Janeiro","RJ",-22.906
 var BIOS=["Traço fino e composições botânicas. Atendo com hora marcada.","Blackwork pesado, geometria e ornamental. 8 anos de estúdio.","Realismo em preto e cinza, foco em retratos.","Old school com paleta reduzida e contorno firme.","Oriental tradicional, projetos de manga fechada."];
 
 function tex(seed){
- var g=["#141414","#333","#5c5c5c","#878787","#adadad"],a=(seed*37)%360;
- var c1=g[seed%5],c2=g[(seed+2)%5],c3=g[(seed+4)%5];
+ /* Sete tons, do quase-preto ao quase-branco. Com cinco cinzas
+    médios, todo card tinha a mesma luz e o feed lia como bloco único
+    — "engessado" mesmo com as alturas variando. Foto de verdade varia
+    de luz; a demonstração precisa variar junto. */
+ var g=["#0e0e0e","#2b2b2b","#4a4a4a","#6f6f6f","#949494","#bdbdbd","#dedede"],a=(seed*37)%360;
+ var c1=g[seed%7],c2=g[(seed+3)%7],c3=g[(seed+5)%7];
  return ["repeating-linear-gradient("+a+"deg,"+c1+" 0 3px,"+c2+" 3px 7px)",
   "radial-gradient(circle at 30% 40%,"+c3+" 0 18%,"+c1+" 18% 42%,"+c2+" 42%)",
   "repeating-radial-gradient(circle at 50% 50%,"+c1+" 0 5px,"+c3+" 5px 11px)",
@@ -2991,7 +2999,11 @@ function feedList(){
 /* Proporção derivada do mesmo número que gera a textura. Real, a altura
    viria da foto; aqui ela precisa ser estável — se mudasse a cada
    repintura, a coluna dançaria a cada clique. */
-var PROPORCOES=["3 / 4","2 / 3","1 / 1","4 / 5","3 / 5"];
+/* Sete proporções, do quadrado ao pin alto. Cinco davam um vão de
+   1,0–1,67 entre a mais baixa e a mais alta; com o 9/16 o vão vai a
+   1,78 e o feed ganha o pin ALTO que dá ao Pinterest a cara de
+   Pinterest — sem ele, tudo parece variação tímida do mesmo card. */
+var PROPORCOES=["3 / 4","2 / 3","1 / 1","4 / 5","3 / 5","9 / 16","5 / 7"];
 function proporcaoDaFoto(seed){ return PROPORCOES[Math.abs(seed)%PROPORCOES.length] }
 
 function publicacao(a){
