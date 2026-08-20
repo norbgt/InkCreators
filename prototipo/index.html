@@ -1392,6 +1392,16 @@ body:has(.convitebarra) main{padding-bottom:96px}
 
 <div class="protobar" id="protobar"><div class="wrap">
   <span class="b">Protótipo Ink Creators</span>
+  <!-- O carimbo de versão. Nasceu de uma frustração legítima: três
+       vezes ela olhou a tela e viu a versão anterior — cache, aba
+       antiga, publicação atrasada — e a conversa virou adivinhação
+       ("recarregou?", "é o arquivo novo?"). O carimbo acaba com a
+       adivinhação: mostra QUANDO o arquivo aberto foi salvo, direto
+       de document.lastModified — sem manutenção, impossível mentir.
+       E quando a aba fica aberta demais, ele mesmo pede recarga. -->
+  <span id="carimbo" class="tag" style="background:#2e2e2e;color:#bbb;cursor:pointer"
+        title="Quando o arquivo aberto foi salvo. Se você acabou de pedir um ajuste e esta hora é velha, recarregue."
+        onclick="location.reload(true)"></span>
   <span style="color:#aaa"><span class="tag real">real</span> backend <span class="tag mock">mock</span> só UI <span class="tag new">novo</span> proposta</span>
   <span class="sp"></span>
   <select id="sessionSel">
@@ -8110,6 +8120,26 @@ document.getElementById("sessionSel").addEventListener("change",function(e){
 
 /* Ordem importa: o que estava salvo primeiro, a URL por cima. Um link
    compartilhado tem que ganhar da última tela em que a pessoa estava. */
+/* ── O CARIMBO DE VERSÃO ─────────────────────────────────────────
+   document.lastModified é a hora em que o ARQUIVO aberto foi salvo —
+   funciona em file:// e no publicado (via cabeçalho HTTP). Se ela
+   pediu um ajuste agora e o carimbo mostra hora velha, a aba está
+   servindo passado: um clique nele recarrega. Depois de 15 minutos
+   com a aba aberta, ele avisa sozinho. */
+(function(){
+ var el=document.getElementById("carimbo");
+ if(!el)return;
+ var m=new Date(document.lastModified);
+ function dois(x){return String(x).padStart(2,"0")}
+ var rot="v. "+dois(m.getDate())+"/"+dois(m.getMonth()+1)+" "+dois(m.getHours())+":"+dois(m.getMinutes());
+ el.textContent=rot;
+ setInterval(function(){
+  if(Date.now()-m.getTime()>15*60*1000){
+   el.textContent=rot+" · aba antiga? clique";
+  }
+ },60*1000);
+})();
+
 restaurarEstado();
 aplicarURL();
 var seguraPeloPortao = (typeof testeLigado==="function") && iniciarPortaoDoTeste();

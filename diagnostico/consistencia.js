@@ -267,6 +267,27 @@ chk("as seções do perfil usam o toggle padrão",
     /class="segmento">[\s\S]{0,400}?Informações/.test(code) && !/class="chip '\+\(S\.pfTab/.test(code),
     "as seções do perfil voltaram a ser chips — o componente de filtro");
 
+/* ── 4c. O CARIMBO DE VERSÃO ─────────────────────────────────────
+   Três vezes ela olhou a tela e viu a versão anterior — cache, aba
+   antiga, publicação atrasada — e a conversa virou adivinhação. O
+   carimbo mostra quando o arquivo aberto foi salvo, vem de
+   document.lastModified (sem manutenção, impossível mentir), clica
+   para recarregar e avisa sozinho quando a aba envelhece. Se ele
+   sumir, a adivinhação volta. */
+secao("4c. O CARIMBO DE VERSÃO");
+chk("o carimbo existe na barra do protótipo",
+    /id="carimbo"/.test(html),
+    "sumiu o carimbo: volta a adivinhação de qual versão está na tela");
+chk("ele lê a hora do próprio arquivo",
+    /document\.lastModified/.test(code),
+    "carimbo desligado da fonte: hora escrita à mão envelhece e mente");
+chk("clicar nele recarrega",
+    /id="carimbo"[^>]*onclick="location\.reload/.test(html),
+    "o carimbo diagnostica mas não cura — o clique de recarga sumiu");
+chk("e a aba antiga se denuncia",
+    /aba antiga\? clique/.test(code),
+    "a aba envelhece em silêncio de novo");
+
 /* ── 5. A MOLDURA DA PÁGINA ──────────────────────────────────────
    Uma largura máxima e uma margem lateral, fluidas, para as três
    telas. Se cada tela declarar a sua, o conteúdo dança ao trocar de
