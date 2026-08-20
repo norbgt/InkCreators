@@ -492,10 +492,18 @@ label.lb{font-size:var(--t-micro);color:var(--muted-foreground);display:block;ma
    o feed vira uma fila. Foto menor é mais trabalho por tela, e num
    feed de descoberta o que conta é quantos trabalhos diferentes a
    pessoa vê antes de decidir parar. */
-.feedposts{column-gap:10px;margin:var(--section-gap) auto 0;column-count:2}
-@media(min-width:560px){.feedposts{column-count:3}}
-@media(min-width:700px){.feedposts{column-count:4}}
-@media(min-width:1100px){.feedposts{column-count:5}}
+/* ── POR QUE NÃO É MAIS column-count ──────────────────────────────
+   Coluna CSS rebalanceia o conteúdo inteiro a cada mudança: o scroll
+   infinito acrescenta um lote, o navegador redistribui TODOS os cards
+   entre as colunas, e o que a pessoa estava olhando muda de lugar
+   embaixo do dedo. Era a "grade dançando" que ela viu no celular.
+
+   Agora as colunas são divs de verdade e a distribuição é nossa:
+   cada card entra na coluna mais curta e NUNCA mais se move — lote
+   novo só acrescenta no pé. O número de colunas segue os mesmos
+   pontos de quebra de antes, decidido em quantasColunas(). */
+.feedposts{display:flex;gap:10px;align-items:flex-start;margin:var(--section-gap) auto 0}
+.feedcol{flex:1 1 0;min-width:0}
 
 /* Espaço entre cards acompanha a coluna: 10px. */
 .post{break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid;
@@ -592,6 +600,13 @@ label.lb{font-size:var(--t-micro);color:var(--muted-foreground);display:block;ma
 /* iOS dá zoom automático em campo com fonte menor que 16px — a tela
    pula no primeiro toque e a pessoa acha que quebrou. */
 @media(pointer:coarse){.fld,select.fld,textarea.fld{font-size:16px}}
+/* O balanço lateral: qualquer pixel além da largura da tela deixa a
+   página inteira "pananvel" para os lados, e o scroll vertical ganha
+   um tremor diagonal. Clip corta a possibilidade na raiz. */
+body{overflow-x:clip}
+/* Sem isso o toque num botão espera 300ms pelo duplo-toque de zoom —
+   e espera percebida no meio do scroll parece travada. */
+button,a{touch-action:manipulation}
 
 /* ── CARDS EM GRADE ───────────────────────────────────────────────
    Quebram o ritmo do feed. A densidade de cada um vem da pergunta:
@@ -2759,13 +2774,49 @@ function filtrarPorEstilo(slug) {
    A PRIMEIRA é a de estilo, com nove células — é a que se lê como
    grade à primeira vista. A de portfólio, com quatro, parece um card
    com quatro fotos, e sozinha não comunica a ideia. */
+/* Quantas colunas cabem. Os MESMOS pontos de quebra que o CSS usava —
+   se um dia mudarem lá, mudam aqui, e o diagnóstico compara os dois.
+   Recebe a largura por parâmetro para o teste poder variar o que o
+   navegador de verdade varia. */
+function quantasColunas(w){
+ w=w||window.innerWidth;
+ return w<560?2:w<700?3:w<1100?4:5;
+}
+
+/* Peso estimado de um card: altura da foto por unidade de largura
+   (vem da proporção, que é determinista) mais o pé. Não precisa ser
+   exato — precisa ser o MESMO em toda repintura, porque é ele que
+   decide a coluna, e coluna decidida é coluna para sempre. */
+function pesoDaPublicacao(a){
+ var pr=proporcaoDaFoto(a.seed).split("/");
+ return (Number(pr[1])/Number(pr[0]))+0.32;
+}
+
 function comGrades(lista, ate) {
-  var h = "", g = 1;
+  var pecas = [], g = 1;
   lista.slice(0, ate).forEach(function (a, i) {
-    h += publicacao(a);
-    if ((i + 1) % 3 === 0) { h += grades(lista, g); g++ }
+    pecas.push({html: publicacao(a), peso: pesoDaPublicacao(a)});
+    if ((i + 1) % 3 === 0) { pecas.push({html: grades(lista, g), peso: 1.2}); g++ }
   });
-  return h;
+  return pecas;
+}
+
+/* Cada peça entra na coluna mais curta NAQUELE momento. Como a
+   sequência e os pesos são deterministas, repintar com mais um lote
+   reproduz exatamente as decisões anteriores e só acrescenta no pé —
+   nenhum card colocado muda de coluna. É isso que parou a dança. */
+function emColunas(pecas){
+ var nc=quantasColunas();
+ colunasDesenhadas=nc;
+ var cols=[], alt=[];
+ for(var k=0;k<nc;k++){cols.push("");alt.push(0)}
+ pecas.forEach(function(p){
+  var menor=0;
+  for(var k=1;k<nc;k++)if(alt[k]<alt[menor])menor=k;
+  cols[menor]+=p.html;
+  alt[menor]+=p.peso;
+ });
+ return '<div class="feedposts">'+cols.map(function(c){return '<div class="feedcol">'+c+'</div>'}).join("")+'</div>';
 }
 
 function feedList(){
@@ -2782,9 +2833,7 @@ function feedList(){
     '<div class="row" style="gap:var(--e2);margin-top:var(--e3)"><button class="btn" onclick="go(\'conexao\')">Criar conta de teste</button>'+
     '<button class="btn" onclick="setModo(\'demo\')">Voltar para demonstração</button></div></div>';
   }
-  var h='<div class="feedposts">';
-  h+=comGrades(S.reaisArtistas,S.reaisArtistas.length);
-  return h+'</div>';
+  return emColunas(comGrades(S.reaisArtistas,S.reaisArtistas.length));
  }
  var l=filteredArtists();
  if(!l.length)return '<div class="card pad muted" style="margin-top:var(--e4)">Nenhum tatuador com esses filtros. Tente ampliar a faixa de preço ou remover algum estilo.</div>';
@@ -2799,9 +2848,7 @@ function feedList(){
     foto menor e duas colunas, três cards são meia tela — e meia tela
     de conteúdo com o rodapé aparecendo parece que acabou. */
  var ate=Math.min(l.length,S.feedLote*8);
- var h='<div class="feedposts">';
- h+=comGrades(l,ate);
- h+='</div>';
+ var h=emColunas(comGrades(l,ate));
  if(ate<l.length){
   h+='<div id="sentinela" class="row" style="justify-content:center;padding:var(--e5) 0"><span class="tiny muted">carregando mais…</span></div>';
  }else{
@@ -2932,6 +2979,20 @@ function alternarCurtida(id,idx){
 }
 
 /* Carrega o próximo lote quando a sentinela entra na tela. */
+/* Trocar de largura pode trocar o número de colunas — e só nesse
+   caso o feed se re-desenha. Redesenhar a cada pixel de resize faria
+   no desktop a dança que acabou de sair do celular. */
+var colunasDesenhadas=null;
+window.addEventListener("resize",function(){
+ clearTimeout(window._rzFeed);
+ window._rzFeed=setTimeout(function(){
+  var c=quantasColunas();
+  if(colunasDesenhadas!==null&&c!==colunasDesenhadas&&S.route==="home"){
+   colunasDesenhadas=c;render();
+  }
+ },150);
+});
+
 function ligarScrollInfinito(){
  var s=document.getElementById("sentinela");
  if(!s)return;

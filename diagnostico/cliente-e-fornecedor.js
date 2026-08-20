@@ -945,7 +945,12 @@ S.session = "anon";
 var tfeed = ir("home");
 var tcard = tfeed.split('class="post"')[1] || "";
 
-chk("o feed é masonry, não grade", /\.feedposts\{[^}]*column-gap/.test(css) && /column-count:2/.test(css),
+/* O masonry mudou de motor: era column-count do CSS, virou colunas de
+   verdade distribuídas por emColunas(). O motivo está na decisão 036 —
+   coluna CSS rebalanceia o conteúdo inteiro a cada lote novo, e era a
+   "grade dançando" que ela viu no celular. */
+chk("o feed é masonry, não grade",
+    /class="feedcol"/.test(tfeed) && !/\.feedposts\{[^}]*grid-template/.test(css),
     "voltou a ser grade — e grade obriga toda célula da fileira à mesma altura");
 chk("a foto define a altura", /class="postimg" style="aspect-ratio:/.test(tcard),
     "sem proporção própria, a foto volta a ser recortada");
@@ -1087,47 +1092,67 @@ chk("toda grade se anuncia como conjunto",
 /* Foto menor é mais trabalho por tela, que é o que um feed de
    descoberta precisa entregar. Duas colunas é o piso: em uma só, cada
    rolagem mostra um trabalho e o feed vira uma fila. */
-/* ── O ELO ENTRE O CSS E O HTML ───────────────────────────────────
-   O defeito que ninguém pegou por três rodadas: todo o masonry vivia
-   escrito em .feed enquanto o HTML usava .feedposts. CSS sem elemento,
-   elemento sem CSS — e o que a pessoa via era uma coluna só, com
-   max-width de 440px centralizado, herdada da interface #1.
+/* ── A GRADE NÃO DANÇA ────────────────────────────────────────────
+   O defeito que ela sentiu no dedo: com column-count, o navegador
+   rebalanceia TODAS as colunas quando o scroll infinito acrescenta um
+   lote — o card que a pessoa estava olhando muda de coluna embaixo do
+   toque. Nenhum teste meu via, porque nenhum teste meu comparava a
+   tela de ANTES do lote com a de DEPOIS.
 
-   Os testes anteriores liam o CSS e viam column-count:2 lá. Estavam
-   certos sobre a folha de estilo e cegos sobre a página.
-
-   Esta verificação mede o ELO: toda regra que define coluna tem de
-   pertencer a uma classe que existe na tela renderizada. */
-var regrasComColuna = (css.match(/\.[a-zA-Z][\w-]*\{[^}]*column-count[^}]*\}/g) || [])
-  .map(function (r) { return r.slice(1).split("{")[0] });
-/* Nem toda regra de coluna é do feed: o portfólio do perfil também
-   corre em colunas. Junto as duas telas antes de comparar — a pergunta
-   é se a classe existe em ALGUM lugar, não se existe aqui. */
-var classesNaTela = new Set();
-[tfeed, ir("artist")].forEach(function (tela) {
-  (tela.match(/class="([^"]+)"/g) || []).forEach(function (c) {
-    c.replace(/class="|"/g, "").split(/\s+/).forEach(function (x) { if (x) classesNaTela.add(x) });
+   Agora a distribuição é nossa (emColunas), e a promessa é testável:
+   card colocado nunca muda de coluna; lote novo só acrescenta. */
+S.session = "anon"; S.route = "home"; S.f = S.f || {}; S.feedLote = 1;
+g.e("render()");
+function mapaDeColunas(t) {
+  var m = {};
+  (t.split('class="feedcol"').slice(1)).forEach(function (col, ci) {
+    (col.match(/aria-label="Ver o perfil de ([^"]+)"/g) || []).forEach(function (a) {
+      var nome = a.replace(/aria-label="Ver o perfil de |"/g, "");
+      if (!(nome in m)) m[nome] = ci;
+    });
   });
-});
-S.session = "anon"; S.route = "home";
-chk("existe regra de coluna para o feed", regrasComColuna.length > 0);
-chk("e a classe dela existe na tela",
-    regrasComColuna.every(function (cl) { return classesNaTela.has(cl) }),
-    "CSS órfão: " + regrasComColuna.filter(function (cl) { return !classesNaTela.has(cl) }).join(", "));
-/* O container do feed tem de ser o mesmo objeto nos dois lados. */
-chk("o container do feed carrega a regra de coluna",
-    /class="feedposts"/.test(tfeed) && /\.feedposts\{[^}]*column-count/.test(css),
-    "o feed voltou a ser uma coluna centralizada");
-chk("e nada o estreita para caber um card por vez",
+  return m;
+}
+var antesLote = mapaDeColunas(tela());
+S.feedLote = 2; g.e("render()");
+var depoisLote = mapaDeColunas(tela());
+var mudaram = Object.keys(antesLote).filter(function (k) { return depoisLote[k] !== antesLote[k] });
+chk("um lote novo não move nenhum card já colocado", mudaram.length === 0,
+    "mudaram de coluna com o lote: " + mudaram.slice(0, 4).join(", ") + " — a dança voltou");
+/* Sabotei a escolha da coluna — hash do conteúdo em vez da mais
+   curta — e o teste de estabilidade PASSOU, com razão: hash também é
+   estável. Estabilidade e equilíbrio são propriedades diferentes, e
+   cada uma precisa do seu teste. Este aqui alimenta a distribuição
+   com pesos desenhados para denunciar: um card alto e três baixos.
+   Na coluna mais curta, os três baixos se acumulam longe do alto. */
+var dist = g.e("emColunas([{html:'<u>a</u>',peso:5},{html:'<u>b</u>',peso:1},{html:'<u>c</u>',peso:1},{html:'<u>d</u>',peso:1}])");
+var colA = dist.split('class="feedcol"')[1] || "";
+var colB = dist.split('class="feedcol"')[2] || "";
+chk("a peça entra na coluna mais curta, não numa qualquer",
+    /<u>a<\/u>/.test(colA) && !/<u>b<\/u>/.test(colA) &&
+    /<u>b<\/u>/.test(colB) && /<u>c<\/u>/.test(colB) && /<u>d<\/u>/.test(colB),
+    "o card alto não afastou os baixos: a coluna não é escolhida pela altura");
+
+chk("e o lote novo de fato entrou",
+    Object.keys(depoisLote).length > Object.keys(antesLote).length,
+    "o teste passou porque nada foi acrescentado — isso não é estabilidade");
+S.feedLote = 1; g.e("render()");
+
+/* Os degraus de coluna: mesma régua de antes, agora numa função que o
+   teste varia como o navegador varia. */
+chk("o feed nunca cai para uma coluna",
+    [320, 393, 560, 700, 1100, 1600].every(function (w) { return g.e("quantasColunas(" + w + ")") >= 2 }),
+    "coluna única: cada rolagem mostra um trabalho e o feed vira fila");
+chk("e ganha coluna conforme a tela cresce",
+    g.e("quantasColunas(393)") === 2 && g.e("quantasColunas(600)") === 3 &&
+    g.e("quantasColunas(800)") === 4 && g.e("quantasColunas(1200)") === 5,
+    "degraus: " + [393, 600, 800, 1200].map(function (w) { return g.e("quantasColunas(" + w + ")") }).join(", "));
+chk("os degraus são os pontos de quebra do sistema",
+    /w<560\?2:w<700\?3:w<1100\?4:5/.test(code.replace(/\s+/g, "")),
+    "quantasColunas inventou pontos de quebra próprios — dois sistemas de novo");
+chk("e nada estreita o feed para um card por vez",
     !/\.feedposts\{[^}]*max-width:4[0-9][0-9]px/.test(css),
     "voltou o max-width que fazia um tatuador por vez");
-
-chk("o feed nunca cai para uma coluna",
-    !/column-count:1[^0-9]/.test(css),
-    "voltou a coluna única, onde cada rolagem mostra um trabalho");
-chk("e ganha coluna conforme a tela cresce",
-    (css.match(/\.feedposts\{column-count:[3-6]\}/g) || []).length >= 3,
-    "poucos degraus: a foto fica grande demais em tela larga");
 chk("grade de portfólio com quatro células", /class="gcels quatro"/.test(tfeed3),
     "quatro para julgar a mão de uma pessoa — em nove ninguém julga traço");
 chk("grade de estilo com nove", /class="gcels nove"/.test(tfeed3),
