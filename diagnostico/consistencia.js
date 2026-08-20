@@ -241,12 +241,12 @@ chk("e o cartão-convite tem classe própria",
    ABRAÇA o conteúdo, e o espaço ENTRE os cards, no gap do container —
    nunca dentro das margens de cada um. */
 chk("o card da lista tem borda que o abraça",
-    /\.vitrine\.lista \.prod\{[^}]*border:var\(--hair\) solid var\(--border\)/.test(css) &&
-    !/\.vitrine\.lista \.prod\{[^}]*border-bottom:var/.test(css),
+    /\.vitrine\.emlista \.prod\{[^}]*border:var\(--hair\) solid var\(--border\)/.test(css) &&
+    !/\.vitrine\.emlista \.prod\{[^}]*border-bottom:var/.test(css),
     "a caixa virou fio de novo — a borda tem de envolver o card inteiro");
 chk("e o espaço vive entre os cards, não dentro deles",
-    /\.vitrine\.lista\{[^}]*gap:var\(--e2\)/.test(css) &&
-    /\.vitrine\.lista \.prod\{[^}]*padding:var\(--e2\)[;}]/.test(css),
+    /\.vitrine\.emlista\{[^}]*gap:var\(--e2\)/.test(css) &&
+    /\.vitrine\.emlista \.prod\{[^}]*padding:var\(--e2\)[;}]/.test(css),
     "o respiro voltou para dentro da margem do card — o que ela viu no print");
 
 /* O botão de entrar: "Entrar ou criar conta" comia metade do

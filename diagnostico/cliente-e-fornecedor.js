@@ -213,8 +213,13 @@ var tLista = tela();
    modificador se chamava "lista" e o componente .lista (caixa das
    listas de orçamento) emprestava a moldura ao container inteiro.
    Nenhum elemento pode vestir as duas. */
+/* Sabotei pondo "lista" como TERCEIRA classe e a primeira versão
+   deste guarda dormiu: os regex só cobriam duas ordens. Agora ele
+   extrai a lista de classes do container e pergunta se "lista" está
+   entre elas — posição nenhuma escapa. */
+var clsVitrine=((tLista.match(/class="([^"]*vitrine[^"]*)"/)||[])[1]||"").split(/\s+/);
 chk("a vitrine não veste a classe do componente de lista",
-    !/class="vitrine lista"/.test(tLista) && !/class="[^"]*\blista\b[^"]*vitrine/.test(tLista),
+    clsVitrine.indexOf("lista")<0,
     "voltou a colisão .lista: a moldura da caixa desenha linha vertical entre os cards");
 chk("a lista é a mesma grade com uma coluna",
     /class="vitrine emlista"/.test(tLista) && /\.vitrine\.emlista\{grid-template-columns:1fr[;}]/.test(css),
