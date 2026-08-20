@@ -278,8 +278,11 @@ secao("4c. O CARIMBO DE VERSÃO");
 chk("o carimbo existe na barra do protótipo",
     /id="carimbo"/.test(html),
     "sumiu o carimbo: volta a adivinhação de qual versão está na tela");
+/* A menção em comentário segurava o teste quando a sabotagem trocou
+   a FONTE por data escrita à mão. O guarda agora exige a expressão
+   viva — new Date(document.lastModified) — não a palavra solta. */
 chk("ele lê a hora do próprio arquivo",
-    /document\.lastModified/.test(code),
+    /new Date\(document\.lastModified\)/.test(code),
     "carimbo desligado da fonte: hora escrita à mão envelhece e mente");
 chk("clicar nele recarrega",
     /id="carimbo"[^>]*onclick="location\.reload/.test(html),
