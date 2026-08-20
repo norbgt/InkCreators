@@ -1194,9 +1194,17 @@ chk("as proporções vão do quadrado ao pin alto",
    linha alinhada ao topo, rente à busca — no Pinterest o desencontro
    nasce das alturas das fotos, não de empurrão. Decisão que trocou de
    sinal, registrada aqui e no código. O guarda inverteu junto. */
-chk("a primeira linha de fotos alinha ao topo",
-    !/padding-top:40px/.test(tzz),
-    "voltou o empurrão artificial nas colunas pares — ela pediu o topo rente à busca");
+/* Duas portas para o mesmo empurrão: o inline no HTML e a regra na
+   folha. Removi o inline e ESQUECI a folha — 40px fantasmas que o
+   guarda não via porque lá se escrevia var(--e6), e eu procurava
+   "40px". Guarda de grafia morre na primeira variável; este agora
+   fecha as DUAS portas pelo que elas fazem, não pelo que escrevem. */
+chk("a primeira linha de fotos alinha ao topo (inline)",
+    !/padding-top/.test(tzz.split('class="feedposts"')[1].split('class="post"')[0] || ""),
+    "voltou o empurrão inline nas colunas");
+chk("e nenhuma regra da folha empurra coluna do feed",
+    !/\.feedcol[^{]*\{[^}]*padding-top/.test(css),
+    "a folha voltou a empurrar coluna — o fantasma de var(--e6) do print dela");
 chk("o flex das colunas é inline, imune ao assassino de regras",
     /class="feedposts" style="display:flex/.test(tzz) && /class="feedcol" style="flex:1 1 0/.test(tzz),
     "o masonry voltou a depender só da folha — foi assim que ela viu uma coluna única duas vezes");

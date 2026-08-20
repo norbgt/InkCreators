@@ -509,11 +509,10 @@ label.lb{font-size:var(--t-micro);color:var(--muted-foreground);display:block;ma
    pontos de quebra de antes, decidido em quantasColunas(). */
 .feedposts{display:flex;gap:8px;align-items:flex-start;margin:var(--section-gap) auto 0}
 .feedcol{flex:1 1 0;min-width:0}
-/* O primeiro par de cards nascia na MESMA linha: o topo do feed era
-   uma régua reta, e régua reta é grade, não Pinterest. As colunas
-   pares descem um degrau — o desencontro começa na primeira dobra,
-   não depois de rolar. */
-.feedcol:nth-child(even){padding-top:var(--e6)}
+/* O degrau das colunas pares existiu e SAIU: com o masonry visível,
+   ela pediu a primeira linha rente à busca. A regra chegou a ficar
+   órfã aqui na folha depois de removida do inline — 40px fantasma que
+   o guarda de grafia não via porque aqui se escrevia var(--e6). */
 
 /* Espaço entre cards acompanha a coluna: 8px, o aperto do Pinterest. */
 .post{display:block;width:100%;margin:0 0 8px;background:none;border:none}
