@@ -717,14 +717,17 @@ button,a{touch-action:manipulation}
    Quem chega sabendo o que quer lê nome e preço mais rápido em lista;
    quem está garimpando vê mais produto por tela na grade. Duas
    perguntas, dois arranjos, um componente. */
-/* Sem o traço, as linhas encostavam: o card perdeu a moldura quando
-   virou o componente do feed, e em lista não sobra foto grande para
-   separar visualmente — o que separa é o fio, como em toda lista do
-   produto. */
-.vitrine.lista{grid-template-columns:1fr;gap:0}
+/* A lista tentou ser fio e ficou ambígua: padding vertical criava um
+   respiro DENTRO da linha que parecia margem mal feita — foi o que
+   ela apontou. Em lista de produto, o card é uma caixa: borda que
+   ABRAÇA o conteúdo, e o espaço vive ENTRE os cards (gap do
+   container), nunca dentro das margens de cada um. */
+.vitrine.lista{grid-template-columns:1fr;gap:var(--e2)}
 .vitrine.lista .prod{flex-direction:row;gap:var(--e3);align-items:center;
-  padding:var(--e3) 0;border-bottom:var(--hair) solid var(--rule)}
-.vitrine.lista .prod:last-child{border-bottom:none}
+  border:var(--hair) solid var(--border);border-radius:var(--r-sm);
+  background:var(--card);padding:var(--e2);
+  transition:border-color var(--dur) var(--ease)}
+.vitrine.lista .prod:hover{border-color:var(--muted-foreground)}
 .vitrine.lista .prod .postimg{width:88px;flex:0 0 88px;height:88px;aspect-ratio:auto}
 .vitrine.lista .prodinfo{flex-direction:row;align-items:center;gap:var(--e3);padding:0}
 .vitrine.lista .prodtxt{flex:1;min-width:0}
