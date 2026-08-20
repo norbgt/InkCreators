@@ -2900,10 +2900,16 @@ function emColunas(pecas){
     assassino — extensão, cache, parser, não importa: estilo inline
     não tem intermediário para morrer. O masonry é a alma desta tela;
     alma não fica pendurada numa regra que algo pode engolir. */
+ /* O degrau nas colunas pares durou uma rodada: com o masonry enfim
+    visível, ela pediu a primeira linha ALINHADA ao topo, rente ao
+    campo de busca — como no Pinterest de verdade, onde o desencontro
+    nasce das alturas das fotos, não de um empurrão artificial.
+    Decisão que trocou de sinal, registrada: o empurrão existiu para
+    compensar um desencontro que as proporções novas já produzem. */
  var estiloCol='flex:1 1 0;min-width:0;';
  return '<div class="feedposts" style="display:flex;gap:8px;align-items:flex-start">'+
-  cols.map(function(c,ci){
-   return '<div class="feedcol" style="'+estiloCol+(ci%2===1?'padding-top:40px':'')+'">'+c+'</div>';
+  cols.map(function(c){
+   return '<div class="feedcol" style="'+estiloCol+'">'+c+'</div>';
   }).join("")+'</div>';
 }
 
