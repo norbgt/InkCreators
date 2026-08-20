@@ -217,7 +217,12 @@ var tLista = tela();
    deste guarda dormiu: os regex só cobriam duas ordens. Agora ele
    extrai a lista de classes do container e pergunta se "lista" está
    entre elas — posição nenhuma escapa. */
-var clsVitrine=((tLista.match(/class="([^"]*vitrine[^"]*)"/)||[])[1]||"").split(/\s+/);
+/* Terceira versão deste extrator, e cada queda ensinou uma coisa:
+   a 1ª cobria só duas ordens de classe; a 2ª agarrou "vitrinecab",
+   que vem ANTES do container no HTML e também contém "vitrine".
+   Fronteira de palavra: a classe é "vitrine", seguida de espaço ou
+   de fim — vitrinecab não passa. */
+var clsVitrine=((tLista.match(/class="(vitrine(?: [^"]*)?)"/)||[])[1]||"").split(/\s+/);
 chk("a vitrine não veste a classe do componente de lista",
     clsVitrine.indexOf("lista")<0,
     "voltou a colisão .lista: a moldura da caixa desenha linha vertical entre os cards");
