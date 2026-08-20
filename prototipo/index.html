@@ -7160,7 +7160,7 @@ function assistBody(){
  h+='<div class="sep"></div>';
  h+='<div class="grid" style="gap:var(--e2)">';
  h+='<div><label class="lb">Parte do corpo <span class="req">obrigatório</span></label><input class="fld" id="aiParte" value="'+escapar(S.aiParte)+'" oninput="S.aiParte=this.value" placeholder="Antebraço interno" /></div>';
- h+='<div><label class="lb">Cidade <span class="req">obrigatório</span></label><input class="fld" id="aiCidade" value="'+escapar(S.aiCidade)+'" oninput="S.aiCidade=this.value" placeholder="São Paulo" /></div>';
+ h+='<div><label class="lb">Cidade <span class="muted" style="font-weight:400">— opcional</span></label><input class="fld" id="aiCidade" value="'+escapar(S.aiCidade)+'" oninput="S.aiCidade=this.value" placeholder="São Paulo" /></div>';
  h+='</div>';
  /* Faixa de gasto e observações saíram DAQUI: são detalhe de
     negociação, não descrição da tatuagem. Moram no passo 2, junto das
@@ -7176,7 +7176,6 @@ function assistBody(){
  if(!S.aiEstilos.length)falta.push("o estilo");
  if(!S.aiTam)falta.push("o tamanho");
  if(!S.aiParte)falta.push("a parte do corpo");
- if(!S.aiCidade)falta.push("a cidade");
  h+='<button class="btn primary blk" style="margin-top:var(--e3)" '+(falta.length?"disabled":"")+' onclick="S.aiStep=1;renderDrawer()">'+
     (falta.length?"Falta "+falta[0]:"Ver para quem vai →")+'</button>';
  if(falta.length>1)h+='<div class="tiny muted" style="margin-top:var(--e1);text-align:center">e mais '+(falta.length-1)+': '+falta.slice(1).join(", ")+'</div>';

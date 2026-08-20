@@ -57,9 +57,15 @@ chk('cobertura continua separada',/cobrir ou corrigir/.test(d));
    texto sobre a coisa: os cinco campos continuam marcados como
    obrigatórios, um a um. Guarda que depende de uma frase morre na
    primeira revisão de copy; guarda que conta selos, não. */
+/* Cidade deixou de ser obrigatória a pedido dela (20/08): sem ela as
+   recomendações só perdem o recorte de proximidade — quem responde
+   continua respondendo. O padrão obrigatório são QUATRO: referência,
+   estilo, tamanho e parte do corpo. */
 var obrigatorios = (d.match(/class="req">obrigatório</g) || []).length;
-chk('os cinco campos do padrão continuam obrigatórios', obrigatorios === 5,
-    obrigatorios + ' de 5 — sem os cinco, cada pedido chega com um recorte diferente');
+chk('os quatro campos do padrão continuam obrigatórios', obrigatorios === 4,
+    obrigatorios + ' de 4 — o padrão encolheu ou engordou sem decisão');
+chk('e a cidade se declara opcional', /Cidade <span[^>]*>— opcional/.test(d),
+    'a cidade ficou muda: nem obrigatória nem declarada opcional');
 chk('tamanho virou campo, não texto livre',/>Tamanho</.test(d));
 /* Não basta EXISTIR um "cm" na tela: cada degrau da régua tem de
    trazer o seu. Sabotei trocando um só rótulo por "médio" e este
@@ -83,9 +89,9 @@ var passos=[
  ['uma referência', "S.aiRefs=2"],
  ['o estilo',       "tog(S.aiEstilos,'fineline')"],
  ['o tamanho',      "S.aiTam='m'"],
- ['a parte do corpo',"S.aiParte='Antebraço interno'"],
- ['a cidade',       "S.aiCidade='São Paulo'"]
+ ['a parte do corpo',"S.aiParte='Antebraço interno'"]
 ];
+g.e("S.aiCidade=''");  // a cidade vazia não pode travar nada
 passos.forEach(function(pa,i){
  var atual=gav();
  chk('travado, e diz que falta '+pa[0],
