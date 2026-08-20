@@ -111,6 +111,47 @@ chk('tirar alguém muda a contagem do botão',/Enviar para/.test(gav()));
 g.e("S.aiFora=[];S.aiStep=2;renderDrawer()");
 chk('confirmação sem promessa de IA',!/\bIA\b/.test(gav())&&/Pedido enviado/.test(gav()));
 
+/* ── O FLUXO DELA: 2 PASSOS + CONCLUSÃO ───────────────────────────
+   Passo 1 SEMPRE igual (fala da tatuagem, e tatuagem não muda com a
+   porta de entrada); passo 2 com busca que filtra as recomendações e
+   a decisão do tipo de orçamento; conclusão dizendo para quantos foi. */
+console.log('── 1b. DOIS PASSOS, BUSCA E TIPO ──');
+/* O mesmo passo 1 com e sem artista de origem — bit a bit. */
+g.e("S.aiStep=0");
+g.e("S.assistArtist='a1'");var p1com=(g.e("renderDrawer()"),gav());
+g.e("S.assistArtist=null");var p1sem=(g.e("renderDrawer()"),gav());
+chk('o passo 1 é idêntico com e sem artista de origem', p1com===p1sem,
+    'a porta de entrada mudou o passo 1 — ela pediu que começasse sempre igual');
+/* Vir do perfil pré-preenche a BUSCA do passo 2. */
+g.e("S.aiBusca='';quoteFor(ARTISTS[0].id)");
+chk('vindo do perfil, o nome chega na busca do passo 2',
+    g.e("S.aiBusca")===g.e("ARTISTS[0].name") && g.e("S.aiStep")===0,
+    'busca: "'+g.e("S.aiBusca")+'" — o atalho do perfil se perdeu');
+S.route='home';S.session='client';g.e("S.drawer='assist'");
+/* A busca filtra as recomendações. */
+g.e("S.aiBusca='';S.aiFora=[];S.aiStep=1;renderDrawer()");
+var semBusca=(gav().match(/class="lrow"/g)||[]).length;
+g.e("S.aiBusca=ARTISTS[0].name;renderDrawer()");
+var comBusca=gav();
+chk('sem busca, as recomendações são automáticas e várias', semBusca>1, semBusca+' recomendação(ões)');
+chk('a busca filtra a lista', (comBusca.match(/class="lrow"/g)||[]).length===1 && comBusca.indexOf(g.e("ARTISTS[0].name"))>=0,
+    'digitei um nome e a lista não obedeceu');
+g.e("S.aiBusca='zzz-ninguem';renderDrawer()");
+chk('busca sem dono explica e ensina a sair', /Apague a busca/.test(gav()),
+    'lista vazia muda sem dizer por quê');
+g.e("S.aiBusca='';renderDrawer()");
+/* A decisão do tipo de orçamento. */
+chk('o tipo de orçamento se decide no passo 2',
+    /Valor fechado/.test(gav()) && /Por hora/.test(gav()) && /Conversar antes/.test(gav()),
+    'a decisão de tipo sumiu do passo 2');
+g.e("S.aiTipo='hora';renderDrawer()");
+chk('e a escolha marca', /chip on"[^>]*>Por hora/.test(gav()));
+/* A conclusão conta para quantos foi. */
+g.e("S.aiTipo='';S.aiStep=2;renderDrawer()");
+chk('a conclusão diz para quantos foi', /Pedido enviado para \d+ tatuadores|Pedido enviado para [A-ZÀ-Ú]/.test(gav()),
+    'a conclusão perdeu o número');
+g.e("S.aiStep=0;S.aiBusca='';S.assistArtist=null");
+
 console.log('── 2. ECOSSISTEMA EM CONHECER ──');
 /* ── A GRAMÁTICA DO PORTFÓLIO DELA ────────────────────────────────
    Conhecer alinhou à esquerda e os cards passaram a correr na

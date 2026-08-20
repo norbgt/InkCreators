@@ -1924,7 +1924,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  evT:"all",evP:"all",evD:"all",evSort:"distance",evSel:"e1",evLoc:"São Paulo, SP",
  coT:"all",coL:"all",coP:"all",coSort:"recent",
  qStatus:"todos",hub:"menu",aiStep:0,aiRefs:2,
- aiEstilos:[],aiFora:[],aiParte:"",aiCidade:"",aiFaixa:"",aiObs:"",aiTam:"",
+ aiEstilos:[],aiFora:[],aiParte:"",aiCidade:"",aiFaixa:"",aiObs:"",aiTam:"",aiBusca:"",aiTipo:"",
  chatOpen:null,chatFilter:"all",chatQ:"",notifFilter:"all",notifs:NOTIFS.map(function(n){return{...n}}),
  sqSel:"s1",orcPasso:"lista",orcEnviado:null,estudioSel:"e1",administraEstudio:false,
  /* Check-in aberto agora. Um por vez, de propósito: o QR na tela é de
@@ -3250,7 +3250,16 @@ function renderFeedOnly(){
 /* Só orçamento. A intenção 'schedule' foi removida: agendar tem gaveta
    própria desde que verAgenda existe, e manter as duas apontando para o
    mesmo assistente era a redundância que confundia o botão. */
-function quoteFor(id){S.assistArtist=id;S.aiStep=0;S.autoAssist=true;go("artist",id)}
+/* O fluxo COMEÇA SEMPRE IGUAL — pedido dela. Vir do perfil de alguém
+   não muda o passo 1: o nome de quem a pessoa tinha em mente entra
+   pré-preenchido no campo de busca do passo 2, onde a decisão de
+   destino mora. */
+function quoteFor(id){
+ S.assistArtist=id;S.aiStep=0;S.autoAssist=true;
+ var a=ARTISTS.filter(function(x){return x.id===id})[0];
+ S.aiBusca=a?a.name:"";
+ go("artist",id);
+}
 
 /* --- agenda do tatuador --- */
 /* A agenda do tatuador não é pública, e isso não é detalhe de tela: é
@@ -7016,17 +7025,29 @@ function assistBody(){
 
  /* Passo 2: enviado. */
  if(S.aiStep===2){
+  var idos=(function(){
+   var busca=(S.aiBusca||"").trim().toLowerCase();
+   var vis=busca?tatuadoresCompativeis().filter(function(x){return (x.name+" "+x.studio).toLowerCase().indexOf(busca)>=0}):tatuadoresCompativeis();
+   return vis.filter(function(x){return S.aiFora.indexOf(x.id)<0});
+  })();
   var h='<div class="card pad" style="background:var(--x-success-bg);border-color:var(--x-success-bg)"><div class="b small" style="color:var(--x-success)">'+
-    (a?"Pedido enviado para "+a.name+".":"Pedido enviado para 6 tatuadores.")+'</div>';
+    (idos.length===1?"Pedido enviado para "+idos[0].name+".":"Pedido enviado para "+idos.length+" tatuadores.")+'</div>';
   h+='<div class="tiny" style="color:var(--x-success);margin-top:var(--e1)">Cada um responde com o preço e o prazo dele. Você compara e escolhe.</div></div>';
   h+='<button class="btn blk" style="margin-top:var(--e3)" onclick="closeDrawer();go(\'me-quotes\')">Ver meus orçamentos</button>';
   return h;
  }
 
- /* Passo 1: para quem vai. Não é sugestão de máquina — é a lista de
-    quem faz aquele estilo naquela cidade, que a pessoa pode mexer. */
+ /* Passo 2: para quem vai. Abre com recomendações automáticas — quem
+    faz aquele estilo naquela cidade — e um campo de busca em cima:
+    quem já tem alguém em mente digita (ou chega com o nome
+    pré-preenchido, se veio do perfil) e a lista se filtra embaixo.
+    Não é sugestão de máquina: é a lista de quem faz, que a pessoa
+    pode filtrar e podar. */
  if(S.aiStep===1){
   var compat=tatuadoresCompativeis();
+  var busca=(S.aiBusca||"").trim().toLowerCase();
+  var vis=busca?compat.filter(function(x){return (x.name+" "+x.studio).toLowerCase().indexOf(busca)>=0}):compat;
+
   var h='<div class="card pad" style="background:var(--muted)"><div class="b small">Seu pedido</div>';
   h+='<div class="row wrapf" style="gap:var(--e1);margin-top:var(--e2)">';
   (S.aiEstilos.length?S.aiEstilos:["—"]).forEach(function(x){h+='<span class="badge acc">'+(SL[x]||x)+'</span>'});
@@ -7036,20 +7057,33 @@ function assistBody(){
   if(S.arrependido)h+='<div class="tiny" style="margin-top:var(--e1);color:var(--accent)">Cobertura ou correção — vai só para quem faz.</div>';
   h+='</div>';
 
-  h+='<div class="row" style="margin-top:var(--e3)"><span class="b small">Vai para</span><span class="sp tiny muted">'+compat.length+' tatuador(es)</span></div>';
-  h+='<div class="tiny muted" style="margin-top:var(--e1)">Quem trabalha com o que você escolheu, na sua cidade ou perto. Você pode tirar alguém da lista.</div>';
+  h+='<div style="margin-top:var(--e4)"><label class="lb">Tem alguém em mente?</label>';
+  h+='<div class="campo"><span class="lupa">⌕</span><input class="fld" placeholder="Nome do tatuador ou estúdio…" value="'+escapar(S.aiBusca)+'" oninput="S.aiBusca=this.value;renderDrawer();var f=document.querySelectorAll(\'.drawer input\');if(f[0]){f[0].focus();f[0].setSelectionRange(f[0].value.length,f[0].value.length)}" /></div></div>';
+
+  h+='<div class="row" style="margin-top:var(--e3)"><span class="b small">Vai para</span><span class="sp tiny muted">'+vis.length+' tatuador(es)</span></div>';
+  h+='<div class="tiny muted" style="margin-top:var(--e1)">'+(busca?"Filtrado pela sua busca — apague para ver todas as recomendações.":"Quem trabalha com o que você escolheu, na sua cidade ou perto. Você pode tirar alguém da lista.")+'</div>';
+  if(!vis.length)h+='<div class="card pad muted" style="margin-top:var(--e2)">Ninguém com esse nome faz o que você pediu. Apague a busca para ver as recomendações.</div>';
   h+='<div style="margin-top:var(--e2)">';
-  compat.forEach(function(x){
+  vis.forEach(function(x){
    var fora=S.aiFora.indexOf(x.id)>=0;
    h+='<div class="lrow"'+(fora?' style="opacity:.45"':'')+'><div class="av">'+ini(x.name)+'</div>';
-   h+='<div style="min-width:0"><div class="b small">'+x.name+'</div>';
-   h+='<div class="tiny muted">'+x.city+' · '+stars(x.rating)+' '+x.rating+'</div></div>';
+   h+='<div style="min-width:0"><div class="b small">'+x.name+(x.verified?' <span style="color:var(--accent)">✔</span>':'')+'</div>';
+   h+='<div class="tiny muted">'+x.styles.map(function(s2){return SL[s2]}).join(", ")+'</div>';
+   h+='<div class="tiny muted">'+x.city+(distanciaTexto(x)?' · '+distanciaTexto(x):'')+' · '+stars(x.rating)+' '+x.rating+' ('+x.reviews+')</div></div>';
    h+='<div class="sp" style="text-align:right"><div>'+cifroes(x)+'</div>';
    h+='<button class="btn sm" style="margin-top:var(--e1)" onclick="tog(S.aiFora,\''+x.id+'\')">'+(fora?"Incluir":"Tirar")+'</button></div></div>';
   });
   h+='</div>';
 
-  var vao=compat.filter(function(x){return S.aiFora.indexOf(x.id)<0}).length;
+  /* A decisão sobre o TIPO de orçamento, dela: valor fechado, por
+     hora, ou conversar antes. Vai junto do pedido para quem responde
+     saber o que a pessoa espera receber. */
+  h+='<div class="fgroup" style="margin-top:var(--e4)"><span class="gl">Como você prefere o orçamento?</span>';
+  [["fechado","Valor fechado"],["hora","Por hora"],["conversar","Conversar antes"]].forEach(function(t){
+   h+='<button class="chip '+(S.aiTipo===t[0]?"on":"")+'" onclick="S.aiTipo=S.aiTipo===\''+t[0]+'\'?\'\':\''+t[0]+'\';renderDrawer()">'+t[1]+'</button>'});
+  h+='</div>';
+
+  var vao=vis.filter(function(x){return S.aiFora.indexOf(x.id)<0}).length;
   h+='<div class="tiny muted" style="margin-top:var(--e3)">Cada tatuador responde com o preço dele. Ninguém vê a proposta do outro.</div>';
   h+='<button class="btn primary blk" style="margin-top:var(--e3)" '+(vao?"":"disabled")+' onclick="'+(isLog()?"S.aiStep=2;renderDrawer()":"closeDrawer();irCadastro(null)")+'">'+
      (vao?"Enviar para "+vao+" tatuador(es)":"Escolha ao menos um")+'</button>';
@@ -7058,9 +7092,11 @@ function assistBody(){
   return h;
  }
 
- /* Passo 0: o pedido. */
+ /* Passo 1: o pedido — e sempre o MESMO pedido. O banner "Orçar com
+    Fulana" saiu daqui: quem veio de um perfil reencontra a pessoa no
+    passo 2, já na busca. O passo 1 pergunta sobre a TATUAGEM, e
+    tatuagem não muda conforme a porta de entrada. */
  var h='';
- if(a)h+='<div class="banner" style="margin-bottom:var(--e3)"><div class="av">'+ini(a.name)+'</div><div><div class="b small">Orçar com '+a.name+'</div><div class="tiny muted">'+a.studio+' · '+a.city+'</div></div></div>';
  h+='<p class="small muted">Conte o que você quer. Quem trabalha com isso responde com o preço e o prazo.</p>';
  /* O aviso que explicava o padrão saiu a pedido dela. O padrão não
     dependia dele: quem diz que os cinco campos são os mesmos para
@@ -7102,7 +7138,7 @@ function assistBody(){
  h+='<div class="sep"></div>';
  h+='<div class="grid" style="gap:var(--e2)">';
  h+='<div><label class="lb">Parte do corpo <span class="req">obrigatório</span></label><input class="fld" id="aiParte" value="'+escapar(S.aiParte)+'" oninput="S.aiParte=this.value" placeholder="Antebraço interno" /></div>';
- h+='<div><label class="lb">Cidade <span class="req">obrigatório</span></label><input class="fld" id="aiCidade" value="'+escapar(S.aiCidade||(a?a.city:""))+'" oninput="S.aiCidade=this.value" placeholder="São Paulo" /></div>';
+ h+='<div><label class="lb">Cidade <span class="req">obrigatório</span></label><input class="fld" id="aiCidade" value="'+escapar(S.aiCidade)+'" oninput="S.aiCidade=this.value" placeholder="São Paulo" /></div>';
  h+='<div><label class="lb">Quanto você pretende gastar <span class="muted" style="font-weight:400">— opcional</span></label><div class="row wrapf" style="gap:var(--e1)">';
  [["ate500","até R$ 500"],["500a1500","R$ 500 a 1.500"],["1500a3000","R$ 1.500 a 3.000"],["acima3000","acima de R$ 3.000"]].forEach(function(f){
   h+='<button class="chip '+(S.aiFaixa===f[0]?"on":"")+'" onclick="S.aiFaixa=S.aiFaixa===\''+f[0]+'\'?\'\':\''+f[0]+'\';renderDrawer()">'+f[1]+'</button>'});
@@ -7118,7 +7154,7 @@ function assistBody(){
  if(!S.aiEstilos.length)falta.push("o estilo");
  if(!S.aiTam)falta.push("o tamanho");
  if(!S.aiParte)falta.push("a parte do corpo");
- if(!(S.aiCidade||a))falta.push("a cidade");
+ if(!S.aiCidade)falta.push("a cidade");
  h+='<button class="btn primary blk" style="margin-top:var(--e3)" '+(falta.length?"disabled":"")+' onclick="S.aiStep=1;renderDrawer()">'+
     (falta.length?"Falta "+falta[0]:"Ver para quem vai →")+'</button>';
  if(falta.length>1)h+='<div class="tiny muted" style="margin-top:var(--e1);text-align:center">e mais '+(falta.length-1)+': '+falta.slice(1).join(", ")+'</div>';
@@ -7154,10 +7190,10 @@ function rotuloTamanho(c){
 /* Quem faz o que a pessoa pediu. Se ela marcou cobertura, só quem
    cobre. Nada de pontuação: ou o tatuador trabalha com aquilo, ou não. */
 function tatuadoresCompativeis(){
- if(S.assistArtist){
-  var so=ARTISTS.filter(function(x){return x.id===S.assistArtist});
-  if(so.length)return so;
- }
+ /* O atalho "se veio de um perfil, só ele" saiu: o passo 2 mostra as
+    recomendações SEMPRE, e quem veio de um perfil chega com o nome na
+    busca — vê a pessoa que escolheu em cima e as alternativas
+    embaixo, em vez de um beco de opção única. */
  var quer=S.arrependido?ESTILOS_CORRECAO:S.aiEstilos;
  var cid=(S.aiCidade||"").toLowerCase();
  var l=ARTISTS.filter(function(x){
