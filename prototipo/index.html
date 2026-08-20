@@ -685,14 +685,24 @@ button,a{touch-action:manipulation}
    mesma linha em toda a fileira, mesmo com nomes de tamanhos
    diferentes. Sem isso a grade é regular e o conteúdo dentro dela
    não é — que é o pior dos dois mundos. */
-.prod{display:flex;flex-direction:column;height:100%;margin:0}
-.prod .postimg{aspect-ratio:1}
+/* O card da GRADE também é caixa, pedido dela: mesma moldura do
+   formato em lista, para a loja falar uma língua só nas duas vistas.
+   A foto abraça o topo do container (overflow:hidden apara os cantos
+   nela), e o texto ganha o respiro interno. O contraste com o feed
+   fica ainda mais nítido: lá a foto solta de canto largo, aqui a
+   caixa de canto curto. */
+.prod{display:flex;flex-direction:column;height:100%;margin:0;
+  border:var(--hair) solid var(--border);border-radius:var(--r-sm);
+  background:var(--card);overflow:hidden;
+  transition:border-color var(--dur) var(--ease)}
+.prod:hover{border-color:var(--muted-foreground)}
+.prod .postimg{aspect-ratio:1;border-radius:0}
 /* Todos os slides ficam montados e só o ativo aparece, como no feed.
    O emoji é o que diz qual é o produto enquanto não há foto de
    verdade — some no dia em que houver. */
 .prod .postimg .sl{display:flex;align-items:center;justify-content:center}
 .prod .postimg .emj{font-size:clamp(34px,9vw,56px);filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
-.prodinfo{display:flex;flex-direction:column;flex:1;padding:var(--e2) 2px 0}
+.prodinfo{display:flex;flex-direction:column;flex:1;padding:var(--e2) var(--e3) var(--e3)}
 /* Duas linhas e corta. Nome de produto varia de 3 a 60 caracteres, e
    é ele que faria a célula crescer. */
 .prodnome{font-size:var(--t-card);font-weight:500;line-height:1.25;
@@ -735,7 +745,8 @@ button,a{touch-action:manipulation}
   background:var(--card);padding:var(--e2);
   transition:border-color var(--dur) var(--ease)}
 .vitrine.emlista .prod:hover{border-color:var(--muted-foreground)}
-.vitrine.emlista .prod .postimg{width:88px;flex:0 0 88px;height:88px;aspect-ratio:auto}
+.vitrine.emlista .prod .postimg{width:88px;flex:0 0 88px;height:88px;aspect-ratio:auto;
+  border-radius:var(--r-xs)}
 .vitrine.emlista .prodinfo{flex-direction:row;align-items:center;gap:var(--e3);padding:0}
 .vitrine.emlista .prodtxt{flex:1;min-width:0}
 .vitrine.emlista .prodnome{-webkit-line-clamp:1}
@@ -1139,7 +1150,8 @@ body:has(.convitebarra) main{padding-bottom:96px}
      26px  entre bloco e bloco
      40px  entre seções
    No celular cada degrau encolhe, senão a página vira rolagem vazia. */
-.resumobusca{margin-top:var(--e3)}
+.resumobusca{margin-top:var(--e3);display:flex;align-items:center;gap:var(--e3)}
+.resumobusca .sp{margin-left:auto}
 
 /* ═══ O TRILHO DE CONHECER ═════════════════════════════════════════
    A estrutura vem do portfólio dela (cases.html): tudo alinhado à
@@ -2689,8 +2701,18 @@ function barraBusca(cfg){
   h+='</div></div>';
  }
 
+ /* Uma linha-meta só, e acabou. Antes a barra soltava "Relevância"
+    numa linha e a tela de baixo soltava "9 produtos … [ícones]" em
+    OUTRA — duas linhas magras fazendo o trabalho de uma, e ela contou
+    as linhas no print. Tudo que é meta da busca mora aqui: ordenação
+    e filtros à esquerda, contagem junto, e o slot da direita para o
+    que a tela quiser pendurar (os ícones de vista, na loja). */
  var rot=(cfg.ordenacoes.filter(function(o){return o[0]===cfg.sort})[0]||cfg.ordenacoes[0])[1];
- h+='<div class="tiny muted resumobusca">'+rot+(cfg.nFiltros?' · '+cfg.nFiltros+' filtro'+(cfg.nFiltros>1?"s":""):'')+'</div>';
+ h+='<div class="resumobusca"><span class="tiny muted">'+rot+
+    (cfg.nFiltros?' · '+cfg.nFiltros+' filtro'+(cfg.nFiltros>1?"s":""):'')+
+    (cfg.contagem?' · '+cfg.contagem:'')+'</span>';
+ if(cfg.direita)h+='<span class="sp">'+cfg.direita+'</span>';
+ h+='</div>';
  return h;
 }
 /* A galeria é a vitrine da loja: é o que tem cara de obra, não de
@@ -3321,8 +3343,18 @@ function secShop(){
  cats.forEach(function(c){filtros+='<button class="chip '+(S.shopCat===c[0]?"on":"")+'" onclick="S.shopCat=\''+c[0]+'\';S.feedLote=1;render()">'+c[1]+'</button>'});
  filtros+='</div>';
 
+ var nProd=PRODUCTS.filter(function(p){
+  if(p.a!==S.shopAud)return false;
+  if(S.shopCat!=="all"&&p.c!==S.shopCat)return false;
+  if(S.shopQ.trim()&&(p.n+" "+p.b).toLowerCase().indexOf(S.shopQ.trim().toLowerCase())<0)return false;
+  return true}).length;
+ var vistasHtml='<span class="vistas">';
+ [["grade","▦","Ver em grade"],["lista","☰","Ver em lista"]].forEach(function(v){
+  vistasHtml+='<button class="vista '+(S.shopVista===v[0]?"on":"")+'" title="'+v[2]+'" aria-label="'+v[2]+'" aria-pressed="'+(S.shopVista===v[0])+'" onclick="S.shopVista=\''+v[0]+'\';render()">'+v[1]+'</button>'});
+ vistasHtml+='</span>';
  h+=barraBusca({
   aba:"shop", q:S.shopQ, placeholder:"Buscar produto ou marca…",
+  contagem:nProd+' produto'+(nProd===1?"":"s"), direita:vistasHtml,
   onBusca:"S.shopQ=this.value;S.feedLote=1;render()",
   nFiltros:nF, filtros:filtros,
   onLimpar:"S.shopCat='all';render()",
@@ -3348,12 +3380,11 @@ function listaLoja(){
  /* Contagem à esquerda, modo de ver à direita. A contagem existe
     porque numa grade regular a pessoa perde a noção de quanto tem —
     no feed ela rola até cansar, aqui ela quer saber se vale olhar. */
+ /* A contagem e as vistas subiram para a linha-meta da barra de
+    busca (cfg.contagem e cfg.direita): eram uma linha inteira a mais
+    fazendo trabalho de meia. A vitrinecab morreu junto. */
  var lista=S.shopVista==="lista";
- var h='<div class="vitrinecab"><span class="tiny muted">'+l.length+' produto'+(l.length>1?"s":"")+'</span>';
- h+='<div class="vistas">';
- [["grade","▦","Ver em grade"],["lista","☰","Ver em lista"]].forEach(function(v){
-  h+='<button class="vista '+(S.shopVista===v[0]?"on":"")+'" title="'+v[2]+'" aria-label="'+v[2]+'" aria-pressed="'+(S.shopVista===v[0])+'" onclick="S.shopVista=\''+v[0]+'\';render()">'+v[1]+'</button>'});
- h+='</div></div>';
+ var h='';
 
  /* Doze por vez, e não três. Três era o lote de quando o card ocupava
     a largura toda; numa grade de quatro colunas três cards não fecham

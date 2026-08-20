@@ -1291,8 +1291,36 @@ chk("a fatia de tatuadores continua inteira",
     (tela().match(/class="post"/g) || []).length >= 6,
     "trocar o padrão quebrou a fatia principal");
 
-chk("e a loja continua de canto pequeno",
-    /\.prod \.postimg\{border-radius:var\(--r-sm\)\}/.test(css),
+/* O contraste com o feed mudou de forma sem mudar de ideia: agora o
+   card da loja é CAIXA nas duas vistas (pedido dela), com canto curto
+   no container e foto abraçando o topo. Cartaz continua proibido no
+   escopo da loja. */
+/* Duas linhas de elementos entre a busca e os cards, e não mais —
+   ela contou no print: "Relevância" numa linha e "9 produtos +
+   ícones" noutra eram duas linhas magras pelo trabalho de uma. Tudo
+   meta mora na linha-meta da barra: ordenação, contagem, e as vistas
+   no slot da direita. A sabotagem que tirou a contagem passou calada
+   na primeira rodada — este guarda nasceu dela. */
+var metaLoja=(tGrade.match(/class="resumobusca"[\s\S]{0,400}?<\/div>/)||[""])[0];
+chk("a contagem de produtos mora na linha-meta",
+    / produtos?/.test(metaLoja),
+    "a contagem sumiu ou voltou a ter linha própria");
+chk("e as vistas moram no slot da direita dela",
+    /class="vistas"/.test(metaLoja),
+    "os ícones de vista saíram da linha-meta — terceira linha de novo");
+chk("a vitrinecab não existe mais",
+    !/class="vitrinecab"/.test(tGrade),
+    "voltou a linha extra entre a busca e os cards");
+
+chk("o card da grade é caixa como o da lista",
+    /\.prod\{[^}]*border:var\(--hair\) solid var\(--border\)/.test(css) &&
+    /\.prod\{[^}]*overflow:hidden/.test(css),
+    "a grade da loja perdeu a moldura — as duas vistas voltaram a falar línguas diferentes");
+chk("e a foto abraça o topo do container",
+    /\.prod \.postimg\{[^}]*border-radius:0/.test(css),
+    "a foto ganhou canto próprio dentro da caixa — moldura dupla");
+chk("e a loja continua sem o cartaz do feed",
+    !/\.prod[^{]*\{[^}]*--r-foto/.test(css),
     "a loja herdou o cartaz: sumiu o contraste que separa catálogo de feed");
 chk("e nada estreita o feed para um card por vez",
     !/\.feedposts\{[^}]*max-width:4[0-9][0-9]px/.test(css),
