@@ -35,9 +35,13 @@ chk('a gaveta não se chama assistente',!/Assistente de orçamento/.test(d)&&/Pe
 chk('nenhuma menção a IA na gaveta',!/\bIA\b/.test(d));
 chk('não promete estimar preço',!/sugere estilo, complexidade e faixa/.test(d));
 chk('pede o estilo à pessoa',/Estilo que você quer/.test(d));
-chk('e diz para que serve',/define para quem o pedido vai/.test(d));
+chk('e diz para que serve',/Define para quem o pedido vai/.test(d));
 chk('pede referências',/Referências/.test(d));
-chk('faixa de gasto é opcional',/Quanto você pretende gastar/.test(d)&&/opcional/.test(d));
+/* A faixa saiu do passo 1 quando ela pediu simplificação: é detalhe
+   de negociação, não descrição da tatuagem — mora no passo 2 com as
+   outras decisões. O teste acompanhou a mudança de casa. */
+chk('faixa de gasto saiu do passo 1',!/Quanto você pretende gastar/.test(d),
+    'a faixa voltou a engordar o primeiro passo');
 chk('cobertura continua separada',/cobrir ou corrigir/.test(d));
 /* ── O PEDIDO É PADRONIZADO ────────────────────────────────────────
    Cinco campos, os mesmos para todo mundo. O que isso compra não é
@@ -66,7 +70,7 @@ chk('cada degrau da régua traz o centímetro', semCm.length===0,
     'degrau(s) em adjetivo: '+semCm.map(function(t){return '"'+t[1]+'"'}).join(', ')+
     ' — adjetivo não se compara entre duas pessoas');
 chk('e a tela explica por que é em cm',
-    /"Médio" quer dizer coisa diferente/.test(d));
+    /quer dizer coisa diferente/.test(d));
 chk('fechamento fica fora da régua',
     g.e("TAMANHOS").filter(function(t){return t[0]==='fech'}).length===1 &&
     !/cm/.test(g.e("rotuloTamanho('fech')")),
@@ -101,6 +105,11 @@ g.e("S.aiStep=0;renderDrawer()");
 g.e("S.aiStep=1;renderDrawer()");
 var d1=gav();
 chk('passo 2 mostra para quem vai',/Vai para/.test(d1));
+chk('a faixa de gasto mora no passo 2, opcional',
+    /Quanto você pretende gastar/.test(d1)&&/opcional/.test(d1),
+    'a faixa sumiu do fluxo em vez de mudar de casa');
+chk('as observações também',/Observações/.test(d1),
+    'as observações sumiram em vez de mudar de casa');
 chk('sem "sugestão da IA"',!/Sugestão da IA/.test(d1));
 chk('sem score de máquina',!/score /.test(d1));
 chk('dá para tirar alguém da lista',/tog\(S\.aiFora/.test(d1));

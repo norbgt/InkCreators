@@ -7100,6 +7100,11 @@ function assistBody(){
   [["fechado","Valor fechado"],["hora","Por hora"],["conversar","Conversar antes"]].forEach(function(t){
    h+='<button class="chip '+(S.aiTipo===t[0]?"on":"")+'" onclick="S.aiTipo=S.aiTipo===\''+t[0]+'\'?\'\':\''+t[0]+'\';renderDrawer()">'+t[1]+'</button>'});
   h+='</div>';
+  h+='<div class="fgroup" style="margin-top:var(--e3)"><span class="gl">Quanto você pretende gastar <span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">— opcional</span></span>';
+  [["ate500","até R$ 500"],["500a1500","R$ 500 a 1.500"],["1500a3000","R$ 1.500 a 3.000"],["acima3000","acima de R$ 3.000"]].forEach(function(f){
+   h+='<button class="chip '+(S.aiFaixa===f[0]?"on":"")+'" onclick="S.aiFaixa=S.aiFaixa===\''+f[0]+'\'?\'\':\''+f[0]+'\';renderDrawer()">'+f[1]+'</button>'});
+  h+='</div><div class="tiny muted" style="margin-top:var(--e1)">Ajuda quem responde a saber se cabe. Não aparece como oferta.</div>';
+  h+='<div style="margin-top:var(--e3)"><label class="lb">Observações</label><textarea class="fld" id="aiObs" style="height:62px;resize:vertical" oninput="S.aiObs=this.value" placeholder="Se tem prazo, se é a primeira, o que você não quer…">'+escapar(S.aiObs)+'</textarea></div>';
 
   var vao=vis.filter(function(x){return S.aiFora.indexOf(x.id)<0}).length;
   h+='<div class="tiny muted" style="margin-top:var(--e3)">Cada tatuador responde com o preço dele. Ninguém vê a proposta do outro.</div>';
@@ -7122,19 +7127,18 @@ function assistBody(){
     o que falta. Parágrafo que explica o que a tela já mostra é
     parágrafo que a pessoa pula. */
  h+='<div class="row" style="margin-top:var(--e4)"><span class="b small">Referências ('+S.aiRefs+'/8)</span><span class="req">obrigatório</span></div>';
- h+='<div class="tiny muted" style="margin-top:var(--e1)">Prints, desenhos, fotos de tatuagens que te agradam. Pelo menos uma: preço sem imagem é chute, e chute vira briga depois.</div>';
+ h+='<div class="tiny muted" style="margin-top:var(--e1)">Pelo menos uma — preço sem imagem é chute.</div>';
  h+='<div class="row wrapf" style="gap:var(--e2);margin-top:var(--e2)">';
  for(var k=0;k<S.aiRefs;k++)h+='<div class="thumbsq" style="background-image:'+tex(k*6+4)+'"><span class="x" onclick="S.aiRefs--;renderDrawer()">✕</span></div>';
  h+='<button style="width:56px;height:56px;border:1.5px dashed var(--border);border-radius:var(--r-sm);color:var(--muted-foreground)" onclick="S.aiRefs=Math.min(8,S.aiRefs+1);renderDrawer()">＋</button></div>';
 
  h+='<div class="sep"></div>';
  h+='<div class="row"><span class="b small">Estilo que você quer</span><span class="req">obrigatório</span></div>';
- h+='<div class="tiny muted" style="margin-top:var(--e1)">É o que define para quem o pedido vai. Escolha um ou mais.</div>';
+ h+='<div class="tiny muted" style="margin-top:var(--e1)">Define para quem o pedido vai.</div>';
  h+='<div class="row wrapf" style="gap:var(--e2);margin-top:var(--e2)">';
  STYLES.filter(function(x){return ESTILOS_CORRECAO.indexOf(x.s)<0}).forEach(function(x){
   h+='<button class="chip '+(S.aiEstilos.indexOf(x.s)>=0?"on":"")+'" onclick="tog(S.aiEstilos,\''+x.s+'\')">'+x.l+'</button>'});
  h+='</div>';
- h+='<div class="tiny muted" style="margin-top:var(--e2)">Não sabe dizer? Escolha os que mais parecem com suas referências — dá para mudar depois.</div>';
 
  /* Arrependimento: demanda específica e mal atendida. Quem quer cobrir
     ou corrigir precisa de quem faz cobertura, não de qualquer um. */
@@ -7145,7 +7149,7 @@ function assistBody(){
 
  h+='<div class="sep"></div>';
  h+='<div class="row"><span class="b small">Tamanho</span><span class="req">obrigatório</span></div>';
- h+='<div class="tiny muted" style="margin-top:var(--e1)">Meça no corpo com uma fita, ou compare com a mão. "Médio" quer dizer coisa diferente para cada pessoa — centímetro não.</div>';
+ h+='<div class="tiny muted" style="margin-top:var(--e1)">Compare com o corpo — "médio" quer dizer coisa diferente para cada pessoa; centímetro não.</div>';
  h+='<div class="row wrapf" style="gap:var(--e2);margin-top:var(--e2)">';
  TAMANHOS.forEach(function(t){
   h+='<button class="chip '+(S.aiTam===t[0]?"on":"")+'" onclick="S.aiTam=S.aiTam===\''+t[0]+'\'?\'\':\''+t[0]+'\';renderDrawer()" title="'+t[2]+'">'+t[1]+'</button>'});
@@ -7157,11 +7161,11 @@ function assistBody(){
  h+='<div class="grid" style="gap:var(--e2)">';
  h+='<div><label class="lb">Parte do corpo <span class="req">obrigatório</span></label><input class="fld" id="aiParte" value="'+escapar(S.aiParte)+'" oninput="S.aiParte=this.value" placeholder="Antebraço interno" /></div>';
  h+='<div><label class="lb">Cidade <span class="req">obrigatório</span></label><input class="fld" id="aiCidade" value="'+escapar(S.aiCidade)+'" oninput="S.aiCidade=this.value" placeholder="São Paulo" /></div>';
- h+='<div><label class="lb">Quanto você pretende gastar <span class="muted" style="font-weight:400">— opcional</span></label><div class="row wrapf" style="gap:var(--e1)">';
- [["ate500","até R$ 500"],["500a1500","R$ 500 a 1.500"],["1500a3000","R$ 1.500 a 3.000"],["acima3000","acima de R$ 3.000"]].forEach(function(f){
-  h+='<button class="chip '+(S.aiFaixa===f[0]?"on":"")+'" onclick="S.aiFaixa=S.aiFaixa===\''+f[0]+'\'?\'\':\''+f[0]+'\';renderDrawer()">'+f[1]+'</button>'});
- h+='</div><div class="tiny muted" style="margin-top:var(--e1)">Ajuda quem responde a saber se cabe. Não aparece como oferta.</div></div>';
- h+='<div><label class="lb">Observações</label><textarea class="fld" id="aiObs" style="height:62px;resize:vertical" oninput="S.aiObs=this.value" placeholder="Se tem prazo, se é a primeira, o que você não quer…">'+escapar(S.aiObs)+'</textarea></div></div>';
+ h+='</div>';
+ /* Faixa de gasto e observações saíram DAQUI: são detalhe de
+    negociação, não descrição da tatuagem. Moram no passo 2, junto das
+    outras decisões — o passo 1 pergunta só o essencial, e formulário
+    curto é formulário que se termina. */
 
  /* Botão travado que não diz o que falta é botão que a pessoa clica
     três vezes e desiste. Ele nomeia a primeira pendência, na ordem em
