@@ -1114,12 +1114,35 @@ body:has(.convitebarra) main{padding-bottom:96px}
      40px  entre seções
    No celular cada degrau encolhe, senão a página vira rolagem vazia. */
 .resumobusca{margin-top:var(--e3)}
-.acoescentro{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:var(--e2)}
+
+/* ═══ O TRILHO DE CONHECER ═════════════════════════════════════════
+   A estrutura vem do portfólio dela (cases.html): tudo alinhado à
+   esquerda, seções com contador 01/04, e os cards CORREM na
+   horizontal em vez de empilhar. Rolagem vertical para trocar de
+   assunto, horizontal para explorar um assunto — dois eixos, dois
+   papéis.
+
+   O trilho sangra até a borda da tela de propósito (margem negativa
+   do gutter): card cortado no fim do quadro é o convite de rolagem
+   que dispensa seta. Snap por card, barra escondida — o contador é
+   quem diz onde você está. */
+.tsec{margin-top:var(--e6);text-align:left}
+.tsec .kicker{margin-bottom:var(--e1)}
+.tcab{display:flex;align-items:baseline;justify-content:space-between;gap:var(--e3)}
+.tcab h2{font-size:var(--t-h);font-weight:700;letter-spacing:-.02em;line-height:1.2;margin:0}
+.tconta{font-family:var(--f-exp);font-size:var(--t-micro);color:var(--muted-foreground);
+  letter-spacing:.08em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tconta b{color:var(--foreground);font-weight:600}
+.tintro{max-width:560px;margin-top:var(--e2)}
+.trilho{display:flex;gap:var(--e3);overflow-x:auto;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+  padding:var(--e4) var(--gutter) var(--e2);margin:0 calc(-1 * var(--gutter));
+  scrollbar-width:none}
+.trilho::-webkit-scrollbar{display:none}
+.trilho>.card{flex:0 0 min(280px,76vw);scroll-snap-align:start;margin:0}
+@media(min-width:700px){.trilho>.card{flex-basis:300px}}
 /* Centrar sublinhado é alinhar o trilho, não estreitar a caixa: com
    max-width o traço da aba ativa ficava mais curto que o conteúdo. */
-.segmento.centrado{justify-content:center;margin:var(--block-gap) 0 var(--e4)}
-.blococentro{max-width:620px;margin:26px auto 0;text-align:center}
-.blococentro.banner{text-align:left;margin-top:var(--e4)}
 .gradeconteudo{display:grid;gap:14px;margin:26px auto 0;max-width:900px;
   grid-template-columns:repeat(3,1fr)}
 .secao{margin-top:var(--e6)}
@@ -1127,8 +1150,6 @@ body:has(.convitebarra) main{padding-bottom:96px}
 @media(max-width:1100px){.gradeconteudo{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:699px){
   .gradeconteudo{grid-template-columns:1fr;gap:11px;margin-top:var(--e5)}
-  .segmento.centrado{margin-top:var(--e5);margin-bottom:var(--e4)}
-  .blococentro{margin-top:var(--e5)}
   .secao{margin-top:var(--e6)}
 }
 /* Trio de ações: mesma escala do botão Seguir, em linha. Rolam na
@@ -3825,70 +3846,73 @@ var ECOSSISTEMA=[
 
 function vLanding(){
  var k=S.perfilLanding, p=PERFIS[k];
- // .wrap padrão, sem largura própria: assim a margem lateral bate com a
- // do logo na barra superior, igual às outras telas. O que é centralizado
- // são os blocos de dentro, não a página.
+ /* A estrutura desta página vem do portfólio dela: cabeçalho à
+    esquerda, seções com contador, cards correndo na horizontal. É a
+    única página com interação própria — e pode: Conhecer é vitrine
+    editorial, não ferramenta. Os tokens continuam os da plataforma. */
  var h='<main><div class="wrap">';
 
- h+='<div class="acoescentro">';
+ h+='<div class="tsec" style="margin-top:var(--e5)">';
+ h+='<div class="kicker">Ink Creators</div>';
+ h+='<h1 style="font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.2;margin-top:var(--e1)">Onde a tatuagem acontece</h1>';
+ h+='<p class="sub tintro" style="font-size:var(--t-body)">Pessoas, artistas, estúdios e arte no mesmo lugar. Descobrir, orçar, marcar, comprar e voltar — sem sair daqui.</p>';
+ h+='<div class="row" style="gap:var(--e2);margin-top:var(--e4)">';
  h+='<button class="btn sm" onclick="go(\'home\')">🏪 Ver a plataforma</button>';
  h+='<button class="btn sm destaque" onclick="irCadastro(\''+k+'\')">👤 Criar conta</button>';
+ h+='</div></div>';
+
+ function trilho(id,itens){
+  var t='<div class="trilho" data-trilho="'+id+'" onscroll="contarTrilho(this)">'+itens.join("")+'</div>';
+  return t;
+ }
+ function cab(titulo,total,idc){
+  return '<div class="tcab"><h2>'+titulo+'</h2><span class="tconta" id="conta-'+idc+'"><b>01</b> / '+String(total).padStart(2,"0")+'</span></div>';
+ }
+
+ h+='<div class="tsec">'+cab("O ecossistema",ECOSSISTEMA.length,"eco");
+ h+=trilho("eco",ECOSSISTEMA.map(function(x){
+  return '<div class="card pad vantagem"><div style="font-size:20px;color:var(--accent)">'+x[0]+'</div>'+
+   '<div class="b small" style="margin-top:var(--e2)">'+x[1]+'</div>'+
+   '<div class="small muted" style="margin-top:var(--e1)">'+x[2]+'</div></div>';
+ }));
  h+='</div>';
 
- /* A abertura fala do ecossistema antes de falar de perfil. Quem chega
-    precisa entender o que é o lugar antes de escolher onde se encaixa. */
- h+='<div class="blococentro" style="margin-top:var(--e5)">';
- h+='<h1 style="font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.2">Onde a tatuagem acontece</h1>';
- h+='<p class="sub" style="font-size:var(--t-body)">Pessoas, artistas, estúdios e arte no mesmo lugar. Descobrir, orçar, marcar, comprar e voltar — sem sair daqui.</p></div>';
- h+='<div class="gradeconteudo" style="margin-top:var(--e4)">';
- ECOSSISTEMA.forEach(function(x){
-  h+='<div class="card pad vantagem"><div style="font-size:20px;color:var(--accent)">'+x[0]+'</div>';
-  h+='<div class="b small" style="margin-top:var(--e2)">'+x[1]+'</div>';
-  h+='<div class="small muted" style="margin-top:var(--e1)">'+x[2]+'</div></div>';
- });
- h+='</div>';
-
- h+='<div class="blococentro secao" style="margin-top:var(--e6)"><span class="b" style="font-size:var(--t-card)">E para você, o que isso significa?</span></div>';
- h+='<div class="segmento centrado">';
+ h+='<div class="tsec"><span class="b" style="font-size:var(--t-card)">E para você, o que isso significa?</span>';
+ h+='<div class="segmento" style="margin-top:var(--e3)">';
  Object.keys(PERFIS).forEach(function(x){
   h+='<button class="seg '+(k===x?"on":"")+'" onclick="S.perfilLanding=\''+x+'\';render()">'+PERFIS[x].rotulo+'</button>'});
  h+='</div>';
-
- h+='<div class="blococentro" style="margin-top:var(--e5)">';
- h+='<h2 style="font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.2">'+p.titulo+'</h2>';
- h+='<p class="sub" style="font-size:var(--t-body)">'+p.linha+'</p></div>';
+ h+='<h2 style="font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.2;margin-top:var(--e4)">'+p.titulo+'</h2>';
+ h+='<p class="sub tintro" style="font-size:var(--t-body)">'+p.linha+'</p>';
 
  if(p.estado==="hipotese"){
-  h+='<div class="banner blococentro" style="background:var(--x-warning-bg);border-color:var(--x-warning);text-align:left">';
+  h+='<div class="banner" style="background:var(--x-warning-bg);border-color:var(--x-warning);margin-top:var(--e3)">';
   h+='<div class="tiny" style="color:var(--x-warning)"><b>Ainda não existe.</b> Fornecedor é hipótese de negócio, não um lado da plataforma hoje — sem cadastro, catálogo ou cobrança.</div></div>';
  }
-
- h+='<div class="gradeconteudo">';
- p.vantagens.forEach(function(g){
-  h+='<div class="card pad vantagem"><div style="font-size:20px;color:var(--accent)">'+g[0]+'</div>';
-  h+='<div class="b small" style="margin-top:var(--e2)">'+g[1]+'</div>';
-  h+='<div class="small muted" style="margin-top:var(--e1)">'+g[2]+'</div></div>';
- });
  h+='</div>';
 
- h+='<div class="blococentro secao"><span class="b" style="font-size:var(--t-card)">Como funciona</span></div>';
- h+='<div class="gradeconteudo">';
- p.passos.forEach(function(x,i){
-  h+='<div class="card pad vantagem"><div class="av" style="background:var(--primary);color:var(--primary-foreground);width:26px;height:26px;font-size:var(--t-micro)">'+(i+1)+'</div>';
-  h+='<div class="b small" style="margin-top:var(--e2)">'+x[0]+'</div>';
-  h+='<div class="small muted" style="margin-top:var(--e1)">'+x[1]+'</div></div>';
- });
+ h+='<div class="tsec">'+cab("O que você ganha",p.vantagens.length,"vant");
+ h+=trilho("vant",p.vantagens.map(function(g){
+  return '<div class="card pad vantagem"><div style="font-size:20px;color:var(--accent)">'+g[0]+'</div>'+
+   '<div class="b small" style="margin-top:var(--e2)">'+g[1]+'</div>'+
+   '<div class="small muted" style="margin-top:var(--e1)">'+g[2]+'</div></div>';
+ }));
  h+='</div>';
 
- h+='<div class="card pad blococentro secao">';
+ h+='<div class="tsec">'+cab("Como funciona",p.passos.length,"passos");
+ h+=trilho("passos",p.passos.map(function(x,i2){
+  return '<div class="card pad vantagem"><div class="av" style="background:var(--primary);color:var(--primary-foreground);width:26px;height:26px;font-size:var(--t-micro)">'+(i2+1)+'</div>'+
+   '<div class="b small" style="margin-top:var(--e2)">'+x[0]+'</div>'+
+   '<div class="small muted" style="margin-top:var(--e1)">'+x[1]+'</div></div>';
+ }));
+ h+='</div>';
+
+ h+='<div class="card pad tsec" style="max-width:560px">';
  h+='<div class="b">'+p.titulo+'</div>';
  h+='<button class="btn primary" style="margin-top:var(--e3)" onclick="'+p.ctaAcao+'">'+p.cta+'</button></div>';
 
- // O que este perfil paga, e o que não paga. Vem antes das três
- // cobranças porque a primeira pergunta de quem chega é "quanto custa
- // pra mim", não "como vocês ganham dinheiro".
  if(p.cobranca){
-  h+='<div class="card pad blococentro secao" style="margin-top:var(--e6);text-align:left">';
+  h+='<div class="card pad tsec" style="max-width:560px">';
   h+='<div class="b">'+p.cobranca.titulo+'</div>';
   h+='<p class="small muted" style="margin-top:var(--e2)">'+p.cobranca.texto+'</p>';
   h+='<div style="margin-top:var(--e3)">';
@@ -3897,28 +3921,42 @@ function vLanding(){
   h+='</div></div>';
  }
 
- h+='<div class="blococentro secao" style="margin-top:var(--e6)"><span class="badge">Sustentação</span>';
- h+='<h2 style="font-size:21px;font-weight:700;margin-top:var(--e2);letter-spacing:-.02em">Como a plataforma se sustenta</h2>';
- h+='<p class="sub">Três cobranças, todas depois de entregar algo. Nenhuma cobra pelo básico.</p></div>';
- h+='<div class="gradeconteudo" style="align-items:start">';
- COBRANCAS.forEach(function(c){
-  h+='<div class="card pad vantagem">';
-  h+='<div style="font-size:20px;color:var(--accent)">'+c.icone+'</div>';
-  h+='<div class="b small" style="margin-top:var(--e2)">'+c.nome+'</div>';
-  h+='<div class="tiny muted" style="margin-top:var(--e1)">'+c.quem+'</div>';
-  h+='<div class="small" style="margin-top:var(--e2)">'+c.como+'</div>';
-  h+='<div class="tiny muted" style="margin-top:var(--e2);padding-top:8px;border-top:1px solid var(--border)">'+c.porq+'</div>';
-  h+='</div>';
- });
+ h+='<div class="tsec"><span class="badge">Sustentação</span>';
+ h+='<div class="tcab" style="margin-top:var(--e2)"><h2 style="font-size:21px">Como a plataforma se sustenta</h2>';
+ h+='<span class="tconta" id="conta-cob"><b>01</b> / '+String(COBRANCAS.length).padStart(2,"0")+'</span></div>';
+ h+='<p class="sub tintro">Três cobranças, todas depois de entregar algo. Nenhuma cobra pelo básico.</p>';
+ h+=trilho("cob",COBRANCAS.map(function(c){
+  return '<div class="card pad vantagem">'+
+   '<div style="font-size:20px;color:var(--accent)">'+c.icone+'</div>'+
+   '<div class="b small" style="margin-top:var(--e2)">'+c.nome+'</div>'+
+   '<div class="tiny muted" style="margin-top:var(--e1)">'+c.quem+'</div>'+
+   '<div class="small" style="margin-top:var(--e2)">'+c.como+'</div>'+
+   '<div class="tiny muted" style="margin-top:var(--e2);padding-top:8px;border-top:1px solid var(--border)">'+c.porq+'</div></div>';
+ }));
  h+='</div>';
- h+='<div class="card pad blococentro secao" style="text-align:left;margin-top:var(--e4)">';
+
+ h+='<div class="card pad tsec" style="max-width:560px">';
  h+='<div class="b small">O que não é cobrado</div><div style="margin-top:var(--e2)">';
  NAO_COBRA.forEach(function(y){
   h+='<div class="row small" style="align-items:flex-start;margin-bottom:var(--e1)"><span style="color:var(--x-success)">✓</span><span>'+y+'</span></div>'});
  h+='</div></div>';
- h+='<div class="tiny muted blococentro" style="margin-top:var(--e3)">Modelo decidido, sem cobrança implementada. Valores ainda não definidos.</div>';
+ h+='<div class="tiny muted" style="margin-top:var(--e3);text-align:left">Modelo decidido, sem cobrança implementada. Valores ainda não definidos.</div>';
 
  return h+'</div></main>';
+}
+
+/* O contador do trilho: mesma linguagem do portfólio dela, 01 / 04.
+   Atualiza no scroll — o card "atual" é o que está encostado na
+   esquerda, porque é onde o snap deixa. */
+function contarTrilho(el){
+ var id=el.getAttribute("data-trilho");
+ var alvo=document.getElementById("conta-"+id);
+ if(!alvo)return;
+ var card=el.firstElementChild;
+ if(!card)return;
+ var passo=card.offsetWidth+12;
+ var i=Math.min(el.children.length,Math.round(el.scrollLeft/passo)+1);
+ alvo.innerHTML='<b>'+String(i).padStart(2,"0")+'</b> / '+String(el.children.length).padStart(2,"0");
 }
 
 /* ═══ CADASTRO UNIFICADO ═══════════════════════════════════════════

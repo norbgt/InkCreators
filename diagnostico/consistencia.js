@@ -190,9 +190,12 @@ chk("o toggle respira embaixo", !!espBot, "sem margem inferior: ele encosta no g
 chk("e respira menos em cima do que embaixo",
     !!espTop && !!espBot && Number(espTop.slice(1)) < Number(espBot.slice(1)),
     "acima: " + espTop + ", abaixo: " + espBot + " — ele pertence ao que vem depois");
-chk("a versão centrada segue a mesma regra",
-    /\.segmento\.centrado\{[^}]*margin:[^;}]*var\(--e4\)\}/.test(css),
-    "o toggle centrado das páginas públicas ficou colado no conteúdo");
+/* O toggle centrado morreu junto com o Conhecer centralizado: a
+   página inteira alinhou à esquerda na decisão 039, e CSS sem
+   elemento é o defeito que já cegou este produto uma vez. O guarda
+   agora é a ausência. */
+chk("não sobrou toggle centrado órfão", !/\.segmento\.centrado/.test(css),
+    "o CSS do centrado voltou sem ninguém usar — ou alguém centralizou de novo sem decisão");
 
 chk("e um de toggle, diferente da aba",
     /\.seg\{[^}]*border-radius:var\(--r-pill\)/.test(css),

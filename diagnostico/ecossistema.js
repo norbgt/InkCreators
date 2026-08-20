@@ -112,6 +112,34 @@ g.e("S.aiFora=[];S.aiStep=2;renderDrawer()");
 chk('confirmação sem promessa de IA',!/\bIA\b/.test(gav())&&/Pedido enviado/.test(gav()));
 
 console.log('── 2. ECOSSISTEMA EM CONHECER ──');
+/* ── A GRAMÁTICA DO PORTFÓLIO DELA ────────────────────────────────
+   Conhecer alinhou à esquerda e os cards passaram a correr na
+   horizontal, com contador 01/04 — a estrutura de cases.html. Três
+   coisas que não podem se soltar:
+   1. os trilhos existem e cada um tem o seu contador, com o total
+      certo — contador que promete 04 sobre um trilho de 3 é o tipo de
+      mentira pequena que mina confiança;
+   2. o card corre, não empilha (overflow-x + snap);
+   3. e nada voltou a se centralizar — o centrado morreu com decisão. */
+S.drawer=null;S.route='plataforma';S.perfilLanding='cliente';g.e("render()");
+var tpl=tela();
+var trilhos=(tpl.match(/data-trilho="([a-z]+)"/g)||[]).map(function(x){return x.slice(13,-1)});
+chk('os trilhos existem',trilhos.length>=4,'só '+trilhos.length+' trilho(s): a página voltou a empilhar');
+trilhos.forEach(function(id){
+  var corpo=(tpl.split('data-trilho="'+id+'"')[1]||"").split('</div></div>')[0];
+  var cards=(tpl.split('data-trilho="'+id+'"')[1]||"").split("<\/div>");
+  var nCards=((tpl.split('data-trilho="'+id+'"')[1]||"").split('class="tcab"')[0].match(/class="card pad vantagem"/g)||[]).length;
+  var conta=(tpl.match(new RegExp('id="conta-'+id+'"><b>01<\\/b> \\/ (\\d+)'))||[])[1];
+  chk('o contador de '+id+' fecha com os cards',Number(conta)===nCards,
+      'contador diz '+conta+', o trilho tem '+nCards);
+});
+chk('o trilho corre na horizontal',/\.trilho\{[^}]*overflow-x:auto/.test(css)&&/scroll-snap-type:x/.test(css),
+    'os cards voltaram a empilhar — a estrutura do portfólio se perdeu');
+chk('e sangra até a borda',/\.trilho\{[^}]*margin:0 calc\(-1 \* var\(--gutter\)\)/.test(css),
+    'sem o sangramento, o card cortado que convida a rolar some');
+chk('a página alinha à esquerda',!/blococentro/.test(tpl)&&/class="tsec"/.test(tpl));
+chk('o contador atualiza no scroll',/onscroll="contarTrilho\(this\)"/.test(tpl),
+    'contador congelado em 01: interação prometida e não ligada');
 S.drawer=null;S.route='plataforma';S.perfilLanding='cliente';g.e("render()");
 var t=tela();
 chk('abre falando do lugar, não do perfil',/Onde a tatuagem acontece/.test(t));
