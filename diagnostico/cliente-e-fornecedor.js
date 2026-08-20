@@ -1301,7 +1301,13 @@ chk("a fatia de tatuadores continua inteira",
    meta mora na linha-meta da barra: ordenação, contagem, e as vistas
    no slot da direita. A sabotagem que tirou a contagem passou calada
    na primeira rodada — este guarda nasceu dela. */
-var metaLoja=(tGrade.match(/class="resumobusca"[\s\S]{0,400}?<\/div>/)||[""])[0];
+/* A primeira janela era de 400 caracteres e os dois ícones em SVG
+   passam disso sozinhos: o regex não alcançava o </div>, devolvia
+   vazio, e os DOIS guardas falhavam com a tela certa — quarta vez que
+   uma janela fixa mede errado nesta construção. A linha-meta não tem
+   div interna, então o primeiro </div> depois dela é o fecho dela
+   mesma: split, sem janela nenhuma. */
+var metaLoja=(tGrade.split('class="resumobusca"')[1]||"").split("</div>")[0];
 chk("a contagem de produtos mora na linha-meta",
     / produtos?/.test(metaLoja),
     "a contagem sumiu ou voltou a ter linha própria");
