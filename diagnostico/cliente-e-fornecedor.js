@@ -1072,9 +1072,13 @@ chk("existem cards em grade no feed", /class="post postgrade"/.test(tfeed3));
    3. Sem etiqueta, um mosaico de nove se confunde com nove cards
       vizinhos. */
 S.f.styles = []; S.feedLote = 1;
+/* O DOM agora é coluna a coluna (ziguezague), então a ordem no HTML
+   não é mais a ordem de leitura. A sequência certa é a de comGrades,
+   ANTES da distribuição — é ela que a pessoa percorre em zigue. */
 var tprimeiro = ir("home");
-var seq = tprimeiro.split('<article class="post').slice(1)
-  .map(function (x) { return x.indexOf(" postgrade") === 0 ? (x.indexOf("gcels nove") >= 0 ? "9" : "4") : "." });
+var seq = g.e("comGrades(filteredArtists(),8)").map(function (x) {
+  return x.indexOf("postgrade") >= 0 ? (x.indexOf("gcels nove") >= 0 ? "9" : "4") : ".";
+});
 chk("pelo menos duas grades no primeiro lote",
     seq.filter(function (x) { return x !== "." }).length >= 2,
     "sequência: " + seq.join(""));
@@ -1119,19 +1123,59 @@ var depoisLote = mapaDeColunas(tela());
 var mudaram = Object.keys(antesLote).filter(function (k) { return depoisLote[k] !== antesLote[k] });
 chk("um lote novo não move nenhum card já colocado", mudaram.length === 0,
     "mudaram de coluna com o lote: " + mudaram.slice(0, 4).join(", ") + " — a dança voltou");
-/* Sabotei a escolha da coluna — hash do conteúdo em vez da mais
-   curta — e o teste de estabilidade PASSOU, com razão: hash também é
-   estável. Estabilidade e equilíbrio são propriedades diferentes, e
-   cada uma precisa do seu teste. Este aqui alimenta a distribuição
-   com pesos desenhados para denunciar: um card alto e três baixos.
-   Na coluna mais curta, os três baixos se acumulam longe do alto. */
-var dist = g.e("emColunas([{html:'<u>a</u>',peso:5},{html:'<u>b</u>',peso:1},{html:'<u>c</u>',peso:1},{html:'<u>d</u>',peso:1}])");
+/* ── A ESTÉTICA PINTEREST, COMO INVARIANTE ────────────────────────
+   Ela pediu que a estética "não mais aconteça" de se perder — então
+   ela deixou de ser gosto e virou propriedade medida. A história em
+   duas quedas: primeiro o CSS órfão fez o feed virar coluna única;
+   depois o MEU conserto da dança (coluna mais curta por peso
+   estimado) matou o ritmo — as duas grades numa coluna, cinco posts
+   seguidos na outra.
+
+   O que define a estética, cada um com teste:
+   1. ziguezague — a peça i mora na coluna i % n, vizinho na sequência
+      é vizinho na tela;
+   2. contagem igual entre colunas (diferença ≤ 1);
+   3. a foto manda na altura (proporções variadas na mesma coluna);
+   4. as grades alternam de coluna;
+   5. e a loja NÃO é assim — grade regular é o que diferencia os dois
+      ambientes, então o contraste também é testado (seção 1c). */
+/* As peças têm tamanhos MUITO diferentes de propósito. A primeira
+   versão usava cinco iguais — e qualquer esquema por peso reproduz o
+   ziguezague quando os pesos empatam. Sabotei com coluna-mais-curta e
+   o guarda dormiu. Com uma peça enorme na frente, só o ziguezague de
+   verdade mantém b na coluna seguinte; esquema por altura foge dela. */
+var dist = g.e("emColunas(['<u>a</u>'+'x'.repeat(400),'<u>b</u>','<u>c</u>','<u>d</u>','<u>e</u>'])");
 var colA = dist.split('class="feedcol"')[1] || "";
-var colB = dist.split('class="feedcol"')[2] || "";
-chk("a peça entra na coluna mais curta, não numa qualquer",
-    /<u>a<\/u>/.test(colA) && !/<u>b<\/u>/.test(colA) &&
-    /<u>b<\/u>/.test(colB) && /<u>c<\/u>/.test(colB) && /<u>d<\/u>/.test(colB),
-    "o card alto não afastou os baixos: a coluna não é escolhida pela altura");
+var colB = (dist.split('class="feedcol"')[2] || "").split("</div>")[0] + (dist.split('class="feedcol"')[2] || "");
+chk("ziguezague: a peça i mora na coluna i % n",
+    /<u>a<\/u>/.test(colA) && /<u>c<\/u>/.test(colA) && /<u>e<\/u>/.test(colA) &&
+    !/<u>b<\/u>/.test(colA) && !/<u>d<\/u>/.test(colA),
+    "a sequência deixou de alternar: vizinho na ordem não é mais vizinho na tela");
+var contagens = tGrade ? null : null;
+var tzz = (S.session = "anon", S.route = "home", S.tab = "discover", S.feedLote = 1, g.e("render()"), tela());
+var colunas = tzz.split('class="feedposts"')[1].split('class="feedcol"').slice(1);
+var porCol = colunas.map(function (c) { return (c.match(/class="post"|postgrade/g) || []).length });
+chk("as colunas têm a mesma contagem, ±1",
+    Math.max.apply(null, porCol) - Math.min.apply(null, porCol) <= 1,
+    "contagens: " + porCol.join(" vs ") + " — uma coluna virou fila");
+var variedade = colunas.map(function (c) {
+  return new Set(c.match(/aspect-ratio:[^";]+/g) || []).size;
+});
+chk("cada coluna mistura proporções", variedade.every(function (v) { return v >= 2 }),
+    "proporções por coluna: " + variedade.join(", ") + " — a foto deixou de mandar na altura");
+/* Contar COLUNAS com grade era um buraco: duas grades na mesma
+   coluna davam UMA coluna-com-grade, a lista tinha um elemento só, e
+   a condição pulava o teste. Sabotei o período para constante — toda
+   grade na mesma paridade — e o guarda dormiu. Agora conta grades. */
+/* A classe real é "post postgrade" — a primeira versão procurava
+   class="postgrade, achava zero grade em toda coluna, e um total de
+   zero pulava o teste inteiro. Guarda que procura o seletor errado é
+   guarda que aprova qualquer coisa. */
+var gradesPorCol = colunas.map(function (c) { return (c.match(/class="post postgrade/g) || []).length });
+var totalGrades = gradesPorCol.reduce(function (a, b) { return a + b }, 0);
+chk("as grades não se acumulam numa coluna só",
+    totalGrades < 2 || gradesPorCol.filter(function (x) { return x > 0 }).length > 1,
+    totalGrades + " grade(s), todas na mesma coluna — o ritmo que quebrou no celular dela");
 
 chk("e o lote novo de fato entrou",
     Object.keys(depoisLote).length > Object.keys(antesLote).length,

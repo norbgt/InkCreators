@@ -2807,39 +2807,36 @@ function quantasColunas(w){
  return w<560?2:w<700?3:w<1100?4:5;
 }
 
-/* Peso estimado de um card: altura da foto por unidade de largura
-   (vem da proporção, que é determinista) mais o pé. Não precisa ser
-   exato — precisa ser o MESMO em toda repintura, porque é ele que
-   decide a coluna, e coluna decidida é coluna para sempre. */
-function pesoDaPublicacao(a){
- var pr=proporcaoDaFoto(a.seed).split("/");
- return (Number(pr[1])/Number(pr[0]))+0.32;
-}
-
+/* As grades entram depois de 3 posts, depois de 4, alternando. O
+   intervalo variável não é capricho: com o ziguezague abaixo, período
+   constante par faria toda grade cair sempre na MESMA coluna — a
+   alternância que a estética pede depende de o intervalo variar. */
 function comGrades(lista, ate) {
-  var pecas = [], g = 1;
-  lista.slice(0, ate).forEach(function (a, i) {
-    pecas.push({html: publicacao(a), peso: pesoDaPublicacao(a)});
-    if ((i + 1) % 3 === 0) { pecas.push({html: grades(lista, g), peso: 1.2}); g++ }
+  var pecas = [], g = 1, desde = 0, passo = 3;
+  lista.slice(0, ate).forEach(function (a) {
+    pecas.push(publicacao(a)); desde++;
+    if (desde === passo) { pecas.push(grades(lista, g)); g++; desde = 0; passo = passo === 3 ? 4 : 3 }
   });
   return pecas;
 }
 
-/* Cada peça entra na coluna mais curta NAQUELE momento. Como a
-   sequência e os pesos são deterministas, repintar com mais um lote
-   reproduz exatamente as decisões anteriores e só acrescenta no pé —
-   nenhum card colocado muda de coluna. É isso que parou a dança. */
+/* ── A ESTÉTICA DO FEED É ZIGUEZAGUE ──────────────────────────────
+   A primeira versão disto punha cada peça na coluna estimada mais
+   curta. Parou a dança — e matou o ritmo: as duas grades caíram na
+   mesma coluna e a outra levou cinco posts seguidos. O Pinterest que
+   ela pediu não é só altura variada; é a ALTERNÂNCIA — o olho lê em
+   ziguezague, vizinho na sequência é vizinho na tela.
+
+   Ziguezague estrito: a peça i mora na coluna i % n. Três coisas de
+   graça: a ordem de leitura fica previsível, as colunas ficam com a
+   mesma contagem, e a estabilidade é trivial — o índice de uma peça
+   nunca muda, então repintar com mais um lote não move ninguém. */
 function emColunas(pecas){
  var nc=quantasColunas();
  colunasDesenhadas=nc;
- var cols=[], alt=[];
- for(var k=0;k<nc;k++){cols.push("");alt.push(0)}
- pecas.forEach(function(p){
-  var menor=0;
-  for(var k=1;k<nc;k++)if(alt[k]<alt[menor])menor=k;
-  cols[menor]+=p.html;
-  alt[menor]+=p.peso;
- });
+ var cols=[];
+ for(var k=0;k<nc;k++)cols.push("");
+ pecas.forEach(function(html,i){ cols[i%nc]+=html });
  return '<div class="feedposts">'+cols.map(function(c){return '<div class="feedcol">'+c+'</div>'}).join("")+'</div>';
 }
 

@@ -1,6 +1,6 @@
 const fs=require('fs');
-const html=fs.readFileSync('prototipo/index.html','utf8');
-const dados=fs.readFileSync('prototipo/dados.js','utf8');
+const html=fs.readFileSync(require('path').join(__dirname,'..','prototipo','index.html'),'utf8');
+const dados=fs.readFileSync(require('path').join(__dirname,'..','prototipo','dados.js'),'utf8');
 
 // Fluxos do produto: cada um com as etapas e o que sustenta cada etapa
 const FLUXOS=[
