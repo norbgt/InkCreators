@@ -2893,7 +2893,18 @@ function emColunas(pecas){
  var cols=[];
  for(var k=0;k<nc;k++)cols.push("");
  pecas.forEach(function(html,i){ cols[i%nc]+=html });
- return '<div class="feedposts">'+cols.map(function(c){return '<div class="feedcol">'+c+'</div>'}).join("")+'</div>';
+ /* O layout das colunas vai INLINE, além das classes — de propósito e
+    por cicatriz: no navegador dela (e no publicado, visto com meus
+    próprios olhos) a regra .feedposts{display:flex} chegava computada
+    como BLOCK, com a regra byte-perfeita na folha. Nunca achamos o
+    assassino — extensão, cache, parser, não importa: estilo inline
+    não tem intermediário para morrer. O masonry é a alma desta tela;
+    alma não fica pendurada numa regra que algo pode engolir. */
+ var estiloCol='flex:1 1 0;min-width:0;';
+ return '<div class="feedposts" style="display:flex;gap:8px;align-items:flex-start">'+
+  cols.map(function(c,ci){
+   return '<div class="feedcol" style="'+estiloCol+(ci%2===1?'padding-top:40px':'')+'">'+c+'</div>';
+  }).join("")+'</div>';
 }
 
 /* O card do estúdio no feed: a mesma gramática do card de tatuador —

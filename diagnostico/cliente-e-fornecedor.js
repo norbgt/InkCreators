@@ -1175,9 +1175,15 @@ var vao = Math.max.apply(null, razoes) / Math.min.apply(null, razoes);
 chk("as proporções vão do quadrado ao pin alto",
     razoes.length >= 6 && vao >= 1.7,
     razoes.length + " proporções, vão de " + vao.toFixed(2) + " — variação tímida lê como grade");
+/* O degrau e o flex agora vivem INLINE, no próprio emColunas: no
+   navegador dela a regra da folha chegava computada como block, com o
+   CSS byte-perfeito. O guarda mede o que o navegador não pode ignorar. */
 chk("o topo do feed não é uma régua",
-    /\.feedcol:nth-child\(even\)\{padding-top:var\(--e6\)\}/.test(css),
+    /padding-top:40px/.test(tzz),
     "as colunas voltaram a nascer na mesma linha — o primeiro olhar vê grade");
+chk("o flex das colunas é inline, imune ao assassino de regras",
+    /class="feedposts" style="display:flex/.test(tzz) && /class="feedcol" style="flex:1 1 0/.test(tzz),
+    "o masonry voltou a depender só da folha — foi assim que ela viu uma coluna única duas vezes");
 var tons = (code.match(/var g=\[([^\]]+)\]/) || [])[1] || "";
 chk("as texturas têm amplitude de luz",
     (tons.match(/#/g) || []).length >= 7,

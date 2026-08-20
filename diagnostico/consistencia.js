@@ -60,9 +60,16 @@ secao("1. ESPAÇAMENTO: SEIS DEGRAUS, NADA ENTRE ELES");
 ["--e1:4px", "--e2:8px", "--e3:12px", "--e4:16px", "--e5:24px", "--e6:40px"].forEach(function (t) {
   chk("existe o degrau " + t.split(":")[1], css.indexOf(t) >= 0);
 });
+/* O gap:8px do emColunas é EXCEÇÃO declarada, não descuido: o layout
+   do masonry foi para inline porque no navegador dela a regra da
+   folha chegava computada como block (decisão 038). Exceção com nome
+   entra na conta esperada; a escala continua não podendo crescer. */
+var EXCECOES_INLINE = { gap: 1 };
 ["margin-top", "margin-bottom", "gap", "padding"].forEach(function (prop) {
   var r = conta(code, new RegExp(prop + ":(\\d+)px"));
-  chk("nenhum " + prop + " em px escrito à mão", r.total === 0,
+  var esperado = EXCECOES_INLINE[prop] || 0;
+  chk("nenhum " + prop + " em px escrito à mão" + (esperado ? " (fora a exceção do masonry)" : ""),
+      r.total === esperado,
       r.total + " ocorrências, " + r.valores.length + " valores: " + lista(r.mapa));
 });
 /* O CSS pode ter valores próprios — ali eles são declarações de
