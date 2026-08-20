@@ -242,6 +242,20 @@ var mesmaConta = (tGrade.match(/class="prod"/g) || []).length ===
 chk("com a mesma quantidade de produtos", mesmaConta,
     "grade: " + (tGrade.match(/class="prod"/g) || []).length +
     ", lista: " + (tLista.match(/class="prod"/g) || []).length);
+/* Modo de ver é ícone, não toggle — decisão dela, com regra de
+   sistema: toggle fatia CONTEÚDO; grade/lista é o mesmo conteúdo com
+   outra lente, e ▦/☰ é vocabulário universal. Ícone só é aceitável
+   com o rótulo vivo para leitor de tela — sem aria-label, vira o
+   botão mudo que já derrubou este produto. */
+chk("o modo de ver é um par de ícones",
+    /class="vista on"/.test(tGrade) && (tGrade.match(/class="vista[ "]/g)||[]).length===2,
+    "o par de ícones sumiu ou virou outra coisa");
+chk("sem toggle fazendo papel de lente",
+    !/class="seg [^"]*"[^>]*>Grade</.test(tGrade),
+    "voltou o toggle de texto — toggle é para fatia de conteúdo");
+chk("e cada ícone diz o que faz ao leitor de tela",
+    /aria-label="Ver em grade"/.test(tGrade) && /aria-label="Ver em lista"/.test(tGrade),
+    "ícone sem rótulo é o botão mudo de sempre, agora invisível também para quem não vê");
 chk("a escolha da vista sobrevive à recarga",
     /"shopVista"/.test(code),
     "a pessoa escolhe lista, recarrega e volta para grade");

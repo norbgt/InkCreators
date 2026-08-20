@@ -742,7 +742,20 @@ button,a{touch-action:manipulation}
    vitrine, e duas margens somadas viram um buraco. */
 .vitrinecab{display:flex;align-items:center;justify-content:space-between;
   gap:var(--e3);flex-wrap:wrap;margin-top:var(--e4)}
-.vitrinecab .segmento{margin:0}
+/* Modo de ver é ÍCONE, não toggle — pedido dela, e com razão de
+   sistema: o toggle fatia CONTEÚDO (recebidos/enviados, tatuadores/
+   estúdios); grade e lista são o mesmo conteúdo com outra lente, e
+   grade/lista é um dos poucos vocabulários visuais universais que
+   existem — ▦ e ☰ dispensam palavra. O rótulo continua existindo
+   para o leitor de tela, via aria-label. */
+.vistas{display:inline-flex;gap:var(--e1)}
+.vista{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;
+  border:var(--hair) solid var(--border);border-radius:var(--r-sm);background:none;
+  font-size:var(--t-card);color:var(--muted-foreground);
+  transition:border-color var(--dur) var(--ease),color var(--dur) var(--ease)}
+.vista:hover{border-color:var(--muted-foreground)}
+.vista.on{color:var(--foreground);border-color:var(--foreground)}
+@media(pointer:coarse){.vista{width:44px;height:44px}}
 
 .acard{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--card)}
 .acard:hover{border-color:var(--muted-foreground)}
@@ -3328,9 +3341,9 @@ function listaLoja(){
     no feed ela rola até cansar, aqui ela quer saber se vale olhar. */
  var lista=S.shopVista==="lista";
  var h='<div class="vitrinecab"><span class="tiny muted">'+l.length+' produto'+(l.length>1?"s":"")+'</span>';
- h+='<div class="segmento">';
- [["grade","Grade"],["lista","Lista"]].forEach(function(v){
-  h+='<button class="seg '+(S.shopVista===v[0]?"on":"")+'" onclick="S.shopVista=\''+v[0]+'\';render()">'+v[1]+'</button>'});
+ h+='<div class="vistas">';
+ [["grade","▦","Ver em grade"],["lista","☰","Ver em lista"]].forEach(function(v){
+  h+='<button class="vista '+(S.shopVista===v[0]?"on":"")+'" title="'+v[2]+'" aria-label="'+v[2]+'" aria-pressed="'+(S.shopVista===v[0])+'" onclick="S.shopVista=\''+v[0]+'\';render()">'+v[1]+'</button>'});
  h+='</div></div>';
 
  /* Doze por vez, e não três. Três era o lote de quando o card ocupava
