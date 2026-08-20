@@ -140,6 +140,23 @@ chk('e sangra até a borda',/\.trilho\{[^}]*margin:0 calc\(-1 \* var\(--gutter\)
 chk('a página alinha à esquerda',!/blococentro/.test(tpl)&&/class="tsec"/.test(tpl));
 chk('o contador atualiza no scroll',/onscroll="contarTrilho\(this\)"/.test(tpl),
     'contador congelado em 01: interação prometida e não ligada');
+/* O print dela: primeiro card cortado na borda e cards de 600px.
+   Duas causas, dois guardas.
+   1. snap alinha ao scrollport, que IGNORA o padding do trilho — sem
+      scroll-padding o primeiro card é puxado para debaixo da borda;
+   2. flex-basis com min() dentro falha em motores velhos e o card cai
+      em largura automática. Largura vive em width, e pequena. */
+chk('o snap respeita a margem da página',
+    /\.trilho\{[^}]*scroll-padding:0 var\(--gutter\)/.test(css),
+    'sem scroll-padding o snap corta o primeiro card na borda — o print dela');
+var wCard=(css.match(/\.trilho>\.card\{flex:0 0 auto;width:min\((\d+)px/)||[])[1];
+chk('o card do trilho é pequeno e mede por width',
+    Number(wCard)>0 && Number(wCard)<=260,
+    'card de '+(wCard||'?')+'px — ou voltou o flex-basis com min(), que vira 600px em motor velho');
+/* Redundância: o título do perfil aparece UMA vez. O CTA repetia. */
+var vezesTitulo=(tpl.match(/O lugar de quem gosta de tatuagem/g)||[]).length;
+chk('o título do perfil aparece uma vez só',vezesTitulo===1,
+    vezesTitulo+' vezes — voltou o cartão que repete o que a tela já disse');
 S.drawer=null;S.route='plataforma';S.perfilLanding='cliente';g.e("render()");
 var t=tela();
 chk('abre falando do lugar, não do perfil',/Onde a tatuagem acontece/.test(t));

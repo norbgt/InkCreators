@@ -63,3 +63,47 @@ ligado.
 4. Sangramento removido → acusou.
 
 **11 roteiros, tudo verde por código de saída.**
+
+---
+
+## Adendo: o que o print dela consertou
+
+> "elementos estão desalinhados, cards podem ser menores. verifique
+> sobreposições, retire conteúdo redundante, deixe a arquitetura mais
+> simples e verifique responsividade"
+
+### O desalinhamento tinha nome: scroll-padding
+
+O snap alinha o card à borda do **scrollport** — e o scrollport ignora
+o padding visual do trilho. Sem `scroll-padding`, o snap puxava o
+primeiro card para debaixo da borda da tela, desalinhado do próprio
+título da seção. Uma linha resolve, e o guarda impede a volta.
+
+### Os cards de 600px tinham nome: flex-basis com min()
+
+`flex: 0 0 min(280px, 76vw)` falha em motores mais velhos — a função
+dentro do shorthand não parseia, a base cai em `auto`, e o card estica
+até o conteúdo. Era o cartão gigante do print. Largura agora vive em
+`width`, e **menor**: 230px no telefone, 250 no desktop — o card
+carrega três linhas, não um parágrafo.
+
+### A redundância retirada
+
+O CTA era um cartão inteiro repetindo o título que está dois blocos
+acima ("O lugar de quem gosta de tatuagem" aparecia duas vezes na
+mesma tela). Ficou só a ação. A pergunta "E para você…" virou etiqueta
+da seção, e o toggle desceu para a própria linha — sem a disputa de
+espaço do print.
+
+### Sobreposições e responsividade
+
+Varridas: nenhum elemento fixo entra nesta página (a classe do modal
+tem guarda desde a 037), e o trilho mede 72vw no telefone, 250px fixos
+de tablet para cima — app, tablet e desktop pelos mesmos pontos de
+quebra do sistema.
+
+### Sabotagens do adendo
+
+5. scroll-padding removido → acusou: *"o print dela"*.
+6. flex-basis com min() de volta → acusou.
+7. Cartão redundante de volta → acusou: *"2 vezes"*.

@@ -1137,10 +1137,20 @@ body:has(.convitebarra) main{padding-bottom:96px}
 .trilho{display:flex;gap:var(--e3);overflow-x:auto;
   scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
   padding:var(--e4) var(--gutter) var(--e2);margin:0 calc(-1 * var(--gutter));
+  /* O snap alinha o card à borda do SCROLLPORT — e o scrollport ignora
+     o padding do trilho. Sem esta linha, o snap puxava o primeiro card
+     para debaixo da borda da tela e o título ficava desalinhado dos
+     cards que ele apresenta. scroll-padding é o padding que o snap
+     enxerga. */
+  scroll-padding:0 var(--gutter);
   scrollbar-width:none}
 .trilho::-webkit-scrollbar{display:none}
-.trilho>.card{flex:0 0 min(280px,76vw);scroll-snap-align:start;margin:0}
-@media(min-width:700px){.trilho>.card{flex-basis:300px}}
+/* width em vez de flex-basis com min(): o shorthand flex com função
+   dentro falha em motores mais velhos e o card caía em largura
+   automática — era o cartão de 600px do print dela. E menores mesmo:
+   este card carrega três linhas, não um parágrafo. */
+.trilho>.card{flex:0 0 auto;width:min(230px,72vw);scroll-snap-align:start;margin:0}
+@media(min-width:700px){.trilho>.card{width:250px}}
 /* Centrar sublinhado é alinhar o trilho, não estreitar a caixa: com
    max-width o traço da aba ativa ficava mais curto que o conteúdo. */
 .gradeconteudo{display:grid;gap:14px;margin:26px auto 0;max-width:900px;
@@ -3877,8 +3887,8 @@ function vLanding(){
  }));
  h+='</div>';
 
- h+='<div class="tsec"><span class="b" style="font-size:var(--t-card)">E para você, o que isso significa?</span>';
- h+='<div class="segmento" style="margin-top:var(--e3)">';
+ h+='<div class="tsec"><div class="kicker">E para você, o que isso significa?</div>';
+ h+='<div class="segmento" style="margin-top:var(--e2)">';
  Object.keys(PERFIS).forEach(function(x){
   h+='<button class="seg '+(k===x?"on":"")+'" onclick="S.perfilLanding=\''+x+'\';render()">'+PERFIS[x].rotulo+'</button>'});
  h+='</div>';
@@ -3907,9 +3917,11 @@ function vLanding(){
  }));
  h+='</div>';
 
- h+='<div class="card pad tsec" style="max-width:560px">';
- h+='<div class="b">'+p.titulo+'</div>';
- h+='<button class="btn primary" style="margin-top:var(--e3)" onclick="'+p.ctaAcao+'">'+p.cta+'</button></div>';
+ /* Era um cartão inteiro repetindo o título que está dois blocos
+    acima — cartão que repete o que a tela já disse é a redundância
+    que ela pediu para caçar. Ficou só a ação. */
+ h+='<div class="tsec" style="margin-top:var(--e5)">';
+ h+='<button class="btn primary" onclick="'+p.ctaAcao+'">'+p.cta+'</button></div>';
 
  if(p.cobranca){
   h+='<div class="card pad tsec" style="max-width:560px">';
