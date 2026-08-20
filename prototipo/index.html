@@ -41,6 +41,11 @@
   /* ── Raios: três degraus e nada além ────────────────────────── */
   --r-xs:2px;      /* cartões, mídia — quase reto */
   --r-sm:4px;      /* campos, botões, tiles */
+  /* O raio de cartaz é o que faz o feed parecer Pinterest: a foto é o
+     card, e o canto generoso é a moldura dela. Só imagem de DESCOBERTA
+     usa — a loja fica no r-sm de propósito, porque a grade regular e
+     contida é o que diferencia catálogo de feed. */
+  --r-foto:16px;   /* fotos do feed e mosaicos de descoberta */
   --r-pill:999px;  /* pílulas e selos */
   --radius:var(--r-xs);
 
@@ -510,7 +515,10 @@ label.lb{font-size:var(--t-micro);color:var(--muted-foreground);display:block;ma
   display:block;width:100%;margin:0 0 10px;background:none;border:none}
 
 .postimg{position:relative;width:100%;overflow:hidden;background:var(--muted);
-  border-radius:var(--r-sm)}
+  border-radius:var(--r-foto)}
+/* A loja NÃO herda o cartaz: canto pequeno e grade regular são o que
+   a distingue do feed — o contraste é decisão, não descuido. */
+.prod .postimg{border-radius:var(--r-sm)}
 .postimg .sl{position:absolute;inset:0;background-size:cover;background-position:center;
   opacity:0;transition:opacity var(--dur) var(--ease)}
 .postimg .sl.on{opacity:1}
@@ -613,7 +621,7 @@ button,a{touch-action:manipulation}
    quatro células para julgar a mão de uma pessoa, nove para varrer um
    estilo atrás de gente nova. */
 .postgrade .gcx{display:block;width:100%;padding:0;background:none;border:none;
-  position:relative;cursor:pointer;border-radius:var(--r-sm);overflow:hidden}
+  position:relative;cursor:pointer;border-radius:var(--r-foto);overflow:hidden}
 .gcels{display:grid;gap:2px;width:100%}
 .gcels.quatro{grid-template-columns:1fr 1fr;aspect-ratio:1}
 .gcels.nove{grid-template-columns:repeat(3,1fr);aspect-ratio:1}
@@ -1839,7 +1847,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  ehFornecedor:false,
  local:{lat:-23.5505,lng:-46.6333},localReal:false,localNome:"",
  buscandoLocal:false,localErro:"",precisao:0,
- caro:{},shopAud:"art",shopCat:"all",shopQ:"",shopVista:"grade",cart:[{id:"p10",q:1},{id:"p15",q:2}],cep:"",ship:null,
+ caro:{},shopAud:"art",shopCat:"all",shopQ:"",shopVista:"grade",feedQuem:"tatuadores",cart:[{id:"p10",q:1},{id:"p15",q:2}],cep:"",ship:null,
  evT:"all",evP:"all",evD:"all",evSort:"distance",evSel:"e1",evLoc:"São Paulo, SP",
  coT:"all",coL:"all",coP:"all",coSort:"recent",
  qStatus:"todos",hub:"menu",aiStep:0,aiRefs:2,
@@ -2450,7 +2458,7 @@ function sessoesVerificadas(a){
    passo que não existe mais. */
 var CHAVE_ESTADO="ink.estado.v2";
 var GUARDA=["session","route","artist","tab","modo","seguindo","curtidas","cart",
- "cad","perfilLanding","abaPerfil","shopAud","shopCat","shopQ","shopVista","evAba","q",
+ "cad","perfilLanding","abaPerfil","shopAud","shopCat","shopQ","shopVista","feedQuem","evAba","q",
  "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","histAba","sub","agendaGoogle","googleCalendario","emailConfirmado","emailPendente","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura","ehFornecedor",
  "notifFilter","pfTab","ue","f","feedLote","caro","cep","sqSel","orcPasso","passPub","checkin","aval","estudioSel","administraEstudio"];
 // orcEnviado fica de fora de propósito: é a confirmação de uma ação que
@@ -2672,7 +2680,14 @@ function secFeed(){
  STYLES.forEach(function(s){filtros+='<button class="chip '+(f.styles.indexOf(s.s)>=0?"on":"")+'" onclick="tog(S.f.styles,\''+s.s+'\')">'+s.l+'</button>'});
  filtros+='</div>';
 
- var h=barraBusca({
+ /* Duas fatias do mesmo lugar — o trabalho do toggle, como em toda
+    parte. Quem procura um estúdio (higiene, cadeiras, quem atende lá)
+    faz outra pergunta de quem procura uma mão. */
+ var h='<div class="segmento">';
+ [["tatuadores","Tatuadores"],["estudios","Estúdios"]].forEach(function(v){
+  h+='<button class="seg '+(S.feedQuem===v[0]?"on":"")+'" onclick="S.feedQuem=\''+v[0]+'\';S.feedLote=1;render()">'+v[1]+'</button>'});
+ h+='</div>';
+ h+=barraBusca({
   aba:"discover", q:f.q, placeholder:"Buscar tatuador, estúdio, cidade ou estilo…",
   onBusca:"S.f.q=this.value;renderFeedOnly()",
   nFiltros:f.styles.length, filtros:filtros,
@@ -2802,9 +2817,11 @@ function filtrarPorEstilo(slug) {
    se um dia mudarem lá, mudam aqui, e o diagnóstico compara os dois.
    Recebe a largura por parâmetro para o teste poder variar o que o
    navegador de verdade varia. */
+/* Quatro no teto, a pedido dela: acima disso a foto encolhe além do
+   que um feed de descoberta aguenta em desktop. Duas no chão, sempre. */
 function quantasColunas(w){
  w=w||window.innerWidth;
- return w<560?2:w<700?3:w<1100?4:5;
+ return w<560?2:w<700?3:4;
 }
 
 /* As grades entram depois de 3 posts, depois de 4, alternando. O
@@ -2840,7 +2857,40 @@ function emColunas(pecas){
  return '<div class="feedposts">'+cols.map(function(c){return '<div class="feedcol">'+c+'</div>'}).join("")+'</div>';
 }
 
+/* O card do estúdio no feed: a mesma gramática do card de tatuador —
+   foto grande com canto de cartaz, pé de duas linhas — porque é o
+   mesmo feed; o que muda é o sujeito. A capa usa a textura do id, e
+   o pé responde o que se pergunta de um LUGAR: higiene medida, quem
+   atende lá, desde quando. */
+function cardDeEstudio(e,i){
+ var h='<article class="post">';
+ h+='<div class="postimg" style="aspect-ratio:'+proporcaoDaFoto(i+2)+'">';
+ h+='<div class="sl on" style="background-image:'+tex(i*5+3)+'"></div>';
+ h+='<button class="postir" aria-label="Ver o estúdio '+escapar(e.nome)+'" onclick="S.estudioSel=\''+e.id+'\';go(\'estudio\')"></button>';
+ if(e.verificado)h+='<span class="tagtl">✔ verificado</span>';
+ h+='</div>';
+ h+='<button class="postpe" onclick="S.estudioSel=\''+e.id+'\';go(\'estudio\')">';
+ h+='<div class="row" style="gap:var(--e2);min-width:0"><span class="pnome">'+e.nome+'</span></div>';
+ h+='<div class="ppe">'+e.cidade+(e.uf?'/'+e.uf:'')+' · '+e.cadeiras+' cadeira(s) · desde '+e.desde+'</div>';
+ h+='<div class="pehover"><div class="ppe">Higiene '+e.higiene+'% · '+e.residentes.length+' residentes</div></div>';
+ h+='</button></article>';
+ return h;
+}
+
+function listaDeEstudios(){
+ var l=ESTUDIOS.filter(function(e){
+  var q=(S.f.q||"").trim().toLowerCase();
+  if(q&&(e.nome+" "+e.cidade).toLowerCase().indexOf(q)<0)return false;
+  return true;
+ });
+ if(!l.length)return '<div class="card pad muted" style="margin-top:var(--e4)">Nenhum estúdio com essa busca.</div>';
+ var pecas=l.map(function(e,i){return cardDeEstudio(e,i)});
+ return emColunas(pecas)+
+  '<div class="row" style="justify-content:center;padding:var(--e5) 0"><span class="tiny muted">Você viu todos os estúdios por perto.</span></div>';
+}
+
 function feedList(){
+ if(S.feedQuem==="estudios")return listaDeEstudios();
  // Em modo real, o catálogo vem do banco. Se estiver vazio, dizer isso
  // com clareza é mais honesto do que preencher com gente que não existe.
  if(S.modo==="real"){
@@ -3556,7 +3606,7 @@ function vArtist(){
   h+='<div class="grid gradeport" style="margin-top:var(--e4)">';
   /* A proporção vem do próprio trabalho, pela mesma função do feed:
      o mesmo trabalho aparece com a mesma forma nos dois lugares. */
-  a.port.forEach(function(p){h+='<div class="tat" style="aspect-ratio:'+proporcaoDaFoto(p)+';border-radius:var(--r-sm);background-image:'+tex(p)+'"></div>'});
+  a.port.forEach(function(p){h+='<div class="tat" style="aspect-ratio:'+proporcaoDaFoto(p)+';border-radius:var(--r-foto);background-image:'+tex(p)+'"></div>'});
   h+='</div>';
   h+='<div class="tiny muted" style="margin-top:var(--e2)">'+a.port.length+' trabalhos publicados aqui'+tg("real")+'</div>';
  }

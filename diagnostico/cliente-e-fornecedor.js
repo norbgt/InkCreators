@@ -1187,13 +1187,47 @@ S.feedLote = 1; g.e("render()");
 chk("o feed nunca cai para uma coluna",
     [320, 393, 560, 700, 1100, 1600].every(function (w) { return g.e("quantasColunas(" + w + ")") >= 2 }),
     "coluna única: cada rolagem mostra um trabalho e o feed vira fila");
-chk("e ganha coluna conforme a tela cresce",
+/* Quatro é o teto, a pedido dela — o quinto degrau saiu. */
+chk("e ganha coluna conforme a tela cresce, parando em quatro",
     g.e("quantasColunas(393)") === 2 && g.e("quantasColunas(600)") === 3 &&
-    g.e("quantasColunas(800)") === 4 && g.e("quantasColunas(1200)") === 5,
-    "degraus: " + [393, 600, 800, 1200].map(function (w) { return g.e("quantasColunas(" + w + ")") }).join(", "));
+    g.e("quantasColunas(800)") === 4 && g.e("quantasColunas(1600)") === 4,
+    "degraus: " + [393, 600, 800, 1600].map(function (w) { return g.e("quantasColunas(" + w + ")") }).join(", "));
 chk("os degraus são os pontos de quebra do sistema",
-    /w<560\?2:w<700\?3:w<1100\?4:5/.test(code.replace(/\s+/g, "")),
+    /w<560\?2:w<700\?3:4/.test(code.replace(/\s+/g, "")),
     "quantasColunas inventou pontos de quebra próprios — dois sistemas de novo");
+/* O canto de cartaz: a foto é o card, e o raio generoso é a moldura
+   dela. Só descoberta — a loja fica no canto pequeno, e o contraste
+   entre os dois é decisão com teste. */
+chk("a foto do feed tem canto de cartaz",
+    /\.postimg\{[^}]*border-radius:var\(--r-foto\)/.test(css) && /--r-foto:1[2-9]px/.test(css),
+    "o canto voltou a ser o de campo de formulário — o feed perdeu a cara de Pinterest");
+/* ── O FEED TEM DOIS SUJEITOS ─────────────────────────────────────
+   Tatuadores e estúdios: duas fatias do mesmo lugar, no toggle
+   padrão. O card do estúdio usa a MESMA gramática (masonry, cartaz,
+   pé de duas linhas) — o que muda é o sujeito, não a forma. */
+S.session = "anon"; S.route = "home"; S.tab = "discover";
+g.e("S.feedQuem='estudios'"); g.e("render()");
+var tEst = tela();
+chk("o toggle do feed oferece tatuadores e estúdios",
+    /class="seg on"[^>]*>Estúdios</.test(tEst) && />Tatuadores</.test(tEst),
+    "o toggle sumiu ou perdeu uma fatia");
+chk("os estúdios saem em masonry, como o resto do feed",
+    /class="feedcol"/.test(tEst) && (tEst.match(/Ver o estúdio /g) || []).length >= 3,
+    "a fatia de estúdios perdeu a gramática do feed");
+chk("o card do estúdio responde o que se pergunta de um lugar",
+    /cadeira\(s\)/.test(tEst) && /desde /.test(tEst),
+    "o card virou cópia do de tatuador — sujeito errado nas linhas");
+chk("e leva à página do estúdio",
+    /go\(&#39;estudio&#39;\)|go\('estudio'\)/.test(tEst),
+    "card de estúdio sem porta: bonito e sem destino");
+g.e("S.feedQuem='tatuadores'"); g.e("render()");
+chk("a fatia de tatuadores continua inteira",
+    (tela().match(/class="post"/g) || []).length >= 6,
+    "trocar o padrão quebrou a fatia principal");
+
+chk("e a loja continua de canto pequeno",
+    /\.prod \.postimg\{border-radius:var\(--r-sm\)\}/.test(css),
+    "a loja herdou o cartaz: sumiu o contraste que separa catálogo de feed");
 chk("e nada estreita o feed para um card por vez",
     !/\.feedposts\{[^}]*max-width:4[0-9][0-9]px/.test(css),
     "voltou o max-width que fazia um tatuador por vez");

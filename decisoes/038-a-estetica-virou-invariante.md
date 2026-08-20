@@ -69,3 +69,54 @@ outros dez.
 3. Ziguezague com ordem trocada (i*2 % n) → acusou três vezes.
 
 **11 roteiros, tudo verde — e verde de verdade, por código de saída.**
+
+---
+
+## Segunda parte: o cartaz, o teto de quatro, e o toggle de estúdios
+
+> "temos uma grade com fotos que variam de tamanho. no celular, vemos
+> duas colunas, em desktop podemos ver até 4 colunas"
+>
+> "o feed tem um toggle que define 'tatuadores' ou 'estúdios'"
+
+### O que faltava na estética, dito pela referência
+
+A sua imagem do Pinterest mostrou o que o ziguezague sozinho não dava:
+**o canto**. Lá a foto é o card e o raio generoso é a moldura dela; aqui
+o feed usava `--r-sm` — 4px, o canto de campo de formulário.
+
+O sistema de raios ganhou o quarto valor, com papel escrito:
+
+> `--r-foto: 16px` — fotos do feed e mosaicos de **descoberta**. Só. A
+> loja fica no `r-sm` de propósito: canto pequeno e grade regular são o
+> que diferencia catálogo de feed, e o contraste tem teste dos dois
+> lados.
+
+O portfólio do perfil acompanha (é a mesma decisão do feed, mesma
+`proporcaoDaFoto`); a loja não.
+
+### Quatro colunas no teto
+
+O quinto degrau saiu: `2 → 560px → 3 → 700px → 4`, e para. Acima de
+quatro a foto encolhe além do que descoberta aguenta em desktop. Os
+guardas de degraus foram atualizados junto.
+
+### O toggle de estúdios
+
+Duas fatias do mesmo lugar — o trabalho do toggle padrão. O card do
+estúdio usa a **mesma gramática** do feed (masonry, cartaz, pé de duas
+linhas), porque é o mesmo feed; o que muda é o sujeito, e as linhas do
+pé respondem o que se pergunta de um **lugar**: cidade, cadeiras, desde
+quando — e no hover, higiene medida e residentes. O card inteiro leva à
+página do estúdio.
+
+### Sabotagens desta parte
+
+4. Cartaz removido do feed → acusou.
+5. Loja herdando o cartaz → acusou: *"sumiu o contraste"*.
+6. Quinto degrau de volta → acusou duas vezes.
+7. Card de estúdio sem porta (as duas) → acusou.
+8. Toggle sem a fatia de estúdios → acusou.
+
+**11 roteiros, tudo verde por código de saída. 702 frases, nenhuma
+perdida.**
