@@ -329,6 +329,34 @@ chk("o lote fecha fileira nas três larguras",
    relatório passa a acusar a tela errada. */
 S.tab = "discover"; g.e("render()");
 
+/* ── AS DUAS PONTAS DA MESMA SESSÃO ────────────────────────────────
+   BOOK é a agenda do tatuador; minhasSessoes() é o que o cliente
+   acompanha. No produto real serão UMA tabela lida por dois papéis;
+   no protótipo são duas listas escritas à mão — e duas listas à mão
+   divergem em silêncio: a Marina ganha uma sessão dia 12 e o cliente
+   não fica sabendo.
+
+   Divergência de mock parece inofensiva até o teste com usuários: a
+   pessoa navega os dois papéis no mesmo protótipo, vê a sessão de um
+   lado e não vê do outro, e conclui que o produto perde dados — a
+   pior conclusão possível para um produto cuja tese é confiança. */
+secao("1a. AS DUAS PONTAS DA MESMA SESSÃO");
+/* O espelhamento literal (a sessão X do cliente = a linha X de BOOK)
+   não dá para testar aqui, e é honesto dizer por quê: BOOK é a agenda
+   da Marina com os clientes DELA, e minhasSessoes é o cliente demo
+   com os tatuadores dele — são pessoas diferentes no mock. O que dá
+   para exigir agora é que as duas pontas falem a mesma língua; o
+   espelhamento vira teste de verdade quando a tabela sessions existir
+   e as duas telas lerem dela. */
+var doCliente=g.e("minhasSessoes()");
+chk("o cliente tem sessões para acompanhar", doCliente.length>0);
+chk("cada uma diz quem, quando e onde",
+    doCliente.every(function(m){return m.artista&&m.quando&&m.estudio&&m.cidade}),
+    "sessão do cliente sem quem, quando ou onde");
+chk("as duas pontas usam as mesmas palavras de estado",
+    doCliente.every(function(m){return ["confirmada","aguardando confirmação"].indexOf(m.estado)>=0}),
+    "estado fora do vocabulário: cada tela inventando um nome para a mesma coisa");
+
 secao("1b. A AGENDA É DE QUEM TATUA");
 S.session = "anon";
 var tPerfilPub = ir("artist");

@@ -58,6 +58,11 @@
   --t-body:14.5px;
   --t-meta:13px;
   --t-micro:11.5px;
+  /* nano existe para UM caso: abreviação em caixa alta dentro de um
+     espaço que não estica — o mês do datebox, o número no pino do
+     mapa. Abaixo de 10px ninguém lê; era o que 9px fazia em 6
+     lugares. Texto corrido nunca usa nano. */
+  --t-nano:10px;
   --t-num:clamp(26px,3.6vw,40px);   /* números grandes, em condensada */
 
   /* ── Espaço ─────────────────────────────────────────────────── */
@@ -195,7 +200,7 @@ header.top{position:sticky;top:0;z-index:40;background:var(--background);border-
    senão o preto do padrão desaparece no fundo. Duas imagens, uma por tema. */
 .logo .marca{width:34px;height:34px;flex-shrink:0;object-fit:contain;display:block}
 html[data-dark] .logo .marca{content:url("marca/logo-branco.png")}
-.logo .txt{display:flex;flex-direction:column;line-height:1;font-size:11.5px;font-weight:900;text-transform:uppercase;letter-spacing:-.01em}
+.logo .txt{display:flex;flex-direction:column;line-height:1;font-size:var(--t-micro);font-weight:900;text-transform:uppercase;letter-spacing:-.01em}
 .search{flex:1;max-width:400px;position:relative}
 .search input{width:100%;height:35px;border:1px solid var(--border);border-radius:var(--r-pill);padding:0 14px 0 32px;outline:none}
 .search .ic{position:absolute;left:11px;top:9px;color:var(--muted-foreground);line-height:0}
@@ -221,13 +226,13 @@ html[data-dark] .logo .marca{content:url("marca/logo-branco.png")}
   box-sizing:border-box;min-width:17px;height:17px;padding:0 4px;
   border-radius:var(--r-pill);border:2px solid var(--background);
   background:var(--primary);color:var(--primary-foreground);
-  font-size:9.5px;font-weight:700;line-height:1;
+  font-size:var(--t-nano);font-weight:700;line-height:1;
   font-variant-numeric:tabular-nums;letter-spacing:0}
 .pill.accent-solid{background:var(--accent);color:var(--accent-foreground);border-color:var(--accent)}
 .menu{position:absolute;right:0;top:40px;min-width:210px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);box-shadow:0 8px 24px rgba(0,0,0,.14);padding:5px;z-index:60}
-.menu a{display:block;padding:8px 10px;border-radius:var(--r-sm);font-size:13px;cursor:pointer}
+.menu a{display:block;padding:8px 10px;border-radius:var(--r-sm);font-size:var(--t-meta);cursor:pointer}
 .menu a:hover{background:var(--muted)}
-.menu .mlabel{padding:7px 10px;font-size:11.5px;color:var(--muted-foreground);overflow:hidden;text-overflow:ellipsis}
+.menu .mlabel{padding:7px 10px;font-size:var(--t-micro);color:var(--muted-foreground);overflow:hidden;text-overflow:ellipsis}
 .menu .msep{height:1px;background:var(--border);margin:4px 0}
 .pill{display:inline-flex;align-items:center;gap:5px;border:var(--hair) solid var(--border);
   border-radius:var(--r-pill);padding:7px 14px;font-size:var(--t-meta);font-weight:500;
@@ -238,7 +243,7 @@ html[data-dark] .logo .marca{content:url("marca/logo-branco.png")}
 .pill.accent{background:var(--x-accent-bg);color:var(--accent);border-color:var(--x-accent-border)}
 .marcagrande{width:64px;height:64px;object-fit:contain;display:block}
 html[data-dark] .marcagrande{content:url("marca/logo-branco.png")}
-.avatarbtn{width:33px;height:33px;border-radius:50%;background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;border:1px solid var(--border)}
+.avatarbtn{width:33px;height:33px;border-radius:50%;background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:var(--t-micro);font-weight:700;border:1px solid var(--border)}
 
 main{padding:24px 0 60px}
 /* Condensada nos títulos e nos números grandes. É a única voz
@@ -246,14 +251,14 @@ main{padding:24px 0 60px}
    que aquilo ali é manchete ou grandeza. */
 h1.page{font-family:var(--f-cond);font-size:var(--t-h2);font-weight:600;letter-spacing:-.01em;line-height:1.15}
 .kicker{font-family:var(--f-exp);font-size:var(--t-micro);font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground)}
-p.sub{color:var(--muted-foreground);margin-top:var(--e1);font-size:13.5px}
+p.sub{color:var(--muted-foreground);margin-top:var(--e1);font-size:var(--t-meta)}
 .card{background:var(--card);border:var(--hair) solid var(--border);border-radius:var(--r-xs)}
 .pad{padding:15px 17px}
 .grid{display:grid;gap:14px}
 .cols2{grid-template-columns:2fr 1fr}
 .cols16{grid-template-columns:1.6fr 1fr}
 .muted{color:var(--muted-foreground)}
-.small{font-size:12.5px}.tiny{font-size:11.5px}.b{font-weight:600}
+.small{font-size:var(--t-meta)}.tiny{font-size:var(--t-micro)}.b{font-weight:600}
 .row{display:flex;align-items:center;gap:9px}
 .sp{margin-left:auto}
 .wrapf{flex-wrap:wrap}
@@ -278,14 +283,14 @@ p.sub{color:var(--muted-foreground);margin-top:var(--e1);font-size:13.5px}
 .btn:hover{border-color:var(--muted-foreground)}
 .btn.primary{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
 .btn:disabled{opacity:.42;cursor:not-allowed}
-.btn.sm{padding:6px 10px;font-size:12.5px}
+.btn.sm{padding:6px 10px;font-size:var(--t-meta)}
 .btn.blk{width:100%}
 .fld{width:100%;text-align:left;font-weight:400;border:var(--hair) solid var(--input);
   border-radius:var(--r-sm);padding:10px 12px;outline:none;
   transition:border-color var(--dur) var(--ease)}
 .fld:focus{border-color:var(--accent)}
 .fld:focus{border-color:var(--muted-foreground)}
-label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bottom:4px}
+label.lb{font-size:var(--t-micro);color:var(--muted-foreground);display:block;margin-bottom:4px}
 
 /* Abas: faixa com sublinhado, rolável. Ações ficam fora para não rolarem junto. */
 .linhaabas{display:flex;align-items:flex-end;gap:14px;margin-top:var(--section-gap);border-bottom:var(--hair) solid var(--border);flex-wrap:nowrap}
@@ -348,8 +353,8 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 
 /* Barra de localização + mapa pequeno + lista compacta.
    Padrão de app de mobilidade: contexto no topo, decisão na lista. */
-.avisoerro{margin-top:var(--e3);padding:9px 12px;border-radius:var(--r-sm);background:var(--x-warning-bg);color:var(--x-warning);font-size:12.5px}
-.avisook{padding:9px 12px;border-radius:var(--r-sm);background:var(--x-success-bg);color:var(--x-success);font-size:12.5px}
+.avisoerro{margin-top:var(--e3);padding:9px 12px;border-radius:var(--r-sm);background:var(--x-warning-bg);color:var(--x-warning);font-size:var(--t-meta)}
+.avisook{padding:9px 12px;border-radius:var(--r-sm);background:var(--x-success-bg);color:var(--x-success);font-size:var(--t-meta)}
 
 /* Marcos do passaporte. Cartão pequeno, sem barra de progresso e sem
    estado "bloqueado": um marco ou aconteceu, ou não está aqui. Mostrar
@@ -360,9 +365,9 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
    diz "isto é publicidade" antes da palavra dizer. */
 .selos{display:flex;flex-wrap:wrap;gap:5px}
 .selinho{display:inline-flex;align-items:center;gap:4px;border-radius:var(--r-pill);
-  padding:3px 9px;font-size:11.5px;font-weight:600;white-space:nowrap;line-height:1.5;
+  padding:3px 9px;font-size:var(--t-micro);font-weight:600;white-space:nowrap;line-height:1.5;
   border:1px solid transparent;cursor:default}
-.selinho .si{font-size:11px;line-height:1}
+.selinho .si{font-size:var(--t-micro);line-height:1}
 .selinho .si svg{width:12px;height:12px;display:block}
 .selinho[data-c="fato"]{background:var(--x-success-bg);color:var(--x-success)}
 .selinho[data-c="pares"]{background:var(--x-accent-bg);color:var(--accent)}
@@ -372,7 +377,7 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
    toque decente. A palavra inteira mora no perfil. */
 .selosic{display:flex;gap:4px;flex-shrink:0;background:none;padding:0;cursor:pointer;border:none}
 .selinho.soic{padding:0;width:24px;height:24px;justify-content:center;border-radius:var(--r-pill)}
-.selinho.soic .si{font-size:12px}
+.selinho.soic .si{font-size:var(--t-micro)}
 .selinho.soic .si svg{width:13px;height:13px}
 .selosic:hover .selinho.soic{outline:var(--hair) solid var(--muted-foreground);outline-offset:1px}
 @media(pointer:coarse){.selinho.soic{width:28px;height:28px}}
@@ -382,7 +387,7 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .regras{display:grid;gap:8px;margin-top:var(--e2)}
 .regra{display:flex;gap:10px;align-items:flex-start;padding:10px 11px;border:1px solid var(--border);
   border-radius:var(--r-sm);background:var(--card)}
-.regra .ri{font-size:15px;line-height:1.3;flex-shrink:0}
+.regra .ri{font-size:var(--t-card);line-height:1.3;flex-shrink:0}
 .regra .ri svg{width:15px;height:15px}
 .estrela{width:38px;height:38px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--card);
   font-size:18px;line-height:1;color:var(--muted-foreground)}
@@ -397,12 +402,12 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
   background:none;cursor:pointer;border-radius:0}
 .cxestudio:hover .b{color:var(--accent)}
 
-.regracat{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;opacity:.55}
+.regracat{font-size:var(--t-nano);text-transform:uppercase;letter-spacing:.08em;font-weight:700;opacity:.55}
 
 .marcos{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
 .marco{display:flex;gap:9px;align-items:flex-start;padding:10px 11px;border:1px solid var(--border);
   border-radius:var(--r-sm);background:var(--card)}
-.marco .mic{font-size:16px;line-height:1.2;flex-shrink:0}
+.marco .mic{font-size:var(--t-card);line-height:1.2;flex-shrink:0}
 .marco .mic svg{width:16px;height:16px}
 
 /* Check-in. O QR fica em fundo branco sempre, inclusive no tema
@@ -423,17 +428,23 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
   background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
   background-size:30px 30px}
 .mapa .pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer}
-.mapa .pin b{display:block;width:22px;height:22px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:11px;line-height:22px;text-align:center;border:2px solid var(--card)}
+.mapa .pin b{display:block;width:22px;height:22px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:var(--t-micro);line-height:22px;text-align:center;border:2px solid var(--card)}
 .mapa .pin.on b{background:var(--accent);transform:scale(1.2)}
-.mapa .pin.voce b{background:var(--accent);width:15px;height:15px;line-height:15px;font-size:9px}
-.mapaselo{position:absolute;bottom:7px;left:8px;font-size:10.5px;color:var(--muted-foreground);background:var(--card);border-radius:var(--r-sm);padding:2px 7px;opacity:.9}
+.mapa .pin.voce b{background:var(--accent);width:15px;height:15px;line-height:15px;font-size:var(--t-nano)}
+.mapaselo{position:absolute;bottom:7px;left:8px;font-size:var(--t-micro);color:var(--muted-foreground);background:var(--card);border-radius:var(--r-sm);padding:2px 7px;opacity:.9}
 
 .lista{margin-top:var(--e3);border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;background:var(--card)}
-.item{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:12px 13px;border-bottom:1px solid var(--border);background:none}
-.item:last-child{border-bottom:none}
-.item:hover{background:var(--muted)}
-.item.on{background:var(--x-accent-bg)}
-.item.compacto{padding:10px 13px}
+/* Era um segundo componente inteiro, .item, fazendo o mesmo trabalho
+   que .lrow com outros números: avatar, texto, valor à direita. Dois
+   componentes para a mesma pergunta é o que este produto mais paga
+   para manter — agora é um, e "clicavel" é o que o distingue: a linha
+   que leva a algum lugar ganha chão de hover e estado de escolhida. */
+.lrow.clicavel{width:100%;text-align:left;padding:12px 13px;flex-wrap:nowrap;
+  border-bottom:var(--hair) solid var(--border);background:none}
+.lrow.clicavel:last-child{border-bottom:none}
+.lrow.clicavel:hover{background:var(--muted)}
+.lrow.clicavel.on{background:var(--x-accent-bg)}
+.lrow.clicavel.compacto{padding:10px 13px}
 .itemtxt{min-width:0;flex:1}
 .itemfim{text-align:right;flex-shrink:0;display:flex;flex-direction:column;gap:2px}
 .itemfoto{width:46px;height:46px;border-radius:var(--r-sm);background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
@@ -445,7 +456,7 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .chip.acc.on{background:var(--accent);border-color:var(--accent);color:var(--accent-foreground)}
 .fbar{margin-top:var(--e4);padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card)}
 .fgroup{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:var(--e2)}
-.fgroup .gl{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-foreground);min-width:78px}
+.fgroup .gl{font-size:var(--t-micro);font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-foreground);min-width:78px}
 
 /* Barra: busca, filtros e ordenar lado a lado */
 .barrabusca{display:flex;gap:8px;margin-top:var(--e4)}
@@ -454,12 +465,12 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .barrabusca .campo input:focus{border-color:var(--muted-foreground)}
 .barrabusca .lupa{position:absolute;left:11px;top:11px;color:var(--muted-foreground);line-height:0}
 .barrabusca .lupa .ico{width:16px;height:16px}
-.btnbarra{position:relative;height:40px;padding:0 14px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--card);display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;white-space:nowrap}
+.btnbarra{position:relative;height:40px;padding:0 14px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--card);display:inline-flex;align-items:center;gap:7px;font-size:var(--t-meta);font-weight:600;white-space:nowrap}
 .btnbarra:hover{border-color:var(--muted-foreground)}
 .btnbarra.on{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
 .btnbarra.temfiltro{border-color:var(--accent)}
 .btnbarra .ico{width:17px;height:17px}
-.btnbarra .pontinho{background:var(--accent);color:var(--accent-foreground);border-radius:var(--r-pill);min-width:16px;height:16px;font-size:10px;line-height:16px;padding:0 4px}
+.btnbarra .pontinho{background:var(--accent);color:var(--accent-foreground);border-radius:var(--r-pill);min-width:16px;height:16px;font-size:var(--t-nano);line-height:16px;padding:0 4px}
 .painel{margin-top:var(--e2);padding:13px 15px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--card)}
 
 /* Feed em publicações, uma por vez */
@@ -534,7 +545,7 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 
 .coracao{position:absolute;bottom:8px;right:8px;width:34px;height:34px;
   border-radius:var(--r-pill);background:rgba(0,0,0,.45);color:#fff;
-  display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;
+  display:flex;align-items:center;justify-content:center;font-size:var(--t-card);line-height:1;
   backdrop-filter:blur(4px);transition:transform var(--dur) var(--ease)}
 .coracao:hover{transform:scale(1.08)}
 .coracao.on{background:#fff;color:#c0392b}
@@ -560,7 +571,7 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .ppe{font-family:var(--f-exp);font-size:var(--t-micro);color:var(--muted-foreground);
   line-height:1.45;margin-top:var(--e1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ppe .cifra{font-family:var(--f-sans);font-size:12.5px;letter-spacing:.05em}
+.ppe .cifra{font-family:var(--f-sans);font-size:var(--t-meta);letter-spacing:.05em}
 .pph{font-family:var(--f-exp);font-size:var(--t-micro);color:var(--muted-foreground)}
 
 /* ── O QUE APARECE AO PASSAR O MOUSE ──────────────────────────────
@@ -578,6 +589,9 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
    As duas estão no perfil, a um toque — e um diagnóstico falha se um
    dia deixarem de estar. */
 @media(pointer:coarse){.pehover{display:none}}
+/* iOS dá zoom automático em campo com fonte menor que 16px — a tela
+   pula no primeiro toque e a pessoa acha que quebrou. */
+@media(pointer:coarse){.fld,select.fld,textarea.fld{font-size:16px}}
 
 /* ── CARDS EM GRADE ───────────────────────────────────────────────
    Quebram o ritmo do feed. A densidade de cada um vem da pergunta:
@@ -702,20 +716,20 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .caro{position:relative;height:190px;background:var(--border)}
 .caro .sl{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity .25s}
 .caro .sl.on{opacity:1}
-.caro .nav{position:absolute;top:50%;transform:translateY(-50%);width:27px;height:27px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px}
+.caro .nav{position:absolute;top:50%;transform:translateY(-50%);width:27px;height:27px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;display:flex;align-items:center;justify-content:center;font-size:var(--t-meta)}
 .caro .nav.l{left:8px}.caro .nav.r{right:8px}
 .caro .pips{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:4px}
 .caro .pips i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.5)}
 .caro .pips i.on{background:#fff}
-.caro .tagtl{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;border-radius:var(--r-pill);padding:2px 8px;font-size:10.5px;font-weight:600}
+.caro .tagtl{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;border-radius:var(--r-pill);padding:2px 8px;font-size:var(--t-micro);font-weight:600}
 .qa{position:absolute;bottom:8px;right:8px;display:flex;gap:5px}
-.qa button{background:rgba(255,255,255,.94);color:#111;border-radius:var(--r-sm);padding:5px 9px;font-size:11.5px;font-weight:700}
+.qa button{background:rgba(255,255,255,.94);color:#111;border-radius:var(--r-sm);padding:5px 9px;font-size:var(--t-micro);font-weight:700}
 .tat{background-size:cover;background-position:center}
 
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:13px;margin-top:var(--e4)}
 .pcard{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--card)}
 .pcard .im{height:125px;background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:36px;position:relative}
-.pcard .im .nv{position:absolute;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center}
+.pcard .im .nv{position:absolute;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:var(--t-micro);display:flex;align-items:center;justify-content:center}
 
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:11px}
 /* O rótulo é etiqueta, não frase: expandida, caixa alta, pequena. O
@@ -744,7 +758,7 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .secg{display:flex;align-items:center;gap:8px}
 .secgt{font-family:var(--f-cond);font-size:var(--t-h3);font-weight:600;
   letter-spacing:-.005em;margin:0}
-.kicker{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-foreground)}
+.kicker{font-size:var(--t-micro);font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-foreground)}
 .subnav{display:flex;gap:2px;overflow-x:auto;margin-top:var(--e3)}
 /* A aba ativa se marca por um traço de 1px, como tudo no site. Dois
    pixels criavam uma segunda espessura, e duas espessuras criam
@@ -840,10 +854,10 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 }
 .lrow:last-child{border-bottom:none}
 .thumb{width:44px;height:44px;border-radius:var(--r-sm);background:var(--muted);flex-shrink:0;background-size:cover;background-position:center}
-.av{width:36px;height:36px;border-radius:50%;background:var(--muted);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:var(--muted-foreground)}
+.av{width:36px;height:36px;border-radius:50%;background:var(--muted);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:var(--t-micro);font-weight:700;color:var(--muted-foreground)}
 .datebox{width:44px;height:44px;border-radius:var(--r-sm);background:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
-.datebox .m{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted-foreground)}
-.datebox .d{font-size:15px;font-weight:700;line-height:1}
+.datebox .m{font-size:var(--t-nano);font-weight:700;text-transform:uppercase;color:var(--muted-foreground)}
+.datebox .d{font-size:var(--t-card);font-weight:700;line-height:1}
 
 .authwrap{max-width:400px;margin:36px auto;padding:0 18px}
 .opt{flex:1;border:1px solid var(--border);border-radius:var(--r-sm);padding:11px;cursor:pointer;text-align:left}
@@ -852,10 +866,10 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 /* Campo com prefixo fixo — o @ pertence ao endereço, não ao que a
    pessoa digita, então ele fica desenhado dentro do campo. */
 .campoprefixo{display:flex;align-items:center;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--card);overflow:hidden}
-.campoprefixo>span{padding:0 2px 0 11px;color:var(--muted-foreground);font-weight:600;font-size:13.5px}
+.campoprefixo>span{padding:0 2px 0 11px;color:var(--muted-foreground);font-weight:600;font-size:var(--t-meta)}
 .campoprefixo input{border:none;background:none;border-radius:0;flex:1;min-width:0}
 .campoprefixo:focus-within{border-color:var(--muted-foreground)}
-.req{color:var(--x-danger);font-size:11.5px;font-weight:600}
+.req{color:var(--x-danger);font-size:var(--t-micro);font-weight:600}
 
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50}
 .drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--background);z-index:51;display:flex;flex-direction:column;border-left:1px solid var(--border)}
@@ -864,13 +878,13 @@ label.lb{font-size:11.5px;color:var(--muted-foreground);display:block;margin-bot
 .drawer .df{border-top:1px solid var(--border);padding:11px 15px}
 
 .banner{display:flex;align-items:center;gap:11px;background:var(--x-accent-bg);border:1px solid var(--x-accent-border);border-radius:var(--radius);padding:12px 15px}
-.protobar{background:#141414;color:#fff;font-size:11.5px;padding:6px 0}
+.protobar{background:#141414;color:#fff;font-size:var(--t-micro);padding:6px 0}
 .protobar .wrap{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-.protobar select{background:#2c2c2c;color:#fff;border:1px solid #444;border-radius:var(--r-sm);height:25px;padding:0 5px;font-size:11.5px}
-.tag{background:#333;border-radius:var(--r-sm);padding:1px 6px;font-size:10.5px}
+.protobar select{background:#2c2c2c;color:#fff;border:1px solid #444;border-radius:var(--r-sm);height:25px;padding:0 5px;font-size:var(--t-micro)}
+.tag{background:#333;border-radius:var(--r-sm);padding:1px 6px;font-size:var(--t-micro)}
 .tag.real{background:#1b6e3c}.tag.mock{background:#9c2b2b}.tag.new{background:#2b5c70}
-footer.note{border-top:1px solid var(--border);padding:20px 0;color:var(--muted-foreground);font-size:12px}
-table.t{width:100%;border-collapse:collapse;font-size:13px}
+footer.note{border-top:1px solid var(--border);padding:20px 0;color:var(--muted-foreground);font-size:var(--t-micro)}
+table.t{width:100%;border-collapse:collapse;font-size:var(--t-meta)}
 table.t th{text-align:left;font-family:var(--f-exp);font-weight:500;color:var(--muted-foreground);
   font-size:var(--t-micro);letter-spacing:.06em;text-transform:uppercase;
   padding:9px 0;border-bottom:var(--hair) solid var(--border)}
@@ -898,10 +912,10 @@ table.t td{padding:10px 0;border-bottom:var(--hair) solid var(--rule);
 .perfilopt:hover{border-color:var(--muted-foreground)}
 .perfilopt .ic{display:flex;align-items:center;justify-content:center;
   width:36px;height:36px;border-radius:50%;background:var(--muted);
-  color:var(--foreground);font-size:16px;flex-shrink:0}
+  color:var(--foreground);font-size:var(--t-card);flex-shrink:0}
 .perfilopt .ic svg{width:18px;height:18px}
-.perfilopt .nome{font-size:13px;font-weight:600;line-height:1.15}
-.perfilopt .badge{font-size:9.5px;padding:2px 6px;line-height:1.3}
+.perfilopt .nome{font-size:var(--t-meta);font-weight:600;line-height:1.15}
+.perfilopt .badge{font-size:var(--t-nano);padding:2px 6px;line-height:1.3}
 /* Selecionado: contorno mais forte e o ícone invertido. Cor de fundo
    sozinha não basta — quem enxerga pouco contraste perderia a escolha. */
 .perfilopt.on{border-color:var(--primary);box-shadow:inset 0 0 0 1px var(--primary)}
@@ -909,7 +923,7 @@ table.t td{padding:10px 0;border-bottom:var(--hair) solid var(--rule);
 @media(max-width:400px){
   .perfis{gap:7px}
   .perfilopt{padding:12px 5px;gap:6px}
-  .perfilopt .nome{font-size:12px}
+  .perfilopt .nome{font-size:var(--t-micro)}
   .perfilopt .ic{width:32px;height:32px}
 }
 
@@ -939,11 +953,11 @@ table.t td{padding:10px 0;border-bottom:var(--hair) solid var(--rule);
 .grande:hover{border-color:var(--accent)}
 .grande:active{transform:scale(.985)}
 .grande .gtopo{display:flex;align-items:center;gap:5px;min-width:0;width:100%}
-.grande .gic{color:var(--muted-foreground);font-size:12.5px;line-height:1;flex-shrink:0}
+.grande .gic{color:var(--muted-foreground);font-size:var(--t-meta);line-height:1;flex-shrink:0}
 .grande .gic svg{width:13px;height:13px;display:block}
-.grande .grot{font-size:11.5px;font-weight:600;line-height:1.2;min-width:0}
+.grande .grot{font-size:var(--t-micro);font-weight:600;line-height:1.2;min-width:0}
 .grande .gval{font-size:22px;font-weight:700;letter-spacing:-.03em;line-height:1.15;margin-top:var(--e1)}
-.grande .gnota{font-size:10.5px;color:var(--muted-foreground);line-height:1.25;margin-top:var(--e1)}
+.grande .gnota{font-size:var(--t-micro);color:var(--muted-foreground);line-height:1.25;margin-top:var(--e1)}
 /* Só quem tem pendência muda de cor. Se tudo destaca, nada destaca. */
 .grande.alerta{border-color:var(--accent)}
 .grande.alerta .gval,.grande.alerta .gic{color:var(--accent)}
@@ -957,7 +971,7 @@ table.t td{padding:10px 0;border-bottom:var(--hair) solid var(--rule);
 .seg .selo{display:inline-flex;align-items:center;justify-content:center;
   min-width:17px;height:17px;padding:0 5px;margin-left:6px;border-radius:var(--r-pill);
   background:var(--muted-foreground);color:var(--card);
-  font-size:10px;font-weight:700;line-height:1;vertical-align:1px}
+  font-size:var(--t-nano);font-weight:700;line-height:1;vertical-align:1px}
 .seg.on .selo{background:var(--primary);color:var(--primary-foreground)}
 
 /* Galeria do artista. Foto quadrada e informação embaixo: quem compra
@@ -970,7 +984,7 @@ table.t td{padding:10px 0;border-bottom:var(--hair) solid var(--rule);
 .obra:hover{border-color:var(--muted-foreground)}
 .obrafoto{position:relative;aspect-ratio:1;background-size:cover;background-position:center}
 .obraetiq{position:absolute;top:7px;left:7px;background:var(--primary);color:var(--primary-foreground);
-  font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  font-size:var(--t-nano);font-weight:700;text-transform:uppercase;letter-spacing:.06em;
   padding:3px 7px;border-radius:var(--r-pill)}
 .obrainfo{padding:9px 10px 11px}
 
@@ -999,7 +1013,7 @@ body:has(.convitebarra) main{padding-bottom:96px}
    pendência, não erro — o perfil continua no ar. */
 .avisopendente{border-color:var(--x-warning);background:var(--x-warning-bg)}
 .pendicone{display:flex;align-items:center;justify-content:center;width:26px;height:26px;
-  border-radius:50%;background:var(--x-warning);color:#fff;font-size:14px;flex-shrink:0}
+  border-radius:50%;background:var(--x-warning);color:#fff;font-size:var(--t-body);flex-shrink:0}
 .avisopendente .tiny.muted{color:color-mix(in oklab, var(--x-warning) 70%, var(--foreground))}
 
 /* Marcador de sim ou não, no formato de cartão. Área de clique inteira,
@@ -1014,7 +1028,7 @@ body:has(.convitebarra) main{padding-bottom:96px}
 
 /* Separador "ou", com um fio de cada lado. */
 .ou{display:flex;align-items:center;gap:11px;margin:15px 0;
-  color:var(--muted-foreground);font-size:12px}
+  color:var(--muted-foreground);font-size:var(--t-micro)}
 .ou::before,.ou::after{content:"";flex:1;height:1px;background:var(--border)}
 
 /* Rodapé do cadastro. As regras não existiam — a classe era usada e o
@@ -1027,7 +1041,7 @@ body:has(.convitebarra) main{padding-bottom:96px}
 .rodapepassos{display:flex;align-items:center;gap:10px;margin-top:var(--e4);flex-wrap:wrap}
 .rodapepassos .lado{display:flex;align-items:center;gap:8px;flex:1 1 0;min-width:0}
 .rodapepassos .lado:last-child{justify-content:flex-end}
-.rodapepassos .meio{flex:0 1 auto;text-align:center;font-size:12.5px;
+.rodapepassos .meio{flex:0 1 auto;text-align:center;font-size:var(--t-meta);
   color:var(--muted-foreground);white-space:nowrap}
 .rodapepassos .meio a{color:var(--accent);cursor:pointer;font-weight:600}
 .rodapepassos .btn{white-space:nowrap}
@@ -1043,10 +1057,10 @@ body:has(.convitebarra) main{padding-bottom:96px}
   background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
   background-size:34px 34px}
 .pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;text-align:center}
-.pin b{display:block;width:19px;height:19px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:10px;line-height:19px;margin:0 auto;border:2px solid var(--background)}
+.pin b{display:block;width:19px;height:19px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:var(--t-nano);line-height:19px;margin:0 auto;border:2px solid var(--background)}
 .pin.on b{background:var(--accent);transform:scale(1.25)}
-.pin span{font-size:9.5px;background:var(--background);border:1px solid var(--border);border-radius:var(--r-sm);padding:0 4px;white-space:nowrap}
-.bub{max-width:78%;padding:8px 11px;border-radius:var(--r-sm);font-size:13px;margin-bottom:7px}
+.pin span{font-size:var(--t-nano);background:var(--background);border:1px solid var(--border);border-radius:var(--r-sm);padding:0 4px;white-space:nowrap}
+.bub{max-width:78%;padding:8px 11px;border-radius:var(--r-sm);font-size:var(--t-meta);margin-bottom:7px}
 .bub.them{background:var(--muted);border-bottom-left-radius:4px}
 .bub.me{background:var(--primary);color:var(--primary-foreground);margin-left:auto;border-bottom-right-radius:4px}
 /* Vantagens: margens da página vêm do .wrap, iguais às demais telas.
@@ -1145,9 +1159,9 @@ body:has(.convitebarra) main{padding-bottom:96px}
 .vantagem .small.muted{flex:1}
 .plan{border:1px solid var(--border);border-radius:var(--radius);padding:18px;background:var(--card);position:relative}
 .plan.hl{border:2px solid var(--primary)}
-.plan .rib{position:absolute;top:-10px;left:18px;background:var(--primary);color:var(--primary-foreground);border-radius:var(--r-pill);padding:2px 10px;font-size:10.5px;font-weight:700}
+.plan .rib{position:absolute;top:-10px;left:18px;background:var(--primary);color:var(--primary-foreground);border-radius:var(--r-pill);padding:2px 10px;font-size:var(--t-micro);font-weight:700}
 .thumbsq{width:56px;height:56px;border-radius:var(--r-sm);background-size:cover;background-position:center;position:relative;flex-shrink:0}
-.thumbsq .x{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:10px;display:flex;align-items:center;justify-content:center}
+.thumbsq .x{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:var(--t-nano);display:flex;align-items:center;justify-content:center}
 /* ═══════════════════════════════════════════════════════════════════
    RESPONSIVIDADE — desenhada para os aparelhos que de fato acessam
 
@@ -1181,7 +1195,7 @@ body:has(.convitebarra) main{padding-bottom:96px}
 /* ── iPad retrato (744–1023): mantém busca e atalhos, encurta rótulos
       Nada é escondido aqui — é a tela de trabalho do tatuador. ───── */
 @media(max-width:1100px) and (min-width:700px){
-  .aba{padding:10px 12px;font-size:13px}
+  .aba{padding:10px 12px;font-size:var(--t-meta)}
   .search{max-width:280px}
 
 }
@@ -1192,9 +1206,9 @@ body:has(.convitebarra) main{padding-bottom:96px}
      ainda deixar ver o começo do segundo. Cada pixel aqui é pixel de foto. */
   main{padding:14px 0 60px}
   h1.page{font-size:19px}
-  p.sub{font-size:12.5px;margin-top:var(--e1)}
+  p.sub{font-size:var(--t-meta);margin-top:var(--e1)}
   .feedposts{margin-top:var(--e4)}
-  .resumobusca{margin-top:var(--e2);font-size:11px}
+  .resumobusca{margin-top:var(--e2);font-size:var(--t-micro)}
   .postinfo{padding:9px 12px 10px}
   /* No telefone o subtítulo da home cede lugar à foto: o título já diz. */
   .subhome{display:none}
@@ -1210,7 +1224,7 @@ body:has(.convitebarra) main{padding-bottom:96px}
   .abas{margin-left:-18px;padding-left:18px}
   .aba span{display:none}
   .aba{padding:11px 14px}
-  .abas-acoes .btn.sm{padding:7px 11px;font-size:12.5px;gap:5px}
+  .abas-acoes .btn.sm{padding:7px 11px;font-size:var(--t-meta);gap:5px}
   .abas-acoes{gap:6px}
 
   .btnbarra .rot{display:none}
@@ -1224,12 +1238,12 @@ body:has(.convitebarra) main{padding-bottom:96px}
 
 /* ── iPhone 16 e menores (até 440px) ─────────────────────────────── */
 @media(max-width:460px){
-  .seg{padding:7px 8px;font-size:12px}
+  .seg{padding:7px 8px;font-size:var(--t-micro)}
   .wrap{padding:0 14px}
   .abas,.subnav{margin:0 -14px;padding:0 14px}
   .abas{margin-right:0;padding-right:0}
   .aba{padding:11px 12px}
-  .abas-acoes .btn.sm{padding:7px 9px;font-size:12px}
+  .abas-acoes .btn.sm{padding:7px 9px;font-size:var(--t-micro)}
   .linhaabas{gap:6px}
   .top-in{gap:8px;height:56px}
   .pad{padding:13px 14px}
@@ -1237,7 +1251,7 @@ body:has(.convitebarra) main{padding-bottom:96px}
   h1.page{font-size:20px}
   .grid{gap:11px}
   /* Botões de ação lado a lado não cabem em 393px sem apertar */
-  .postinfo .row .btn.sm{padding:7px 10px;font-size:12px}
+  .postinfo .row .btn.sm{padding:7px 10px;font-size:var(--t-micro)}
 }
 
 /* ── Toque: alvo mínimo confortável ──────────────────────────────
@@ -1246,7 +1260,7 @@ body:has(.convitebarra) main{padding-bottom:96px}
 @media(pointer:coarse){
   .iconbtn{width:42px;height:42px}
   /* Botão maior no toque: o contador acompanha para não flutuar solto */
-  .count{top:5px;right:4px;min-width:18px;height:18px;font-size:10px}
+  .count{top:5px;right:4px;min-width:18px;height:18px;font-size:var(--t-nano)}
   .btnseguir{height:38px;padding:0 12px}
   .btnicone{width:40px;height:40px}
   .coracao{width:44px;height:44px;font-size:19px}
@@ -2530,7 +2544,7 @@ function vHome(){
  h+='</div><div class="abas-acoes">';
  if(S.tab==="discover")h+='<button class="btn sm" onclick="'+(isLog()?"go('studio-profile')":"go('plataforma')")+'">🖌 Publicar</button>';
  if(S.tab==="shop")h+='<button class="btn sm" onclick="go(\'studio\')">🏪 Vender</button>';
- if(S.tab==="events")h+='<button class="btn sm">📣 Divulgar</button>';
+ if(S.tab==="events")h+='<button onclick="aindaMaquete(\'Divulgar\')" class="btn sm">📣 Divulgar</button>';
  h+='<button class="btn sm destaque" onclick="S.hub=\'menu\';openDrawer(\'hub\')">✨ Orçamentos</button>';
  h+='</div></div>';
  h+=S.tab==="discover"?secFeed():S.tab==="shop"?secShop():secEvents();
@@ -3272,7 +3286,7 @@ function listaEventos(){
  var ate=Math.min(l.length,S.feedLote*6);
  h+='<div class="lista">';
  l.slice(0,ate).forEach(function(e,k){
-  h+='<button class="item '+(S.evSel===e.id?"on":"")+'" onclick="S.evSel=\''+e.id+'\';render()">';
+  h+='<button class="lrow clicavel '+(S.evSel===e.id?"on":"")+'" onclick="S.evSel=\''+e.id+'\';render()">';
   h+='<div class="datebox"><span class="m">'+e.d.split(" ").pop()+'</span><span class="d">'+e.d.split(/[–\s]/)[0]+'</span></div>';
   h+='<div class="itemtxt"><div class="b small">'+e.n+'</div>';
   h+='<div class="tiny muted">'+e.t+' · '+e.city+'</div>';
@@ -3315,7 +3329,7 @@ function listaCursos(){
  var ate=Math.min(c.length,S.feedLote*6);
  h+='<div class="lista">';
  c.slice(0,ate).forEach(function(x){
-  h+='<button class="item compacto">';
+  h+='<button class="lrow clicavel compacto">';
   h+='<div class="itemfoto">'+x.e+'</div>';
   h+='<div class="itemtxt"><div class="b small">'+x.n+'</div>';
   h+='<div class="tiny muted">'+x.who+' · '+x.dur+'</div>';
@@ -3490,7 +3504,7 @@ function vArtist(){
  if(aba==="cursos"){
   h+='<div class="lista" style="margin-top:var(--e4)">';
   cursosDele.forEach(function(x){
-   h+='<button class="item compacto"><div class="itemfoto">'+x.e+'</div>';
+   h+='<button class="lrow clicavel compacto"><div class="itemfoto">'+x.e+'</div>';
    h+='<div class="itemtxt"><div class="b small">'+x.n+'</div>';
    h+='<div class="tiny muted">'+x.dur+' · início '+x.st+'</div>';
    h+='<div class="row wrapf" style="gap:var(--e1);margin-top:var(--e1)"><span class="badge">'+x.t+'</span><span class="badge">'+x.lv+'</span></div></div>';
@@ -3502,7 +3516,7 @@ function vArtist(){
  if(aba==="eventos"){
   h+='<div class="lista" style="margin-top:var(--e4)">';
   eventosDele.forEach(function(e){
-   h+='<button class="item"><div class="datebox"><span class="m">'+e.d.split(" ").pop()+'</span><span class="d">'+e.d.split(/[–\s]/)[0]+'</span></div>';
+   h+='<button class="lrow clicavel"><div class="datebox"><span class="m">'+e.d.split(" ").pop()+'</span><span class="d">'+e.d.split(/[–\s]/)[0]+'</span></div>';
    h+='<div class="itemtxt"><div class="b small">'+e.n+'</div><div class="tiny muted">'+e.t+' · '+e.city+'</div></div>';
    h+='<div class="itemfim"><div class="b small">'+(e.cost?money(e.cost):"Grátis")+'</div><span class="tiny muted">participar ›</span></div></button>'});
   h+='</div>';
@@ -3693,7 +3707,7 @@ function vLanding(){
     precisa entender o que é o lugar antes de escolher onde se encaixa. */
  h+='<div class="blococentro" style="margin-top:var(--e5)">';
  h+='<h1 style="font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.2">Onde a tatuagem acontece</h1>';
- h+='<p class="sub" style="font-size:14.5px">Pessoas, artistas, estúdios e arte no mesmo lugar. Descobrir, orçar, marcar, comprar e voltar — sem sair daqui.</p></div>';
+ h+='<p class="sub" style="font-size:var(--t-body)">Pessoas, artistas, estúdios e arte no mesmo lugar. Descobrir, orçar, marcar, comprar e voltar — sem sair daqui.</p></div>';
  h+='<div class="gradeconteudo" style="margin-top:var(--e4)">';
  ECOSSISTEMA.forEach(function(x){
   h+='<div class="card pad vantagem"><div style="font-size:20px;color:var(--accent)">'+x[0]+'</div>';
@@ -3702,7 +3716,7 @@ function vLanding(){
  });
  h+='</div>';
 
- h+='<div class="blococentro secao" style="margin-top:var(--e6)"><span class="b" style="font-size:15px">E para você, o que isso significa?</span></div>';
+ h+='<div class="blococentro secao" style="margin-top:var(--e6)"><span class="b" style="font-size:var(--t-card)">E para você, o que isso significa?</span></div>';
  h+='<div class="segmento centrado">';
  Object.keys(PERFIS).forEach(function(x){
   h+='<button class="seg '+(k===x?"on":"")+'" onclick="S.perfilLanding=\''+x+'\';render()">'+PERFIS[x].rotulo+'</button>'});
@@ -3710,7 +3724,7 @@ function vLanding(){
 
  h+='<div class="blococentro" style="margin-top:var(--e5)">';
  h+='<h2 style="font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.2">'+p.titulo+'</h2>';
- h+='<p class="sub" style="font-size:14.5px">'+p.linha+'</p></div>';
+ h+='<p class="sub" style="font-size:var(--t-body)">'+p.linha+'</p></div>';
 
  if(p.estado==="hipotese"){
   h+='<div class="banner blococentro" style="background:var(--x-warning-bg);border-color:var(--x-warning);text-align:left">';
@@ -3725,10 +3739,10 @@ function vLanding(){
  });
  h+='</div>';
 
- h+='<div class="blococentro secao"><span class="b" style="font-size:15px">Como funciona</span></div>';
+ h+='<div class="blococentro secao"><span class="b" style="font-size:var(--t-card)">Como funciona</span></div>';
  h+='<div class="gradeconteudo">';
  p.passos.forEach(function(x,i){
-  h+='<div class="card pad vantagem"><div class="av" style="background:var(--primary);color:var(--primary-foreground);width:26px;height:26px;font-size:11px">'+(i+1)+'</div>';
+  h+='<div class="card pad vantagem"><div class="av" style="background:var(--primary);color:var(--primary-foreground);width:26px;height:26px;font-size:var(--t-micro)">'+(i+1)+'</div>';
   h+='<div class="b small" style="margin-top:var(--e2)">'+x[0]+'</div>';
   h+='<div class="small muted" style="margin-top:var(--e1)">'+x[1]+'</div></div>';
  });
@@ -4223,6 +4237,20 @@ function dicaUsuario(){
 function contaPendente(){ return S.emailConfirmado===false }
 function emTeste(){ return typeof T!=="undefined" && T.ligado===true }
 
+/* Botão que existe e não faz nada é indistinguível de defeito — foi
+   o "Detalhes" da agenda, e no teste com gente de verdade a pessoa
+   clica três vezes e conclui que o produto quebrou. Ação que ainda é
+   maquete passa por aqui e diz isso na cara. */
+function aindaMaquete(oque){
+ S.maqueteMsg=oque;
+ openDrawer("maquete");
+}
+function corpoDaMaquete(){
+ var h='<div class="banner"><div><div class="b small">'+escapar(S.maqueteMsg||"Esta ação")+' ainda é maquete</div>';
+ h+='<div class="tiny muted" style="margin-top:var(--e1)">O desenho está pronto; o que falta é o backend. É a parte do protótipo que existe para ser vista, não usada.</div></div></div>';
+ h+='<button class="btn blk" style="margin-top:var(--e3)" onclick="closeDrawer()">Entendi</button>';
+ return h;
+}
 function explicarTrava(oque){
  S.travaMsg=oque;
  openDrawer("trava");
@@ -4795,12 +4823,12 @@ function vMe(sub){
   /* As sessões vêm primeiro: são o que a pessoa tem, e o que ela veio
      ver. As conquistas são leitura DAQUILO — vir antes as faria
      parecer o assunto, e o corpo dela, a nota de rodapé. */
-  h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:15px">Sessões</span>';
+  h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:var(--t-card)">Sessões</span>';
   h+='<button class="btn sm sp" onclick="go(\'checkin\')">Fazer check-in</button></div>';
   h+='<div class="lista">';
   l.forEach(function(t){
    var pub=passPublico(t);
-   h+='<div class="item" style="cursor:default">';
+   h+='<div class="lrow clicavel" style="cursor:default">';
    h+='<div class="thumbsq" style="background-image:'+tex(t.seed)+'"></div>';
    h+='<div class="itemtxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+t.parte+'</span>';
    h+=t.verificado?'<span class="badge ok" title="Confirmado por check-in na hora da sessão">✓ verificado</span>'
@@ -4815,7 +4843,7 @@ function vMe(sub){
   h+='<div class="tiny muted" style="margin-top:var(--e2)">Uma sessão verificada nasce do check-in: você e o tatuador confirmaram um ao outro, na hora, no mesmo lugar. É o que faz o registro valer alguma coisa para os dois.</div>';
 
   var mk=marcosDo(l);
-  h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:15px">Conquistas</span>';
+  h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:var(--t-card)">Conquistas</span>';
   h+='<span class="sp tiny muted">o que já aconteceu</span></div>';
   /* A frase é a guarda inteira desta seção. "Conquistas" é uma palavra
      que puxa para placar — e aqui elas são registro do que aconteceu,
@@ -4848,7 +4876,7 @@ function vMe(sub){
   h+='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b">Sua trilha</span>'+tg("novo")+'</div>';
   h+='<div class="lista" style="margin-top:var(--e2)">';
   FORMACAO.forEach(function(f){
-   h+='<div class="item" style="cursor:default"><div class="itemfoto">'+(f.estado==="concluido"?"✅":"🕘")+'</div>';
+   h+='<div class="lrow clicavel" style="cursor:default"><div class="itemfoto">'+(f.estado==="concluido"?"✅":"🕘")+'</div>';
    h+='<div class="itemtxt"><div class="b small">'+f.curso+'</div>';
    h+='<div class="tiny muted">'+f.quem+' · '+f.horas+'h · '+f.nivel+'</div></div>';
    h+='<div class="itemfim"><span class="badge '+(f.estado==="concluido"?"ok":"warn")+'">'+(f.estado==="concluido"?"concluído":"em curso")+'</span>';
@@ -5002,7 +5030,7 @@ function vCheckin(){
   }
   h+='</div>';
 
-  h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:15px">Enquanto você tatua</span></div>';
+  h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:var(--t-card)">Enquanto você tatua</span></div>';
   h+='<div class="tiny muted" style="margin-top:var(--e1)">Nada para comprar aqui. Você está com uma agulha na pele — não é hora de te vender coisa.</div>';
   h+='<div class="lista" style="margin-top:var(--e3)">';
   [["🖼","A galeria de quem está te tatuando","print, quadro e original à venda","go('artist','a0');S.abaPerfil='galeria'"],
@@ -5011,7 +5039,7 @@ function vCheckin(){
    ["📋","Cursos, se você quiser aprender","de quem tatua de verdade","go('plataforma');S.tab='events';S.evAba='cursos'"],
    ["🌐","Seu passaporte","o que você já fez, e onde","go('me-passaporte')"]
   ].forEach(function(x){
-   h+='<button class="item" onclick="'+x[3]+'"><div class="itemfoto">'+x[0]+'</div>';
+   h+='<button class="lrow clicavel" onclick="'+x[3]+'"><div class="itemfoto">'+x[0]+'</div>';
    h+='<div class="itemtxt"><div class="b small">'+x[1]+'</div><div class="tiny muted">'+x[2]+'</div></div>';
    h+='<div class="itemfim"><span class="tiny muted">›</span></div></button>';
   });
@@ -5164,10 +5192,10 @@ function corpoOnboarding(st){
    h+='<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:var(--e3);gap:var(--e2)">';
    (S.onbFotos||[]).forEach(function(f){
     h+='<div style="position:relative"><img src="'+f.image_url+'" style="aspect-ratio:1;width:100%;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--border)" />';
-    h+='<button style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:11px;display:flex;align-items:center;justify-content:center;border:none" onclick="removerFoto(\''+f.id+'\',\''+f.image_url+'\')">✕</button></div>';
+    h+='<button style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--primary);color:var(--primary-foreground);font-size:var(--t-micro);display:flex;align-items:center;justify-content:center;border:none" onclick="removerFoto(\''+f.id+'\',\''+f.image_url+'\')">✕</button></div>';
    });
    if(nf<LIMITE_UPLOAD)
-    h+='<button style="aspect-ratio:1;border:1.5px dashed var(--border);border-radius:var(--r-sm);color:var(--muted-foreground);font-size:12px" onclick="document.getElementById(\'arqPort\').click()">＋<br/>Escolher</button>';
+    h+='<button style="aspect-ratio:1;border:1.5px dashed var(--border);border-radius:var(--r-sm);color:var(--muted-foreground);font-size:var(--t-micro)" onclick="document.getElementById(\'arqPort\').click()">＋<br/>Escolher</button>';
    h+='</div>';
    h+='<div class="tiny muted" style="margin-top:var(--e2)">'+nf+' de '+LIMITE_UPLOAD+' imagem'+(LIMITE_UPLOAD>1?"ns":"")+' · máximo 5 MB</div>';
    if(nf>=LIMITE_UPLOAD)
@@ -5175,7 +5203,7 @@ function corpoOnboarding(st){
   }else{
    h+='<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:var(--e3);gap:var(--e2)">';
    for(var k=0;k<S.onbPort;k++)h+='<div class="tat" style="aspect-ratio:1;border-radius:var(--r-sm);background-image:'+tex(k*5+3)+'"></div>';
-   h+='<button style="aspect-ratio:1;border:1.5px dashed var(--border);border-radius:var(--r-sm);color:var(--muted-foreground);font-size:12px" onclick="S.onbPort=Math.min(9,S.onbPort+1);render()">＋<br/>Adicionar</button>';
+   h+='<button style="aspect-ratio:1;border:1.5px dashed var(--border);border-radius:var(--r-sm);color:var(--muted-foreground);font-size:var(--t-micro)" onclick="S.onbPort=Math.min(9,S.onbPort+1);render()">＋<br/>Adicionar</button>';
    h+='</div><div class="tiny muted" style="margin-top:var(--e2)">'+S.onbPort+' imagem(ns) adicionadas</div>';
   }
   h+='</div>';
@@ -5385,7 +5413,7 @@ function vEstudio(){
   h+='<div class="lista" style="margin-top:var(--e2)">';
   e.residentes.forEach(function(n,i){
    var art=ARTISTS.filter(function(x){return x.name===n})[0]||ARTISTS[i%ARTISTS.length];
-   h+='<button class="item" onclick="go(\'artist\',\''+art.id+'\')"><div class="av">'+ini(n)+'</div>';
+   h+='<button class="lrow clicavel" onclick="go(\'artist\',\''+art.id+'\')"><div class="av">'+ini(n)+'</div>';
    h+='<div class="itemtxt"><div class="b small">'+n+'</div>';
    h+='<div class="selos" style="margin-top:var(--e1)">'+selosNoFeed(art).map(function(x){return selo(x,true)}).join("")+'</div></div>';
    h+='<div class="itemfim"><span class="tiny muted">ver perfil ›</span></div></button>';
@@ -5432,7 +5460,7 @@ function vReivindicar(){
   [{id:"x1",nome:"Black Sheep Tattoo",cidade:"São Paulo",uf:"SP",sessoes:22,reivindicado:false},
    {id:"x2",nome:"Ateliê Nove",cidade:"Curitiba",uf:"PR",sessoes:9,reivindicado:false}]
  ).forEach(function(e){
-  h+='<button class="item" onclick="S.estudioSel=\''+e.id+'\';alert(\'reivindicarEstudio(studio_id) — pede CNPJ, endereço e licença\')">';
+  h+='<button class="lrow clicavel" onclick="S.estudioSel=\''+e.id+'\';alert(\'reivindicarEstudio(studio_id) — pede CNPJ, endereço e licença\')">';
   h+='<div class="itemfoto">🏪</div>';
   h+='<div class="itemtxt"><div class="b small">'+e.nome+'</div>';
   h+='<div class="tiny muted">'+e.cidade+(e.uf?'/'+e.uf:'')+' · '+e.sessoes+' sessões com check-in</div></div>';
@@ -5476,7 +5504,7 @@ function vForn(sub){
   var posSessao=FORN_PEDIDOS.filter(function(x){return x.origem==="pós-sessão"}).length;
   var alcance=EMBAIXADORES.filter(function(x){return x.estado==="ativo"}).reduce(function(t,x){return t+x.alcance},0);
 
-  h+='<div class="row" style="margin-top:var(--e4)"><span class="b" style="font-size:15px">Precisa de você</span></div>';
+  h+='<div class="row" style="margin-top:var(--e4)"><span class="b" style="font-size:var(--t-card)">Precisa de você</span></div>';
   h+='<div class="grandes" style="margin-top:var(--e2)">';
   [["📦","Pedidos a enviar",aEnviar,"clientes esperando","forn-loja","fl","pedidos",aEnviar>0],
    ["👥","Convites sem resposta",convidados,"tatuadores convidados","forn-embaixadores","fe","convites",convidados>0],
@@ -5484,7 +5512,7 @@ function vForn(sub){
   ].forEach(function(x){h+=cartaoGrande(x)});
   h+='</div>';
 
-  h+='<div class="row" style="margin-top:var(--e4)"><span class="b" style="font-size:15px">Confiança que você tem</span>';
+  h+='<div class="row" style="margin-top:var(--e4)"><span class="b" style="font-size:var(--t-card)">Confiança que você tem</span>';
   h+='<span class="sp tiny muted">o que sustenta a marca</span></div>';
   h+='<div class="grandes" style="margin-top:var(--e2)">';
   [["★","Recomendações",RECOMENDACOES.length,"de tatuadores atuantes","forn-recomendacoes","fr","recebidas",false],
@@ -5493,7 +5521,7 @@ function vForn(sub){
   ].forEach(function(x){h+=cartaoGrande(x)});
   h+='</div>';
 
-  h+='<div class="row" style="margin-top:var(--e4)"><span class="b" style="font-size:15px">Como vai o mês</span>';
+  h+='<div class="row" style="margin-top:var(--e4)"><span class="b" style="font-size:var(--t-card)">Como vai o mês</span>';
   h+='<span class="sp tiny muted">julho</span></div>';
   h+='<div class="grandes" style="margin-top:var(--e2)">';
   [["👛","Vendido",brl(FORN_PEDIDOS.reduce(function(t,x){return t+x.valor},0)),FORN_PEDIDOS.length+" pedidos","forn-loja","fl","pedidos",false],
@@ -5518,7 +5546,7 @@ function vForn(sub){
    [["Bruna Okabe","@brunaokabe","Curitiba","comprou 4 vezes"],
     ["Igor Falcão","@igorfalcao","Porto Alegre","comprou 2 vezes"],
     ["Ana Petrova","@anapetrova","São Paulo","comprou 9 vezes"]].forEach(function(x){
-    h+='<div class="item" style="cursor:default"><div class="av">'+ini(x[0])+'</div>';
+    h+='<div class="lrow clicavel" style="cursor:default"><div class="av">'+ini(x[0])+'</div>';
     h+='<div class="itemtxt"><div class="b small">'+x[0]+'</div><div class="tiny muted">'+x[1]+' · '+x[2]+'</div>';
     h+='<div class="tiny muted">'+x[3]+'</div></div>';
     h+='<div class="itemfim"><button class="btn sm" onclick="alert(\'pedirRecomendacao(brand_id, artist_id)\')">Pedir</button></div></div>';
@@ -5552,7 +5580,7 @@ function vForn(sub){
    h+='<div class="tiny muted" style="margin-top:var(--e1)">Cada embaixador tem um link próprio. A venda atribuída a ele é o que justifica a comissão — e o que impede a relação de virar permuta sem retorno.</div>';
    h+='<div class="lista" style="margin-top:var(--e3)">';
    ativ.forEach(function(e){
-    h+='<div class="item" style="cursor:default"><div class="av">'+ini(e.nome)+'</div>';
+    h+='<div class="lrow clicavel" style="cursor:default"><div class="av">'+ini(e.nome)+'</div>';
     h+='<div class="itemtxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+e.nome+'</span><span class="badge ok">ativo</span></div>';
     h+='<div class="tiny muted">'+e.h+' · '+e.cidade+' · '+(SL[e.estilo]||e.estilo)+'</div>';
     h+='<div class="tiny muted">desde '+e.desde+' · '+e.alcance.toLocaleString("pt-BR")+' seguidores aqui</div></div>';
@@ -5566,7 +5594,7 @@ function vForn(sub){
   h+='<div class="tiny muted" style="margin-top:var(--e1)">O convite diz o que a marca oferece e o que espera. Recusa também fica registrada: insistir com quem já disse não é a forma mais rápida de queimar a marca dentro da plataforma.</div>';
   h+='<div class="lista" style="margin-top:var(--e3)">';
   EMBAIXADORES.filter(function(x){return x.estado!=="ativo"}).forEach(function(e){
-   h+='<div class="item" style="cursor:default"><div class="av">'+ini(e.nome)+'</div>';
+   h+='<div class="lrow clicavel" style="cursor:default"><div class="av">'+ini(e.nome)+'</div>';
    h+='<div class="itemtxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+e.nome+'</span>';
    h+='<span class="badge '+(e.estado==="recusou"?"bad":"warn")+'">'+e.estado+'</span></div>';
    h+='<div class="tiny muted">'+e.h+' · '+e.cidade+' · '+(SL[e.estilo]||e.estilo)+'</div>';
@@ -5605,7 +5633,7 @@ function vForn(sub){
   h+='<div class="lista" style="margin-top:var(--e3)">';
   FORN_PRODUTOS.forEach(function(x){
    var recs=RECOMENDACOES.filter(function(r){return r.produto===x.n});
-   h+='<div class="item" style="cursor:default"><div class="itemfoto">'+x.e+'</div>';
+   h+='<div class="lrow clicavel" style="cursor:default"><div class="itemfoto">'+x.e+'</div>';
    h+='<div class="itemtxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+x.n+'</span>';
    h+=(recs.length?'<span class="badge acc" title="Recomendado por tatuador">★ '+recs.length+'</span>':'')+'</div>';
    h+='<div class="tiny muted">'+x.cat+' · '+x.vendas+' vendidos</div>';
@@ -5695,7 +5723,7 @@ function vStudio(sub){
      que informa, porque quem abre a gestão de manhã quer saber o que
      está parado esperando. */
   var pendentes=novosQ+semResp;
-  h+='<div class="row" style="margin-top:var(--e4)"><span class="b" style="font-size:15px">Precisa de você</span>';
+  h+='<div class="row" style="margin-top:var(--e4)"><span class="b" style="font-size:var(--t-card)">Precisa de você</span>';
   h+='<span class="sp tiny muted">'+(pendentes?pendentes+" item(ns)":"nada parado")+'</span></div>';
   h+='<div class="grandes" style="margin-top:var(--e2)">';
   [["📥","Pedidos novos",novosQ,"sem resposta sua","studio-quotes","orc","recebidos",novosQ>0],
@@ -5704,7 +5732,7 @@ function vStudio(sub){
   ].forEach(function(x){h+=cartaoGrande(x)});
   h+='</div>';
 
-  h+='<div class="row" style="margin-top:var(--e4)"><span class="b" style="font-size:15px">Como vai o mês</span>';
+  h+='<div class="row" style="margin-top:var(--e4)"><span class="b" style="font-size:var(--t-card)">Como vai o mês</span>';
   h+='<span class="sp tiny muted">julho</span></div>';
   h+='<div class="grandes" style="margin-top:var(--e2)">';
   /* ── O DINHEIRO VOLTOU ────────────────────────────────────────
@@ -5740,7 +5768,7 @@ function vStudio(sub){
    h+='<div class="b small">Falta reivindicar o seu estúdio</div>';
    h+='<div class="tiny muted">Você marcou que administra um estúdio. Se ele já aparece nas sessões, o histórico vem junto — e a nota de higiene só fica visível depois disso.</div></button>';
   }
-  h+='<div class="row" style="margin-top:var(--e4)"><span class="b" style="font-size:15px">O que você construiu</span>';
+  h+='<div class="row" style="margin-top:var(--e4)"><span class="b" style="font-size:var(--t-card)">O que você construiu</span>';
   h+='<span class="sp tiny muted">desde set/2024</span></div>';
   h+='<div class="grandes" style="margin-top:var(--e2)">';
   /* Cursos e eventos era a única aba sem número no painel — e aba sem
@@ -5840,7 +5868,7 @@ function vStudio(sub){
   if(agv==="pessoas")agv="";
 
   if(agv==="sessoes"){
-   h+='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b">Quem vem por aí</span>'+tg("mock")+'<button class="btn sm sp">+ Bloquear horário</button></div>';
+   h+='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b">Quem vem por aí</span>'+tg("mock")+'<button onclick="aindaMaquete(\'Bloquear horário\')" class="btn sm sp">+ Bloquear horário</button></div>';
    /* Esta frase explicava o check-in dentro do cartão que saiu. Ela vale
       mais que o cartão: é o porquê do botão, e agora fica ao lado dele. */
    h+='<div class="tiny muted" style="margin-top:var(--e1)">Abra quando a pessoa sentar. Ela escaneia, e a sessão fica registrada para os dois — o passaporte dela e a sua reputação.</div>';
@@ -6036,7 +6064,7 @@ function vStudio(sub){
   }
 
   h+='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b">Seus eventos e cursos</span>'+tg("mock")+
-     '<button class="btn sm sp">＋ Novo</button></div><div style="margin-top:var(--e2)">';
+     '<button onclick="aindaMaquete(\'Criar evento ou curso\')" class="btn sm sp">＋ Novo</button></div><div style="margin-top:var(--e2)">';
   meus.forEach(function(e){
    h+='<div class="lrow"><div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:19px">'+(e.e||"🎟")+'</div>';
    h+='<div style="min-width:0"><div class="b small">'+e.n+'</div><div class="tiny muted">'+(e.t||"")+' · '+(e.d||e.st)+'</div></div>';
@@ -6066,8 +6094,8 @@ function vStudio(sub){
        (x.tipo==="entrada"?"+":"−")+' '+brl(x.cents)+'</span></td></tr>';
    });
    h+='</table>';
-   h+='<div class="row" style="gap:var(--e2);margin-top:var(--e3)"><button class="btn sm">＋ Lançar entrada</button><button class="btn sm">＋ Lançar saída</button>';
-   h+='<button class="btn sm sp">Exportar</button></div>';
+   h+='<div class="row" style="gap:var(--e2);margin-top:var(--e3)"><button onclick="aindaMaquete(\'Lançar entrada\')" class="btn sm">＋ Lançar entrada</button><button onclick="aindaMaquete(\'Lançar saída\')" class="btn sm">＋ Lançar saída</button>';
+   h+='<button onclick="aindaMaquete(\'Exportar o extrato\')" class="btn sm sp">Exportar</button></div>';
    h+='<div class="tiny muted" style="margin-top:var(--e2)">Sessão fechada pela plataforma entra sozinha. O resto você lança — e o que você lança é seu, ninguém mais vê.</div>';
    h+='</div>';
    return h+'</div></main>';
@@ -6166,7 +6194,7 @@ function vStudio(sub){
       onde você se tatuou". */
    var fora=HIST_ESTUDIOS.filter(function(e){return !e.atual}).reduce(function(a,e){return a+e.sessoes},0);
    h+='<div class="tiny muted" style="margin-top:var(--e3)"><b>Sessões fora</b> da sua casa: '+fora+', em guest spot e convenção.</div>';
-   h+='<button class="btn sm blk" style="margin-top:var(--e3)">＋ Registrar passagem por um estúdio</button></div>';
+   h+='<button onclick="aindaMaquete(\'Registrar passagem\')" class="btn sm blk" style="margin-top:var(--e3)">＋ Registrar passagem por um estúdio</button></div>';
   }
  }
 
@@ -6291,7 +6319,7 @@ function recebidos(){
   h+='<button class="item'+(S.sqSel===q.id?" on":"")+'" onclick="abrirPedido(\''+q.id+'\')">';
   /* O número é o mesmo do pino. Iniciais aqui não ligariam uma coisa
      na outra, e ligar é a razão de o mapa existir. */
-  h+='<div class="av" style="font-size:12.5px">'+(k+1)+'</div>';
+  h+='<div class="av" style="font-size:var(--t-meta)">'+(k+1)+'</div>';
   h+='<div class="itemtxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+q.c+'</span>';
   h+='<span class="badge '+corDoStatus(q.status)+'">'+q.status+'</span></div>';
   h+='<div class="tiny muted">'+q.area+' · '+estilosDe(q)+'</div>';
@@ -6316,7 +6344,7 @@ function telaPedido(q){
  h+='<div class="row wrapf" style="gap:var(--e1);margin-top:var(--e2)"><span class="badge">'+q.area+'</span>';
  h+=q.st.map(function(s){return '<span class="badge">'+SL[s]+'</span>'}).join("");
  h+='<span class="badge">'+CPLX[q.cx]+'</span></div>';
- h+='<div class="row" style="margin-top:var(--e2)"><span class="b" style="font-size:15px">'+brl(q.min)+' – '+brl(q.max)+'</span>';
+ h+='<div class="row" style="margin-top:var(--e2)"><span class="b" style="font-size:var(--t-card)">'+brl(q.min)+' – '+brl(q.max)+'</span>';
  h+='<span class="tiny muted sp">'+q.hrs+' estimadas</span></div>';
  h+='<div class="tiny muted" style="margin-top:var(--e1)">faixa que o cliente informou — é expectativa, não teto</div>';
  h+='</div>';
@@ -6526,7 +6554,7 @@ function studioProfile(){
   h+='<div class="card pad"><div class="row"><span class="b">Informações públicas</span>'+tg("real")+'</div>';
   h+='<div class="tiny muted" style="margin-top:var(--e3)">Capa</div>';
   h+='<div class="tat" style="height:105px;border-radius:var(--r-sm);background-image:'+tex(21)+';margin-top:var(--e1);position:relative"><button class="btn sm" style="position:absolute;bottom:7px;right:7px">Trocar capa</button></div>';
-  h+='<div class="row" style="margin-top:var(--e3);gap:var(--e3)"><div class="av" style="width:58px;height:58px;font-size:17px">MV</div><div><button class="btn sm">Trocar avatar</button><div class="tiny muted" style="margin-top:var(--e1)">JPG ou PNG, até 5 MB</div></div></div>';
+  h+='<div class="row" style="margin-top:var(--e3);gap:var(--e3)"><div class="av" style="width:58px;height:58px;font-size:17px">MV</div><div><button onclick="aindaMaquete(\'Trocar o avatar\')" class="btn sm">Trocar avatar</button><div class="tiny muted" style="margin-top:var(--e1)">JPG ou PNG, até 5 MB</div></div></div>';
   h+='<div class="grid" style="gap:var(--e3);margin-top:var(--e3)">';
   [["Nome de exibição","Marina Vieira"],["Nome do estúdio","Studio Marina"],["Cidade","São Paulo"],["UF","SP"],["Anos de experiência","7"]].forEach(function(f){
    h+='<div><label class="lb">'+f[0]+'</label><input class="fld" value="'+f[1]+'" /></div>'});
@@ -6551,7 +6579,7 @@ function studioProfile(){
    h+='<button class="btn primary" style="margin-top:var(--e3)" onclick="salvarPerfilReal()">Salvar no banco</button>';
    if(S.pfMsg)h+='<div class="banner" style="margin-top:var(--e3);'+(S.pfErro?'background:var(--x-danger-bg);border-color:var(--x-danger)':'')+'"><div class="small"'+(S.pfErro?' style="color:var(--x-danger)"':'')+'>'+S.pfMsg+'</div></div>';
   }else{
-   h+='<button class="btn primary" style="margin-top:var(--e4)">Salvar alterações</button>';
+   h+='<button onclick="aindaMaquete(\'Salvar o perfil\')" class="btn primary" style="margin-top:var(--e4)">Salvar alterações</button>';
   }
   h+='</div>';
 
@@ -6598,8 +6626,8 @@ function studioProfile(){
   for(var k=0;k<9;k++){
    h+='<div><div class="tat" style="aspect-ratio:1;border-radius:var(--r-sm);background-image:'+tex(k*4+2)+';position:relative">';
    h+='<span class="badge" style="position:absolute;top:5px;left:5px;background:rgba(0,0,0,.6);color:#fff">'+(k+1)+'</span></div>';
-   h+='<select class="fld" style="margin-top:var(--e1);font-size:11.5px;padding:var(--e1) 7px"><option>'+STYLES[k%15].l+'</option><option>Outro estilo…</option></select>';
-   h+='<div class="row" style="gap:var(--e1);margin-top:var(--e1)"><button class="btn sm" style="flex:1;font-size:11px" onclick="alert(\'Marcar estilo de cada imagem do portfólio\')">🏷 Marcar estilo</button><button class="btn sm" style="font-size:11px">✕</button></div></div>';
+   h+='<select class="fld" style="margin-top:var(--e1);font-size:var(--t-micro);padding:var(--e1) 7px"><option>'+STYLES[k%15].l+'</option><option>Outro estilo…</option></select>';
+   h+='<div class="row" style="gap:var(--e1);margin-top:var(--e1)"><button class="btn sm" style="flex:1;font-size:var(--t-micro)" onclick="alert(\'Marcar estilo de cada imagem do portfólio\')">🏷 Marcar estilo</button><button class="btn sm" style="font-size:var(--t-micro)">✕</button></div></div>';
   }
   h+='</div></div>';
  }
@@ -6649,7 +6677,7 @@ function studioProfile(){
 
  if(S.pfTab==="insta"){
   h+='<div class="card pad" style="margin-top:var(--e3)"><div class="row"><span class="b">Instagram</span>'+tg("real")+'</div>';
-  h+='<div class="row" style="margin-top:var(--e3)"><div class="av">📷</div><div><div class="b small">@marina.vieira</div><div class="tiny muted">Conectado via OAuth · token válido</div></div><button class="btn sm sp">Desconectar</button></div>';
+  h+='<div class="row" style="margin-top:var(--e3)"><div class="av">📷</div><div><div class="b small">@marina.vieira</div><div class="tiny muted">Conectado via OAuth · token válido</div></div><button onclick="aindaMaquete(\'Desconectar o Instagram\')" class="btn sm sp">Desconectar</button></div>';
   h+='<div class="sep"></div><div class="row"><span class="small b">Usar Instagram no card do feed</span><span class="badge ok sp">ativo</span></div>';
   h+='<div class="tiny muted" style="margin-top:var(--e1)">Quando ativo, o carrossel do seu card mostra seus posts em vez do portfólio interno.</div>';
   h+='<div class="tiny muted" style="margin-top:var(--e3)">Selecione até 6 posts para exibir</div>';
@@ -6675,6 +6703,7 @@ function renderDrawer(){
  if(S.drawer==="assist"){t="✨ Pedir orçamento"+tg("real");b=assistBody()}
  if(S.drawer==="chat"){t="💬 Mensagens"+tg("mock");b=chatBody();if(S.chatOpen)f='<div class="row"><input class="fld" placeholder="Escreva uma mensagem…" /><button class="btn primary">Enviar</button></div>'}
  if(S.drawer==="trava"){t="⚠ Confirmação pendente";b=corpoDaTrava()}
+ if(S.drawer==="maquete"){t="🔧 Ainda é maquete";b=corpoDaMaquete()}
  if(S.drawer==="agenda"){t="🗓 Agenda"+tg("mock");b=agendaBody()}
  if(S.drawer==="notif"){t="🔔 Notificações"+tg("mock");b=notifBody()}
  if(S.drawer==="cart"){t="🛒 Carrinho"+tg("mock");b=cartBody();f=cartFoot()}
@@ -6946,7 +6975,7 @@ function cartFoot(){
  var h='<div class="row small"><span class="muted">Subtotal</span><span class="sp">'+money(sub)+'</span></div>';
  if(S.ship)h+='<div class="row small"><span class="muted">Frete</span><span class="sp">'+money(S.ship.p)+'</span></div>';
  h+='<div class="row" style="margin-top:var(--e1)"><span class="b">Total</span><span class="sp b">'+money(tot)+'</span></div>';
- h+='<button class="btn primary blk" style="margin-top:var(--e2)">Finalizar compra</button>';
+ h+='<button onclick="aindaMaquete(\'Finalizar a compra\')" class="btn primary blk" style="margin-top:var(--e2)">Finalizar compra</button>';
  h+='<div class="tiny muted" style="margin-top:var(--e2)">A comissão da plataforma sai da margem de quem vende. O preço acima é o preço final.</div>';
  return h;
 }
@@ -7180,7 +7209,7 @@ function blocoDoLink(){
   return h+'</div>';
  }
  h+='<div class="small muted" style="margin-top:var(--e1)">Quem abrir este endereço passa pela tela de consentimento antes de navegar. Sem o <code>?teste=1</code> ninguém é registrado.</div>';
- h+='<div class="row" style="gap:var(--e2);margin-top:var(--e2)"><input class="fld" readonly value="'+l+'" onclick="this.select()" style="flex:1;min-width:0;font-size:12.5px" />';
+ h+='<div class="row" style="gap:var(--e2);margin-top:var(--e2)"><input class="fld" readonly value="'+l+'" onclick="this.select()" style="flex:1;min-width:0;font-size:var(--t-meta)" />';
  h+='<button class="btn sm" onclick="copiarLink()">'+(S.painel.copiado?"✓ Copiado":"Copiar")+'</button></div>';
  return h+'</div>';
 }
@@ -7225,7 +7254,7 @@ function vPainelDoTeste(){
  }
 
  // ── NEGÓCIO
- h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:16px">Negócio</span><span class="sp tiny muted">quem chegou, e até onde</span></div>';
+ h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:var(--t-card)">Negócio</span><span class="sp tiny muted">quem chegou, e até onde</span></div>';
  h+='<div class="stats" style="margin-top:var(--e3)">';
  [["👤","Clientes",d.perfis.cliente],["🎨","Tatuadores",d.perfis.tatuador],["🏪","Fornecedores",d.perfis.fornecedor],["📈","Voltaram depois",d.retomadas]]
   .forEach(function(x){h+='<div class="stat"><div class="lbl">'+x[0]+' '+x[1]+'</div><div class="val">'+x[2]+'</div></div>'});
@@ -7242,7 +7271,7 @@ function vPainelDoTeste(){
  h+='<div class="tiny muted" style="margin-top:var(--e3)">Cada degrau conta sessões distintas, não cliques. Quem passou duas vezes pela mesma tela conta uma.</div></div>';
 
  // ── PRODUTO
- h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:16px">Produto</span><span class="sp tiny muted">o que foi usado, e o que ficou de lado</span></div>';
+ h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:var(--t-card)">Produto</span><span class="sp tiny muted">o que foi usado, e o que ficou de lado</span></div>';
  h+='<div class="card pad" style="margin-top:var(--e3)">';
  h+='<table class="t"><tr><th>Tela</th><th style="text-align:right">Sessões</th><th style="text-align:right">Tempo mediano</th></tr>';
  d.telas.forEach(function(t){
@@ -7264,7 +7293,7 @@ function vPainelDoTeste(){
  }
 
  // ── NAVEGAÇÃO
- h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:16px">Navegação</span><span class="sp tiny muted">onde a jornada parou</span></div>';
+ h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:var(--t-card)">Navegação</span><span class="sp tiny muted">onde a jornada parou</span></div>';
  h+='<div class="grid cols2" style="margin-top:var(--e3);align-items:start">';
  h+='<div class="card pad"><div class="b small">Última tela antes de sair</div>';
  h+='<div class="tiny muted" style="margin-top:var(--e1)">Onde a pessoa desistiu ou terminou. Se uma tela concentra saída sem ser o fim de um fluxo, é ali que está o problema.</div><div style="margin-top:var(--e2)">';
@@ -7279,7 +7308,7 @@ function vPainelDoTeste(){
  h+='</div></div></div>';
 
  // ── USUÁRIO
- h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:16px">Usuário</span><span class="sp tiny muted">quem participou, e em que aparelho</span></div>';
+ h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:var(--t-card)">Usuário</span><span class="sp tiny muted">quem participou, e em que aparelho</span></div>';
  h+='<div class="stats" style="margin-top:var(--e3)">';
  [["📱","Em toque",d.toque],["▦","Em mouse",d.mouse],["📈","Largura mediana",d.larguraMediana+"px"],["🕘","Duração mediana",dur(d.duracaoMediana)]]
   .forEach(function(x){h+='<div class="stat"><div class="lbl">'+x[0]+' '+x[1]+'</div><div class="val">'+x[2]+'</div></div>'});
@@ -7320,7 +7349,7 @@ function vModelo(){
  h+='</div></div>';
 
  // ── proposta de valor
- h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:16px">Para quem, e por quê</span></div>';
+ h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:var(--t-card)">Para quem, e por quê</span></div>';
  h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin-top:var(--e3)">';
  [["Cliente","Não sabe quanto custa nem quem faz o estilo que quer. Pedir orçamento hoje significa procurar no Instagram e mandar mensagem para dez pessoas.","O que ganha: faixa de preço antes de conversar, e propostas de quem realmente faz aquele traço."],
   ["Tatuador","Perde tempo com pedido desalinhado e negocia preço no privado, sem parâmetro.","O que ganha: pedido pré-analisado, compatível com seu estilo e sua cidade."],
@@ -7333,7 +7362,7 @@ function vModelo(){
  h+='</div>';
 
  // ── linhas de produto
- h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:16px">Linhas de produto</span>';
+ h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:var(--t-card)">Linhas de produto</span>';
  h+='<span class="sp tiny muted">defensabilidade = quão difícil é copiar</span></div>';
  h+='<div class="card pad" style="margin-top:var(--e3)">';
  LINHAS.forEach(function(l,i){
@@ -7351,7 +7380,7 @@ function vModelo(){
  h+='</div>';
 
  // ── receitas
- h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:16px">Como o dinheiro entraria</span></div>';
+ h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:var(--t-card)">Como o dinheiro entraria</span></div>';
  h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin-top:var(--e3);align-items:start">';
  RECEITAS.forEach(function(r){
   var desc=r.st==="descartada";
@@ -7367,7 +7396,7 @@ function vModelo(){
  h+='</div>';
 
  // ── economia unitária
- h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:16px">Economia unitária</span>';
+ h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:var(--t-card)">Economia unitária</span>';
  h+='<span class="sp tiny muted">simule para ver o buraco</span></div>';
  h+='<div class="card pad" style="margin-top:var(--e3)">';
  h+='<div class="small muted">Sem análise automática, o custo por tatuador virou quase só armazenamento de imagem e banda. O que era o maior custo variável deixou de existir — e com ele, a urgência de cobrar cedo.</div>';
@@ -7384,7 +7413,7 @@ function vModelo(){
  h+='</div>';
 
  // ── perguntas
- h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:16px">Perguntas em aberto</span></div>';
+ h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:var(--t-card)">Perguntas em aberto</span></div>';
  h+='<div class="card pad" style="margin-top:var(--e3)">';
  PERGUNTAS.forEach(function(p,i){
   h+='<div style="padding:var(--e3) 0;'+(i<PERGUNTAS.length-1?'border-bottom:1px solid var(--border)':'')+'">';
@@ -7472,7 +7501,7 @@ function vConexao(){
  h+='</div>';
 
  // ── o que está de fato ligado
- h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:16px">O que está ligado ao banco</span></div>';
+ h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:var(--t-card)">O que está ligado ao banco</span></div>';
  h+='<div class="card pad" style="margin-top:var(--e3)">';
  [["Cadastro e login","real","Supabase Auth. A escolha de papel no cadastro grava em user_roles pelo gatilho."],
   ["Papéis cliente/tatuador","real","Fonte de verdade da autorização, com origem registrada."],
@@ -7493,7 +7522,7 @@ function vConexao(){
 
  // ── conta real de teste
  if(S.modo==="real"&&c&&c.ok){
-  h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:16px">Criar conta de verdade</span></div>';
+  h+='<div class="row" style="margin-top:var(--e5)"><span class="b" style="font-size:var(--t-card)">Criar conta de verdade</span></div>';
   h+='<div class="card pad" style="margin-top:var(--e3)">';
   h+='<div class="small muted">Cria um usuário real no seu Supabase. Serve para verificar que o modelo de papéis funciona ponta a ponta.</div>';
   h+='<div class="grid" style="gap:var(--e2);margin-top:var(--e3);grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">';

@@ -336,7 +336,7 @@ S.orcPasso='lista';
 var tr=ir('studio-quotes','orc','recebidos');
 chk('passo 1: mapa dos pedidos',/class="mapa"/.test(tr));
 chk('passo 1: lista embaixo do mapa',/class="lista"/.test(tr)&&/ver pedido/.test(tr));
-chk('passo 1: o número da lista é o do pino',/class="pin /.test(tr)&&/class="av" style="font-size:12\.5px">1</.test(tr));
+chk('passo 1: o número da lista é o do pino',/class="pin /.test(tr)&&/class="av" style="font-size:var\(--t-meta\)">1</.test(tr));
 chk('passo 1: distância aparece',/km/.test(tr));
 chk('passo 1: sem campo de valor',!/Enviar proposta/.test(tr)&&!/id="propValor"/.test(tr));
 chk('o selo mostra quantos são novos',/class="selo"/.test(tr));

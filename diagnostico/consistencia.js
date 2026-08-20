@@ -75,6 +75,56 @@ var degraus = (css.match(/--e\d+:\d+px/g) || []);
 chk("a escala tem exatamente seis degraus", degraus.length === 6,
     degraus.length + ": " + degraus.join(" "));
 
+/* ── 1b. TIPOGRAFIA: O TEXTO MORA NOS TOKENS ─────────────────────
+   A mesma entropia do espaçamento, encontrada pela análise da
+   construção: 7 tokens de tipo e ~124 font-size em px espalhados,
+   com 11.5, 12 e 12.5 convivendo — diferenças que ninguém decidiu.
+
+   A regra que ficou tem duas metades:
+
+   TEXTO (até 16px) mora nos tokens, sem exceção. É onde a entropia
+   dói: três tamanhos quase iguais de texto corrido são ruído.
+
+   DISPLAY (17px para cima) é um conjunto fechado, como os pontos de
+   quebra: número grande, relógio, emoji e avatar têm cada um o seu
+   tamanho escolhido, e o que este teste impede é o conjunto crescer
+   em silêncio. Valor novo entra aqui com motivo, ou não entra. */
+secao("1b. TIPOGRAFIA");
+["--t-nano:10px","--t-micro:11.5px","--t-meta:13px","--t-body:14.5px"].forEach(function(t){
+  chk("existe o token "+t.split(":")[0], html.indexOf(t)>=0);
+});
+var foraDosTokens=[];
+html.split("\n").forEach(function(l,i){
+  if(/^\s*--t-/.test(l))return;                     // definição de token
+  var m; var re=/font-size:\s*([0-9.]+)px/g;
+  while((m=re.exec(l))){
+    if(parseFloat(m[1])<17 && parseFloat(m[1])!==16)  // 16 é o piso do iOS, abaixo
+      foraDosTokens.push(m[1]+"px (linha "+(i+1)+")");
+  }
+});
+chk("nenhum texto em px fora dos tokens", foraDosTokens.length===0,
+    foraDosTokens.slice(0,6).join(", "));
+/* O 16px literal existe num lugar só e por um motivo físico: iOS dá
+   zoom automático em campo com fonte menor que isso. Token fluido não
+   serve ali — o valor precisa ser o número que o Safari compara. */
+chk("o 16px do iOS está no campo, e só nele",
+    /@media\(pointer:coarse\)\{\.fld[^}]*font-size:16px/.test(css),
+    "o campo de formulário perdeu o piso do iOS: a tela pula no primeiro toque");
+var DISPLAY=["17","18","19","20","21","22","25","26","27","31","34","36"];
+var intrusosT=[];
+html.split("\n").forEach(function(l,i){
+  if(/^\s*--t-/.test(l))return;
+  var m; var re=/font-size:\s*([0-9.]+)px/g;
+  while((m=re.exec(l))){
+    var v=parseFloat(m[1]);
+    if(v>=17 && DISPLAY.indexOf(m[1])<0)intrusosT.push(m[1]+"px (linha "+(i+1)+")");
+  }
+});
+chk("o conjunto de display não cresceu", intrusosT.length===0,
+    "tamanho novo sem decisão: "+intrusosT.slice(0,5).join(", "));
+chk("e nada abaixo de 10px", !/font-size:\s*[0-9](\.[0-9]+)?px/.test(css.replace(/--t-[^;]+;/g,"")),
+    "voltou fonte ilegível — o piso é o token nano");
+
 /* ── 2. PONTOS DE QUEBRA ─────────────────────────────────────────
    Eles foram escolhidos nos vãos entre larguras de aparelho, para que
    nenhuma quebra caia no meio de um modelo comum. Eu mesmo furei isso
@@ -148,7 +198,13 @@ chk("e um de toggle, diferente da aba",
     /\.seg\{[^}]*border-radius:var\(--r-pill\)/.test(css),
     "toggle e aba com a mesma forma: some a diferença entre trocar de vista e trocar de lugar");
 chk("um só componente de cartão de número", /\.grande\{/.test(css) && /\.stat\{/.test(css));
-chk("um só componente de linha de lista", /\.lrow\{/.test(css) && /\.item\{/.test(css));
+/* Este teste dizia "um só componente" e exigia que existissem DOIS —
+   .lrow e .item — protegendo a duplicação que fingia combater. A
+   análise da construção o pegou: .item saiu, virou .lrow.clicavel, e
+   agora o teste exige a ausência. */
+chk("um só componente de linha de lista",
+    /\.lrow\{/.test(css) && !/\.item\{/.test(css) && /\.lrow\.clicavel\{/.test(css),
+    ".item voltou a existir ao lado de .lrow");
 /* Raio inventado é o sintoma clássico de componente novo escrito à
    mão em vez de reaproveitado. */
 var raios = (css.match(/border-radius:\s*(\d+)px/g) || [])
