@@ -7852,8 +7852,15 @@ function vConexao(){
   h+='<div class="row" style="gap:var(--e2);margin-top:var(--e3)">';
   h+='<button class="btn primary" '+(S.reg.artista===null?"disabled":"")+' onclick="registrarReal()">Criar conta</button>';
   h+='<button class="btn" onclick="entrarReal()">Entrar com esta conta</button>';
+  h+='<button class="btn" onclick="entrarComGoogleReal()">Entrar com o Google</button>';
   if(c.sessao)h+='<button class="btn sp" onclick="sairReal()">Sair</button>';
   h+='</div>';
+  /* Permanecer conectado: ligado por padrão. Desligado, a sessão vai
+     para o sessionStorage e morre com a aba — computador emprestado. */
+  h+='<label class="marcador'+(window.Dados&&window.Dados.querPermanecerConectado()?" on":"")+'" style="margin-top:var(--e3)">';
+  h+='<input type="checkbox" '+(window.Dados&&window.Dados.querPermanecerConectado()?"checked":"")+' onchange="window.Dados.definirPermanecerConectado(this.checked);render()" />';
+  h+='<span><span class="b small">Permanecer conectado</span>';
+  h+='<span class="tiny muted" style="display:block;margin-top:var(--e1)">Sua sessão continua depois de fechar o navegador. Desmarque em computador emprestado — aí ela morre quando a aba fechar. Vale a partir do próximo entrar.</span></span></label>';
   if(S.regMsg)h+='<div class="banner" style="margin-top:var(--e3);'+(S.regErro?'background:var(--x-danger-bg);border-color:var(--x-danger)':'')+'"><div class="small"'+(S.regErro?' style="color:var(--x-danger)"':'')+'>'+S.regMsg+'</div></div>';
   h+='</div>';
  }
@@ -7895,6 +7902,19 @@ async function entrarReal(){
   S.session=tem.indexOf("artist")>=0?"artist":"client";
   S.regMsg="Entrou. Papéis: "+tem.join(", ")+". A sessão do protótipo passou a refletir a conta real.";
  }catch(e){S.regErro=true;S.regMsg=e.message||String(e)}
+ render();
+}
+async function entrarComGoogleReal(){
+ S.regMsg="Abrindo o Google…";S.regErro=false;render();
+ try{
+  await window.Dados.entrarComGoogle();
+  /* Daqui o navegador redireciona para o consentimento; a volta chega
+     com a sessão e o checarConexao do boot a encontra. */
+ }catch(e){
+  S.regErro=true;
+  S.regMsg=(e&&e.message?e.message:String(e))+
+   " — se o provedor Google ainda não foi ligado no painel do Supabase, este é o motivo (decisão 041).";
+ }
  render();
 }
 async function salvarPerfilReal(){

@@ -76,6 +76,35 @@ FLUXOS.forEach(f=>{
   console.log();
 });
 
+/* ── A CONTA: SENHA, GOOGLE E PERMANECER CONECTADO ────────────────
+   Pedido dela em 20/08: cadastro grava, login por e-mail+senha OU
+   Google, e a opção de permanecer conectado. O que dá para garantir
+   por leitura de código está aqui; o que depende do painel do
+   Supabase está na decisão 041 como pendência DELA. */
+console.log("── A CONTA ──");
+let fAntes=0;
+function chkc(n,c,d){ if(!c){fAntes++;console.log("  XX  "+n+(d?" → "+d:""))} else console.log("  ok  "+n); }
+chkc("o cadastro cria conta de verdade", /signUp\(/.test(dados) && /criarConta/.test(dados));
+chkc("o login por senha existe", /signInWithPassword/.test(dados));
+chkc("o login pelo Google existe e é do provedor certo",
+  /signInWithOAuth\(\{\s*provider:\s*"google"/.test(dados),
+  "entrarComGoogle sumiu ou trocou de provedor");
+chkc("e volta para o endereço do produto",
+  /provider:\s*"google",\s*options:\s*\{\s*redirectTo:\s*enderecoDeRetorno\(\)/.test(dados),
+  "sem redirectTo o Google devolve para localhost e o login morre no meio");
+chkc("a sessão renova sozinha (mais que os 15 minutos pedidos)",
+  /autoRefreshToken:\s*true/.test(dados) && /persistSession:\s*true/.test(dados));
+chkc("permanecer conectado é escolha com padrão ligado",
+  /querPermanecerConectado/.test(dados) && /ink\.manterLogin/.test(dados) &&
+  /!==\s*"nao"/.test(dados),
+  "o padrão deixou de ser ligado, ou a escolha sumiu");
+chkc("desligado, a sessão morre com a aba",
+  /querPermanecerConectado\(\)\s*\?\s*window\.localStorage\s*:\s*window\.sessionStorage/.test(dados),
+  "a escolha existe mas não muda onde a sessão mora — decorativa");
+chkc("a tela oferece o Google e a escolha",
+  /Entrar com o Google/.test(html) && /Permanecer conectado/.test(html));
+if(fAntes>0){ console.log("\n══ "+fAntes+" falha(s) na conta ══"); process.exit(1); }
+
 console.log("─".repeat(64));
 console.log(`COBERTURA GERAL: ${Math.round(totR/totE*100)}% das ${totE} etapas têm sustentação real\n`);
 console.log("FLUXOS QUE ATRAVESSAM SEM QUEBRAR:");

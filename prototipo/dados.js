@@ -26,6 +26,24 @@ const LIMITE_UPLOAD_POR_CONTA = 1;
 let sb = null;
 let sbErro = null;
 
+/* ── PERMANECER CONECTADO ──────────────────────────────────────────
+   A sessão do Supabase já dura muito mais que os 15 minutos que ela
+   pediu: o token de acesso vale 1 hora e o refresh token renova
+   sozinho (autoRefreshToken) enquanto houver aba aberta — e sobrevive
+   a fechar o navegador, porque mora no localStorage.
+
+   O que este interruptor acrescenta é a ESCOLHA: com "permanecer
+   conectado" desligado, a sessão vai para o sessionStorage e morre
+   quando a aba fecha — o comportamento certo num computador
+   emprestado. Ligado (o padrão), fica como está: dias, não minutos. */
+function querPermanecerConectado() {
+  try { return localStorage.getItem("ink.manterLogin") !== "nao"; }
+  catch (e) { return true; }
+}
+function definirPermanecerConectado(sim) {
+  try { localStorage.setItem("ink.manterLogin", sim ? "sim" : "nao"); } catch (e) {}
+}
+
 async function iniciarSupabase() {
   if (sb) return sb;
   try {
@@ -33,13 +51,38 @@ async function iniciarSupabase() {
       "https://esm.sh/@supabase/supabase-js@2"
     );
     sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true },
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        storage: querPermanecerConectado() ? window.localStorage : window.sessionStorage,
+      },
     });
     return sb;
   } catch (e) {
     sbErro = e;
     throw e;
   }
+}
+
+/* ── ENTRAR COM O GOOGLE ───────────────────────────────────────────
+   O Supabase Auth faz a dança do OAuth: esta chamada redireciona para
+   o consentimento do Google e volta para o endereço de retorno já com
+   a sessão criada — o getSession do boot a encontra. O gatilho
+   handle_new_user cria o perfil na primeira entrada, como faz com o
+   cadastro por e-mail.
+
+   Só funciona depois que o provedor Google estiver ligado no painel
+   do Supabase (Authentication → Providers) — pendência dela, com o
+   passo a passo na decisão 041. Em file:// não há rede: o botão
+   explica em vez de fingir. */
+async function entrarComGoogle() {
+  await iniciarSupabase();
+  const { data, error } = await sb.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: enderecoDeRetorno() },
+  });
+  if (error) throw error;
+  return data;
 }
 
 /* ── Diagnóstico de conexão ────────────────────────────────────────
@@ -674,6 +717,7 @@ async function esquecerParticipante(email) {
 
 window.Dados = {
   testarConexao, criarConta, entrar, sair, sessaoAtual,
+  entrarComGoogle, querPermanecerConectado, definirPermanecerConectado,
   souAdmin, carregarPainelDoTeste, esquecerParticipante,
   usuarioDisponivel, acrescentarPapel, removerPapel,
   emailConfirmado, reenviarConfirmacao,
