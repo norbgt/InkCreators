@@ -717,27 +717,34 @@ button,a{touch-action:manipulation}
    Quem chega sabendo o que quer lê nome e preço mais rápido em lista;
    quem está garimpando vê mais produto por tela na grade. Duas
    perguntas, dois arranjos, um componente. */
+/* "emlista" e não "lista": o nome curto colidia com o componente
+   .lista — a caixa com borda das listas de orçamento — e o container
+   da vitrine herdava a moldura inteira dela. As laterais dessa
+   moldura apareciam nos vãos entre os cards como uma linha vertical
+   "conectando" os cards: o print dela. Segunda vez que uma classe com
+   dois trabalhos fura a tela (a primeira foi .convitecx); o guarda de
+   colisão agora cobre as duas. */
 /* A lista tentou ser fio e ficou ambígua: padding vertical criava um
    respiro DENTRO da linha que parecia margem mal feita — foi o que
    ela apontou. Em lista de produto, o card é uma caixa: borda que
    ABRAÇA o conteúdo, e o espaço vive ENTRE os cards (gap do
    container), nunca dentro das margens de cada um. */
-.vitrine.lista{grid-template-columns:1fr;gap:var(--e2)}
-.vitrine.lista .prod{flex-direction:row;gap:var(--e3);align-items:center;
+.vitrine.emlista{grid-template-columns:1fr;gap:var(--e2)}
+.vitrine.emlista .prod{flex-direction:row;gap:var(--e3);align-items:center;
   border:var(--hair) solid var(--border);border-radius:var(--r-sm);
   background:var(--card);padding:var(--e2);
   transition:border-color var(--dur) var(--ease)}
-.vitrine.lista .prod:hover{border-color:var(--muted-foreground)}
-.vitrine.lista .prod .postimg{width:88px;flex:0 0 88px;height:88px;aspect-ratio:auto}
-.vitrine.lista .prodinfo{flex-direction:row;align-items:center;gap:var(--e3);padding:0}
-.vitrine.lista .prodtxt{flex:1;min-width:0}
-.vitrine.lista .prodnome{-webkit-line-clamp:1}
-.vitrine.lista .proddesc{-webkit-line-clamp:1}
-.vitrine.lista .prodpe{margin-top:0;padding-top:0;flex:0 0 auto;text-align:right}
-.vitrine.lista .prodpreco{justify-content:flex-end}
-.vitrine.lista .prodpe .btn{width:auto;margin-top:var(--e1)}
+.vitrine.emlista .prod:hover{border-color:var(--muted-foreground)}
+.vitrine.emlista .prod .postimg{width:88px;flex:0 0 88px;height:88px;aspect-ratio:auto}
+.vitrine.emlista .prodinfo{flex-direction:row;align-items:center;gap:var(--e3);padding:0}
+.vitrine.emlista .prodtxt{flex:1;min-width:0}
+.vitrine.emlista .prodnome{-webkit-line-clamp:1}
+.vitrine.emlista .proddesc{-webkit-line-clamp:1}
+.vitrine.emlista .prodpe{margin-top:0;padding-top:0;flex:0 0 auto;text-align:right}
+.vitrine.emlista .prodpreco{justify-content:flex-end}
+.vitrine.emlista .prodpe .btn{width:auto;margin-top:var(--e1)}
 /* Seta e pip somem: a 88px eles cobrem metade da foto. */
-.vitrine.lista .postimg .nav,.vitrine.lista .postimg .pips{display:none}
+.vitrine.emlista .postimg .nav,.vitrine.emlista .postimg .pips{display:none}
 
 /* A contagem à esquerda, o modo de ver à direita. O toggle perde as
    margens próprias aqui porque quem separa do conteúdo é a margem da
@@ -3353,7 +3360,7 @@ function listaLoja(){
     nem a primeira fileira. Doze fecha fileira em duas, três e quatro
     colunas — sobra no meio da linha parece catálogo acabando. */
  var ate=Math.min(l.length,S.feedLote*12);
- h+='<div class="vitrine'+(lista?" lista":"")+'">';
+ h+='<div class="vitrine'+(lista?" emlista":"")+'">';
  l.slice(0,ate).forEach(function(p){
   var i=S.caro["sh"+p.id]||0;
   /* Mesmo componente do feed: `post` traz a foto com carrossel, as

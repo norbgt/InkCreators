@@ -209,8 +209,15 @@ function textoDe(t) {
 }
 S.shopVista = "lista"; g.e("render()");
 var tLista = tela();
+/* E a colisão que desenhou uma linha vertical entre os cards: o
+   modificador se chamava "lista" e o componente .lista (caixa das
+   listas de orçamento) emprestava a moldura ao container inteiro.
+   Nenhum elemento pode vestir as duas. */
+chk("a vitrine não veste a classe do componente de lista",
+    !/class="vitrine lista"/.test(tLista) && !/class="[^"]*\blista\b[^"]*vitrine/.test(tLista),
+    "voltou a colisão .lista: a moldura da caixa desenha linha vertical entre os cards");
 chk("a lista é a mesma grade com uma coluna",
-    /class="vitrine lista"/.test(tLista) && /\.vitrine\.lista\{grid-template-columns:1fr[;}]/.test(css),
+    /class="vitrine emlista"/.test(tLista) && /\.vitrine\.emlista\{grid-template-columns:1fr[;}]/.test(css),
     "a lista virou outro componente em vez de um arranjo do mesmo");
 var faltando = textoDe(tGrade).filter(function (w) {
   return textoDe(tLista).indexOf(w) < 0;
@@ -223,13 +230,13 @@ chk("e nada se perde ao trocar de vista", faltando.length === 0,
    nenhuma sabotagem de código o faria falhar.
 
    Onde a perda pode acontecer de verdade é no CSS: basta um
-   display:none dentro de .vitrine.lista para um campo sumir da tela
+   display:none dentro de .vitrine.emlista para um campo sumir da tela
    continuando no HTML. É o buraco que a decisão 012 já registrou.
 
    Some o que é controle — seta e pip, que a 88px cobrem metade da
    foto. Não some o que é informação. */
 var CARREGAM_TEXTO = ["prodnome", "proddesc", "ppe", "prodnota", "prodpreco", "prodtxt", "badge"];
-var escondidos = (css.match(/\.vitrine\.lista[^{]*\{[^}]*display:none[^}]*\}/g) || [])
+var escondidos = (css.match(/\.vitrine\.emlista[^{]*\{[^}]*display:none[^}]*\}/g) || [])
   .join(" ");
 var textoEscondido = CARREGAM_TEXTO.filter(function (c) {
   return escondidos.indexOf("." + c) >= 0;
