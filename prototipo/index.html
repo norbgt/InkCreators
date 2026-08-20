@@ -2675,7 +2675,7 @@ function vHome(){
  if(S.tab==="discover")h+='<button class="btn sm" onclick="'+(isLog()?"go('studio-profile')":"go('plataforma')")+'">🖌 Publicar</button>';
  if(S.tab==="shop")h+='<button class="btn sm" onclick="go(\'studio\')">🏪 Vender</button>';
  if(S.tab==="events")h+='<button onclick="aindaMaquete(\'Divulgar\')" class="btn sm">📣 Divulgar</button>';
- h+='<button class="btn sm destaque" onclick="S.hub=\'menu\';openDrawer(\'hub\')">✨ Orçamentos</button>';
+ h+='<button class="btn sm destaque" onclick="novoPedido()">✨ Orçamentos</button>';
  h+='</div></div>';
  h+=S.tab==="discover"?secFeed():S.tab==="shop"?secShop():secEvents();
  return h+'</div></main>';
@@ -5207,7 +5207,8 @@ function vMe(sub){
  }
 
  if((sub==="me"&&subAba("mev","resumo")==="quotes")||sub==="me-quotes"){
-  h+='<div class="card pad"><div class="row wrapf"><span class="b">Meus orçamentos</span>'+tg("real")+'<button class="btn sm sp" onclick="S.hub=\'new\';openDrawer(\'hub\')">✨ Novo orçamento</button></div>';
+  h+='<div class="card pad"><div class="row wrapf"><span class="b">Meus orçamentos</span>'+tg("real")+'<button class="btn sm sp" onclick="novoPedido()">✨ Novo orçamento</button></div>';
+  /* marcador: pool e recomendações entram no fim desta seção */
   h+='<div class="row wrapf" style="gap:var(--e2);margin-top:var(--e3)">';
   ["todos","aguardando","respondido","agendado","recusado","expirado"].forEach(function(f){
    var n=f==="todos"?CQ.length:CQ.filter(function(q){return q.status===f}).length;
@@ -5217,6 +5218,7 @@ function vMe(sub){
   if(!l.length)h+='<div class="muted small" style="padding:var(--e4) 0">Nenhum orçamento com esse status.</div>';
   l.forEach(function(q){h+=cqRow(q,true)});
   h+='</div></div>';
+  h+=blocosDoPoolERecomendacoes();
  }
  if(sub==="me-history"){
   h+='<div class="card pad"><div class="row"><span class="b">Histórico de tatuagens</span>'+tg("mock")+'</div>';
@@ -6986,7 +6988,6 @@ function renderDrawer(){
  if(!S.drawer){host.innerHTML="";return}
  var pintarGaveta=function(x){comFoco(function(){host.innerHTML=x})};
  var t="",b="",f="";
- if(S.drawer==="hub"){t="✨ Orçamentos"+tg("real");b=hubBody()}
  if(S.drawer==="assist"){t="✨ Pedir orçamento"+tg("real");b=assistBody()}
  if(S.drawer==="chat"){t="💬 Mensagens"+tg("mock");b=chatBody();if(S.chatOpen)f='<div class="row"><input class="fld" placeholder="Escreva uma mensagem…" /><button class="btn primary">Enviar</button></div>'}
  if(S.drawer==="trava"){t="⚠ Confirmação pendente";b=corpoDaTrava()}
@@ -6999,27 +7000,34 @@ function renderDrawer(){
   '<span class="b">'+t+'</span><button class="iconbtn sp" onclick="closeDrawer()">✕</button></div>'+
   '<div class="db">'+b+'</div>'+(f?'<div class="df">'+f+'</div>':'')+'</aside>'));
 }
-function hubBody(){
- if(S.hub==="menu"){
-  var h='<p class="small muted">Escolha como quer seguir.</p><div class="grid" style="gap:var(--e3);margin-top:var(--e3)">';
-  [["new","✨","Novo pedido","Descreva o que você quer e receba propostas de quem trabalha com aquele estilo."],
-   ["pool","🌐","Pool aberto","Pedidos ativos aguardando propostas. Tatuadores prospectam aqui."],
-   ["rec","🎯","Para você","Tatuadores dos estilos que você salvou e segue, na sua cidade."]].forEach(function(m){
-   h+='<div class="card pad" style="cursor:pointer" onclick="S.hub=\''+m[0]+'\';renderDrawer()"><div class="row"><span style="font-size:19px">'+m[1]+'</span><div><div class="b small">'+m[2]+'</div><div class="tiny muted">'+m[3]+'</div></div><span class="sp">›</span></div></div>'});
-  return h+'</div>';
- }
- var back='<button class="btn sm" onclick="S.hub=\'menu\';renderDrawer()">← Voltar</button>';
- if(S.hub==="new"){S.aiStep=0;S.drawer="assist";return assistBody()}
- if(S.hub==="pool"){
-  var h=back+'<div class="b small" style="margin-top:var(--e3)">Pool aberto</div><div class="tiny muted">Pedidos de outros clientes aguardando propostas.</div><div style="margin-top:var(--e2)">';
-  CQ.filter(function(q){return q.status==="aguardando"}).concat(CQ.slice(0,2)).forEach(function(q){
-   h+='<div class="lrow"><div class="thumb" style="background-image:'+tex(q.seed)+'"></div><div style="min-width:0"><div class="b small">'+q.area+'</div><div class="tiny muted">'+q.st.map(function(s){return SL[s]}).join(", ")+' · '+q.when+'</div></div><div class="sp b small">'+brl(q.min)+'+</div></div>'});
-  return h+'</div>';
- }
- var h=back+'<div class="b small" style="margin-top:var(--e3)">Recomendações para você</div><div class="tiny muted">Dos estilos que você salvou e da sua cidade.</div><div style="margin-top:var(--e2)">';
+/* O hub morreu, e a história importa: o botão ✨ abria um MENU de
+   três portas antes do pedido — e ela definiu que o fluxo tem dois
+   passos e começa sempre igual. Menu antes do passo 1 é um passo
+   zero disfarçado. Meus roteiros nunca o viram porque entravam pela
+   porta lateral (S.drawer='assist' direto); o guarda novo entra pela
+   porta que o dedo dela clica.
+
+   As duas ideias boas do menu — o pool aberto e as recomendações —
+   não morreram: mudaram para "Meus orçamentos", onde são conteúdo de
+   uma tela e não pedágio de um fluxo. */
+function novoPedido(){
+ S.assistArtist=null;S.aiBusca="";S.aiFora=[];S.aiStep=0;
+ openDrawer("assist");
+}
+function blocosDoPoolERecomendacoes(){
+ var h='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b">Pool aberto</span>'+tg("novo")+'</div>';
+ h+='<div class="tiny muted" style="margin-top:var(--e1)">Pedidos ativos aguardando propostas. Tatuadores prospectam aqui.</div>';
+ h+='<div style="margin-top:var(--e2)">';
+ CQ.filter(function(q){return q.status==="aguardando"}).concat(CQ.slice(0,2)).forEach(function(q){
+  h+='<div class="lrow"><div class="thumb" style="background-image:'+tex(q.seed)+'"></div><div style="min-width:0"><div class="b small">'+q.area+'</div><div class="tiny muted">'+q.st.map(function(s){return SL[s]}).join(", ")+' · '+q.when+'</div></div><div class="sp b small">'+brl(q.min)+'+</div></div>'});
+ h+='</div></div>';
+ h+='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b">Para você</span>'+tg("novo")+'</div>';
+ h+='<div class="tiny muted" style="margin-top:var(--e1)">Tatuadores dos estilos que você salvou e segue, na sua cidade.</div>';
+ h+='<div style="margin-top:var(--e2)">';
  ARTISTS.slice(0,5).forEach(function(a){
-  h+='<div class="lrow"><div class="av">'+ini(a.name)+'</div><div style="min-width:0"><div class="b small">'+a.name+'</div><div class="tiny muted">'+a.styles.map(function(s){return SL[s]}).join(", ")+' · '+a.city+'</div></div><div class="sp" style="text-align:right"><div>'+cifroes(a)+'</div><button class="btn sm" style="margin-top:var(--e1)" onclick="quoteFor(\''+a.id+'\')">Orçar</button></div></div>'});
- return h+'</div>';
+  h+='<div class="lrow"><div class="av">'+ini(a.name)+'</div><div style="min-width:0"><div class="b small">'+a.name+'</div><div class="tiny muted">'+a.styles.map(function(s2){return SL[s2]}).join(", ")+' · '+a.city+'</div></div><div class="sp" style="text-align:right"><div>'+cifroes(a)+'</div><button class="btn sm" style="margin-top:var(--e1)" onclick="quoteFor(\''+a.id+'\')">Orçar</button></div></div>'});
+ h+='</div></div>';
+ return h;
 }
 /* ── PEDIDO DE ORÇAMENTO ───────────────────────────────────────────
    Sem análise automática. O cliente diz o que quer, mostra referências

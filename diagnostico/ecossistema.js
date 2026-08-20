@@ -152,6 +152,51 @@ chk('a conclusão diz para quantos foi', /Pedido enviado para \d+ tatuadores|Ped
     'a conclusão perdeu o número');
 g.e("S.aiStep=0;S.aiBusca='';S.assistArtist=null");
 
+/* ── PELA PORTA QUE O DEDO CLICA ───────────────────────────────────
+   A raiz do "continua sem refletir": eu testava o fluxo entrando por
+   S.drawer='assist' direto — a porta lateral — enquanto o botão ✨ da
+   tela abria um MENU antigo que nenhum teste via. Este guarda entra
+   pela porta REAL: extrai o onclick do botão renderizado, executa
+   exatamente o que o dedo executaria, e exige que o que abre seja o
+   passo 1 do pedido — não um menu, não um hub, não um passo zero. */
+S.session='client';S.route='home';S.tab='discover';S.drawer=null;g.e("render()");
+/* O emoji ✨ vira SVG no render (icons()) — procurar "✨ Orçamentos"
+   acha nada, a MESMA pegadinha do extrator de rótulos de outra
+   rodada. Acha-se o fecho "Orçamentos</button>" e recua até a
+   abertura do botão. */
+function botaoQueDiz(t,rotulo){
+ var fim=t.indexOf(rotulo+"</button>");
+ if(fim<0)return "";
+ var ini=t.lastIndexOf("<button",fim);
+ return t.slice(ini,fim);
+}
+var btnOrc=botaoQueDiz(tela()," Orçamentos");
+var acao=(btnOrc.match(/onclick="([^"]+)"/)||[])[1];
+chk('o botão ✨ Orçamentos existe', !!acao);
+if(acao){try{g.e(acao.replace(/&#39;/g,"'"))}catch(e){}}
+var abriu=gav();
+chk('e abre DIRETO o passo 1 do pedido',
+    /Referências \(/.test(abriu) && /Estilo que você quer/.test(abriu),
+    'a porta real não leva ao fluxo: abriu outra coisa antes do passo 1');
+chk('sem menu no caminho',
+    !/Escolha como quer seguir/.test(abriu),
+    'o passo zero disfarçado voltou — o menu antes do pedido');
+/* A segunda porta: "Novo orçamento" dentro de Meus orçamentos. */
+S.drawer=null;S.route='me';S.sub={mev:'quotes'};g.e("render()");
+var btn2=botaoQueDiz(tela()," Novo orçamento");
+var acao2=(btn2.match(/onclick="([^"]+)"/)||[])[1];
+chk('a porta de Meus orçamentos também leva ao passo 1',
+    (acao2?(g.e(acao2.replace(/&#39;/g,"'")),/Estilo que você quer/.test(gav())):false),
+    'a segunda porta ficou para trás — duas portas, dois fluxos');
+/* E as duas ideias do menu morto continuam vivas, agora como tela. */
+S.drawer=null;g.e("render()");
+var tmq=tela();
+chk('o pool aberto virou conteúdo de Meus orçamentos',
+    /Pool aberto/.test(tmq) && /Tatuadores prospectam aqui/.test(tmq));
+chk('as recomendações também',
+    /Para você/.test(tmq) && /estilos que você salvou e segue/.test(tmq));
+S.sub={};S.route='home';
+
 console.log('── 2. ECOSSISTEMA EM CONHECER ──');
 /* ── A GRAMÁTICA DO PORTFÓLIO DELA ────────────────────────────────
    Conhecer alinhou à esquerda e os cards passaram a correr na

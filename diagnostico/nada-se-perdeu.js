@@ -308,6 +308,8 @@ function funcoes(codigo) {
    duas saídas ruins quando uma seção morre: deixar código morto vivo
    só para o teste passar, ou apagar a linha do teste. */
 var FUNCOES_QUE_SAIRAM = [
+  ["hubBody",
+   "era o menu de três portas que o botão ✨ abria ANTES do pedido — um passo zero disfarçado, contra a definição dela de que o fluxo tem dois passos e começa sempre igual. As duas ideias boas do menu (pool aberto e recomendações) mudaram para Meus orçamentos como blocosDoPoolERecomendacoes; o texto delas continua palavra por palavra"],
   ["lugaresDoCheckin",
    "derivava lugares dos check-ins para um cartão da seção 'Desempenho por estilo', que saiu a pedido dela na decisão 032. Ficou sem nenhum uso, e função sem uso é código que ninguém mantém e todo mundo lê"]
 ];
