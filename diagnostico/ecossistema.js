@@ -57,13 +57,16 @@ chk('cobertura continua separada',/cobrir ou corrigir/.test(d));
    texto sobre a coisa: os cinco campos continuam marcados como
    obrigatórios, um a um. Guarda que depende de uma frase morre na
    primeira revisão de copy; guarda que conta selos, não. */
-/* Cidade deixou de ser obrigatória a pedido dela (20/08): sem ela as
-   recomendações só perdem o recorte de proximidade — quem responde
-   continua respondendo. O padrão obrigatório são QUATRO: referência,
-   estilo, tamanho e parte do corpo. */
+/* O padrão obrigatório encolheu duas vezes a pedido dela no mesmo
+   dia: cidade saiu (a localização vive no perfil), depois o ESTILO
+   (sem ele as recomendações abrem para todos os estilos — quem sabe o
+   que quer filtra, quem não sabe não trava). Restam TRÊS: referência,
+   tamanho e parte do corpo — o mínimo que torna um preço possível. */
 var obrigatorios = (d.match(/class="req">obrigatório</g) || []).length;
-chk('os quatro campos do padrão continuam obrigatórios', obrigatorios === 4,
-    obrigatorios + ' de 4 — o padrão encolheu ou engordou sem decisão');
+chk('os três campos do padrão continuam obrigatórios', obrigatorios === 3,
+    obrigatorios + ' de 3 — o padrão encolheu ou engordou sem decisão');
+chk('e o estilo se declara opcional', /Estilo que você quer <span[^>]*>— opcional/.test(d),
+    'o estilo ficou mudo: nem obrigatório nem declarado opcional');
 /* A cidade durou um turno como opcional e SAIU do formulário no
    pedido seguinte dela — a localização já vive no perfil de quem
    pede. As observações voltaram ao passo 1 no lugar. */
@@ -98,7 +101,6 @@ chk('o tamanho saiu do campo de observações',!/Tamanho aproximado/.test(d),
 S.aiRefs=0;S.aiEstilos=[];S.aiTam='';S.aiParte='';S.aiCidade='';g.e("renderDrawer()");
 var passos=[
  ['uma referência', "S.aiRefs=2"],
- ['o estilo',       "tog(S.aiEstilos,'fineline')"],
  ['o tamanho',      "S.aiTam='m'"],
  ['a parte do corpo',"S.aiParte='Antebraço interno'"]
 ];
@@ -174,6 +176,15 @@ var comBusca=gav();
 chk('sem busca, as recomendações são automáticas e várias', semBusca>1, semBusca+' recomendação(ões)');
 chk('a busca filtra a lista', (comBusca.match(/class="lrow"/g)||[]).length===1 && comBusca.indexOf(g.e("ARTISTS[0].name"))>=0,
     'digitei um nome e a lista não obedeceu');
+/* E varre o catálogo inteiro: um nome que NÃO está no top-6 das
+   recomendações tem de aparecer mesmo assim. */
+chk('a busca acha quem está fora das recomendações',
+    (function(){
+      var fora=g.e("(function(){var top=tatuadoresCompativeis().map(function(x){return x.id});return ARTISTS.filter(function(a){return !a.empty&&top.indexOf(a.id)<0})[0].name})()");
+      g.e("S.aiBusca="+JSON.stringify(fora)+";renderDrawer()");
+      return gav().indexOf(fora)>=0;
+    })(),
+    'a busca só enxerga o recorte: tatuador real vira "ninguém"');
 g.e("S.aiBusca='zzz-ninguem';renderDrawer()");
 chk('busca sem dono explica e ensina a sair', /Apague a busca/.test(gav()),
     'lista vazia muda sem dizer por quê');

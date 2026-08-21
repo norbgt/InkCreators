@@ -1176,6 +1176,8 @@ body:has(.convitebarra) main{padding-bottom:96px}
      26px  entre bloco e bloco
      40px  entre seções
    No celular cada degrau encolhe, senão a página vira rolagem vazia. */
+.barra-n2{flex:1;height:6px;background:var(--muted);border-radius:var(--r-pill);overflow:hidden}
+.barra-n2 i{display:block;height:100%;border-radius:var(--r-pill)}
 .resumobusca{margin-top:var(--e3);display:flex;align-items:center;gap:var(--e3)}
 .resumobusca .sp{margin-left:auto}
 
@@ -7162,7 +7164,13 @@ function assistBody(){
  if(S.aiStep===1){
   var compat=tatuadoresCompativeis();
   var busca=(S.aiBusca||"").trim().toLowerCase();
-  var vis=busca?compat.filter(function(x){return (x.name+" "+x.studio).toLowerCase().indexOf(busca)>=0}):compat;
+  /* A busca varre o CATÁLOGO, não o recorte: as recomendações são as
+     6 melhores para o pedido, mas quem digita um nome está procurando
+     uma pessoa — e essa pessoa pode não estar no top-6. Filtrar só o
+     recorte fazia a busca dizer "ninguém" para tatuadores que
+     existem. O teste de base pegou no dia em que o estilo deixou de
+     estreitar a lista. */
+  var vis=busca?ARTISTS.filter(function(x){return !x.empty&&(x.name+" "+x.studio).toLowerCase().indexOf(busca)>=0}):compat;
 
   var h='<div class="steps"><i class="on"></i><i class="on"></i></div>';
   h+='<div class="tiny muted" style="margin-top:var(--e2);margin-bottom:var(--e3)">Passo 2 de 2 · Para quem vai</div>';
@@ -7223,7 +7231,7 @@ function assistBody(){
  h+='<button style="width:56px;height:56px;border:1.5px dashed var(--border);border-radius:var(--r-sm);color:var(--muted-foreground)" onclick="S.aiRefs=Math.min(8,S.aiRefs+1);renderDrawer()">＋</button></div>';
 
  h+='<div class="sep"></div>';
- h+='<label class="lb" style="display:block">Estilo que você quer <span class="req">obrigatório</span></label>';
+ h+='<label class="lb" style="display:block">Estilo que você quer <span class="muted" style="font-weight:400">— opcional</span></label>';
  h+='<div class="tiny muted" style="margin-top:var(--e1)">Define para quem o pedido vai.</div>';
  h+='<div class="row wrapf" style="gap:var(--e2);margin-top:var(--e2)">';
  STYLES.filter(function(x){return ESTILOS_CORRECAO.indexOf(x.s)<0}).forEach(function(x){
@@ -7263,7 +7271,6 @@ function assistBody(){
     pior do que mandar procurar sem direção. */
  var falta=[];
  if(!S.aiRefs)falta.push("uma referência");
- if(!S.aiEstilos.length)falta.push("o estilo");
  if(!S.aiTam)falta.push("o tamanho");
  if(!S.aiParte)falta.push("a parte do corpo");
  h+='<button class="btn primary blk" style="margin-top:var(--e3)" '+(falta.length?"disabled":"")+' onclick="S.aiStep=1;renderDrawer()">'+
@@ -7629,6 +7636,69 @@ function blocoDoLink(){
  return h+'</div>';
 }
 
+/* ═══ O PAINEL N1 · N2 ═════════════════════════════════════════════
+   O acompanhamento combinado em 20/08: N1 é a navegação global, já
+   madura; N2 são os fluxos que nascem dela. Cada fluxo carrega três
+   medidas — interface, sustentação de backend, guarda de teste — e a
+   relevância. Este painel é atualizado A CADA fluxo que construímos
+   juntos: quando um número mudar aqui, é porque uma decisão numerada
+   o mudou. A fonte por extenso é o N2-FLUXOS.md. */
+var FLUXOS_N2=[
+ {n:"Pedir orçamento (2 passos + pool)",porta:"✨ Orçamentos · card · perfil",ui:95,back:67,guarda:"forte",rel:"altíssima",nota:"quebra no envio de imagem — bucket existe"},
+ {n:"Entrar / criar conta (senha ou Google)",porta:"Entrar",ui:95,back:85,guarda:"forte",rel:"altíssima",nota:"Google aguarda o provedor (dec. 041)"},
+ {n:"Conhecer → criar conta",porta:"✨ Conhecer",ui:95,back:70,guarda:"forte",rel:"alta",nota:"trilhos novos; CTA leva à conta"},
+ {n:"Busca global",porta:"campo ⌕",ui:60,back:20,guarda:"fraca",rel:"média",nota:"busca só dentro da aba ativa — decidir o destino"},
+ {n:"Carrinho → checkout",porta:"🛒",ui:80,back:0,guarda:"média",rel:"média",nota:"'Finalizar' é maquete declarada"},
+ {n:"Notificações",porta:"🔔",ui:70,back:0,guarda:"fraca",rel:"baixa",nota:"sem fonte real — candidata a maquete honesta"},
+ {n:"Chat",porta:"💬",ui:70,back:0,guarda:"fraca",rel:"alta, cedo",nota:"sem tabela; depois de orçamento+sessão"},
+ {n:"Descobrir tatuador → perfil → orçar",porta:"aba Tatuadores",ui:95,back:70,guarda:"forte",rel:"altíssima",nota:"quebra nas avaliações"},
+ {n:"Descobrir estúdio",porta:"toggle Estúdios",ui:85,back:0,guarda:"média",rel:"média-alta",nota:"recém-nascido"},
+ {n:"Comprar na loja",porta:"aba Lojas",ui:90,back:0,guarda:"forte",rel:"média",nota:"grade/lista novas; receita depois do teste"},
+ {n:"Eventos e cursos → inscrever",porta:"aba Eventos",ui:75,back:17,guarda:"fraca",rel:"média",nota:"inscrever é maquete"},
+ {n:"Publicar · Vender · Divulgar",porta:"botões da home",ui:70,back:0,guarda:"média",rel:"baixa",nota:"portas; Divulgar é maquete honesta"},
+ {n:"Acompanhar orçamentos → aceitar",porta:"Minha área",ui:90,back:45,guarda:"média",rel:"altíssima",nota:"ACEITE é a metade que falta — próximo elo"},
+ {n:"Passaporte / check-in (QR)",porta:"Passaporte",ui:90,back:0,guarda:"forte",rel:"alta",nota:"desenhado ponta a ponta; espera sessão real"},
+ {n:"Formação (trilha)",porta:"Formação",ui:80,back:0,guarda:"fraca",rel:"baixa",nota:"tese a validar no teste"},
+ {n:"Responder orçamento (tatuador)",porta:"Orçamentos",ui:90,back:50,guarda:"forte",rel:"altíssima",nota:"proposta grava; para no chat/agenda"},
+ {n:"Agenda: QR, check-in, quem tatuei",porta:"Agenda",ui:90,back:0,guarda:"forte",rel:"alta",nota:"vira real com a sessão"},
+ {n:"Presença do tatuador (perfil→publicar)",porta:"Meu perfil",ui:95,back:100,guarda:"forte",rel:"altíssima",nota:"o fluxo 100% real do produto"}
+];
+function barrinha(p2,cor){
+ return '<div class="barra-n2"><i style="width:'+p2+'%;background:'+(cor||"var(--accent)")+'"></i></div>';
+}
+function vPainelN2(){
+ var h='<div class="banner" style="margin-top:var(--e4)"><div>';
+ h+='<div class="b small">N1 está madura; N2 é o que construímos agora.</div>';
+ h+='<div class="tiny muted" style="margin-top:var(--e1)">Interface mede a tela e as interações; sustentação, o backend real (fonte: fluxos.js); guarda, se existe teste que acusa regressão. Atualizado a cada fluxo construído — número que muda aqui tem decisão numerada por trás. Fonte por extenso: N2-FLUXOS.md.</div>';
+ h+='</div></div>';
+ var mReal=Math.round(FLUXOS_N2.reduce(function(t,f){return t+f.back},0)/FLUXOS_N2.length);
+ var mUi=Math.round(FLUXOS_N2.reduce(function(t,f){return t+f.ui},0)/FLUXOS_N2.length);
+ h+='<div class="stats" style="margin-top:var(--e4)">';
+ [["🧭","Fluxos N2",FLUXOS_N2.length,"portas da navegação global"],
+  ["🎨","Interface média",mUi+"%","telas e interações"],
+  ["🔌","Sustentação média",mReal+"%","backend real"],
+  ["🛡","Com guarda forte",FLUXOS_N2.filter(function(f){return f.guarda==="forte"}).length,"de "+FLUXOS_N2.length]].forEach(function(x){
+  h+='<div class="stat"><div class="lbl">'+x[0]+' '+x[1]+'</div><div class="val">'+x[2]+'</div><div class="hint">'+x[3]+'</div></div>'});
+ h+='</div>';
+ h+='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b">Os fluxos, porta a porta</span>'+tg("novo")+'</div>';
+ h+='<div style="margin-top:var(--e2)">';
+ FLUXOS_N2.forEach(function(f){
+  h+='<div class="lrow"><div class="ltxt">';
+  h+='<div class="b small">'+f.n+'</div>';
+  h+='<div class="tiny muted">'+f.porta+' · guarda '+f.guarda+' · relevância '+f.rel+'</div>';
+  h+='<div class="row" style="gap:var(--e2);margin-top:var(--e2);align-items:center">';
+  h+='<span class="tiny muted" style="width:74px;flex-shrink:0">interface</span>'+barrinha(f.ui,"var(--foreground)")+'<span class="tiny" style="width:38px;text-align:right">'+f.ui+'%</span>';
+  h+='</div><div class="row" style="gap:var(--e2);margin-top:var(--e1);align-items:center">';
+  h+='<span class="tiny muted" style="width:74px;flex-shrink:0">sustentação</span>'+barrinha(f.back)+'<span class="tiny" style="width:38px;text-align:right">'+f.back+'%</span>';
+  h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:var(--e2)">'+f.nota+'</div>';
+  h+='</div></div>';
+ });
+ h+='</div></div>';
+ h+='<div class="tiny muted" style="margin-top:var(--e3)">A ordem recomendada de construção vive no N2-FLUXOS.md: aceite → sessão → upload de referência → chat.</div>';
+ return h;
+}
+
 function vPainelDoTeste(){
  var p=S.painel;
  var h='<div class="card pad" style="margin-top:var(--e4)">';
@@ -7752,11 +7822,12 @@ function vModelo(){
  h+='<p class="sub">O que já é fato, o que ainda é hipótese, e as perguntas que precisam de resposta antes de construir mais.</p>';
 
  h+='<div class="segmento">';
- [["painel","Painel do teste"],["modelo","O modelo"]].forEach(function(x){
+ [["painel","Painel do teste"],["modelo","O modelo"],["fluxos","N1 · N2"]].forEach(function(x){
   h+='<button class="seg '+(S.abaModelo===x[0]?"on":"")+'" onclick="S.abaModelo=\''+x[0]+'\';render()">'+x[1]+'</button>'});
  h+='</div>';
 
  if(S.abaModelo==="painel")return h+vPainelDoTeste()+'</div></main>';
+ if(S.abaModelo==="fluxos")return h+vPainelN2()+'</div></main>';
 
  h+='<div class="banner" style="margin-top:var(--e4)"><div>';
  h+='<div class="b small">Nada aqui está validado.</div>';
