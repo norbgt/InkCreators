@@ -13,7 +13,7 @@ const FLUXOS=[
 
 {n:"Pedir um orçamento",ator:"Cliente",etapas:[
  ["Enviar imagens de referência","mock","buckets existem, a interface não envia"],
- ["IA analisar e sugerir faixa","mock","precisa de chave própria do provedor"],
+ ["Preencher o padrão (estilo, tamanho, parte)","front","o formulário vive e valida; grava junto do pedido"],
  ["Gravar o pedido","real","criarPedidoDeOrcamento"],
  ["Convidar tatuadores compatíveis","real","matching por estilo e cidade"],
  ["Acompanhar respostas","real","meusOrcamentos"],
