@@ -706,7 +706,8 @@ chk("e os estilos medidos chegam à trajetória",
 secao("6. REPUTAÇÃO ANTES DO ORÇAMENTO");
 S.session = "anon";
 var th = ir("home");
-chk("o card mostra sessões verificadas", /sessões verificadas/.test(th));
+chk("o card mostra sessões verificadas", /\d+ verificadas/.test(th),
+    "o selo de verificadas sumiu do card — era a âncora de confiança do feed");
 chk("e a distância", /km de você/.test(th));
 /* A ordem é o argumento: a reputação tem de estar legível antes do
    botão de orçar, não depois. Se o botão vier primeiro, a tela convida
@@ -896,11 +897,38 @@ S.estudioSel = "e1";
 var tes = ir("estudio");
 chk("o estúdio tem página própria", /Studio Marina/.test(tes) && /sessões verificadas aqui/.test(tes));
 chk("mostra os selos do lugar", /class="selinho"/.test(tes));
-chk("higiene do que os clientes responderam", /O que os clientes responderam/.test(tes));
-chk("documentos conferidos aparecem", /Licença sanitária/.test(tes));
-chk("e quem tatua ali", /Quem tatua aqui/.test(tes));
+/* O estúdio virou abas pares às do tatuador (fotos / equipe / insta /
+   reputação — pedido dela em 20/08). Cada conteúdo agora se cobra na
+   SUA aba, e o toggle se cobra por inteiro. */
+function abaEst(qual){ S.abaEstudio=qual; return ir("estudio"); }
+chk("o toggle do estúdio tem as quatro fatias pares",
+    /class="segmento"/.test(tes) && />Fotos</.test(tes) && />Quem tatua aqui</.test(tes) &&
+    />Instagram</.test(tes) && />Reputação</.test(tes),
+    "o estúdio perdeu o toggle par ao do tatuador");
+var tesFotos=abaEst("fotos");
+chk("fotos: o espaço e as sessões, na grade do portfólio",
+    /O espaço e as sessões/.test(tesFotos) && /class="gradeport"/.test(tesFotos) &&
+    /Em sessão/.test(tesFotos),
+    "a vitrine de fotos do estúdio sumiu ou perdeu a grade");
+var tesInsta=abaEst("insta");
+chk("instagram: conectado, com as publicações",
+    /Instagram/.test(tesInsta) && /conectado/.test(tesInsta),
+    "o instagram do estúdio perdeu a conexão declarada");
+var tesRep=abaEst("reputacao");
+/* Sabotei UMA métrica e o guarda dormiu: "Higiene" também vive no
+   selo do cabeçalho, e o regex achava o selo. Conta-se os cartões de
+   número — seis é a régua inteira. */
+var nStats=(tesRep.match(/class="stat"/g)||[]).length;
+chk("reputação: as métricas que qualificam, em número grande",
+    nStats>=6,
+    nStats+" cartão(ões) de número — a régua do estúdio perdeu peça");
+chk("higiene do que os clientes responderam", /O que os clientes responderam/.test(tesRep));
+chk("documentos conferidos aparecem", /Licença sanitária/.test(tesRep));
+var tesEq=abaEst("equipe");
+chk("e quem tatua ali", /Quem tatua aqui/.test(tesEq));
 chk("diz que um selo não empresta reputação ao outro",
-    /nem para o bem, nem para o mal/.test(tes));
+    /nem para o bem, nem para o mal/.test(tesEq));
+S.abaEstudio="fotos";
 
 /* O estúdio que ninguém reivindicou: a decisão de negócio inteira. */
 S.estudioSel = "e4";

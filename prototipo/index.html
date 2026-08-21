@@ -378,8 +378,10 @@ label.lb{font-size:var(--t-micro);color:var(--muted-foreground);display:block;ma
    sem ler a legenda. Contratado é o único com traço tracejado — a borda
    diz "isto é publicidade" antes da palavra dizer. */
 .selos{display:flex;flex-wrap:wrap;gap:5px}
+/* A mão do feed: etiqueta pequena, peso médio, sem gritar. O selo
+   informa de passagem — quem quer a regra tem o title. */
 .selinho{display:inline-flex;align-items:center;gap:4px;border-radius:var(--r-pill);
-  padding:3px 9px;font-size:var(--t-micro);font-weight:600;white-space:nowrap;line-height:1.5;
+  padding:2px 8px;font-size:var(--t-micro);font-weight:500;white-space:nowrap;line-height:1.5;
   border:1px solid transparent;cursor:default}
 .selinho .si{font-size:var(--t-micro);line-height:1}
 .selinho .si svg{width:12px;height:12px;display:block}
@@ -1964,7 +1966,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  qStatus:"todos",hub:"menu",aiStep:0,aiRefs:2,
  aiEstilos:[],aiParte:"",aiCidade:"",aiObs:"",aiTam:"",aiBusca:"",aiEnviado:null,
  chatOpen:null,chatFilter:"all",chatQ:"",notifFilter:"all",notifs:NOTIFS.map(function(n){return{...n}}),
- sqSel:"s1",orcPasso:"lista",orcEnviado:null,estudioSel:"e1",administraEstudio:false,
+ sqSel:"s1",orcPasso:"lista",orcEnviado:null,estudioSel:"e1",abaEstudio:"fotos",administraEstudio:false,
  /* Check-in aberto agora. Um por vez, de propósito: o QR na tela é de
     uma sessão específica, e duas sessões abertas ao mesmo tempo é a
     receita para o cliente errado carimbar o passaporte. */
@@ -2145,16 +2147,18 @@ var ORDEM_CAT={fato:0,pares:1,contratado:2};
 function selosDe(a){
  var r=[];
  var ver=sessoesVerificadas(a);
- if(ver>0)r.push({id:"verificadas",valor:ver,texto:ver+" sessões verificadas"});
+ /* Texto do selo é ETIQUETA, não frase — pedido dela. A regra inteira
+    continua no title, a um hover/toque-longo de distância. */
+ if(ver>0)r.push({id:"verificadas",valor:ver,texto:ver+" verificadas"});
  if(recomendado(a))r.push({id:"recomendado",valor:null,texto:"Recomendado"});
  if(a.orientaPos>=90)r.push({id:"orienta",valor:a.orientaPos,texto:"Orienta o pós"});
  if(a.calibrouDor>=85)r.push({id:"prepara",valor:a.calibrouDor,texto:"Prepara para a dor"});
- if(a.years>=3)r.push({id:"tempo",valor:a.years,texto:a.years+" anos de casa"});
- if(a.rating>=4.7&&a.reviews>=30)r.push({id:"avaliado",valor:a.rating,texto:a.rating+" em "+a.reviews+" avaliações"});
+ if(a.years>=3)r.push({id:"tempo",valor:a.years,texto:a.years+" anos"});
+ if(a.rating>=4.7&&a.reviews>=30)r.push({id:"avaliado",valor:a.rating,texto:a.rating+" ★ ("+a.reviews+")"});
  if(a.referendos>0)r.push({id:"referendado",valor:a.referendos,texto:"Referendado por "+a.referendos});
  if(a.embaixador)r.push({id:"embaixador",valor:a.embaixador,texto:"Embaixador "+a.embaixador});
  if(a.destaque)r.push({id:"destaque",valor:null,texto:"Destaque"});
- if(a.enterprise)r.push({id:"enterprise",valor:null,texto:"Estúdio Enterprise"});
+ if(a.enterprise)r.push({id:"enterprise",valor:null,texto:"Enterprise"});
  r.forEach(function(x){var d=SELO_POR_ID[x.id];x.cat=d.cat;x.ic=d.ic;x.nome=d.nome;x.feed=d.feed});
  return r.sort(function(x,y){return ORDEM_CAT[x.cat]-ORDEM_CAT[y.cat]});
 }
@@ -2212,8 +2216,8 @@ function seloIcone(x){
 function selosDoEstudio(e){
  var r=[];
  if(estudioTemNota(e)&&e.higiene>=90)r.push({id:"higiene",texto:"Higiene "+e.higiene+"%"});
- if(e.verificado)r.push({id:"estverificado",texto:"Estúdio verificado"});
- if(e.guests>=10)r.push({id:"casadeguest",texto:e.guests+" guests recebidos"});
+ if(e.verificado)r.push({id:"estverificado",texto:"Verificado"});
+ if(e.guests>=10)r.push({id:"casadeguest",texto:e.guests+" guests"});
  if(e.enterprise)r.push({id:"enterprise",texto:"Enterprise"});
  r.forEach(function(x){var d=SELO_POR_ID[x.id];x.cat=d.cat;x.ic=d.ic;x.nome=d.nome;x.feed=d.feed});
  return r.sort(function(x,y){return ORDEM_CAT[x.cat]-ORDEM_CAT[y.cat]});
@@ -2569,7 +2573,7 @@ function sessoesVerificadas(a){
    passo que não existe mais. */
 var CHAVE_ESTADO="ink.estado.v2";
 var GUARDA=["session","route","artist","tab","modo","seguindo","curtidas","cart",
- "cad","perfilLanding","abaPerfil","shopAud","shopCat","shopQ","shopVista","feedQuem","evAba","q",
+ "cad","perfilLanding","abaPerfil","abaEstudio","shopAud","shopCat","shopQ","shopVista","feedQuem","evAba","q",
  "destaqueAtivo","roleSource","voltarPara","voltarArtista","abaModelo","histAba","sub","agendaGoogle","googleCalendario","emailConfirmado","emailPendente","onbStep","onbName","onbStyles","onbEstudio","onbCidade","onbUf","onbInsta","usuario","fazCobertura","ehFornecedor",
  "notifFilter","pfTab","ue","f","feedLote","caro","cep","sqSel","orcPasso","passPub","checkin","aval","estudioSel","administraEstudio"];
 // orcEnviado fica de fora de propósito: é a confirmação de uma ação que
@@ -3698,7 +3702,6 @@ function vArtist(){
     cabeçalho: é a segunda coisa que a pessoa procura, depois de
     "esta mão me serve?". */
  h+='<div class="perfilnum">'+stars(a.rating)+' '+a.rating+' <span class="muted">('+a.reviews+' avaliações)</span> · '+a.years+' anos de ofício · '+cifroes(a)+' por hora</div>';
- h+='<div class="tiny muted" style="margin-top:var(--e1)">O valor final sai do orçamento — os cifrões são a faixa que ele costuma praticar.</div>';
 
  /* 3. OS SELOS, contidos.
     Eram seis pastilhas em duas linhas, com mais peso visual que o
@@ -3723,7 +3726,7 @@ function vArtist(){
  var seg=S.seguindo.indexOf(a.id)>=0;
  h+='<div class="perfilacoes"><div class="acoessec">';
  h+='<button class="btn'+(contaPendente()?" pendente":"")+'" onclick="'+
-    (contaPendente()?"explicarTrava(\'pedir orçamento\')":"quoteFor(\'"+a.id+"\')")+'">✨ Pedir orçamento</button>';
+    (contaPendente()?"explicarTrava(\'pedir orçamento\')":"quoteFor(\'"+a.id+"\')")+'">✨ Orçamento</button>';
  h+='<button class="btn" onclick="'+(contaPendente()?"explicarTrava(\'conversar\')":(isLog()?"openDrawer(\'chat\')":"irCadastro(null)"))+'">💬 Conversar</button>';
  h+='<button class="btn'+(seg?" primary":"")+'" onclick="alternarSeguir(\''+a.id+'\')">'+(seg?"✓ Seguindo":"👤 Seguir")+'</button>';
  h+='</div></div>';
@@ -5744,6 +5747,56 @@ function vEstudio(){
  } else {
   h+='</div>';
 
+  /* ── O TOGGLE PAR DO PERFIL DE QUEM TATUA ───────────────────────
+     Mesmo componente, informações pares: o tatuador tem portfólio /
+     instagram / reputação; o estúdio tem fotos / quem tatua aqui /
+     instagram / reputação. Quem aprende a ler um, já sabe ler o
+     outro. */
+  var ABAS_EST=[["fotos","Fotos"],["equipe","Quem tatua aqui"],["insta","Instagram"],["reputacao","Reputação"]];
+  var abaE=ABAS_EST.map(function(x){return x[0]}).indexOf(S.abaEstudio)>=0?S.abaEstudio:"fotos";
+  h+='<div class="segmento" style="margin-top:var(--e4)">';
+  ABAS_EST.forEach(function(t){
+   h+='<button class="seg '+(abaE===t[0]?"on":"")+'" onclick="S.abaEstudio=\''+t[0]+'\';render()">'+t[1]+'</button>'});
+  h+='</div>';
+
+  /* ── FOTOS: o espaço e os artistas tatuando ─────────────────────
+     A vitrine que atrai cliente: o lugar como ele é, e gente
+     trabalhando nele. Mesma grade do portfólio (gradeport). */
+  if(abaE==="fotos"){
+   h+='<div class="row" style="margin-top:var(--e4)"><span class="b small">O espaço e as sessões</span>'+tg("mock")+'</div>';
+   h+='<div class="gradeport" style="margin-top:var(--e2)">';
+   for(var k=0;k<9;k++){
+    h+='<div class="tat" style="aspect-ratio:'+proporcaoDaFoto(k+3)+';border-radius:var(--r-foto);background-image:'+tex(k*4+2)+';position:relative">';
+    h+='<span class="tagtl">'+(k%3===0?"O espaço":"Em sessão")+'</span></div>';
+   }
+   h+='</div>';
+   h+='<div class="tiny muted" style="margin-top:var(--e2)">Fotos do estúdio e de artistas tatuando aqui. Quem gerencia o estúdio publica; cada artista aprova as fotos em que aparece.</div>';
+  }
+
+  if(abaE==="insta"){
+   h+='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b small">Instagram</span><span class="badge ok">conectado</span>'+tg("mock")+'</div>';
+   h+='<div class="tiny muted" style="margin-top:var(--e1)">@'+(e.handle||"estudio")+' · as últimas publicações entram sozinhas, e o link leva ao perfil.</div>';
+   h+='<div class="gradeport" style="margin-top:var(--e3)">';
+   for(var k2=0;k2<6;k2++){
+    h+='<div class="tat" style="aspect-ratio:1;border-radius:var(--r-sm);background-image:'+tex(k2*7+5)+';position:relative"><span class="tagtl">Instagram</span></div>';
+   }
+   h+='</div></div>';
+  }
+
+  if(abaE==="reputacao"){
+  /* ── AS MÉTRICAS QUE QUALIFICAM O LUGAR ─────────────────────────
+     A régua que atrai cliente, em número grande antes dos gráficos:
+     o que este estúdio prova, não o que promete. */
+  h+='<div class="stats" style="margin-top:var(--e4)">';
+  [["◉","Sessões",e.sessoes,"verificadas aqui"],
+   ["🧼","Higiene",estudioTemNota(e)?e.higiene+"%":"—","dos checkouts"],
+   ["🧴","Orienta o pós",estudioTemNota(e)?e.orientaPos+"%":"—","saiu sabendo cuidar"],
+   ["🤝","Acolhimento",estudioTemNota(e)?e.acolhimento+"%":"—","se sentiu acolhido"],
+   ["✈","Guests",e.guests,"tatuadores visitantes"],
+   ["🪑","Cadeiras",e.cadeiras||"—","em operação"]].forEach(function(x){
+   h+='<div class="stat"><div class="lbl">'+x[0]+' '+x[1]+'</div><div class="val">'+x[2]+'</div><div class="hint">'+x[3]+'</div></div>'});
+  h+='</div>';
+
   h+='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b small">O que os clientes responderam</span>'+tg("novo")+'</div>';
   if(estudioTemNota(e)){
    h+='<div class="tiny muted" style="margin-top:var(--e1)">'+e.checkouts+' checkouts avaliados, no fim da sessão, aqui dentro.</div>';
@@ -5776,6 +5829,8 @@ function vEstudio(){
    h+='<div class="tiny muted" style="margin-top:var(--e1)">Este estúdio ainda não enviou licença sanitária, então não tem o selo <b>Estúdio verificado</b>. A ausência do selo não afirma nada contra ele — só quer dizer que a plataforma não conferiu.</div></div>';
   }
 
+  }
+  if(abaE==="equipe"){
   h+='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b small">Quem tatua aqui</span>'+tg("novo")+'</div>';
   h+='<div class="lista" style="margin-top:var(--e2)">';
   e.residentes.forEach(function(n,i){
@@ -5787,6 +5842,7 @@ function vEstudio(){
   });
   h+='</div>';
   h+='<div class="tiny muted" style="margin-top:var(--e2)">Os selos acima são de cada pessoa. Os do estúdio são do lugar. Um não empresta reputação ao outro — nem para o bem, nem para o mal.</div></div>';
+  }
 
   /* ── Para tatuadores ──────────────────────────────────────────
      O mesmo dado, virado do avesso: quem vai passar uma temporada

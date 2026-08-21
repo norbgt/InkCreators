@@ -441,7 +441,9 @@ chk('nenhuma ação do perfil é só ícone', mudas.length === 0,
     mudas.length + ' botão(ões) sem palavra nenhuma');
 /* "Ver agenda" saiu: a agenda do tatuador não é pública. O cliente
    pede, ele decide. */
-['Pedir orçamento', 'Conversar', 'Seguir'].forEach(function (r) {
+/* O rótulo emagreceu a pedido dela: "Orçamento" — o ✨ e o contexto
+   dizem o verbo. */
+['Orçamento', 'Conversar', 'Seguir'].forEach(function (r) {
   chk('a ação "' + r + '" diz o que faz', tpf.indexOf(r) >= 0);
 });
 /* ── TRÊS ACESSOS, MESMO PESO ──────────────────────────────────────
@@ -494,9 +496,10 @@ var linhaNum=(tpf.split('class="perfilnum">')[1]||'').split('</div>')[0].replace
 chk('nota, anos de ofício e preço na mesma linha',
     /\d\.\d/.test(linhaNum) && /anos/.test(linhaNum) && /por hora/.test(linhaNum),
     'linha: "'+linhaNum.trim()+'"');
-chk('e os cifrões vêm explicados',
-    /faixa que ele costuma praticar/.test(tpf),
-    'cifrão sem legenda é a pessoa adivinhando quanto custa');
+/* A frase-legenda saiu a pedido dela — o guarda inverteu. */
+chk('e a frase-legenda dos cifrões não voltou',
+    !/faixa que ele costuma praticar/.test(tpf),
+    'a frase que ela mandou retirar voltou ao cabeçalho');
 chk('número tabular nas medidas',/\.perfilnum\{[^}]*tabular-nums/.test(css));
 
 S.route='estudio';S.estudioSel=(g.e("ESTUDIOS[0].id"));g.e("render()");

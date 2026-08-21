@@ -256,7 +256,7 @@ let eventosDoCliente = null, sessaoDoCliente = null;
      nenhum componente sobreviver. */
   ok("leu a bio, agora sempre visível", /class="perfilbio"/.test(g.tela()));
 
-  ok("pediu orçamento", g.clicar("Pedir orçamento") === true);
+  ok("pediu orçamento", g.clicar("Orçamento") === true);
   ok("assistente abriu", g.S.drawer === "assist" || g.S.autoAssist === true);
   g.escopo("closeDrawer()");
 

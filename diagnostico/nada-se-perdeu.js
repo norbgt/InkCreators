@@ -77,6 +77,15 @@ var SAIRAM_DE_PROPOSITO = [
   ["Cada check-in registra cidade e estúdio.", "morava no mesmo cartão da seção que saiu, e era a segunda resposta para a pergunta que 'Onde eu tatuei' já responde — a diferença era só a fonte: esta lia os check-ins, aquela lê o histórico de estúdios. Duas listas de lugares na mesma aba, com títulos quase iguais"],
   ["São Paulo · Brasil", "morava no mesmo cartão da seção que saiu, e era a segunda resposta para a pergunta que 'Onde eu tatuei' já responde — a diferença era só a fonte: esta lia os check-ins, aquela lê o histórico de estúdios. Duas listas de lugares na mesma aba, com títulos quase iguais. Os lugares continuam nomeados em 'Onde você já tatuou', linha a linha, exceto os que só existem no mock de check-in"],
   ["Studio Felipe", "morava no mesmo cartão da seção que saiu, e era a segunda resposta para a pergunta que 'Onde eu tatuei' já responde — a diferença era só a fonte: esta lia os check-ins, aquela lê o histórico de estúdios. Duas listas de lugares na mesma aba, com títulos quase iguais. Este aparecia só na lista de check-ins e não está no histórico de estúdios do mock"],
+  ["18 sessões verificadas","os textos dos selos emagreceram a pedido dela (20/08): selo é etiqueta, não frase — a regra inteira continua no title. virou '18 verificadas'"],
+  ["Estúdio verificado","os textos dos selos emagreceram a pedido dela (20/08): selo é etiqueta, não frase — a regra inteira continua no title. virou 'Verificado'"],
+  ["11 guests recebidos","os textos dos selos emagreceram a pedido dela (20/08): selo é etiqueta, não frase — a regra inteira continua no title. virou '11 guests'"],
+  ["3 anos de casa","os textos dos selos emagreceram a pedido dela (20/08): selo é etiqueta, não frase — a regra inteira continua no title. virou '3 anos'"],
+  ["O valor final sai do orçamento — os cifrões são a faixa que ele costuma praticar.",
+   "a frase saiu do cabeçalho do perfil a pedido dela; os cifrões continuam na linha de medidas e a explicação vive no title do selo de preço do pedido"],
+  ["32 sessões verificadas","os textos dos selos emagreceram a pedido dela (20/08): selo é etiqueta, não frase — a regra inteira continua no title. os selos dos residentes na equipe do estúdio seguem a mesma etiqueta: '32 verificadas'"],
+  ["25 sessões verificadas","os textos dos selos emagreceram a pedido dela (20/08): selo é etiqueta, não frase — a regra inteira continua no title. idem — '25 verificadas'"],
+  ["4.8 em 34 avaliações","os textos dos selos emagreceram a pedido dela (20/08): selo é etiqueta, não frase — a regra inteira continua no title. virou '4.8 ★ (34)'"],
   ["Ver todos →",
    "o atalho morria junto com a prévia dos lançamentos, pela mesma razão: ele existia para trocar de sub-aba, e não há mais sub-aba para trocar"]
 ];
@@ -137,6 +146,7 @@ var SUBABAS = [
   ["fin", ["dinheiro", "lancamentos"]],
   ["mev", ["resumo", "quotes", "payments"]],
   ["rep", ["avaliacoes", "estudios"]],
+  ["abaEstudio", ["fotos", "equipe", "insta", "reputacao"]],
   /* As abas do perfil público nunca foram varridas: o roteiro
      comparava só o portfólio, e tudo o que estava nas outras cinco
      passava sem ser olhado. Descoberto ao fundir Avaliações e
@@ -211,6 +221,8 @@ function varrer(g, ehNova) {
     SUBABAS.forEach(function (par) {
       par[1].forEach(function (v) {
         g.S.sub = g.S.sub || {}; g.S.sub[par[0]] = v;
+        if (par[0] === "abaEstudio") g.S.abaEstudio = v;
+        if (par[0] === "abaPerfil") g.S.abaPerfil = v;
         var rota = t[1], ch = t[0] + "/" + t[1];
         /* Na interface nova, entra pela porta nova; a chave continua
            sendo o nome antigo, para as duas varreduras casarem. */
