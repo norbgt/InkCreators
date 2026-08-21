@@ -291,6 +291,27 @@ chk("e a aba antiga se denuncia",
     /aba antiga\? clique/.test(code),
     "a aba envelhece em silêncio de novo");
 
+/* ── 4e. A ANATOMIA DA LINHA ─────────────────────────────────────
+   A mesma linha era escrita de três jeitos: itemtxt/itemfim, o
+   min-width:0 à mão (19 lugares) e o sp com text-align inline (6).
+   Virou um vocabulário — lmedia, ltxt, lfim, lacoes — e este guarda
+   impede as grafias antigas de renascerem, porque é assim que a
+   variante-da-mesma-coisa volta: um lugar de cada vez, sem ninguém
+   decidir. */
+secao("4e. A ANATOMIA DA LINHA");
+chk("o vocabulário existe",
+    /\.ltxt\{min-width:0;flex:1\}/.test(css) && /\.lfim\{/.test(css) &&
+    /\.lacoes\{/.test(css) && /\.lmedia\{/.test(css));
+chk("nenhum min-width:0 escrito à mão no render",
+    !/style="min-width:0/.test(code.replace(/\/\*[\s\S]*?\*\//g,"")),
+    "a grafia à mão voltou — é a porta da terceira variante");
+chk("nenhum sp com text-align inline fazendo papel de lfim",
+    !/class="sp" style="text-align:right"/.test(code),
+    "o fim da linha voltou a ser improvisado");
+chk("o vocabulário velho está morto",
+    !/item(txt|fim|foto)/.test(code.replace(/\/\*[\s\S]*?\*\//g,"")),
+    "itemtxt/itemfim/itemfoto renasceram ao lado do vocabulário novo");
+
 /* ── 4d. A AUTORIA ───────────────────────────────────────────────
    A ideia é dela e está sendo criada aqui: nenhuma referência à
    ferramenta de origem aparece em tela nenhuma. E os direitos

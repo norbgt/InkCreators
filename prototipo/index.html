@@ -459,10 +459,27 @@ label.lb{font-size:var(--t-micro);color:var(--muted-foreground);display:block;ma
 .lrow.clicavel:hover{background:var(--muted)}
 .lrow.clicavel.on{background:var(--x-accent-bg)}
 .lrow.clicavel.compacto{padding:10px 13px}
-.itemtxt{min-width:0;flex:1}
-.itemfim{text-align:right;flex-shrink:0;display:flex;flex-direction:column;gap:2px}
-.itemfoto{width:46px;height:46px;border-radius:var(--r-sm);background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
-.itemfoto .ico{width:24px;height:24px;color:var(--muted-foreground)}
+/* ═══ A ANATOMIA DA LINHA — UM VOCABULÁRIO SÓ ═════════════════════
+   A mesma linha de lista era escrita de três jeitos: ltxt/lfim
+   nas clicáveis, style="min-width:0" à mão em dezenove lugares, e
+   class="sp" com text-align inline em outros seis. Três grafias para
+   as mesmas quatro partes — a variante da mesma coisa que ela mandou
+   caçar.
+
+   As quatro partes, e acabou:
+     .lmedia  o que identifica (foto, avatar, ícone)
+     .ltxt    título e metadados — cresce, corta, nunca empurra
+     .lfim    valor e estado — direita, nunca quebra
+     .lacoes  botões — fora do lfim, para o toque não disputar
+
+   Grade e lista continuam DUAS coisas quando são duas perguntas
+   (feed descobre, loja compara, painel lê número); a linha de lista
+   é UMA coisa em todo lugar. */
+.ltxt{min-width:0;flex:1}
+.lfim{margin-left:auto;text-align:right;flex-shrink:0;display:flex;flex-direction:column;gap:2px;align-items:flex-end}
+.lacoes{display:flex;gap:var(--e1);margin-left:10px;flex-shrink:0}
+.lmedia{width:46px;height:46px;border-radius:var(--r-sm);background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.lmedia .ico{width:24px;height:24px;color:var(--muted-foreground)}
 .chip{border:var(--hair) solid var(--border);background:var(--card);border-radius:var(--r-pill);
   padding:6px 12px;font-size:var(--t-meta);font-weight:400;white-space:nowrap;min-height:32px;
   transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease)}
@@ -3210,7 +3227,7 @@ function aCard(a){
   h+='<div class="pips">';for(var k=0;k<5;k++)h+='<i class="'+(k===i?"on":"")+'"></i>';h+='</div>';
  }
  h+='</div><div class="pad">';
- h+='<div class="row" style="align-items:flex-start"><div class="av">'+ini(a.name)+'</div><div style="min-width:0;flex:1">';
+ h+='<div class="row" style="align-items:flex-start"><div class="av">'+ini(a.name)+'</div><div class="ltxt">';
  h+='<div class="b small">'+a.name+(a.verified?' <span style="color:var(--accent)">✔</span>':'')+'</div>';
  h+='<div class="tiny muted">'+a.studio+'</div>';
  h+='<div class="tiny muted">📍 '+a.city+'/'+a.state+'</div></div>';
@@ -3561,10 +3578,10 @@ function listaEventos(){
  l.slice(0,ate).forEach(function(e,k){
   h+='<button class="lrow clicavel '+(S.evSel===e.id?"on":"")+'" onclick="S.evSel=\''+e.id+'\';render()">';
   h+='<div class="datebox"><span class="m">'+e.d.split(" ").pop()+'</span><span class="d">'+e.d.split(/[–\s]/)[0]+'</span></div>';
-  h+='<div class="itemtxt"><div class="b small">'+e.n+'</div>';
+  h+='<div class="ltxt"><div class="b small">'+e.n+'</div>';
   h+='<div class="tiny muted">'+e.t+' · '+e.city+'</div>';
   h+='<div class="tiny muted">a '+e.km+' km de você</div></div>';
-  h+='<div class="itemfim"><div class="b small">'+(e.cost?money(e.cost):"Grátis")+'</div>';
+  h+='<div class="lfim"><div class="b small">'+(e.cost?money(e.cost):"Grátis")+'</div>';
   h+='<span class="tiny muted">participar ›</span></div>';
   h+='</button>';
  });
@@ -3603,11 +3620,11 @@ function listaCursos(){
  h+='<div class="lista">';
  c.slice(0,ate).forEach(function(x){
   h+='<button class="lrow clicavel compacto">';
-  h+='<div class="itemfoto">'+x.e+'</div>';
-  h+='<div class="itemtxt"><div class="b small">'+x.n+'</div>';
+  h+='<div class="lmedia">'+x.e+'</div>';
+  h+='<div class="ltxt"><div class="b small">'+x.n+'</div>';
   h+='<div class="tiny muted">'+x.who+' · '+x.dur+'</div>';
   h+='<div class="row wrapf" style="gap:var(--e1);margin-top:var(--e1)"><span class="badge">'+x.t+'</span><span class="badge">'+x.lv+'</span></div></div>';
-  h+='<div class="itemfim"><div class="b small">'+(x.cost?money(x.cost):"Grátis")+'</div>';
+  h+='<div class="lfim"><div class="b small">'+(x.cost?money(x.cost):"Grátis")+'</div>';
   h+='<span class="tiny '+(x.spots<6?"":"muted")+'" style="'+(x.spots<6?"color:var(--x-warning)":"")+'">'+x.spots+' vagas</span></div>';
   h+='</button>';
  });
@@ -3664,7 +3681,7 @@ function vArtist(){
  /* 1. QUEM É */
  h+='<div class="row" style="gap:var(--e3);align-items:flex-start">';
  h+='<div class="av" style="width:56px;height:56px;font-size:17px;flex-shrink:0">'+ini(a.name)+'</div>';
- h+='<div style="min-width:0;flex:1">';
+ h+='<div class="ltxt">';
  h+='<h1 class="perfilnome">'+a.name+(a.verified?' <span class="vfd" title="identidade verificada">✔</span>':'')+'</h1>';
  h+='<div class="perfilloc">'+a.studio+' · '+a.city+'/'+a.state+'</div>';
  /* Estilos junto do nome: é o que a pessoa procura, e antes ficavam
@@ -3777,11 +3794,11 @@ function vArtist(){
  if(aba==="cursos"){
   h+='<div class="lista" style="margin-top:var(--e4)">';
   cursosDele.forEach(function(x){
-   h+='<button class="lrow clicavel compacto"><div class="itemfoto">'+x.e+'</div>';
-   h+='<div class="itemtxt"><div class="b small">'+x.n+'</div>';
+   h+='<button class="lrow clicavel compacto"><div class="lmedia">'+x.e+'</div>';
+   h+='<div class="ltxt"><div class="b small">'+x.n+'</div>';
    h+='<div class="tiny muted">'+x.dur+' · início '+x.st+'</div>';
    h+='<div class="row wrapf" style="gap:var(--e1);margin-top:var(--e1)"><span class="badge">'+x.t+'</span><span class="badge">'+x.lv+'</span></div></div>';
-   h+='<div class="itemfim"><div class="b small">'+(x.cost?money(x.cost):"Grátis")+'</div>';
+   h+='<div class="lfim"><div class="b small">'+(x.cost?money(x.cost):"Grátis")+'</div>';
    h+='<span class="tiny '+(x.spots<6?"":"muted")+'" style="'+(x.spots<6?"color:var(--x-warning)":"")+'">'+x.spots+' vagas</span></div></button>'});
   h+='</div>';
   h+='<div class="tiny muted" style="margin-top:var(--e2)">Cursos ministrados por este artista'+tg("mock")+'</div>';
@@ -3790,8 +3807,8 @@ function vArtist(){
   h+='<div class="lista" style="margin-top:var(--e4)">';
   eventosDele.forEach(function(e){
    h+='<button class="lrow clicavel"><div class="datebox"><span class="m">'+e.d.split(" ").pop()+'</span><span class="d">'+e.d.split(/[–\s]/)[0]+'</span></div>';
-   h+='<div class="itemtxt"><div class="b small">'+e.n+'</div><div class="tiny muted">'+e.t+' · '+e.city+'</div></div>';
-   h+='<div class="itemfim"><div class="b small">'+(e.cost?money(e.cost):"Grátis")+'</div><span class="tiny muted">participar ›</span></div></button>'});
+   h+='<div class="ltxt"><div class="b small">'+e.n+'</div><div class="tiny muted">'+e.t+' · '+e.city+'</div></div>';
+   h+='<div class="lfim"><div class="b small">'+(e.cost?money(e.cost):"Grátis")+'</div><span class="tiny muted">participar ›</span></div></button>'});
   h+='</div>';
   h+='<div class="tiny muted" style="margin-top:var(--e2)">Onde encontrar este artista'+tg("mock")+'</div>';
  }
@@ -3836,7 +3853,7 @@ function vArtist(){
    h+='<div class="regras">';
    porCat[c].forEach(function(x){
     var d=SELO_POR_ID[x.id];
-    h+='<div class="regra"><span class="ri">'+x.ic+'</span><div style="min-width:0">';
+    h+='<div class="regra"><span class="ri">'+x.ic+'</span><div class="ltxt">';
     h+='<div class="row" style="gap:var(--e2)"><span class="b small">'+x.texto+'</span>'+
        (d.compravel?'<span class="badge">pago</span>':'')+'</div>';
     h+='<div class="tiny muted" style="margin-top:var(--e1)">'+d.regra+'</div>';
@@ -3855,7 +3872,7 @@ function vArtist(){
    h+='<div class="tiny muted" style="margin-top:var(--e1)">Aparece aqui para você saber o que o selo exige — não para o cliente contar o que falta.</div>';
    h+='<div class="regras">';
    faltando.forEach(function(d){
-    h+='<div class="regra" style="opacity:.62"><span class="ri">'+d.ic+'</span><div style="min-width:0">';
+    h+='<div class="regra" style="opacity:.62"><span class="ri">'+d.ic+'</span><div class="ltxt">';
     h+='<div class="b small">'+d.nome+'</div>';
     h+='<div class="tiny muted" style="margin-top:var(--e1)">'+d.regra+'</div>';
     if(d.id==="recomendado")h+='<div class="tiny" style="margin-top:var(--e1);color:var(--x-warning)">'+porqueNaoRecomendado(a)+'</div>';
@@ -4320,7 +4337,7 @@ function vCadastro(){
   // entrou é o que falta para o passo 2 ficar igual ao do outro
   // caminho, onde a pessoa acabou de digitar e ainda lembra.
   if(c.viaGoogle){
-   h+='<div class="banner" style="margin-bottom:var(--e4)"><div style="min-width:0">';
+   h+='<div class="banner" style="margin-bottom:var(--e4)"><div class="ltxt">';
    h+='<div class="b small">Conectado com o Google</div>';
    h+='<div class="tiny muted" style="overflow:hidden;text-overflow:ellipsis">'+escapar(c.nome)+' · '+escapar(c.email)+'</div>';
    h+='</div><button class="btn sm sp" onclick="trocarContaGoogle()">Trocar</button></div>';
@@ -4576,7 +4593,7 @@ function avisoDeConfirmacao(){
  var h='<div class="card pad avisopendente" style="margin-top:var(--e3)">';
  h+='<div class="row" style="gap:var(--e2);align-items:flex-start">';
  h+='<span class="pendicone">⚠</span>';
- h+='<div style="min-width:0;flex:1">';
+ h+='<div class="ltxt">';
  h+='<div class="b small">Confirme seu e-mail</div>';
  h+='<div class="small" style="margin-top:var(--e1)">Mandamos um link para <b>'+escapar(email)+'</b>. Até você clicar nele, sua conta funciona como visita.</div>';
  h+='<div class="small" style="margin-top:var(--e2)"><b>Você pode</b> navegar pelo catálogo, abrir perfis e ver portfólios.</div>';
@@ -5122,13 +5139,13 @@ function vMe(sub){
    var pub=passPublico(t);
    h+='<div class="lrow clicavel" style="cursor:default">';
    h+='<div class="thumbsq" style="background-image:'+tex(t.seed)+'"></div>';
-   h+='<div class="itemtxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+t.parte+'</span>';
+   h+='<div class="ltxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+t.parte+'</span>';
    h+=t.verificado?'<span class="badge ok" title="Confirmado por check-in na hora da sessão">✓ verificado</span>'
                   :'<span class="badge" title="Você registrou depois; ninguém confirmou">declarado</span>';
    h+='</div>';
    h+='<div class="tiny muted">'+(SL[t.estilo]||t.estilo)+' · '+t.artista+' · '+t.estudio+'</div>';
    h+='<div class="tiny muted">'+t.cidade+(t.uf?"/"+t.uf:"")+' · '+t.pais+' · '+t.quando+' · '+horasBonitas(t.horas)+'</div></div>';
-   h+='<div class="itemfim"><button class="btn sm '+(pub?"primary":"")+'" onclick="alternarPassPublico(\''+t.id+'\')">'+(pub?"Visível":"🔒 Só eu")+'</button></div>';
+   h+='<div class="lfim"><button class="btn sm '+(pub?"primary":"")+'" onclick="alternarPassPublico(\''+t.id+'\')">'+(pub?"Visível":"🔒 Só eu")+'</button></div>';
    h+='</div>';
   });
   h+='</div>';
@@ -5144,7 +5161,7 @@ function vMe(sub){
   h+='<div class="tiny muted" style="margin-top:var(--e1)">Nenhuma conquista cobra a próxima. Elas aparecem depois do que você viveu, nunca antes.</div>';
   h+='<div class="marcos" style="margin-top:var(--e2)">';
   mk.forEach(function(x){
-   h+='<div class="marco"><span class="mic">'+x.ic+'</span><div style="min-width:0">';
+   h+='<div class="marco"><span class="mic">'+x.ic+'</span><div class="ltxt">';
    h+='<div class="b small">'+x.t+'</div><div class="tiny muted">'+x.p+(x.d?' · '+x.d:'')+'</div></div></div>';
   });
   h+='</div>';
@@ -5168,10 +5185,10 @@ function vMe(sub){
   h+='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b">Sua trilha</span>'+tg("novo")+'</div>';
   h+='<div class="lista" style="margin-top:var(--e2)">';
   FORMACAO.forEach(function(f){
-   h+='<div class="lrow clicavel" style="cursor:default"><div class="itemfoto">'+(f.estado==="concluido"?"✅":"🕘")+'</div>';
-   h+='<div class="itemtxt"><div class="b small">'+f.curso+'</div>';
+   h+='<div class="lrow clicavel" style="cursor:default"><div class="lmedia">'+(f.estado==="concluido"?"✅":"🕘")+'</div>';
+   h+='<div class="ltxt"><div class="b small">'+f.curso+'</div>';
    h+='<div class="tiny muted">'+f.quem+' · '+f.horas+'h · '+f.nivel+'</div></div>';
-   h+='<div class="itemfim"><span class="badge '+(f.estado==="concluido"?"ok":"warn")+'">'+(f.estado==="concluido"?"concluído":"em curso")+'</span>';
+   h+='<div class="lfim"><span class="badge '+(f.estado==="concluido"?"ok":"warn")+'">'+(f.estado==="concluido"?"concluído":"em curso")+'</span>';
    h+='<span class="tiny muted">'+f.quando+'</span></div></div>';
   });
   h+='</div>';
@@ -5202,7 +5219,7 @@ function vMe(sub){
   h+='<div style="margin-top:var(--e3)">';
   ss.forEach(function(x){
    h+='<div class="lrow"><div class="av">'+ini(x.artista)+'</div>';
-   h+='<div style="min-width:0;flex:1"><div class="row" style="gap:var(--e2)"><span class="b small">'+x.quando+'</span>';
+   h+='<div class="ltxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+x.quando+'</span>';
    h+=x.estado==="confirmada"?'<span class="badge ok">confirmada</span>':'<span class="badge warn">'+x.estado+'</span>';
    h+='</div>';
    h+='<div class="tiny muted">'+x.area+' · '+(SL[x.estilo]||x.estilo)+' · '+horasBonitas(x.horas)+' previstas</div>';
@@ -5333,9 +5350,9 @@ function vCheckin(){
    ["📋","Cursos, se você quiser aprender","de quem tatua de verdade","go('plataforma');S.tab='events';S.evAba='cursos'"],
    ["🌐","Seu passaporte","o que você já fez, e onde","go('me-passaporte')"]
   ].forEach(function(x){
-   h+='<button class="lrow clicavel" onclick="'+x[3]+'"><div class="itemfoto">'+x[0]+'</div>';
-   h+='<div class="itemtxt"><div class="b small">'+x[1]+'</div><div class="tiny muted">'+x[2]+'</div></div>';
-   h+='<div class="itemfim"><span class="tiny muted">›</span></div></button>';
+   h+='<button class="lrow clicavel" onclick="'+x[3]+'"><div class="lmedia">'+x[0]+'</div>';
+   h+='<div class="ltxt"><div class="b small">'+x[1]+'</div><div class="tiny muted">'+x[2]+'</div></div>';
+   h+='<div class="lfim"><span class="tiny muted">›</span></div></button>';
   });
   h+='</div>';
   h+='<div class="tiny muted" style="margin-top:var(--e2)">Quando a sessão terminar, peço a sua avaliação — com tudo ainda fresco.</div>';
@@ -5399,11 +5416,11 @@ function escanearCheckout(){
 function cqRow(q,full){
  var t=q.status==="respondido"?"ok":q.status==="agendado"?"acc":q.status==="recusado"?"bad":q.status==="expirado"?"":"warn";
  var h='<div class="lrow"><div class="thumb" style="background-image:'+tex(q.seed)+'"></div>';
- h+='<div style="min-width:0"><div class="b small">'+q.area+' · '+q.st.map(function(s){return SL[s]}).join(", ")+'</div>';
+ h+='<div class="ltxt"><div class="b small">'+q.area+' · '+q.st.map(function(s){return SL[s]}).join(", ")+'</div>';
  h+='<div class="small muted">'+q.studio+' · '+q.resp+(q.resp===1?" resposta":" respostas")+' · '+q.when+'</div></div>';
- h+='<div class="sp" style="text-align:right"><div class="b small">'+(q.offer?brl(q.offer):brl(q.min)+"–"+brl(q.max))+'</div><span class="badge '+t+'">'+q.status+'</span></div>';
+ h+='<div class="lfim"><div class="b small">'+(q.offer?brl(q.offer):brl(q.min)+"–"+brl(q.max))+'</div><span class="badge '+t+'">'+q.status+'</span></div>';
  if(full){
-  h+='<div class="row" style="margin-left:10px;gap:var(--e1)">';
+  h+='<div class="lacoes">';
   if(q.status==="respondido")h+='<button class="btn sm" onclick="alert(\'acceptMatch(quote_id, artist_id)\')">Aceitar</button><button class="btn sm" onclick="alert(\'declineMatch(quote_id, artist_id)\')">Recusar</button>';
   else if(q.status==="aguardando")h+='<button class="btn sm" onclick="alert(\'cancelQuote(id)\')">Cancelar</button>';
   else h+='<button class="btn sm">Ver</button>';
@@ -5641,7 +5658,7 @@ function vEstudio(){
  h+='<div class="perfilcab">';
  h+='<div class="row" style="gap:var(--e3);align-items:flex-start">';
  h+='<div class="av" style="width:56px;height:56px;font-size:17px;flex-shrink:0">'+ini(e.nome)+'</div>';
- h+='<div style="min-width:0;flex:1"><h1 class="perfilnome">'+e.nome+'</h1>';
+ h+='<div class="ltxt"><h1 class="perfilnome">'+e.nome+'</h1>';
  h+='<div class="perfilloc">'+(e.handle?'@'+e.handle+' · ':'')+e.cidade+(e.uf?'/'+e.uf:'')+'</div>';
  h+='<div class="perfilnum">'+e.sessoes+' sessões verificadas aqui'+(e.desde?' · desde '+e.desde:'')+'</div>';
  h+='</div></div>';
@@ -5708,9 +5725,9 @@ function vEstudio(){
   e.residentes.forEach(function(n,i){
    var art=ARTISTS.filter(function(x){return x.name===n})[0]||ARTISTS[i%ARTISTS.length];
    h+='<button class="lrow clicavel" onclick="go(\'artist\',\''+art.id+'\')"><div class="av">'+ini(n)+'</div>';
-   h+='<div class="itemtxt"><div class="b small">'+n+'</div>';
+   h+='<div class="ltxt"><div class="b small">'+n+'</div>';
    h+='<div class="selos" style="margin-top:var(--e1)">'+selosNoFeed(art).map(function(x){return selo(x,true)}).join("")+'</div></div>';
-   h+='<div class="itemfim"><span class="tiny muted">ver perfil ›</span></div></button>';
+   h+='<div class="lfim"><span class="tiny muted">ver perfil ›</span></div></button>';
   });
   h+='</div>';
   h+='<div class="tiny muted" style="margin-top:var(--e2)">Os selos acima são de cada pessoa. Os do estúdio são do lugar. Um não empresta reputação ao outro — nem para o bem, nem para o mal.</div></div>';
@@ -5755,10 +5772,10 @@ function vReivindicar(){
    {id:"x2",nome:"Ateliê Nove",cidade:"Curitiba",uf:"PR",sessoes:9,reivindicado:false}]
  ).forEach(function(e){
   h+='<button class="lrow clicavel" onclick="S.estudioSel=\''+e.id+'\';alert(\'reivindicarEstudio(studio_id) — pede CNPJ, endereço e licença\')">';
-  h+='<div class="itemfoto">🏪</div>';
-  h+='<div class="itemtxt"><div class="b small">'+e.nome+'</div>';
+  h+='<div class="lmedia">🏪</div>';
+  h+='<div class="ltxt"><div class="b small">'+e.nome+'</div>';
   h+='<div class="tiny muted">'+e.cidade+(e.uf?'/'+e.uf:'')+' · '+e.sessoes+' sessões com check-in</div></div>';
-  h+='<div class="itemfim"><span class="tiny muted">reivindicar ›</span></div></button>';
+  h+='<div class="lfim"><span class="tiny muted">reivindicar ›</span></div></button>';
  });
  h+='</div>';
  h+='<div class="tiny muted" style="margin-top:var(--e2)">Reivindicar pede CNPJ, endereço e licença sanitária. Sem os três não há selo de estúdio verificado — e sem reivindicação não há nota de higiene visível.</div>';
@@ -5841,9 +5858,9 @@ function vForn(sub){
     ["Igor Falcão","@igorfalcao","Porto Alegre","comprou 2 vezes"],
     ["Ana Petrova","@anapetrova","São Paulo","comprou 9 vezes"]].forEach(function(x){
     h+='<div class="lrow clicavel" style="cursor:default"><div class="av">'+ini(x[0])+'</div>';
-    h+='<div class="itemtxt"><div class="b small">'+x[0]+'</div><div class="tiny muted">'+x[1]+' · '+x[2]+'</div>';
+    h+='<div class="ltxt"><div class="b small">'+x[0]+'</div><div class="tiny muted">'+x[1]+' · '+x[2]+'</div>';
     h+='<div class="tiny muted">'+x[3]+'</div></div>';
-    h+='<div class="itemfim"><button class="btn sm" onclick="alert(\'pedirRecomendacao(brand_id, artist_id)\')">Pedir</button></div></div>';
+    h+='<div class="lfim"><button class="btn sm" onclick="alert(\'pedirRecomendacao(brand_id, artist_id)\')">Pedir</button></div></div>';
    });
    h+='</div></div>';
    return h+'</div></main>';
@@ -5853,7 +5870,7 @@ function vForn(sub){
   h+='<div style="margin-top:var(--e3)">';
   RECOMENDACOES.forEach(function(r){
    h+='<div class="lrow" style="align-items:flex-start"><div class="av">'+ini(r.de)+'</div>';
-   h+='<div style="min-width:0;flex:1"><div class="row" style="gap:var(--e2)"><span class="b small">'+r.de+'</span>';
+   h+='<div class="ltxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+r.de+'</span>';
    h+='<span class="tiny muted">'+r.h+'</span>';
    h+=(r.peso==="alto"?'<span class="badge acc">alto alcance</span>':'')+'</div>';
    h+='<div class="tiny muted">sobre '+r.produto+' · '+r.quando+'</div>';
@@ -5875,10 +5892,10 @@ function vForn(sub){
    h+='<div class="lista" style="margin-top:var(--e3)">';
    ativ.forEach(function(e){
     h+='<div class="lrow clicavel" style="cursor:default"><div class="av">'+ini(e.nome)+'</div>';
-    h+='<div class="itemtxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+e.nome+'</span><span class="badge ok">ativo</span></div>';
+    h+='<div class="ltxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+e.nome+'</span><span class="badge ok">ativo</span></div>';
     h+='<div class="tiny muted">'+e.h+' · '+e.cidade+' · '+(SL[e.estilo]||e.estilo)+'</div>';
     h+='<div class="tiny muted">desde '+e.desde+' · '+e.alcance.toLocaleString("pt-BR")+' seguidores aqui</div></div>';
-    h+='<div class="itemfim"><div class="b small">'+e.vendas+'</div><span class="tiny muted">vendas</span></div></div>';
+    h+='<div class="lfim"><div class="b small">'+e.vendas+'</div><span class="tiny muted">vendas</span></div></div>';
    });
    h+='</div></div>';
    return h+'</div></main>';
@@ -5889,11 +5906,11 @@ function vForn(sub){
   h+='<div class="lista" style="margin-top:var(--e3)">';
   EMBAIXADORES.filter(function(x){return x.estado!=="ativo"}).forEach(function(e){
    h+='<div class="lrow clicavel" style="cursor:default"><div class="av">'+ini(e.nome)+'</div>';
-   h+='<div class="itemtxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+e.nome+'</span>';
+   h+='<div class="ltxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+e.nome+'</span>';
    h+='<span class="badge '+(e.estado==="recusou"?"bad":"warn")+'">'+e.estado+'</span></div>';
    h+='<div class="tiny muted">'+e.h+' · '+e.cidade+' · '+(SL[e.estilo]||e.estilo)+'</div>';
    h+='<div class="tiny muted">'+e.desde+' · '+e.alcance.toLocaleString("pt-BR")+' seguidores aqui</div></div>';
-   h+='<div class="itemfim">'+(e.estado==="recusou"
+   h+='<div class="lfim">'+(e.estado==="recusou"
      ? '<span class="tiny muted">não insistir</span>'
      : '<button class="btn sm" onclick="alert(\'lembrarConvite(brand_id, artist_id)\')">Lembrar</button>')+'</div></div>';
   });
@@ -5927,13 +5944,13 @@ function vForn(sub){
   h+='<div class="lista" style="margin-top:var(--e3)">';
   FORN_PRODUTOS.forEach(function(x){
    var recs=RECOMENDACOES.filter(function(r){return r.produto===x.n});
-   h+='<div class="lrow clicavel" style="cursor:default"><div class="itemfoto">'+x.e+'</div>';
-   h+='<div class="itemtxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+x.n+'</span>';
+   h+='<div class="lrow clicavel" style="cursor:default"><div class="lmedia">'+x.e+'</div>';
+   h+='<div class="ltxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+x.n+'</span>';
    h+=(recs.length?'<span class="badge acc" title="Recomendado por tatuador">★ '+recs.length+'</span>':'')+'</div>';
    h+='<div class="tiny muted">'+x.cat+' · '+x.vendas+' vendidos</div>';
    h+=(x.estoque?'<div class="tiny muted">'+x.estoque+' em estoque</div>'
                 :'<div class="tiny" style="color:var(--x-warning)">sem estoque — fora da vitrine</div>')+'</div>';
-   h+='<div class="itemfim"><div class="b small">'+brl(x.preco)+'</div><span class="tiny muted">editar ›</span></div></div>';
+   h+='<div class="lfim"><div class="b small">'+brl(x.preco)+'</div><span class="tiny muted">editar ›</span></div></div>';
   });
   h+='</div></div>';
  }
@@ -6101,11 +6118,11 @@ function vStudio(sub){
    h+='<div style="margin-top:var(--e2)">';
    SQ_ENVIADOS.forEach(function(q){
     h+='<div class="lrow"><div class="av">'+ini(q.c)+'</div>';
-    h+='<div style="min-width:0;flex:1"><div class="row" style="gap:var(--e2)"><span class="b small">'+q.c+'</span>';
+    h+='<div class="ltxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+q.c+'</span>';
     h+='<span class="badge '+corDaSituacao(q.situacao)+'">'+q.situacao+'</span></div>';
     h+='<div class="tiny muted">'+q.area+' · '+q.st.map(function(x){return SL[x]}).join(", ")+' · proposta '+q.quando+'</div>';
     h+='<div class="tiny" style="margin-top:var(--e1)">'+q.resposta+'</div></div>';
-    h+='<div class="sp" style="text-align:right"><div class="b small">'+brl(q.prop)+'</div>';
+    h+='<div class="lfim"><div class="b small">'+brl(q.prop)+'</div>';
     h+='<button class="btn sm" style="margin-top:var(--e1)">'+(q.situacao==="aceito"?"Marcar data":q.situacao==="aguardando"?"Lembrar":"Ver")+'</button></div></div>';
    });
    h+='</div>';
@@ -6177,7 +6194,7 @@ function vStudio(sub){
    h+='<div class="lrow"><div class="datebox"><span class="m">'+b.m+'</span><span class="d">'+b.d+'</span></div>';
    /* "previstas" não é enfeite: a duração de verdade sai do relógio do
       check-in, e é ela que vira desempenho por estilo. */
-   h+='<div style="min-width:0"><div class="b small">'+b.c+'</div><div class="small muted">'+b.area+' · '+b.h+'h previstas</div></div>';
+   h+='<div class="ltxt"><div class="b small">'+b.c+'</div><div class="small muted">'+b.area+' · '+b.h+'h previstas</div></div>';
    h+='<div class="sp b small">'+brl(b.cents)+'</div>';
    /* "Detalhes" era um botão sem onclick: não fazia nada desde que
       nasceu, e estava roubando a largura do único botão que faz. */
@@ -6258,7 +6275,7 @@ function vStudio(sub){
     }
     itens.forEach(function(x){
      h+='<div class="lrow"><i class="pt '+x.origem+'" style="flex-shrink:0"></i>';
-     h+='<div style="min-width:0;flex:1"><div class="b small">'+x.titulo+'</div>';
+     h+='<div class="ltxt"><div class="b small">'+x.titulo+'</div>';
      h+='<div class="tiny muted">'+x.hora+(x.extra?" · "+x.extra:"")+'</div></div>';
      if(x.origem==="ink")
       h+='<button class="btn sm primary acaoLinha" onclick="abrirCheckin('+x.idx+')">Gerar QR</button>';
@@ -6281,7 +6298,7 @@ function vStudio(sub){
    h+='<div class="card pad" style="margin-top:var(--e4)">';
    h+='<div class="row" style="gap:var(--e3);align-items:flex-start">';
    h+='<div class="av" style="background:var(--muted);flex-shrink:0">G</div>';
-   h+='<div style="min-width:0;flex:1"><div class="row" style="gap:var(--e2)"><span class="b">Google Agenda</span>';
+   h+='<div class="ltxt"><div class="row" style="gap:var(--e2)"><span class="b">Google Agenda</span>';
    h+=S.agendaGoogle?'<span class="badge ok">conectada</span>':'<span class="badge">opcional</span>';
    h+='</div>';
    h+='<div class="small muted" style="margin-top:var(--e1)">'+(S.agendaGoogle
@@ -6351,7 +6368,7 @@ function vStudio(sub){
    h+='<div style="margin-top:var(--e2)">';
    deOutros.forEach(function(e){
     h+='<div class="lrow"><div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:19px">'+(e.e||"🎟")+'</div>';
-    h+='<div style="min-width:0"><div class="b small">'+e.n+'</div><div class="tiny muted">'+(e.t||"")+' · '+(e.d||e.st)+'</div></div>';
+    h+='<div class="ltxt"><div class="b small">'+e.n+'</div><div class="tiny muted">'+(e.t||"")+' · '+(e.d||e.st)+'</div></div>';
     h+='<div class="sp"><span class="badge acc">inscrito</span></div></div>'});
    h+='</div></div>';
    return h+'</div></main>';
@@ -6361,7 +6378,7 @@ function vStudio(sub){
      '<button onclick="aindaMaquete(\'Criar evento ou curso\')" class="btn sm sp">＋ Novo</button></div><div style="margin-top:var(--e2)">';
   meus.forEach(function(e){
    h+='<div class="lrow"><div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:19px">'+(e.e||"🎟")+'</div>';
-   h+='<div style="min-width:0"><div class="b small">'+e.n+'</div><div class="tiny muted">'+(e.t||"")+' · '+(e.d||e.st)+'</div></div>';
+   h+='<div class="ltxt"><div class="b small">'+e.n+'</div><div class="tiny muted">'+(e.t||"")+' · '+(e.d||e.st)+'</div></div>';
    h+='<div class="sp"><span class="badge ok">publicado</span></div><button class="btn sm" style="margin-left:9px">Editar</button></div>'});
   h+='</div>';
   h+='<div class="tiny muted" style="margin-top:var(--e3)">O que você vende aqui entra no caixa, com a comissão já descontada.</div></div>';
@@ -6422,7 +6439,7 @@ function vStudio(sub){
   h+='<div style="margin-top:var(--e1)">';
   LANC.slice(-4).reverse().forEach(function(x){
    h+='<div class="lrow"><div class="datebox"><span class="m">jul</span><span class="d">'+x.dia+'</span></div>';
-   h+='<div style="min-width:0;flex:1"><div class="b small">'+x.quem+'</div><div class="tiny muted">'+x.catL+'</div></div>';
+   h+='<div class="ltxt"><div class="b small">'+x.quem+'</div><div class="tiny muted">'+x.catL+'</div></div>';
    h+='<div class="sp b small" style="color:var(--'+(x.tipo==="entrada"?"x-success":"x-danger")+')">'+(x.tipo==="entrada"?"+":"−")+' '+brl(x.cents)+'</div></div>';
   });
   h+='</div></div>';
@@ -6452,10 +6469,10 @@ function vStudio(sub){
    h+='<div style="margin-top:var(--e1)">';
    HIST_PESSOAS.forEach(function(p){
     h+='<div class="lrow"><div class="av">'+ini(p.nome)+'</div>';
-    h+='<div style="min-width:0;flex:1"><div class="b small">'+p.nome+'</div>';
+    h+='<div class="ltxt"><div class="b small">'+p.nome+'</div>';
     h+='<div class="tiny muted">'+p.trabalhos+'</div>';
     h+='<div class="tiny muted" style="margin-top:var(--e1)">'+p.sessoes+' sessão(ões) · cliente desde '+p.desde+' · última em '+p.ultima+'</div></div>';
-    h+='<div class="sp" style="text-align:right"><div class="b small">'+brl(p.gasto)+'</div><div class="tiny muted">no total</div></div></div>';
+    h+='<div class="lfim"><div class="b small">'+brl(p.gasto)+'</div><div class="tiny muted">no total</div></div></div>';
    });
    h+='</div>';
    h+='<div class="tiny muted" style="margin-top:var(--e3)">Saber quem voltou, e quando, é o que permite chamar de volta quem sumiu.</div></div>';
@@ -6475,10 +6492,10 @@ function vStudio(sub){
    h+='<div style="margin-top:var(--e2)">';
    HIST_ESTUDIOS.forEach(function(e){
     h+='<div class="lrow"><div class="av">'+ini(e.nome)+'</div>';
-    h+='<div style="min-width:0;flex:1"><div class="row" style="gap:var(--e2)"><span class="b small">'+e.nome+'</span>';
+    h+='<div class="ltxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+e.nome+'</span>';
     h+='<span class="badge'+(e.atual?" ok":"")+'">'+e.tipo+'</span></div>';
     h+='<div class="tiny muted">'+e.cidade+(e.pais&&e.pais!=="Brasil"?" · "+e.pais:"")+' · '+e.periodo+'</div></div>';
-    h+='<div class="sp" style="text-align:right"><div class="b small">'+e.sessoes+'</div><div class="tiny muted">sessões</div></div></div>';
+    h+='<div class="lfim"><div class="b small">'+e.sessoes+'</div><div class="tiny muted">sessões</div></div></div>';
    });
    h+='</div>';
    /* A conta que separa a casa do resto. Estava numa faixa de números
@@ -6516,7 +6533,7 @@ function vStudio(sub){
    h+='<div style="margin-top:var(--e2)">';
    REVS.filter(function(r){return !r.resp}).forEach(function(r){
     h+='<div style="padding:var(--e3) 0;border-bottom:1px solid var(--border)">';
-    h+='<div class="row"><div class="av">'+ini(r.c)+'</div><div style="min-width:0;flex:1"><div class="b small">'+r.c+' <span class="tiny">'+stars(r.r)+'</span></div>';
+    h+='<div class="row"><div class="av">'+ini(r.c)+'</div><div class="ltxt"><div class="b small">'+r.c+' <span class="tiny">'+stars(r.r)+'</span></div>';
     h+='<div class="small muted">'+r.t+'</div><div class="tiny muted" style="margin-top:var(--e1)">'+r.w+'</div></div></div>';
     h+='<div class="row" style="gap:var(--e2);margin-top:var(--e2)"><input class="fld" placeholder="Responder publicamente…" style="flex:1" />';
     h+='<button class="btn sm primary">Enviar</button></div></div>';
@@ -6532,7 +6549,7 @@ function vStudio(sub){
   h+='</div></div><div class="sep"></div>';
   REVS.forEach(function(r){
    h+='<div class="lrow"><div class="av">'+ini(r.c)+'</div>';
-   h+='<div style="min-width:0;flex:1"><div class="b small">'+r.c+' <span class="tiny">'+stars(r.r)+'</span></div>';
+   h+='<div class="ltxt"><div class="b small">'+r.c+' <span class="tiny">'+stars(r.r)+'</span></div>';
    h+='<div class="small muted">'+r.t+'</div>';
    if(r.resp)h+='<div class="small" style="margin-top:var(--e1);padding-left:9px;border-left:2px solid var(--border)"><span class="tiny muted">Você respondeu:</span><br/>'+r.resp+'</div>';
    h+='</div><div class="sp tiny muted">'+r.w+'</div>';
@@ -6565,9 +6582,9 @@ function sqRow(q,full){
  var t=corDoStatus(q.status);
  var on=full&&S.sqSel===q.id;
  var h='<div class="lrow" style="'+(full?"cursor:pointer;":"")+(on?"background:var(--x-accent-bg);border-radius:var(--r-sm);padding-left:7px;padding-right:7px":"")+'" '+(full?'onclick="S.sqSel=\''+q.id+'\';render()"':'')+'>';
- h+='<div class="av">'+ini(q.c)+'</div><div style="min-width:0"><div class="b small">'+q.c+'</div>';
+ h+='<div class="av">'+ini(q.c)+'</div><div class="ltxt"><div class="b small">'+q.c+'</div>';
  h+='<div class="small muted">'+q.area+' · '+q.st.map(function(s){return SL[s]}).join(", ")+' · '+q.when+'</div></div>';
- h+='<div class="sp" style="text-align:right"><div class="b small">'+brl(q.min)+'–'+brl(q.max)+'</div><span class="badge '+t+'">'+q.status+'</span></div>';
+ h+='<div class="lfim"><div class="b small">'+brl(q.min)+'–'+brl(q.max)+'</div><span class="badge '+t+'">'+q.status+'</span></div>';
  return h+'</div>';
 }
 function corDoStatus(s){
@@ -6614,11 +6631,11 @@ function recebidos(){
   /* O número é o mesmo do pino. Iniciais aqui não ligariam uma coisa
      na outra, e ligar é a razão de o mapa existir. */
   h+='<div class="av" style="font-size:var(--t-meta)">'+(k+1)+'</div>';
-  h+='<div class="itemtxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+q.c+'</span>';
+  h+='<div class="ltxt"><div class="row" style="gap:var(--e2)"><span class="b small">'+q.c+'</span>';
   h+='<span class="badge '+corDoStatus(q.status)+'">'+q.status+'</span></div>';
   h+='<div class="tiny muted">'+q.area+' · '+estilosDe(q)+'</div>';
   h+='<div class="tiny muted">'+q.city+' · a '+q.km+' km · '+q.when+'</div></div>';
-  h+='<div class="itemfim"><div class="b small">'+brl(q.min)+'–'+brl(q.max)+'</div>';
+  h+='<div class="lfim"><div class="b small">'+brl(q.min)+'–'+brl(q.max)+'</div>';
   h+='<span class="tiny muted">ver pedido ›</span></div>';
   h+='</button>';
  });
@@ -6632,7 +6649,7 @@ function telaPedido(q){
  h+='<article class="post" style="margin-top:var(--e3);max-width:560px">';
  h+='<div class="postinfo"><div class="row" style="gap:var(--e2)">';
  h+='<div class="av" style="width:34px;height:34px">'+ini(q.c)+'</div>';
- h+='<div style="min-width:0;flex:1"><div class="row" style="gap:var(--e1)"><span class="b small">'+q.c+'</span>';
+ h+='<div class="ltxt"><div class="row" style="gap:var(--e1)"><span class="b small">'+q.c+'</span>';
  h+='<span class="badge '+corDoStatus(q.status)+'">'+q.status+'</span></div>';
  h+='<div class="tiny muted">'+q.city+' · a '+q.km+' km · '+q.when+'</div></div></div>';
  h+='<div class="row wrapf" style="gap:var(--e1);margin-top:var(--e2)"><span class="badge">'+q.area+'</span>';
@@ -6673,7 +6690,7 @@ function telaProposta(q){
  h+='<div class="card pad" style="margin-top:var(--e3);max-width:560px">';
  h+='<div class="row" style="gap:var(--e3);align-items:flex-start">';
  h+='<div class="thumbsq" style="background-image:'+tex(q.seed)+';flex-shrink:0"></div>';
- h+='<div style="min-width:0;flex:1"><div class="b small">'+q.c+'</div>';
+ h+='<div class="ltxt"><div class="b small">'+q.c+'</div>';
  h+='<div class="tiny muted">'+q.area+' · '+estilosDe(q)+' · '+q.hrs+'</div>';
  h+='<div class="tiny muted">'+q.city+' · a '+q.km+' km · esperava '+brl(q.min)+'–'+brl(q.max)+'</div></div></div>';
  h+='<div class="sep"></div>';
@@ -7036,13 +7053,13 @@ function blocosDoPoolERecomendacoes(){
  h+='<div class="tiny muted" style="margin-top:var(--e1)">Pedidos ativos aguardando propostas. Tatuadores prospectam aqui.</div>';
  h+='<div style="margin-top:var(--e2)">';
  CQ.filter(function(q){return q.status==="aguardando"}).concat(CQ.slice(0,2)).forEach(function(q){
-  h+='<div class="lrow"><div class="thumb" style="background-image:'+tex(q.seed)+'"></div><div style="min-width:0"><div class="b small">'+q.area+'</div><div class="tiny muted">'+q.st.map(function(s){return SL[s]}).join(", ")+' · '+q.when+'</div></div><div class="sp b small">'+brl(q.min)+'+</div></div>'});
+  h+='<div class="lrow"><div class="thumb" style="background-image:'+tex(q.seed)+'"></div><div class="ltxt"><div class="b small">'+q.area+'</div><div class="tiny muted">'+q.st.map(function(s){return SL[s]}).join(", ")+' · '+q.when+'</div></div><div class="sp b small">'+brl(q.min)+'+</div></div>'});
  h+='</div></div>';
  h+='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b">Para você</span>'+tg("novo")+'</div>';
  h+='<div class="tiny muted" style="margin-top:var(--e1)">Tatuadores dos estilos que você salvou e segue, na sua cidade.</div>';
  h+='<div style="margin-top:var(--e2)">';
  ARTISTS.slice(0,5).forEach(function(a){
-  h+='<div class="lrow"><div class="av">'+ini(a.name)+'</div><div style="min-width:0"><div class="b small">'+a.name+'</div><div class="tiny muted">'+a.styles.map(function(s2){return SL[s2]}).join(", ")+' · '+a.city+'</div></div><div class="sp" style="text-align:right"><div>'+cifroes(a)+'</div><button class="btn sm" style="margin-top:var(--e1)" onclick="quoteFor(\''+a.id+'\')">Orçar</button></div></div>'});
+  h+='<div class="lrow"><div class="av">'+ini(a.name)+'</div><div class="ltxt"><div class="b small">'+a.name+'</div><div class="tiny muted">'+a.styles.map(function(s2){return SL[s2]}).join(", ")+' · '+a.city+'</div></div><div class="lfim"><div>'+cifroes(a)+'</div><button class="btn sm" style="margin-top:var(--e1)" onclick="quoteFor(\''+a.id+'\')">Orçar</button></div></div>'});
  h+='</div></div>';
  return h;
 }
@@ -7110,7 +7127,7 @@ function assistBody(){
   h+='<div style="margin-top:var(--e2)">';
   vis.forEach(function(x){
    h+='<div class="lrow"><div class="av">'+ini(x.name)+'</div>';
-   h+='<div style="min-width:0"><div class="b small">'+x.name+(x.verified?' <span style="color:var(--accent)">✔</span>':'')+'</div>';
+   h+='<div class="ltxt"><div class="b small">'+x.name+(x.verified?' <span style="color:var(--accent)">✔</span>':'')+'</div>';
    h+='<div class="tiny muted">'+x.styles.map(function(s2){return SL[s2]}).join(", ")+'</div>';
    h+='<div class="tiny muted">'+x.city+(distanciaTexto(x)?' · '+distanciaTexto(x):'')+' · '+stars(x.rating)+' '+x.rating+' ('+x.reviews+') · '+cifroes(x)+'</div></div>';
    h+='<div class="sp"><button class="btn sm" onclick="solicitarDe(\''+x.id+'\')">Solicitar orçamento</button></div></div>';
@@ -7264,7 +7281,7 @@ function chatBody(){
  l.forEach(function(c){
   var tag=CHAT_TAGS.filter(function(t){return t[0]===c.tag})[0];
   h+='<div class="lrow" style="cursor:pointer" onclick="S.chatOpen=\''+c.id+'\';renderDrawer()"><div class="av">'+ini(c.n)+'</div>';
-  h+='<div style="min-width:0;flex:1"><div class="row"><span class="b small">'+c.n+'</span><span class="sp tiny muted">'+c.w+'</span></div>';
+  h+='<div class="ltxt"><div class="row"><span class="b small">'+c.n+'</span><span class="sp tiny muted">'+c.w+'</span></div>';
   h+='<div class="small muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+c.last+'</div>';
   h+='<span class="badge '+tag[2]+'" style="margin-top:var(--e1)">'+tag[1]+'</span></div>';
   if(c.un)h+='<span class="badge acc">'+c.un+'</span>';
@@ -7283,7 +7300,7 @@ function notifBody(){
  if(!l.length)h+='<div class="muted small" style="padding:var(--e4) 0">Nada por aqui.</div>';
  l.forEach(function(n){
   h+='<div class="lrow" style="cursor:pointer;'+(n.un?"background:var(--x-accent-bg);border-radius:var(--r-sm);padding-left:8px;padding-right:8px":"")+'" onclick="readOne(\''+n.id+'\')">';
-  h+='<div style="min-width:0"><div class="b small">'+n.ti+(n.un?' <span class="dot" style="position:static;display:inline-block"></span>':'')+'</div>';
+  h+='<div class="ltxt"><div class="b small">'+n.ti+(n.un?' <span class="dot" style="position:static;display:inline-block"></span>':'')+'</div>';
   h+='<div class="small muted">'+n.d+'</div><div class="tiny muted" style="margin-top:var(--e1)">'+n.w+'</div></div></div>'});
  return h+'</div>';
 }
@@ -7295,7 +7312,7 @@ function cartBody(){
  S.cart.forEach(function(c){
   var p=PRODUCTS.filter(function(x){return x.id===c.id})[0];
   h+='<div class="lrow"><div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:19px">'+p.e+'</div>';
-  h+='<div style="min-width:0;flex:1"><div class="b small">'+p.n+'</div><div class="tiny muted">'+p.b+'</div>';
+  h+='<div class="ltxt"><div class="b small">'+p.n+'</div><div class="tiny muted">'+p.b+'</div>';
   h+='<div class="row" style="gap:var(--e2);margin-top:var(--e1)"><button class="btn sm" onclick="qty(\''+p.id+'\',-1)">−</button>';
   h+='<span class="b small" style="width:18px;text-align:center">'+c.q+'</span>';
   h+='<button class="btn sm" onclick="qty(\''+p.id+'\',1)">+</button>';
@@ -8137,7 +8154,7 @@ function renderConvite(){
  if(recusouConvite()){host.innerHTML="";return}
 
  var h='<div class="convitebarra"><div class="wrap">';
- h+='<div style="min-width:0;flex:1"><div class="b small">Isto é um teste do Ink Creators</div>';
+ h+='<div class="ltxt"><div class="b small">Isto é um teste do Ink Creators</div>';
  h+='<div class="tiny muted">Navegue à vontade. Se topar participar, registramos por onde você passa — leva um minuto.</div></div>';
  h+='<div class="row" style="gap:var(--e2);flex-shrink:0">';
  h+='<button class="btn sm" onclick="recusarConvite()">Agora não</button>';
