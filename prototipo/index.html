@@ -958,7 +958,11 @@ button,a{touch-action:manipulation}
 .datebox .m{font-size:var(--t-nano);font-weight:700;text-transform:uppercase;color:var(--muted-foreground)}
 .datebox .d{font-size:var(--t-card);font-weight:700;line-height:1}
 
-.authwrap{max-width:400px;margin:36px auto;padding:0 18px}
+/* 18px à mão aqui era a única página fora da régua do gutter — no
+   celular (gutter 16px) o formulário de conta ficava 2px à direita de
+   todo o resto, e 2px é exatamente o desalinhamento que se percebe
+   sem saber apontar. A linha vertical do site é UMA: var(--gutter). */
+.authwrap{max-width:400px;margin:36px auto;padding:0 var(--gutter)}
 .opt{flex:1;border:1px solid var(--border);border-radius:var(--r-sm);padding:11px;cursor:pointer;text-align:left}
 .opt:hover{border-color:var(--muted-foreground)}
 .opt.on{border-color:var(--accent);background:var(--x-accent-bg)}
@@ -3820,6 +3824,16 @@ function vArtist(){
 
  /* ── AVALIAÇÕES: aba própria. Antes vinham logo abaixo do carrossel
        do Instagram e liam como se fossem parte dele. ──────────────── */
+ /* ── PERTINÊNCIA, NÃO REDUNDÂNCIA ───────────────────────────────
+    Reputação existe DUAS vezes na plataforma porque são dois sujeitos:
+    aqui é sobre a PESSOA — traço, trato, o que dizem dela; higiene,
+    acolhimento e documentos são do LUGAR e vivem na página do estúdio.
+    Cada lado declara o próprio sujeito e aponta o outro — é o que
+    separa par de cópia. */
+ if(aba==="reputacao"){
+  var estRep=estudioDe(a.studio);
+  h+='<div class="tiny muted" style="margin-top:var(--e4)">Tudo nesta aba é sobre <b>a pessoa</b>. Higiene, acolhimento e documentos são do lugar'+(estRep?' — <a onclick="S.estudioSel=\''+estRep.id+'\';S.abaEstudio=\'reputacao\';go(\'estudio\')">veja em '+estRep.nome+'</a>':' — na página de cada estúdio')+'.</div>';
+ }
  if(aba==="reputacao"&&a.reviews>0){
   /* O que dizem vem antes do que a plataforma verificou: nota de gente
      que passou por ele pesa mais na decisão que selo de sistema, e
@@ -5786,7 +5800,10 @@ function vEstudio(){
   if(abaE==="reputacao"){
   /* ── AS MÉTRICAS QUE QUALIFICAM O LUGAR ─────────────────────────
      A régua que atrai cliente, em número grande antes dos gráficos:
-     o que este estúdio prova, não o que promete. */
+     o que este estúdio prova, não o que promete. Sujeito declarado:
+     o LUGAR — a nota e o traço de cada artista vivem no perfil de
+     quem tatua, e a equipe está a uma fatia daqui. */
+  h+='<div class="tiny muted" style="margin-top:var(--e4)">Tudo nesta aba é sobre <b>o lugar</b>. A nota, o traço e as avaliações de cada artista vivem no perfil de quem tatua — <a onclick="S.abaEstudio=\'equipe\';render()">veja quem tatua aqui</a>.</div>';
   h+='<div class="stats" style="margin-top:var(--e4)">';
   [["◉","Sessões",e.sessoes,"verificadas aqui"],
    ["🧼","Higiene",estudioTemNota(e)?e.higiene+"%":"—","dos checkouts"],

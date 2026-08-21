@@ -922,6 +922,15 @@ var nStats=(tesRep.match(/class="stat"/g)||[]).length;
 chk("reputação: as métricas que qualificam, em número grande",
     nStats>=6,
     nStats+" cartão(ões) de número — a régua do estúdio perdeu peça");
+/* Pertinência: dois sujeitos, não uma redundância. O lugar declara
+   que fala do lugar, aponta a equipe, e NÃO carrega avaliação de
+   pessoa; o perfil da pessoa faz o inverso. */
+chk("a reputação do estúdio declara o sujeito e aponta a equipe",
+    /sobre <b>o lugar<\/b>/.test(tesRep) && /veja quem tatua aqui/.test(tesRep),
+    "o estúdio parou de dizer de quem é a régua — vira redundância aos olhos");
+chk("e não carrega avaliação de pessoa",
+    !/O que dizem/.test(tesRep) && !/class="regracat"/.test(tesRep),
+    "avaliação de pessoa vazou para a página do lugar");
 chk("higiene do que os clientes responderam", /O que os clientes responderam/.test(tesRep));
 chk("documentos conferidos aparecem", /Licença sanitária/.test(tesRep));
 var tesEq=abaEst("equipe");

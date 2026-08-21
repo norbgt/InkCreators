@@ -345,6 +345,16 @@ chk("uma largura máxima só", /--shell-max:\d+px/.test(css) &&
     (css.match(/max-width:var\(--shell-max\)/g) || []).length >= 1);
 chk("e uma margem lateral fluida", /--gutter:clamp\(/.test(css));
 chk("o container usa as duas", /\.wrap\{max-width:var\(--shell-max\)[^}]*padding:0 var\(--gutter\)/.test(css));
+/* O print do celular dela: a tela de conta ficava 2px fora da régua
+   porque authwrap tinha 18px à mão. Página que define borda própria
+   usa o gutter — sem exceção. E a barra do topo mora no .wrap, que é
+   o que alinha o Entrar com tudo que vem abaixo. */
+chk("a tela de conta está na régua do gutter",
+    /\.authwrap\{[^}]*padding:0 var\(--gutter\)\}/.test(css),
+    "authwrap voltou ao padding à mão — 2px fora da linha no celular");
+chk("a barra do topo mora no .wrap",
+    /class="wrap top-in"/.test(html),
+    "o topo saiu da régua: o Entrar desalinha de todo o site abaixo");
 
 console.log("\n══ " + f + " falha(s) ══");
 process.exit(f ? 1 : 0);

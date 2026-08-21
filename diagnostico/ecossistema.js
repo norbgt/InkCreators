@@ -502,6 +502,17 @@ chk('e a frase-legenda dos cifrões não voltou',
     'a frase que ela mandou retirar voltou ao cabeçalho');
 chk('número tabular nas medidas',/\.perfilnum\{[^}]*tabular-nums/.test(css));
 
+/* A reputação da PESSOA declara o sujeito, aponta o lugar, e não
+   carrega métrica de lugar. */
+S.abaPerfil='reputacao';g.e("render()");
+var tRepPessoa=tela();
+chk('a reputação do tatuador declara o sujeito e aponta o estúdio',
+    /sobre <b>a pessoa<\/b>/.test(tRepPessoa) && (/veja em /.test(tRepPessoa)||/na página de cada estúdio/.test(tRepPessoa)),
+    'a aba parou de dizer de quem é — par vira cópia aos olhos');
+chk('e não carrega métrica de lugar',
+    !/Licença sanitária/.test(tRepPessoa) && !/Cadeiras/.test(tRepPessoa) && !/Acolhimento/.test(tRepPessoa),
+    'métrica do lugar vazou para o perfil da pessoa');
+S.abaPerfil='portfolio';
 S.route='estudio';S.estudioSel=(g.e("ESTUDIOS[0].id"));g.e("render()");
 var tes=tela();
 chk('o estúdio usa o mesmo cabeçalho',/class="perfilcab"/.test(tes)&&/class="perfilnome"/.test(tes),
