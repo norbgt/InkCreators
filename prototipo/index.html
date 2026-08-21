@@ -4152,7 +4152,7 @@ function sugerirUsuario(nome){
    home — perder o contexto no meio do caminho é o que faz gente
    desistir. */
 function irCadastro(perfil,voltar){
- S.cad={passo:0,perfil:perfil||null,nome:"",email:"",senha:"",usuario:"",msg:"",erro:false,viaGoogle:false};
+ S.cad={passo:0,modo:"criar",perfil:perfil||null,nome:"",email:"",senha:"",usuario:"",msg:"",erro:false,viaGoogle:false};
  S.onbStep=1;
 
  /* Começar de novo começa limpo. Sem isto, quem desiste no passo 3 e
@@ -4306,11 +4306,65 @@ function concluirCadastro(){
  }
 }
 
+/* ── ENTRAR, DE VERDADE ────────────────────────────────────────────
+   O link "Entrar" chamava irCadastro(null): recomeçava o cadastro.
+   Parecia não funcionar porque era exatamente o que fazia — recarregar
+   a mesma tela. Não existia login no fluxo principal; o real morava
+   só na tela técnica de conexão. Agora a porta é o toggle padrão —
+   criar e entrar são duas fatias do mesmo lugar — e o entrar fala com
+   o Supabase de verdade quando há rede. */
+async function entrarNoFluxo(){
+ S.cad.msg="Entrando…";S.cad.erro=false;render();
+ try{
+  if(location.protocol==="file:")throw new Error("Conta de verdade precisa de rede, e o navegador bloqueia rede em arquivo local. Use o endereço publicado.");
+  await window.Dados.entrar(S.cad.email,S.cad.senha);
+  var papeis=await window.Dados.meusPapeis();
+  var tem=papeis.map(function(p){return p.role});
+  S.session=tem.indexOf("artist")>=0?"artist":"client";
+  S.usuario={nome:S.cad.email.split("@")[0],email:S.cad.email};
+  S.cad.msg="";salvarEstado();
+  go(S.voltarPara||"home");
+  return;
+ }catch(e){S.cad.erro=true;S.cad.msg=e&&e.message?e.message:String(e)}
+ render();
+}
+function entrarGoogleFluxo(){
+ if(location.protocol==="file:"){S.cad.erro=true;S.cad.msg="Entrar com o Google precisa de rede — use o endereço publicado.";render();return}
+ window.Dados.entrarComGoogle().catch(function(e){
+  S.cad.erro=true;
+  S.cad.msg=(e&&e.message?e.message:String(e))+" — se o provedor Google ainda não foi ligado no Supabase, este é o motivo (decisão 041).";
+  render();
+ });
+}
+
 function vCadastro(){
  var r=roteiroCadastro(), passo=passoCad(), i=S.cad.passo, c=S.cad;
+ var entrar=c.modo==="entrar";
  var h='<main><div class="wrap" style="max-width:620px">';
- h+='<div class="kicker">Criar conta</div>';
- h+='<h1 class="page" style="margin-top:var(--e1)">'+(c.perfil?PERFIS_CADASTRO.filter(function(x){return x.id===c.perfil})[0].nome:"Vamos começar")+'</h1>';
+ h+='<div class="kicker">Sua conta</div>';
+ h+='<h1 class="page" style="margin-top:var(--e1)">'+(entrar?"Bem-vinda de volta":(c.perfil?PERFIS_CADASTRO.filter(function(x){return x.id===c.perfil})[0].nome:"Vamos começar"))+'</h1>';
+ h+='<div class="segmento" style="margin-top:var(--e3)">';
+ [["criar","Criar conta"],["entrar","Entrar"]].forEach(function(m){
+  h+='<button class="seg '+((c.modo||"criar")===m[0]?"on":"")+'" onclick="S.cad.modo=\''+m[0]+'\';S.cad.msg=\'\';render()">'+m[1]+'</button>'});
+ h+='</div>';
+
+ if(entrar){
+  h+='<div class="card pad" style="margin-top:var(--e4)">';
+  h+='<div class="grid" style="gap:var(--e3)">';
+  h+='<div><label class="lb">E-mail</label><input class="fld" id="entEmail" type="email" value="'+escapar(c.email)+'" oninput="S.cad.email=this.value" placeholder="nome@email.com" /></div>';
+  h+='<div><label class="lb">Senha</label><input class="fld" id="entSenha" type="password" value="'+escapar(c.senha)+'" oninput="S.cad.senha=this.value" /></div>';
+  h+='</div>';
+  h+='<label class="marcador'+(window.Dados&&window.Dados.querPermanecerConectado&&window.Dados.querPermanecerConectado()?" on":"")+'" style="margin-top:var(--e3)">';
+  h+='<input type="checkbox" '+(window.Dados&&window.Dados.querPermanecerConectado&&window.Dados.querPermanecerConectado()?"checked":"")+' onchange="window.Dados.definirPermanecerConectado(this.checked)" />';
+  h+='<span><span class="b small">Permanecer conectado</span>';
+  h+='<span class="tiny muted" style="display:block;margin-top:var(--e1)">Desmarque em computador emprestado.</span></span></label>';
+  if(c.msg)h+='<div class="banner" style="margin-top:var(--e3);'+(c.erro?'background:var(--x-danger-bg);border-color:var(--x-danger)':'')+'"><div class="small"'+(c.erro?' style="color:var(--x-danger)"':'')+'>'+escapar(c.msg)+'</div></div>';
+  h+='<button class="btn primary blk" style="margin-top:var(--e4)" '+(c.email&&c.senha?"":"disabled")+' onclick="entrarNoFluxo()">Entrar</button>';
+  h+='<div class="ou"><span>ou</span></div>';
+  h+='<button class="btn blk" onclick="entrarGoogleFluxo()">Entrar com o Google</button>';
+  h+='<div class="tiny muted" style="margin-top:var(--e3);text-align:center">Esqueceu a senha? Por enquanto, fale com a gente — a recuperação chega com o SMTP.</div>';
+  return h+'</div></div></main>';
+ }
  h+='<div class="steps">';r.forEach(function(x,k){h+='<i class="'+(k<=i?"on":"")+'"></i>'});h+='</div>';
  h+='<div class="tiny muted" style="margin-top:var(--e2)">Passo '+(i+1)+' de 3 · '+passo.t+'</div>';
  h+='<div class="card pad" style="margin-top:var(--e4)">';
@@ -4486,7 +4540,7 @@ function vCadastro(){
  h+='<div class="lado"><button class="btn" '+(i===0?"disabled":"")+' onclick="voltarCad()">← Voltar</button>';
  if(podePular)h+='<button class="btn" onclick="avancarCad()">Pular</button>';
  h+='</div>';
- h+='<span class="meio">'+(i===0?'Já tem conta? <a onclick="irCadastro(null)">Entrar</a>':'')+'</span>';
+ h+='<span class="meio">'+(i===0?'Já tem conta? <a onclick="S.cad.modo=\'entrar\';S.cad.msg=\'\';render()">Entrar</a>':'')+'</span>';
  h+='<div class="lado" style="justify-content:flex-end"><button class="btn primary" id="btnAvancarCad" '+(podeAvancar()?"":"disabled")+' onclick="avancarCad()">'+
     (ultimo?"Criar conta":"Continuar →")+'</button></div>';
  h+='</div>';
@@ -7110,7 +7164,9 @@ function assistBody(){
   var busca=(S.aiBusca||"").trim().toLowerCase();
   var vis=busca?compat.filter(function(x){return (x.name+" "+x.studio).toLowerCase().indexOf(busca)>=0}):compat;
 
-  var h='<div class="card pad" style="background:var(--muted)"><div class="b small">Seu pedido</div>';
+  var h='<div class="steps"><i class="on"></i><i class="on"></i></div>';
+  h+='<div class="tiny muted" style="margin-top:var(--e2);margin-bottom:var(--e3)">Passo 2 de 2 · Para quem vai</div>';
+  h+='<div class="card pad" style="background:var(--muted)"><div class="b small">Seu pedido</div>';
   h+='<div class="row wrapf" style="gap:var(--e1);margin-top:var(--e2)">';
   (S.aiEstilos.length?S.aiEstilos:["—"]).forEach(function(x){h+='<span class="badge acc">'+(SL[x]||x)+'</span>'});
   h+='</div>';
@@ -7148,21 +7204,26 @@ function assistBody(){
     Fulana" saiu daqui: quem veio de um perfil reencontra a pessoa no
     passo 2, já na busca. O passo 1 pergunta sobre a TATUAGEM, e
     tatuagem não muda conforme a porta de entrada. */
- var h='';
- h+='<p class="small muted">Conte o que você quer. Quem trabalha com isso responde com o preço e o prazo.</p>';
+ /* A MESMA gramática de formulário do cadastro, a pedido dela: os
+    pontinhos de passo, o "Passo X de N · título", rótulos lb. Dois
+    formulários da plataforma com duas caras eram variante da mesma
+    coisa. */
+ var h='<div class="steps"><i class="on"></i><i></i></div>';
+ h+='<div class="tiny muted" style="margin-top:var(--e2)">Passo 1 de 2 · A tatuagem</div>';
+ h+='<p class="small muted" style="margin-top:var(--e3)">Conte o que você quer. Quem trabalha com isso responde com o preço e o prazo.</p>';
  /* O aviso que explicava o padrão saiu a pedido dela. O padrão não
     dependia dele: quem diz que os cinco campos são os mesmos para
     todo mundo é o selo "obrigatório" em cada um, e o botão que nomeia
     o que falta. Parágrafo que explica o que a tela já mostra é
     parágrafo que a pessoa pula. */
- h+='<div class="row" style="margin-top:var(--e4)"><span class="b small">Referências ('+S.aiRefs+'/8)</span><span class="req">obrigatório</span></div>';
+ h+='<label class="lb" style="margin-top:var(--e4);display:block">Referências ('+S.aiRefs+'/8) <span class="req">obrigatório</span></label>';
  h+='<div class="tiny muted" style="margin-top:var(--e1)">Pelo menos uma — preço sem imagem é chute.</div>';
  h+='<div class="row wrapf" style="gap:var(--e2);margin-top:var(--e2)">';
  for(var k=0;k<S.aiRefs;k++)h+='<div class="thumbsq" style="background-image:'+tex(k*6+4)+'"><span class="x" onclick="S.aiRefs--;renderDrawer()">✕</span></div>';
  h+='<button style="width:56px;height:56px;border:1.5px dashed var(--border);border-radius:var(--r-sm);color:var(--muted-foreground)" onclick="S.aiRefs=Math.min(8,S.aiRefs+1);renderDrawer()">＋</button></div>';
 
  h+='<div class="sep"></div>';
- h+='<div class="row"><span class="b small">Estilo que você quer</span><span class="req">obrigatório</span></div>';
+ h+='<label class="lb" style="display:block">Estilo que você quer <span class="req">obrigatório</span></label>';
  h+='<div class="tiny muted" style="margin-top:var(--e1)">Define para quem o pedido vai.</div>';
  h+='<div class="row wrapf" style="gap:var(--e2);margin-top:var(--e2)">';
  STYLES.filter(function(x){return ESTILOS_CORRECAO.indexOf(x.s)<0}).forEach(function(x){
@@ -7177,7 +7238,7 @@ function assistBody(){
  h+='<span class="tiny muted" style="display:block;margin-top:var(--e1)">O pedido vai só para quem faz cobertura. Uma foto da tatuagem atual ajuda muito.</span></span></label>';
 
  h+='<div class="sep"></div>';
- h+='<div class="row"><span class="b small">Tamanho</span><span class="req">obrigatório</span></div>';
+ h+='<label class="lb" style="display:block">Tamanho <span class="req">obrigatório</span></label>';
  h+='<div class="tiny muted" style="margin-top:var(--e1)">Compare com o corpo — "médio" quer dizer coisa diferente para cada pessoa; centímetro não.</div>';
  h+='<div class="row wrapf" style="gap:var(--e2);margin-top:var(--e2)">';
  TAMANHOS.forEach(function(t){

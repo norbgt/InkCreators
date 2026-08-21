@@ -72,7 +72,12 @@ chk('a cidade não existe mais no pedido', !/id="aiCidade"/.test(d),
 chk('as observações moram no passo 1, opcionais',
     /Observações <span[^>]*>— opcional/.test(d) && /id="aiObs"/.test(d),
     'as observações sumiram do passo 1');
-chk('tamanho virou campo, não texto livre',/>Tamanho</.test(d));
+chk('tamanho virou campo, não texto livre',/>Tamanho <span class="req"/.test(d),
+    'o rótulo lb do tamanho mudou de forma sem o teste acompanhar');
+/* A gramática do cadastro no orçamento: pontinhos e "Passo X de N". */
+chk('o pedido usa a gramática de passos do cadastro',
+    /class="steps"/.test(d) && /Passo 1 de 2/.test(d),
+    'o formulário do orçamento voltou a ter cara própria');
 /* Não basta EXISTIR um "cm" na tela: cada degrau da régua tem de
    trazer o seu. Sabotei trocando um só rótulo por "médio" e este
    teste passava, porque os outros quatro seguravam o regex. */
@@ -121,6 +126,8 @@ var d1=gav();
    de orçamento e faixa de gasto saíram do fluxo INTEIRO — decisão
    de 20/08, revertendo a do mesmo dia; fica registrado. */
 chk('passo 2 recomenda para o pedido',/Recomendados para o seu pedido/.test(d1));
+chk('e também se apresenta como passo', /Passo 2 de 2/.test(d1),
+    'o passo 2 perdeu o indicador — a gramática rachou no meio do fluxo');
 chk('a faixa de gasto saiu do fluxo inteiro',
     !/Quanto você pretende gastar/.test(d1),
     'a faixa voltou — ela mandou retirar os campos da imagem');

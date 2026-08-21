@@ -101,6 +101,12 @@ chkc("permanecer conectado é escolha com padrão ligado",
 chkc("desligado, a sessão morre com a aba",
   /querPermanecerConectado\(\)\s*\?\s*window\.localStorage\s*:\s*window\.sessionStorage/.test(dados),
   "a escolha existe mas não muda onde a sessão mora — decorativa");
+chkc("o Entrar do fluxo fala com o banco, não recomeça o cadastro",
+  /onclick="S\.cad\.modo='entrar'/.test(html.replace(/\\'/g,"'")) && /entrarNoFluxo/.test(html) && !/Entrar<\/a>[\s\S]{0,40}irCadastro\(null\)/.test(html),
+  "o link Entrar voltou a recarregar o cadastro — o defeito que ela viu");
+chkc("e o modo entrar existe como fatia do toggle",
+  /\[\["criar","Criar conta"\],\["entrar","Entrar"\]\]/.test(html),
+  "criar e entrar deixaram de ser fatias do mesmo lugar");
 chkc("a tela oferece o Google e a escolha",
   /Entrar com o Google/.test(html) && /Permanecer conectado/.test(html));
 if(fAntes>0){ console.log("\n══ "+fAntes+" falha(s) na conta ══"); process.exit(1); }
