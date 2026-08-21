@@ -64,8 +64,14 @@ chk('cobertura continua separada',/cobrir ou corrigir/.test(d));
 var obrigatorios = (d.match(/class="req">obrigatório</g) || []).length;
 chk('os quatro campos do padrão continuam obrigatórios', obrigatorios === 4,
     obrigatorios + ' de 4 — o padrão encolheu ou engordou sem decisão');
-chk('e a cidade se declara opcional', /Cidade <span[^>]*>— opcional/.test(d),
-    'a cidade ficou muda: nem obrigatória nem declarada opcional');
+/* A cidade durou um turno como opcional e SAIU do formulário no
+   pedido seguinte dela — a localização já vive no perfil de quem
+   pede. As observações voltaram ao passo 1 no lugar. */
+chk('a cidade não existe mais no pedido', !/id="aiCidade"/.test(d),
+    'a cidade voltou ao formulário que ela mandou enxugar');
+chk('as observações moram no passo 1, opcionais',
+    /Observações <span[^>]*>— opcional/.test(d) && /id="aiObs"/.test(d),
+    'as observações sumiram do passo 1');
 chk('tamanho virou campo, não texto livre',/>Tamanho</.test(d));
 /* Não basta EXISTIR um "cm" na tela: cada degrau da régua tem de
    trazer o seu. Sabotei trocando um só rótulo por "médio" e este
@@ -110,21 +116,31 @@ chk('o resumo devolve o tamanho escolhido',
 g.e("S.aiStep=0;renderDrawer()");
 g.e("S.aiStep=1;renderDrawer()");
 var d1=gav();
-chk('passo 2 mostra para quem vai',/Vai para/.test(d1));
-chk('a faixa de gasto mora no passo 2, opcional',
-    /Quanto você pretende gastar/.test(d1)&&/opcional/.test(d1),
-    'a faixa sumiu do fluxo em vez de mudar de casa');
-chk('as observações também',/Observações/.test(d1),
-    'as observações sumiram em vez de mudar de casa');
+/* O passo 2 foi refeito de novo por ela: SÓ busca + lista com
+   "Solicitar orçamento" por card + o envio geral para o pool. Tipo
+   de orçamento e faixa de gasto saíram do fluxo INTEIRO — decisão
+   de 20/08, revertendo a do mesmo dia; fica registrado. */
+chk('passo 2 recomenda para o pedido',/Recomendados para o seu pedido/.test(d1));
+chk('a faixa de gasto saiu do fluxo inteiro',
+    !/Quanto você pretende gastar/.test(d1),
+    'a faixa voltou — ela mandou retirar os campos da imagem');
+chk('o tipo de orçamento também saiu',
+    !/Valor fechado/.test(d1),
+    'o tipo voltou — ela mandou retirar os campos da imagem');
 chk('sem "sugestão da IA"',!/Sugestão da IA/.test(d1));
 chk('sem score de máquina',!/score /.test(d1));
-chk('dá para tirar alguém da lista',/tog\(S\.aiFora/.test(d1));
+/* Tirar/incluir morreu: escolher agora é clicar no card. */
+chk('cada card chama para solicitar',/Solicitar orçamento/.test(d1) && /solicitarDe\(/.test(d1),
+    'o card perdeu a chamada — escolher voltou a ser poda');
+chk('e existe o envio geral para o pool',
+    /Enviar orçamento</.test(d1) && /pool aberto/.test(d1) && /vínculos automáticos/.test(d1),
+    'o caminho geral sumiu ou perdeu a explicação do pool');
 chk('diz que cada um responde com o preço dele',/responde com o preço dele/.test(d1));
-var antes=(d1.match(/class="lrow"/g)||[]).length;
-g.e("tog(S.aiFora,'a0');renderDrawer()");
-chk('tirar alguém muda a contagem do botão',/Enviar para/.test(gav()));
-g.e("S.aiFora=[];S.aiStep=2;renderDrawer()");
+/* tirar/incluir morreu com S.aiFora; a escolha agora é o clique no
+   card, e o teste da escolha vive no bloco 1b abaixo. */
+g.e("S.aiEnviado={nome:'Teste'};S.aiStep=2;renderDrawer()");
 chk('confirmação sem promessa de IA',!/\bIA\b/.test(gav())&&/Pedido enviado/.test(gav()));
+g.e("S.aiEnviado=null");
 
 /* ── O FLUXO DELA: 2 PASSOS + CONCLUSÃO ───────────────────────────
    Passo 1 SEMPRE igual (fala da tatuagem, e tatuagem não muda com a
@@ -144,7 +160,7 @@ chk('vindo do perfil, o nome chega na busca do passo 2',
     'busca: "'+g.e("S.aiBusca")+'" — o atalho do perfil se perdeu');
 S.route='home';S.session='client';g.e("S.drawer='assist'");
 /* A busca filtra as recomendações. */
-g.e("S.aiBusca='';S.aiFora=[];S.aiStep=1;renderDrawer()");
+g.e("S.aiBusca='';S.aiStep=1;renderDrawer()");
 var semBusca=(gav().match(/class="lrow"/g)||[]).length;
 g.e("S.aiBusca=ARTISTS[0].name;renderDrawer()");
 var comBusca=gav();
@@ -155,17 +171,18 @@ g.e("S.aiBusca='zzz-ninguem';renderDrawer()");
 chk('busca sem dono explica e ensina a sair', /Apague a busca/.test(gav()),
     'lista vazia muda sem dizer por quê');
 g.e("S.aiBusca='';renderDrawer()");
-/* A decisão do tipo de orçamento. */
-chk('o tipo de orçamento se decide no passo 2',
-    /Valor fechado/.test(gav()) && /Por hora/.test(gav()) && /Conversar antes/.test(gav()),
-    'a decisão de tipo sumiu do passo 2');
-g.e("S.aiTipo='hora';renderDrawer()");
-chk('e a escolha marca', /chip on"[^>]*>Por hora/.test(gav()));
-/* A conclusão conta para quantos foi. */
-g.e("S.aiTipo='';S.aiStep=2;renderDrawer()");
-chk('a conclusão diz para quantos foi', /Pedido enviado para \d+ tatuadores|Pedido enviado para [A-ZÀ-Ú]/.test(gav()),
-    'a conclusão perdeu o número');
-g.e("S.aiStep=0;S.aiBusca='';S.assistArtist=null");
+/* O tipo de orçamento viveu UM turno e saiu com os campos da imagem
+   dela — registrado. A escolha agora é o clique: solicitar de alguém
+   nomeia a pessoa na conclusão; enviar geral cai no pool. */
+g.e("solicitarDe(ARTISTS[0].id)");
+chk('solicitar de alguém nomeia a pessoa na conclusão',
+    new RegExp('Pedido enviado para '+g.e("ARTISTS[0].name")).test(gav()),
+    'cliquei no card e a conclusão não disse para quem foi');
+g.e("S.aiStep=1;renderDrawer();enviarGeral()");
+chk('o envio geral cai no pool, com a explicação',
+    /pool aberto/.test(gav()) && /vínculos automáticos/.test(gav()) && /Meus orçamentos/.test(gav()),
+    'o pool virou caixa muda: enviou e não disse o que acontece');
+g.e("S.aiStep=0;S.aiBusca='';S.assistArtist=null;S.aiEnviado=null");
 
 /* ── PELA PORTA QUE O DEDO CLICA ───────────────────────────────────
    A raiz do "continua sem refletir": eu testava o fluxo entrando por

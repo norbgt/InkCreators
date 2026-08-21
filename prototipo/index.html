@@ -1934,7 +1934,7 @@ var S={session:"anon",route:"home",tab:"discover",artist:null,drawer:null,
  evT:"all",evP:"all",evD:"all",evSort:"distance",evSel:"e1",evLoc:"São Paulo, SP",
  coT:"all",coL:"all",coP:"all",coSort:"recent",
  qStatus:"todos",hub:"menu",aiStep:0,aiRefs:2,
- aiEstilos:[],aiFora:[],aiParte:"",aiCidade:"",aiFaixa:"",aiObs:"",aiTam:"",aiBusca:"",aiTipo:"",
+ aiEstilos:[],aiParte:"",aiCidade:"",aiObs:"",aiTam:"",aiBusca:"",aiEnviado:null,
  chatOpen:null,chatFilter:"all",chatQ:"",notifFilter:"all",notifs:NOTIFS.map(function(n){return{...n}}),
  sqSel:"s1",orcPasso:"lista",orcEnviado:null,estudioSel:"e1",administraEstudio:false,
  /* Check-in aberto agora. Um por vez, de propósito: o QR na tela é de
@@ -7011,8 +7011,16 @@ function renderDrawer(){
    não morreram: mudaram para "Meus orçamentos", onde são conteúdo de
    uma tela e não pedágio de um fluxo. */
 function novoPedido(){
- S.assistArtist=null;S.aiBusca="";S.aiFora=[];S.aiStep=0;
+ S.assistArtist=null;S.aiBusca="";S.aiEnviado=null;S.aiStep=0;
  openDrawer("assist");
+}
+function solicitarDe(id){
+ if(!isLog()){closeDrawer();irCadastro(null);return}
+ var x=ARTISTS.filter(function(a){return a.id===id})[0];
+ S.aiEnviado={nome:x?x.name:""};S.aiStep=2;renderDrawer();
+}
+function enviarGeral(){
+ S.aiEnviado=null;S.aiStep=2;renderDrawer();
 }
 function blocosDoPoolERecomendacoes(){
  var h='<div class="card pad" style="margin-top:var(--e4)"><div class="row"><span class="b">Pool aberto</span>'+tg("novo")+'</div>';
@@ -7041,16 +7049,20 @@ function blocosDoPoolERecomendacoes(){
 function assistBody(){
  var a=S.assistArtist?ARTISTS.filter(function(x){return x.id===S.assistArtist})[0]:null;
 
- /* Passo 2: enviado. */
+ /* Conclusão: dois destinos possíveis. Solicitado a alguém, diz o
+    nome; enviado geral, explica o pool — os tatuadores prospectam
+    ativamente ali, e a plataforma cria vínculos automáticos de
+    recomendação entre o pedido e quem combina. */
  if(S.aiStep===2){
-  var idos=(function(){
-   var busca=(S.aiBusca||"").trim().toLowerCase();
-   var vis=busca?tatuadoresCompativeis().filter(function(x){return (x.name+" "+x.studio).toLowerCase().indexOf(busca)>=0}):tatuadoresCompativeis();
-   return vis.filter(function(x){return S.aiFora.indexOf(x.id)<0});
-  })();
-  var h='<div class="card pad" style="background:var(--x-success-bg);border-color:var(--x-success-bg)"><div class="b small" style="color:var(--x-success)">'+
-    (idos.length===1?"Pedido enviado para "+idos[0].name+".":"Pedido enviado para "+idos.length+" tatuadores.")+'</div>';
-  h+='<div class="tiny" style="color:var(--x-success);margin-top:var(--e1)">Cada um responde com o preço e o prazo dele. Você compara e escolhe.</div></div>';
+  var h='<div class="card pad" style="background:var(--x-success-bg);border-color:var(--x-success-bg)">';
+  if(S.aiEnviado&&S.aiEnviado.nome){
+   h+='<div class="b small" style="color:var(--x-success)">Pedido enviado para '+S.aiEnviado.nome+'.</div>';
+   h+='<div class="tiny" style="color:var(--x-success);margin-top:var(--e1)">Responde com o preço e o prazo dele. Peça a mais gente se quiser comparar.</div>';
+  }else{
+   h+='<div class="b small" style="color:var(--x-success)">Seu pedido está no pool aberto.</div>';
+   h+='<div class="tiny" style="color:var(--x-success);margin-top:var(--e1)">Tatuadores que trabalham com o seu estilo prospectam ativamente por aqui — e a plataforma cria vínculos automáticos entre o seu pedido e quem combina com ele. As propostas chegam em Meus orçamentos.</div>';
+  }
+  h+='</div>';
   h+='<button class="btn blk" style="margin-top:var(--e3)" onclick="closeDrawer();go(\'me-quotes\')">Ver meus orçamentos</button>';
   return h;
  }
@@ -7061,6 +7073,12 @@ function assistBody(){
     pré-preenchido, se veio do perfil) e a lista se filtra embaixo.
     Não é sugestão de máquina: é a lista de quem faz, que a pessoa
     pode filtrar e podar. */
+ /* Passo 2, refeito a pedido dela: SÓ a busca por usuário de tatuador
+    ou estúdio, refletindo na lista abaixo — cada card com o seu
+    "Solicitar orçamento". E o caminho geral: o botão "Enviar
+    orçamento" manda o pedido para o POOL, onde tatuadores prospectam
+    ativamente e a plataforma cria vínculos automáticos de
+    recomendação. Tirar/incluir morreu: escolher é clicar no card. */
  if(S.aiStep===1){
   var compat=tatuadoresCompativeis();
   var busca=(S.aiBusca||"").trim().toLowerCase();
@@ -7070,46 +7088,31 @@ function assistBody(){
   h+='<div class="row wrapf" style="gap:var(--e1);margin-top:var(--e2)">';
   (S.aiEstilos.length?S.aiEstilos:["—"]).forEach(function(x){h+='<span class="badge acc">'+(SL[x]||x)+'</span>'});
   h+='</div>';
-  h+='<div class="tiny muted" style="margin-top:var(--e2)">'+escapar(S.aiParte||"Local não informado")+' · '+rotuloTamanho(S.aiTam)+' · '+escapar(S.aiCidade||"—")+'</div>';
+  h+='<div class="tiny muted" style="margin-top:var(--e2)">'+escapar(S.aiParte||"Local não informado")+' · '+rotuloTamanho(S.aiTam)+'</div>';
   h+='<div class="tiny muted" style="margin-top:var(--e1)">'+S.aiRefs+' referência(s) anexada(s)</div>';
   if(S.arrependido)h+='<div class="tiny" style="margin-top:var(--e1);color:var(--accent)">Cobertura ou correção — vai só para quem faz.</div>';
   h+='</div>';
 
   h+='<div style="margin-top:var(--e4)"><label class="lb">Tem alguém em mente?</label>';
-  h+='<div class="campo"><span class="lupa">⌕</span><input class="fld" placeholder="Nome do tatuador ou estúdio…" value="'+escapar(S.aiBusca)+'" oninput="S.aiBusca=this.value;renderDrawer();var f=document.querySelectorAll(\'.drawer input\');if(f[0]){f[0].focus();f[0].setSelectionRange(f[0].value.length,f[0].value.length)}" /></div></div>';
+  h+='<div class="campo"><span class="lupa">⌕</span><input class="fld" placeholder="Usuário do tatuador ou estúdio…" value="'+escapar(S.aiBusca)+'" oninput="S.aiBusca=this.value;renderDrawer();var f=document.querySelectorAll(\'.drawer input\');if(f[0]){f[0].focus();f[0].setSelectionRange(f[0].value.length,f[0].value.length)}" /></div></div>';
 
-  h+='<div class="row" style="margin-top:var(--e3)"><span class="b small">Vai para</span><span class="sp tiny muted">'+vis.length+' tatuador(es)</span></div>';
-  h+='<div class="tiny muted" style="margin-top:var(--e1)">'+(busca?"Filtrado pela sua busca — apague para ver todas as recomendações.":"Quem trabalha com o que você escolheu, na sua cidade ou perto. Você pode tirar alguém da lista.")+'</div>';
+  h+='<div class="row" style="margin-top:var(--e3)"><span class="b small">'+(busca?"Resultados":"Recomendados para o seu pedido")+'</span><span class="sp tiny muted">'+vis.length+' tatuador(es)</span></div>';
   if(!vis.length)h+='<div class="card pad muted" style="margin-top:var(--e2)">Ninguém com esse nome faz o que você pediu. Apague a busca para ver as recomendações.</div>';
   h+='<div style="margin-top:var(--e2)">';
   vis.forEach(function(x){
-   var fora=S.aiFora.indexOf(x.id)>=0;
-   h+='<div class="lrow"'+(fora?' style="opacity:.45"':'')+'><div class="av">'+ini(x.name)+'</div>';
+   h+='<div class="lrow"><div class="av">'+ini(x.name)+'</div>';
    h+='<div style="min-width:0"><div class="b small">'+x.name+(x.verified?' <span style="color:var(--accent)">✔</span>':'')+'</div>';
    h+='<div class="tiny muted">'+x.styles.map(function(s2){return SL[s2]}).join(", ")+'</div>';
-   h+='<div class="tiny muted">'+x.city+(distanciaTexto(x)?' · '+distanciaTexto(x):'')+' · '+stars(x.rating)+' '+x.rating+' ('+x.reviews+')</div></div>';
-   h+='<div class="sp" style="text-align:right"><div>'+cifroes(x)+'</div>';
-   h+='<button class="btn sm" style="margin-top:var(--e1)" onclick="tog(S.aiFora,\''+x.id+'\')">'+(fora?"Incluir":"Tirar")+'</button></div></div>';
+   h+='<div class="tiny muted">'+x.city+(distanciaTexto(x)?' · '+distanciaTexto(x):'')+' · '+stars(x.rating)+' '+x.rating+' ('+x.reviews+') · '+cifroes(x)+'</div></div>';
+   h+='<div class="sp"><button class="btn sm" onclick="solicitarDe(\''+x.id+'\')">Solicitar orçamento</button></div></div>';
   });
   h+='</div>';
+  h+='<div class="tiny muted" style="margin-top:var(--e2)">Cada tatuador responde com o preço dele. Ninguém vê a proposta do outro.</div>';
 
-  /* A decisão sobre o TIPO de orçamento, dela: valor fechado, por
-     hora, ou conversar antes. Vai junto do pedido para quem responde
-     saber o que a pessoa espera receber. */
-  h+='<div class="fgroup" style="margin-top:var(--e4)"><span class="gl">Como você prefere o orçamento?</span>';
-  [["fechado","Valor fechado"],["hora","Por hora"],["conversar","Conversar antes"]].forEach(function(t){
-   h+='<button class="chip '+(S.aiTipo===t[0]?"on":"")+'" onclick="S.aiTipo=S.aiTipo===\''+t[0]+'\'?\'\':\''+t[0]+'\';renderDrawer()">'+t[1]+'</button>'});
-  h+='</div>';
-  h+='<div class="fgroup" style="margin-top:var(--e3)"><span class="gl">Quanto você pretende gastar <span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">— opcional</span></span>';
-  [["ate500","até R$ 500"],["500a1500","R$ 500 a 1.500"],["1500a3000","R$ 1.500 a 3.000"],["acima3000","acima de R$ 3.000"]].forEach(function(f){
-   h+='<button class="chip '+(S.aiFaixa===f[0]?"on":"")+'" onclick="S.aiFaixa=S.aiFaixa===\''+f[0]+'\'?\'\':\''+f[0]+'\';renderDrawer()">'+f[1]+'</button>'});
-  h+='</div><div class="tiny muted" style="margin-top:var(--e1)">Ajuda quem responde a saber se cabe. Não aparece como oferta.</div>';
-  h+='<div style="margin-top:var(--e3)"><label class="lb">Observações</label><textarea class="fld" id="aiObs" style="height:62px;resize:vertical" oninput="S.aiObs=this.value" placeholder="Se tem prazo, se é a primeira, o que você não quer…">'+escapar(S.aiObs)+'</textarea></div>';
-
-  var vao=vis.filter(function(x){return S.aiFora.indexOf(x.id)<0}).length;
-  h+='<div class="tiny muted" style="margin-top:var(--e3)">Cada tatuador responde com o preço dele. Ninguém vê a proposta do outro.</div>';
-  h+='<button class="btn primary blk" style="margin-top:var(--e3)" '+(vao?"":"disabled")+' onclick="'+(isLog()?"S.aiStep=2;renderDrawer()":"closeDrawer();irCadastro(null)")+'">'+
-     (vao?"Enviar para "+vao+" tatuador(es)":"Escolha ao menos um")+'</button>';
+  h+='<div class="sep"></div>';
+  h+='<div class="b small">Não quer escolher agora?</div>';
+  h+='<div class="tiny muted" style="margin-top:var(--e1)">Envie o pedido geral: ele entra no pool aberto, onde tatuadores do seu estilo prospectam ativamente — e a plataforma cria vínculos automáticos de recomendação entre o seu pedido e quem combina.</div>';
+  h+='<button class="btn primary blk" style="margin-top:var(--e3)" onclick="'+(isLog()?"enviarGeral()":"closeDrawer();irCadastro(null)")+'">Enviar orçamento</button>';
   if(!isLog())h+='<div class="tiny muted" style="margin-top:var(--e1);text-align:center">Precisa de conta</div>';
   h+='<button class="btn blk" style="margin-top:var(--e2)" onclick="S.aiStep=0;renderDrawer()">← Voltar ao pedido</button>';
   return h;
@@ -7160,7 +7163,7 @@ function assistBody(){
  h+='<div class="sep"></div>';
  h+='<div class="grid" style="gap:var(--e2)">';
  h+='<div><label class="lb">Parte do corpo <span class="req">obrigatório</span></label><input class="fld" id="aiParte" value="'+escapar(S.aiParte)+'" oninput="S.aiParte=this.value" placeholder="Antebraço interno" /></div>';
- h+='<div><label class="lb">Cidade <span class="muted" style="font-weight:400">— opcional</span></label><input class="fld" id="aiCidade" value="'+escapar(S.aiCidade)+'" oninput="S.aiCidade=this.value" placeholder="São Paulo" /></div>';
+ h+='<div><label class="lb">Observações <span class="muted" style="font-weight:400">— opcional</span></label><textarea class="fld" id="aiObs" style="height:62px;resize:vertical" oninput="S.aiObs=this.value" placeholder="Se tem prazo, se é a primeira, o que você não quer…">'+escapar(S.aiObs)+'</textarea></div>';
  h+='</div>';
  /* Faixa de gasto e observações saíram DAQUI: são detalhe de
     negociação, não descrição da tatuagem. Moram no passo 2, junto das
