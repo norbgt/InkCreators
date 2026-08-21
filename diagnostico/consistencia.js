@@ -291,6 +291,30 @@ chk("e a aba antiga se denuncia",
     /aba antiga\? clique/.test(code),
     "a aba envelhece em silêncio de novo");
 
+/* ── 4d. A AUTORIA ───────────────────────────────────────────────
+   A ideia é dela e está sendo criada aqui: nenhuma referência à
+   ferramenta de origem aparece em tela nenhuma. E os direitos
+   autorais dela vivem no código — invisíveis na interface, sempre
+   presentes nos quatro arquivos — como ela definiu. */
+secao("4d. A AUTORIA");
+chk("nenhuma referência à origem em tela ou código do protótipo",
+    html.indexOf("Lovable") < 0,
+    "a referência que ela mandou remover voltou");
+chk("os direitos autorais dela vivem no código",
+    /© 2026 Amanda Noronha/.test(html) && /linkedin\.com\/in\/amanda-noronha/.test(html),
+    "o copyright saiu do código — ele é invisível em tela, nunca ausente");
+["dados.js","teste.js","verificar.js"].forEach(function(arq){
+  var t=fs.readFileSync(path.join(__dirname,"..","prototipo",arq),"utf8");
+  chk("e em "+arq+" também", /Amanda Noronha\. Todos os direitos/.test(t),
+      arq+" ficou sem o aviso de direitos");
+});
+/* A primeira versão media o body cru e acusava o comentário HTML do
+   rodapé — comentário não é tela. Tela é o que o RENDER escreve: as
+   strings do código JS. É lá que o nome não pode aparecer. */
+chk("mas nunca em tela",
+    !/h\+='[^']*Amanda Noronha/.test(code) && !/textContent[^;]*Amanda Noronha/.test(code),
+    "o copyright vazou para a interface — ela pediu invisível em tela");
+
 /* ── 5. A MOLDURA DA PÁGINA ──────────────────────────────────────
    Uma largura máxima e uma margem lateral, fluidas, para as três
    telas. Se cada tela declarar a sua, o conteúdo dança ao trocar de

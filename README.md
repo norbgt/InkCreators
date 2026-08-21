@@ -1,8 +1,12 @@
 # Ink Creators
 
-Plataforma que conecta pessoas que querem se tatuar a tatuadores, com orçamento assistido por IA.
+Plataforma que conecta pessoas que querem se tatuar a tatuadores, estúdios e arte — descobrir, orçar, marcar, comprar e voltar, no mesmo lugar.
 
-Este repositório é a fonte de verdade do projeto. Ele nasceu do desacoplamento de um protótipo gerado no Lovable, preservando o que valia e descartando o resto.
+Este repositório é a fonte de verdade do projeto.
+
+**© 2026 Amanda Noronha. Todos os direitos reservados.**
+Os direitos autorais desta plataforma — conceito, produto, interface e
+textos — são de [Amanda Noronha](https://www.linkedin.com/in/amanda-noronha/).
 
 ## Estrutura
 

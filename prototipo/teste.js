@@ -1,3 +1,6 @@
+/* © 2026 Amanda Noronha. Todos os direitos reservados.
+   Direitos autorais desta plataforma: Amanda Noronha
+   https://www.linkedin.com/in/amanda-noronha/ */
 /* ═══════════════════════════════════════════════════════════════════
    TELEMETRIA DO TESTE COM USUÁRIOS
 
